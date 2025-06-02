@@ -3,6 +3,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\PermissionRequest;
 use App\Models\Permission;
+use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
 
@@ -11,12 +12,61 @@ class PermissionController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $permissions = Permission::latest()->paginate(10);
+        $permissionsQuery = Permission::latest()->orderBy('id', 'asc');
+
+        // Search filter
+        if (request()->filled('search')) {
+            $search = request()->search;
+            $permissionsQuery->where(function ($query) use ($search) {
+                $query->where('label', 'like', "%{$search}%");
+            });
+        }
+
+        // Count total and filtered permissions
+        $totalCount    = $permissionsQuery->count();
+        $filteredCount = $permissionsQuery->count();
+
+        // Pagination
+        $perPage = (int) (request()->per_page ?? 10);
+
+        if ($perPage === -1) {
+            $allPermissions = $permissionsQuery->get()->map(function ($permission) {
+                return [
+                    'id'          => $permission->id,
+                    'name'        => $permission->name,
+                    'label'       => $permission->label,
+                    'module'      => $permission->module,
+                    'description' => $permission->description,
+                ];
+            });
+
+            $permissionsQuery = [
+                'data'     => $allPermissions,
+                'total'    => $filteredCount,
+                'per_page' => $perPage,
+                'from'     => 1,
+                'to'       => $filteredCount,
+            ];
+        } else {
+            $permissionsQuery = $permissionsQuery->paginate($perPage)->withQueryString();
+            $permissionsQuery->getCollection()->transform(function ($permission) {
+                return [
+                    'id'          => $permission->id,
+                    'name'        => $permission->name,
+                    'label'       => $permission->label,
+                    'module'      => $permission->module,
+                    'description' => $permission->description,
+                ];
+            });
+        }
 
         return Inertia::render('permissions/index', [
-            'permissions' => $permissions,
+            'permissions'   => $permissionsQuery,
+            'filters'       => $request->only(['search', 'per_page']),
+            'totalCount'    => $totalCount,
+            'filteredCount' => $filteredCount,
         ]);
     }
 

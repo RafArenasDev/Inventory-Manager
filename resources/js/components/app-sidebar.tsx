@@ -3,7 +3,7 @@ import { NavUser } from '@/components/nav-user';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
 import { type NavItem } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
-import { LayoutGrid, Shield, Users } from 'lucide-react';
+import { Key, LayoutGrid, Package, Shield, Tags, Users } from 'lucide-react';
 import AppLogo from './app-logo';
 
 const mainNavItems: NavItem[] = [
@@ -18,30 +18,30 @@ const mainNavItems: NavItem[] = [
         icon: Shield,
         permission: 'view-roles-module',
     },
-    // {
-    //     title: 'Permisos',
-    //     href: '/permissions',
-    //     icon: Key,
-    //     permission: 'view-permissions-module',
-    // },
+    {
+        title: 'Permisos',
+        href: '/permissions',
+        icon: Key,
+        permission: 'view-permissions-module',
+    },
     {
         title: 'Usuarios',
         href: '/users',
         icon: Users,
         permission: 'view-users-module',
     },
-    // {
-    //     title: 'Categorías',
-    //     href: '/categories',
-    //     icon: Tags,
-    //     permission: 'view-categories-module',
-    // },
-    // {
-    //     title: 'Productos',
-    //     href: '/products',
-    //     icon: Package,
-    //     permission: 'view-products-module',
-    // }
+    {
+        title: 'Categorías',
+        href: '/categories',
+        icon: Tags,
+        permission: 'view-categories-module',
+    },
+    {
+        title: 'Productos',
+        href: '/products',
+        icon: Package,
+        permission: 'view-products-module',
+    }
 ];
 
 export function AppSidebar() {

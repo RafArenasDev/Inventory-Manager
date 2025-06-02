@@ -39,5 +39,20 @@ class RoleSeeder extends Seeder
         ])->get();
 
         $sellerRole->syncPermissions($sellerPermissions);
+
+        // // Create 50 roles with random names
+        // $faker = \Faker\Factory::create();
+
+        // for ($i = 0; $i < 50; $i++) {
+        //     $roleName = $faker->unique()->word;
+
+        //     Role::create([
+        //         'name'        => $roleName,
+        //         'label'       => ucfirst($roleName),
+        //         'description' => $faker->sentence,
+        //         'is_active'   => $faker->boolean(90), // 90% probability of being active
+        //         'guard_name'  => 'web',
+        //     ]);
+        // }
     }
 }

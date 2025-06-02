@@ -1,6 +1,6 @@
 import AppLayout from '@/layouts/app-layout';
 import { LinkProps, type BreadcrumbItem } from '@/types';
-import { Head } from '@inertiajs/react';
+import { Head, router } from '@inertiajs/react';
 import { Link } from '@inertiajs/react';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
@@ -48,6 +48,28 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 export default function UserIndex({ users, roles, filters, totalCount, filteredCount }: UserIndexProps) {
+
+    const handlePerPageChange = (value: string) => {
+        router.get(route('users.index'), {
+            ...filters,
+            per_page: value
+        }, {
+            preserveState: true,
+            replace: true
+        });
+    };
+
+    const handleSearch = (search: string) => {
+        router.get(route('users.index'), {
+            ...filters,
+            search,
+            page: 1 // Reset to first page when searching
+        }, {
+            preserveState: true,
+            replace: true
+        });
+    };
+
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Usuarios" />
@@ -61,14 +83,16 @@ export default function UserIndex({ users, roles, filters, totalCount, filteredC
                         </Button>
                     </Link>
                 </div>
-                <div className="bg-white dark:bg-black overflow-hidden shadow-sm sm:rounded-lg p-6">
+                <div className="bg-white dark:bg-[oklch(0.100205_0_0)] overflow-hidden shadow-sm sm:rounded-lg p-6">
                     <UsersTable
                         users={users}
                         roles={roles}
                         perPage={filters.per_page || "10"}
-                        onPerPageChange={() => { }}
+                        onPerPageChange={handlePerPageChange}
                         totalCount={totalCount}
                         filteredCount={filteredCount}
+                        search={filters.search || ''}
+                        onSearch={handleSearch}
                     />
                 </div>
             </div>

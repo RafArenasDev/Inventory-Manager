@@ -19,15 +19,15 @@ class UserController extends Controller
         $authUser     = Auth::user();
         $authUserRole = $authUser->roles->first()?->name;
 
-        // Verificación de permisos
+        // Verify permissions
         if (! in_array($authUserRole, ['admin', 'seller'])) {
             abort(403, 'Usuario no autorizado.');
         }
 
-        // Consulta base con orden descendente
+        // Consult roles with descending order
         $userQuery = User::with('roles')->orderBy('id', 'desc');
 
-        // Filtro de búsqueda
+        // Search filter
         if ($request->filled('search')) {
             $search = $request->search;
             $userQuery->where(function ($query) use ($search) {
@@ -36,11 +36,11 @@ class UserController extends Controller
             });
         }
 
-        // Conteos
+        // Count total and filtered users
         $totalCount    = $userQuery->count();
         $filteredCount = $userQuery->count();
 
-        // Paginación
+        // Pagination
         $perPage = (int) ($request->per_page ?? 10);
 
         if ($perPage === -1) {
@@ -73,7 +73,7 @@ class UserController extends Controller
             });
         }
 
-        // Roles disponibles según permisos
+        // Roles disponiles for the authenticated user
         $rolesQuery = Role::query();
         if ($authUserRole === 'admin') {
             $rolesQuery->whereIn('name', ['admin', 'seller']);
