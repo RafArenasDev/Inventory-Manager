@@ -5,6 +5,7 @@ import { type NavItem } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
 import { Key, LayoutGrid, Package, Shield, Tags, Users } from 'lucide-react';
 import AppLogo from './app-logo';
+// import { NavFooter } from './nav-footer';
 
 const mainNavItems: NavItem[] = [
     {
@@ -64,6 +65,10 @@ export function AppSidebar() {
         return userPermissions.includes(item.permission);
     });
 
+    // const appVersion = '1.0.0';
+    // const currentYear = new Date().getFullYear();
+    // const companyName = 'RafArenasDev';
+
     return (
         <Sidebar collapsible="icon" variant="inset">
             <SidebarHeader>
@@ -84,6 +89,11 @@ export function AppSidebar() {
 
             <SidebarFooter>
                 <NavUser />
+                {/* <NavFooter
+                    version={appVersion}
+                    companyName={companyName}
+                    currentYear={currentYear}
+                /> */}
             </SidebarFooter>
         </Sidebar>
     );

@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { useForm } from '@inertiajs/react';
 import Swal from 'sweetalert2';
+import { Button } from '@/components/ui/button';
 
 interface Role {
     id?: number;
@@ -130,10 +131,7 @@ const RoleForm: React.FC<RoleFormProps> = ({ role, onCancel }) => {
                     {errors.description && <p className="mt-1 text-sm text-red-600">{errors.description}</p>}
                 </div>
 
-                <div>
-                    <label htmlFor="is_active" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                        Activo
-                    </label>
+                <div className="flex items-center gap-2">
                     <input
                         type="checkbox"
                         id="is_active"
@@ -141,27 +139,29 @@ const RoleForm: React.FC<RoleFormProps> = ({ role, onCancel }) => {
                         onChange={(e) => setData('is_active', e.target.checked)}
                         className="rounded border-gray-300 dark:border-gray-600 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
                     />
+                    <label htmlFor="is_active" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                        Activo
+                    </label>
                     {errors.is_active && <p className="mt-1 text-sm text-red-600">{errors.is_active}</p>}
                 </div>
             </div>
 
             {/* Botones de acción */}
             <div className="flex justify-end space-x-3 pt-4 border-t border-gray-300 dark:border-gray-600">
-                <button
+                <Button
                     type="button"
                     onClick={onCancel}
-                    className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                    variant="outline"
                     disabled={processing}
                 >
                     Cancelar
-                </button>
-                <button
+                </Button>
+                <Button
                     type="submit"
                     disabled={processing}
-                    className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                     {processing ? 'Guardando...' : (role?.id ? 'Actualizar Rol' : 'Crear Rol')}
-                </button>
+                </Button>
             </div>
         </form>
     );

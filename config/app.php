@@ -13,7 +13,7 @@ return [
     |
     */
 
-    'name'            => env('APP_NAME', 'Inventory'),
+    'name'            => env('APP_NAME', 'POS Inventory System'),
 
     /*
     |--------------------------------------------------------------------------
