@@ -18,7 +18,7 @@ export default function AppLogoIcon(props: ImgHTMLAttributes<HTMLImageElement>) 
     return (
         <img
             {...props}
-            src="/assets/img/piston.png"
+            src="/assets/img/white.png"
             alt="App Logo"
         />
     );

@@ -61,7 +61,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
             ->middleware('permission:edit-permissions');
         Route::put('/{role}', [PermissionController::class, 'update'])
             ->name('permissions.update')
-            ->middleware('permission:edit-permissions');
+            ->middleware('permission:update-permissions');
         Route::delete('/{role}', [PermissionController::class, 'destroy'])
             ->name('permissions.destroy')
             ->middleware('permission:delete-permissions');

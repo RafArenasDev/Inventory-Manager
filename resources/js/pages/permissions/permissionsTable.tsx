@@ -8,10 +8,11 @@ import {
 } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
 import { Pencil, Trash2 } from "lucide-react"
-import { Link, router } from "@inertiajs/react"
+import { router } from "@inertiajs/react"
 import { Pagination } from "@/components/ui/pagination"
 import SearchInput from "@/components/ui/search-input"
 import Swal from 'sweetalert2'
+import { Badge } from "@/components/ui/badge" // Importar componente Badge
 
 interface Permission {
     id: number;
@@ -42,6 +43,7 @@ interface PermissionsTableProps {
     filteredCount: number;
     search: string;
     onSearch: (search: string) => void;
+    onEditPermission?: (permission: Permission) => void; // Añadir esta prop
 }
 
 export default function PermissionsTable({
@@ -51,7 +53,8 @@ export default function PermissionsTable({
     totalCount,
     filteredCount,
     search,
-    onSearch
+    onSearch,
+    onEditPermission // Añadir esta prop
 }: PermissionsTableProps) {
 
     const handleDelete = (permissionId: number, permissionLabel: string) => {
@@ -89,23 +92,31 @@ export default function PermissionsTable({
         });
     };
 
+    const handleEdit = (permission: Permission, e: React.MouseEvent) => {
+        e.preventDefault();
+        if (onEditPermission) {
+            onEditPermission(permission);
+        } else {
+            router.visit(route('permissions.edit', permission.id));
+        }
+    };
+
     return (
         <div className="space-y-4">
             {/* Barra de búsqueda y controles */}
-            <div className="flex justify-between items-center">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <SearchInput
-                    placeholder="Buscar permisos por Nombre..."
+                    placeholder="Buscar permisos por nombre o módulo..."
                     searchValue={search}
                     onSearch={onSearch}
                     className="w-full sm:w-96"
                 />
-
             </div>
 
             {/* Tabla de permisos */}
-            <div className="rounded-md border dark:border-gray-700">
+            <div className="rounded-md border dark:border-gray-700 overflow-hidden">
                 <Table>
-                    <TableHeader>
+                    <TableHeader className="bg-gray-400 dark:bg-gray-700">
                         <TableRow>
                             <TableHead className="w-[200px]">Nombre</TableHead>
                             <TableHead>Módulo</TableHead>
@@ -116,29 +127,31 @@ export default function PermissionsTable({
                     <TableBody>
                         {permissions.data.length > 0 ? (
                             permissions.data.map((permission) => (
-                                <TableRow key={permission.id}>
+                                <TableRow key={permission.id} className="hover:bg-gray-50 dark:hover:bg-gray-800/50">
                                     <TableCell className="font-medium">
                                         <div className="flex flex-col">
-                                            <span>{permission.label}</span>
+                                            <span className="font-semibold">{permission.label}</span>
+                                            <span className="text-xs text-gray-500 dark:text-gray-400">{permission.name}</span>
                                         </div>
                                     </TableCell>
                                     <TableCell>
-                                        <span className="text-xs px-2.5 py-1 rounded-full bg-blue-600 text-white font-medium shadow-sm">
+                                        <Badge variant="secondary" className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
                                             {permission.module}
-                                        </span>
+                                        </Badge>
                                     </TableCell>
-                                    <TableCell>{permission.description}</TableCell>
+                                    <TableCell className="text-gray-600 dark:text-gray-300">
+                                        {permission.description || '-'}
+                                    </TableCell>
                                     <TableCell className="text-right">
                                         <div className="flex justify-end gap-2">
-                                            <Link href={route('permissions.edit', permission.id)}>
-                                                <Button
-                                                    variant="outline"
-                                                    size="icon"
-                                                    className="text-yellow-600 hover:text-yellow-700 border-yellow-300 hover:bg-yellow-50 dark:text-yellow-400 dark:hover:text-yellow-300 dark:border-yellow-600 dark:hover:bg-yellow-900/30"
-                                                >
-                                                    <Pencil className="h-4 w-4" />
-                                                </Button>
-                                            </Link>
+                                            <Button
+                                                variant="outline"
+                                                size="icon"
+                                                onClick={(e) => handleEdit(permission, e)}
+                                                className="text-yellow-600 hover:text-yellow-700 border-yellow-300 hover:bg-yellow-50 dark:text-yellow-400 dark:hover:text-yellow-300 dark:border-yellow-600 dark:hover:bg-yellow-900/30"
+                                            >
+                                                <Pencil className="h-4 w-4" />
+                                            </Button>
                                             <Button
                                                 variant="outline"
                                                 size="icon"

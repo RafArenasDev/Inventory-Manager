@@ -90,9 +90,9 @@ export default function UsersTable({
 
             </div>
 
-            <div className="rounded-md border dark:border-gray-700">
+            <div className="rounded-md border dark:border-gray-700 overflow-hidden">
                 <Table>
-                    <TableHeader>
+                    <TableHeader className="bg-gray-400 dark:bg-gray-700">
                         <TableRow>
                             <TableHead>Nombre</TableHead>
                             <TableHead>Email</TableHead>
