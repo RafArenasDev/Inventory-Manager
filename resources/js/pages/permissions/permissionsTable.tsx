@@ -118,8 +118,8 @@ export default function PermissionsTable({
                 <Table>
                     <TableHeader className="bg-gray-400 dark:bg-gray-700">
                         <TableRow>
-                            <TableHead className="w-[200px]">Nombre</TableHead>
                             <TableHead>Módulo</TableHead>
+                            <TableHead className="w-[200px]">Nombre</TableHead>
                             <TableHead>Descripción</TableHead>
                             <TableHead className="text-right w-[120px]">Acciones</TableHead>
                         </TableRow>
@@ -128,16 +128,16 @@ export default function PermissionsTable({
                         {permissions.data.length > 0 ? (
                             permissions.data.map((permission) => (
                                 <TableRow key={permission.id} className="hover:bg-gray-50 dark:hover:bg-gray-800/50">
-                                    <TableCell className="font-medium">
-                                        <div className="flex flex-col">
-                                            <span className="font-semibold">{permission.label}</span>
-                                            <span className="text-xs text-gray-500 dark:text-gray-400">{permission.name}</span>
-                                        </div>
-                                    </TableCell>
                                     <TableCell>
                                         <Badge variant="secondary" className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
                                             {permission.module}
                                         </Badge>
+                                    </TableCell>
+                                    <TableCell className="font-medium">
+                                        <div className="flex flex-col">
+                                            <span className="font-semibold">{permission.name}</span>
+                                            {/* <span className="text-xs text-gray-500 dark:text-gray-400">{permission.name}</span> */}
+                                        </div>
                                     </TableCell>
                                     <TableCell className="text-gray-600 dark:text-gray-300">
                                         {permission.description || '-'}

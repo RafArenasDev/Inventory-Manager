@@ -17,31 +17,31 @@ const mainNavItems: NavItem[] = [
         title: 'Roles',
         href: '/roles',
         icon: Shield,
-        permission: 'view-roles-module',
+        permission: 'Ver Roles',
     },
     {
         title: 'Permisos',
         href: '/permissions',
         icon: Key,
-        permission: 'view-permissions-module',
+        permission: 'Ver Permisos',
     },
     {
         title: 'Usuarios',
         href: '/users',
         icon: Users,
-        permission: 'view-users-module',
+        permission: 'Ver Usuarios',
     },
     {
         title: 'Categorías',
         href: '/categories',
         icon: Tags,
-        permission: 'view-categories-module',
+        permission: 'Ver Categorías',
     },
     {
         title: 'Productos',
         href: '/products',
         icon: Package,
-        permission: 'view-products-module',
+        permission: 'Ver Productos',
     }
 ];
 

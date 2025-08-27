@@ -34,8 +34,8 @@ class RoleSeeder extends Seeder
 
         // Assign specific permissions to the seller role
         $sellerPermissions = Permission::whereIn('name', [
-            'view-categories-module',
-            'view-products-module',
+            'Ver Categorías',
+            'Ver Productos',
         ])->get();
 
         $sellerRole->syncPermissions($sellerPermissions);

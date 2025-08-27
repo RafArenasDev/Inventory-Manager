@@ -16,35 +16,31 @@ class PermissionSeeder extends Seeder
 
         // Define modules
         $modules = [
-            'users'       => 'Usuarios',
-            'roles'       => 'Roles',
-            'permissions' => 'Permisos',
-            'categories'  => 'Categorías',
-            'products'    => 'Productos',
+            'usuarios'   => 'Usuarios',
+            'roles'      => 'Roles',
+            'permisos'   => 'Permisos',
+            'categorias' => 'Categorías',
+            'productos'  => 'Productos',
         ];
 
         // Define CRUD actions
         $crudActions = [
-            'view'   => 'Ver',
-            'create' => 'Crear',
-            'update' => 'Editar',
-            'delete' => 'Eliminar',
+            'ver'      => 'Ver',
+            'crear'    => 'Crear',
+            'editar'   => 'Editar',
+            'eliminar' => 'Eliminar',
         ];
 
         foreach ($modules as $module => $moduleName) {
             foreach ($crudActions as $action => $actionLabel) {
-                // Define permission name
-                $name = ($action === 'view') ?
-                "view-{$module}-module" :
-                "{$action}-{$module}";
-
-                // Define permission label
-                $label = ($action === 'view') ?
+                // Define permission label and name (same value)
+                $label = ($action === 'ver') ?
                 "Ver {$moduleName}" :
                 "{$actionLabel} {$moduleName}";
+                $name = $label;
 
                 // Define cleaner description
-                $descriptionText = ($action === 'view') ?
+                $descriptionText = ($action === 'ver') ?
                 "Permite ver el módulo de {$moduleName}" :
                 "Permite " . strtolower($actionLabel) . " " . $moduleName;
 
