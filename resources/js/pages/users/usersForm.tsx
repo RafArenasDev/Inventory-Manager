@@ -16,7 +16,8 @@ interface User {
     id?: number;
     name: string;
     email: string;
-    roles: string[];
+    roles: string | string[]; // Puede ser string o array
+    normalizedRoles?: string[];
 }
 
 interface UserFormProps {
@@ -26,16 +27,50 @@ interface UserFormProps {
 }
 
 const UserForm: React.FC<UserFormProps> = ({ user, roles, onCancel }) => {
+    // Convertir labels de roles a nombres (admin, seller, etc.)
+    const convertLabelToName = (roleLabel: string): string => {
+        const roleFound = roles.find(r => r.label === roleLabel);
+        return roleFound ? roleFound.name : roleLabel;
+    };
+
+    // Normalizar roles: convertir labels a names
+    const normalizeRoles = (userRoles: string | string[] | undefined): string[] => {
+        if (!userRoles) return [];
+        if (Array.isArray(userRoles)) {
+            return userRoles.map(role => convertLabelToName(role));
+        }
+        return [convertLabelToName(userRoles)];
+    };
+
+    const initialRoles = user?.normalizedRoles
+        ? user.normalizedRoles.map(role => convertLabelToName(role))
+        : normalizeRoles(user?.roles);
+
     const { data, setData, post, put, processing, errors, reset } = useForm({
         name: user?.name || '',
         email: user?.email || '',
         password: '',
         confirm_password: '',
-        roles: user?.roles || [],
+        roles: initialRoles,
     });
+
+    // Obtener el primer nombre de rol del estado actual del formulario
+    const currentRoleName = data.roles?.[0] || '';
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
+
+        // Console.log de datos que se envían
+        console.log('Datos del formulario:', {
+            name: data.name,
+            email: data.email,
+            password: data.password ? '***' : 'vacío',
+            confirm_password: data.confirm_password ? '***' : 'vacío',
+            roles: data.roles,
+            currentRoleName,
+            isCreating: !user?.id,
+            userId: user?.id
+        });
 
         if (user?.id) {
             put(route('users.update', user.id), {
@@ -88,6 +123,13 @@ const UserForm: React.FC<UserFormProps> = ({ user, roles, onCancel }) => {
         }
     };
 
+    const handleRoleChange = (value: string) => {
+        setData('roles', [value]);
+    };
+
+    const isEditing = !!user?.id;
+    const passwordRequired = !isEditing;
+
     return (
         <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-4">
@@ -125,7 +167,7 @@ const UserForm: React.FC<UserFormProps> = ({ user, roles, onCancel }) => {
 
                 <div>
                     <Label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                        Contraseña {user?.id ? '(opcional)' : '*'}
+                        Contraseña {passwordRequired ? '*' : '(opcional)'}
                     </Label>
                     <Input
                         type="password"
@@ -133,15 +175,16 @@ const UserForm: React.FC<UserFormProps> = ({ user, roles, onCancel }) => {
                         value={data.password}
                         onChange={(e) => setData('password', e.target.value)}
                         className="w-full"
-                        placeholder="Ingrese la contraseña"
-                        required={!user?.id}
+                        placeholder={isEditing ? "Dejar vacío para mantener la contraseña actual" : "Ingrese la contraseña"}
+                        required={passwordRequired}
+                        minLength={6}
                     />
                     {errors.password && <p className="mt-1 text-sm text-red-600">{errors.password}</p>}
                 </div>
 
                 <div>
                     <Label htmlFor="confirm_password" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                        Confirmar Contraseña {user?.id ? '(opcional)' : '*'}
+                        Confirmar Contraseña {passwordRequired ? '*' : '(opcional)'}
                     </Label>
                     <Input
                         type="password"
@@ -149,8 +192,8 @@ const UserForm: React.FC<UserFormProps> = ({ user, roles, onCancel }) => {
                         value={data.confirm_password}
                         onChange={(e) => setData('confirm_password', e.target.value)}
                         className="w-full"
-                        placeholder="Confirme la contraseña"
-                        required={!user?.id}
+                        placeholder={isEditing ? "Dejar vacío para mantener la contraseña actual" : "Confirme la contraseña"}
+                        required={passwordRequired}
                     />
                     {errors.confirm_password && <p className="mt-1 text-sm text-red-600">{errors.confirm_password}</p>}
                 </div>
@@ -159,10 +202,7 @@ const UserForm: React.FC<UserFormProps> = ({ user, roles, onCancel }) => {
                     <Label htmlFor="roles" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                         Roles *
                     </Label>
-                    <Select
-                        value={data.roles[0] || ''}
-                        onValueChange={(value) => setData('roles', [value])}
-                    >
+                    <Select value={currentRoleName} onValueChange={handleRoleChange}>
                         <SelectTrigger className="w-full">
                             <SelectValue placeholder="Seleccione un rol" />
                         </SelectTrigger>

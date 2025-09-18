@@ -8,15 +8,16 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Pencil, Trash2 } from "lucide-react";
-import { Link } from "@inertiajs/react";
+import { router } from "@inertiajs/react";
 import { Pagination } from "@/components/ui/pagination";
 import SearchInput from "@/components/ui/search-input";
+import Swal from 'sweetalert2';
 
 interface User {
     id: number;
     name: string;
     email: string;
-    roles: string;
+    roles: string | string[]; // Soporte para ambos tipos
 }
 
 interface Role {
@@ -33,35 +34,82 @@ interface LinkProps {
 
 interface UsersTableProps {
     users: {
-        data: User[]
-        links: LinkProps[]
-        from: number
-        to: number
-        total: number
-    }
-    roles: Role[]
-    perPage: string
-    onPerPageChange: (value: string) => void
-    totalCount: number
-    filteredCount: number
-    search: string
-    onSearch: (search: string) => void
+        data: User[];
+        links: LinkProps[];
+        from: number;
+        to: number;
+        total: number;
+    };
+    roles: Role[];
+    perPage: string;
+    onPerPageChange: (value: string) => void;
+    onEditUser: (user: User) => void;
+    totalCount: number;
+    filteredCount: number;
+    search: string;
+    onSearch: (search: string) => void;
 }
-
 
 export default function UsersTable({
     users,
     perPage,
     onPerPageChange,
+    onEditUser,
     totalCount,
     filteredCount,
     search,
-    onSearch
+    onSearch,
+    roles // Agregar roles a los props
 }: UsersTableProps) {
     const handleDelete = (userId: number, userName: string) => {
-        if (confirm(`¿Estás seguro de eliminar al usuario ${userName}?`)) {
-            window.location.href = route('users.destroy', userId);
+        Swal.fire({
+            title: "¿Estás seguro?",
+            text: `Esta acción eliminará al usuario ${userName} permanentemente`,
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#3085d6",
+            cancelButtonColor: "#d33",
+            confirmButtonText: "Sí, eliminar!",
+            cancelButtonText: "Cancelar"
+        }).then((result) => {
+            if (result.isConfirmed) {
+                router.delete(route('users.destroy', userId), {
+                    onSuccess: () => {
+                        Swal.fire({
+                            title: "Eliminado!",
+                            text: "El usuario ha sido eliminado.",
+                            icon: "success",
+                            timer: 2200,
+                            showConfirmButton: false
+                        });
+                    },
+                    onError: () => {
+                        Swal.fire({
+                            title: "Error!",
+                            text: "No se pudo eliminar el usuario.",
+                            icon: "error"
+                        });
+                    }
+                });
+            }
+        });
+    };
+
+    // Normalizar roles a array
+    const normalizeRoles = (rolesData: string | string[] | null | undefined): string[] => {
+        if (!rolesData) return [];
+        if (Array.isArray(rolesData)) return rolesData;
+        if (typeof rolesData === 'string') {
+            return rolesData.split(',').map(r => r.trim()).filter(r => r.length > 0);
         }
+        return [];
+    };
+
+    // Función para obtener el label del rol por su nombre
+    const getRoleLabel = (roleName: string) => {
+        if (!roleName) return 'Sin rol';
+        const role = roles.find(r => r.name === roleName);
+        return role ? role.label : roleName;
     };
 
     // Función para determinar el estilo del badge según el rol
@@ -77,6 +125,29 @@ export default function UsersTable({
         return `${baseStyle} bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200`;
     };
 
+    const handleEditClick = (user: User) => {
+        // Normalizar roles para el console.log
+        const normalizedRoles = normalizeRoles(user.roles);
+
+        // Console.log de datos del usuario al editar
+        console.log('Usuario seleccionado para editar:', {
+            id: user.id,
+            name: user.name,
+            email: user.email,
+            roles: user.roles,
+            normalizedRoles: normalizedRoles,
+            roleLabels: normalizedRoles.map(roleName => getRoleLabel(roleName))
+        });
+
+        // Normalizar roles para el usuario que se pasa al formulario
+        const userWithNormalizedRoles = {
+            ...user,
+            roles: normalizedRoles
+        };
+
+        onEditUser(userWithNormalizedRoles);
+    };
+
     return (
         <div className="space-y-4">
             {/* Barra de búsqueda y controles */}
@@ -87,7 +158,6 @@ export default function UsersTable({
                     onSearch={onSearch}
                     className="w-full sm:w-96"
                 />
-
             </div>
 
             <div className="rounded-md border dark:border-gray-700 overflow-hidden">
@@ -101,45 +171,54 @@ export default function UsersTable({
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        {users.data.map((user) => (
-                            <TableRow key={user.id}>
-                                <TableCell>{user.name}</TableCell>
-                                <TableCell>{user.email}</TableCell>
-                                <TableCell>
-                                    <div className="flex flex-wrap gap-2">
-                                        {user.roles && user.roles.split(', ').map((roleLabel, index) => (
-                                            <span
-                                                key={index}
-                                                className={getRoleBadgeStyle(roleLabel)}
-                                            >
-                                                {roleLabel}
-                                            </span>
-                                        ))}
-                                    </div>
-                                </TableCell>
-                                <TableCell className="text-right">
-                                    <div className="flex justify-end gap-2">
-                                        <Link href={route('users.edit', user.id)}>
+                        {users.data.map((user) => {
+                            const userRoles = normalizeRoles(user.roles);
+                            return (
+                                <TableRow key={user.id}>
+                                    <TableCell>{user.name}</TableCell>
+                                    <TableCell>{user.email}</TableCell>
+                                    <TableCell>
+                                        <div className="flex flex-wrap gap-2">
+                                            {userRoles.length > 0 ? (
+                                                userRoles.map((roleName) => {
+                                                    const roleLabel = getRoleLabel(roleName);
+                                                    return (
+                                                        <span
+                                                            key={roleName}
+                                                            className={getRoleBadgeStyle(roleLabel)}
+                                                        >
+                                                            {roleLabel}
+                                                        </span>
+                                                    );
+                                                })
+                                            ) : (
+                                                <span className="text-xs text-gray-500">Sin rol</span>
+                                            )}
+                                        </div>
+                                    </TableCell>
+                                    <TableCell className="text-right">
+                                        <div className="flex justify-end gap-2">
                                             <Button
                                                 variant="outline"
                                                 size="icon"
+                                                onClick={() => handleEditClick(user)}
                                                 className="text-yellow-600 hover:text-yellow-700 border-yellow-300 hover:bg-yellow-50 dark:text-yellow-400 dark:hover:text-yellow-300 dark:border-yellow-600 dark:hover:bg-yellow-900/30"
                                             >
                                                 <Pencil className="h-4 w-4" />
                                             </Button>
-                                        </Link>
-                                        <Button
-                                            variant="outline"
-                                            size="icon"
-                                            onClick={() => handleDelete(user.id, user.name)}
-                                            className="text-red-600 hover:text-red-700 border-red-300 hover:bg-red-50 dark:text-red-400 dark:hover:text-red-300 dark:border-red-600 dark:hover:bg-red-900/30"
-                                        >
-                                            <Trash2 className="h-4 w-4" />
-                                        </Button>
-                                    </div>
-                                </TableCell>
-                            </TableRow>
-                        ))}
+                                            <Button
+                                                variant="outline"
+                                                size="icon"
+                                                onClick={() => handleDelete(user.id, user.name)}
+                                                className="text-red-600 hover:text-red-700 border-red-300 hover:bg-red-50 dark:text-red-400 dark:hover:text-red-300 dark:border-red-600 dark:hover:bg-red-900/30"
+                                            >
+                                                <Trash2 className="h-4 w-4" />
+                                            </Button>
+                                        </div>
+                                    </TableCell>
+                                </TableRow>
+                            );
+                        })}
                     </TableBody>
                 </Table>
             </div>
@@ -150,7 +229,7 @@ export default function UsersTable({
                 onPerPageChange={onPerPageChange}
                 totalCount={totalCount}
                 filteredCount={filteredCount}
-                search=""
+                search={search}
             />
         </div>
     );

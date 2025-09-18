@@ -46,10 +46,12 @@ class UserController extends Controller
         if ($perPage === -1) {
             $allUsers = $userQuery->get()->map(function ($user) {
                 return [
-                    'id'    => $user->id,
-                    'name'  => $user->name,
-                    'email' => $user->email,
-                    'roles' => $user->roles->pluck('label')->join(', '),
+                    'id'              => $user->id,
+                    'name'            => $user->name,
+                    'email'           => $user->email,
+                    'roles'           => $user->roles->pluck('label')->join(', '),
+                    'normalizedRoles' => $user->roles->pluck('label')->toArray(),
+                    'roleLabels'      => $user->roles->pluck('label')->toArray(),
                 ];
             });
 
@@ -65,10 +67,12 @@ class UserController extends Controller
             $users = $userQuery->paginate($perPage)->withQueryString();
             $users->getCollection()->transform(function ($user) {
                 return [
-                    'id'    => $user->id,
-                    'name'  => $user->name,
-                    'email' => $user->email,
-                    'roles' => $user->roles->pluck('label')->join(', '),
+                    'id'              => $user->id,
+                    'name'            => $user->name,
+                    'email'           => $user->email,
+                    'roles'           => $user->roles->pluck('label')->join(', '),
+                    'normalizedRoles' => $user->roles->pluck('label')->toArray(),
+                    'roleLabels'      => $user->roles->pluck('label')->toArray(),
                 ];
             });
         }
@@ -142,6 +146,11 @@ class UserController extends Controller
         if ($user) {
             $user->name  = $request->name;
             $user->email = $request->email;
+
+            // Solo actualizar contraseña si se proporciona
+            if ($request->filled('password')) {
+                $user->password = Hash::make($request->password);
+            }
 
             $user->save();
 
