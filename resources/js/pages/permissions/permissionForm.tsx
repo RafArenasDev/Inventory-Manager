@@ -18,41 +18,26 @@ interface PermissionFormProps {
 }
 
 const PermissionForm: React.FC<PermissionFormProps> = ({ permission, onCancel }) => {
-    // Mapeo de acciones en español a inglés
     const actions = [
-        { value: 'view', label: 'Ver' },
-        { value: 'create', label: 'Crear' },
-        { value: 'update', label: 'Editar' },
-        { value: 'delete', label: 'Eliminar' }
+        { value: 'Ver', label: 'Ver' },
+        { value: 'Crear', label: 'Crear' },
+        { value: 'Editar', label: 'Editar' },
+        { value: 'Actualizar', label: 'Actualizar' },
+        { value: 'Eliminar', label: 'Eliminar' }
     ];
 
-    // Módulos disponibles
     const modules = [
-        { value: 'users', label: 'Usuarios' },
-        { value: 'roles', label: 'Roles' },
-        { value: 'permissions', label: 'Permisos' },
-        { value: 'categories', label: 'Categorías' },
-        { value: 'products', label: 'Productos' },
-        { value: 'reports', label: 'Reportes' }
+        { value: 'Usuarios', label: 'Usuarios' },
+        { value: 'Roles', label: 'Roles' },
+        { value: 'Permisos', label: 'Permisos' },
+        { value: 'Categorías', label: 'Categorías' },
+        { value: 'Productos', label: 'Productos' },
+        { value: 'Reportes', label: 'Reportes' }
     ];
-
-    // Extraer acción y módulo del nombre del permiso si existe (para edición)
-    const extractActionAndModule = (name: string = '') => {
-        if (!name) return { action: '', module: '' };
-
-        const parts = name.split('-');
-        if (parts.length < 2) return { action: '', module: '' };
-
-        // Para permisos view-module-module
-        if (parts[0] === 'view' && parts.length === 3) {
-            return { action: 'view', module: parts[1] };
-        }
-
-        return { action: parts[0], module: parts[1] };
-    };
 
     const initialPermission = permission || { name: '', label: '', module: '', description: '' };
-    const { action: initialAction, module: initialModule } = extractActionAndModule(initialPermission.name);
+    const initialAction = initialPermission.name ? initialPermission.name.split(' ')[0] : '';
+    const initialModule = initialPermission.module || '';
 
     const { data, setData, post, put, processing, errors, reset } = useForm({
         action: initialAction,
@@ -62,112 +47,62 @@ const PermissionForm: React.FC<PermissionFormProps> = ({ permission, onCancel })
         name: initialPermission.name || '',
     });
 
-    // Función para generar el name en formato correcto
-    const generatePermissionName = (action: string, module: string) => {
-        if (!action || !module) return '';
-
-        // Formato especial para view (view-module-module)
-        if (action === 'view') {
-            return `view-${module}-module`;
-        }
-
-        // Formato estándar para otros (action-module)
-        return `${action}-${module}`;
+    const generatePermissionNameAndLabel = (action: string, module: string) => {
+        if (!action || !module) return { name: '', label: '' };
+        const name = `${action} ${module}`;
+        return { name, label: name };
     };
 
-    // Función para generar el label descriptivo
-    const generatePermissionLabel = (action: string, module: string) => {
+    const generateDescription = (action: string, module: string) => {
         if (!action || !module) return '';
-
-        const actionMap: Record<string, string> = {
-            'view': 'Ver',
-            'create': 'Crear',
-            'update': 'Editar',
-            'delete': 'Eliminar'
-        };
-
-        const moduleMap: Record<string, string> = {
-            'users': 'Usuarios',
-            'roles': 'Roles',
-            'permissions': 'Permisos',
-            'categories': 'Categorías',
-            'products': 'Productos'
-        };
-
-        const actionLabel = actionMap[action] || action;
-        const moduleLabel = moduleMap[module] || module;
-
-        return `${actionLabel} ${moduleLabel}`;
+        return action === 'Ver' ? `Permite ver el módulo de ${module}` : `Permite ${action.toLowerCase()} ${module}`;
     };
 
-    // Actualizar name y label cuando cambien action o module
     useEffect(() => {
-        const generatedName = generatePermissionName(data.action, data.module);
-        const generatedLabel = generatePermissionLabel(data.action, data.module);
-
-        setData({
-            ...data,
-            name: generatedName,
-            label: generatedLabel
-        });
+        const { name, label } = generatePermissionNameAndLabel(data.action, data.module);
+        const description = generateDescription(data.action, data.module);
+        setData({ ...data, name, label, description });
     }, [data.action, data.module]);
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-
         if (permission?.id) {
-            put(route('permissions.update', permission.id), {
-                onSuccess: () => {
-                    Swal.fire({
-                        position: "center",
-                        icon: "success",
-                        title: "Permiso actualizado correctamente",
-                        showConfirmButton: false,
-                        timer: 2200
-                    });
-                    reset();
-                    onCancel();
-                },
-                onError: () => {
-                    Swal.fire({
-                        position: "center",
-                        icon: "error",
-                        title: "Error al actualizar el permiso",
-                        text: 'Verifica los datos ingresados.',
-                        showConfirmButton: false,
-                        timer: 2200
-                    });
-                },
-            });
+            console.log('Valores originales (BD):', permission);
+            console.log('Nuevos valores enviados:', data);
         } else {
-            post(route('permissions.store'), {
-                onSuccess: () => {
-                    Swal.fire({
-                        position: "center",
-                        icon: "success",
-                        title: "Permiso creado correctamente",
-                        showConfirmButton: false,
-                        timer: 2200
-                    });
-                    reset();
-                    onCancel();
-                },
-                onError: () => {
-                    Swal.fire({
-                        position: "center",
-                        icon: "error",
-                        title: "Error al crear el permiso",
-                        text: 'Verifica los datos ingresados.',
-                        showConfirmButton: false,
-                        timer: 2200
-                    });
-                },
-            });
+            console.log('Creando nuevo permiso:', data);
         }
+        const routeAction = permission?.id ? put : post;
+        const routeName = permission?.id ? 'permissions.update' : 'permissions.store';
+        const routeParams = permission?.id ? permission.id : undefined;
+
+        routeAction(route(routeName, routeParams), {
+            onSuccess: () => {
+                Swal.fire({
+                    position: "center",
+                    icon: "success",
+                    title: permission?.id ? "Permiso actualizado correctamente" : "Permiso creado correctamente",
+                    showConfirmButton: false,
+                    timer: 2200
+                });
+                reset();
+                onCancel();
+            },
+            onError: () => {
+                Swal.fire({
+                    position: "center",
+                    icon: "error",
+                    title: permission?.id ? "Error al actualizar el permiso" : "Error al crear el permiso",
+                    text: 'Verifica los datos ingresados.',
+                    showConfirmButton: false,
+                    timer: 2200
+                });
+            },
+        });
     };
 
     return (
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <div className="space-y-6">
             <div className="space-y-4">
                 <div>
                     <label htmlFor="action" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
@@ -224,7 +159,7 @@ const PermissionForm: React.FC<PermissionFormProps> = ({ permission, onCancel })
                         required
                     />
                     <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                        Formato: acción-módulo (en inglés). Ej: view-users-module, create-categories
+                        Formato: Acción Módulo (en español). Ej: Ver Usuarios, Crear Categorías
                     </p>
                     {errors.name && <p className="mt-1 text-sm text-red-600">{errors.name}</p>}
                 </div>
@@ -251,16 +186,15 @@ const PermissionForm: React.FC<PermissionFormProps> = ({ permission, onCancel })
                     <textarea
                         id="description"
                         value={data.description}
-                        onChange={(e) => setData('description', e.target.value)}
+                        readOnly
+                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-gray-300 cursor-not-allowed"
                         rows={3}
-                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-black text-gray-900 dark:text-gray-100"
-                        placeholder="Descripción detallada del permiso (opcional)"
+                        placeholder="Descripción generada automáticamente"
                     />
                     {errors.description && <p className="mt-1 text-sm text-red-600">{errors.description}</p>}
                 </div>
             </div>
 
-            {/* Botones de acción */}
             <div className="flex justify-end space-x-3 pt-4 border-t border-gray-300 dark:border-gray-600">
                 <Button
                     type="button"
@@ -271,13 +205,14 @@ const PermissionForm: React.FC<PermissionFormProps> = ({ permission, onCancel })
                     Cancelar
                 </Button>
                 <Button
-                    type="submit"
+                    type="button"
+                    onClick={handleSubmit}
                     disabled={processing}
                 >
                     {processing ? 'Guardando...' : (permission?.id ? 'Actualizar Permiso' : 'Crear Permiso')}
                 </Button>
             </div>
-        </form>
+        </div>
     );
 };
 

@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 use App\Http\Requests\PermissionRequest;
 use App\Models\Permission;
 use Illuminate\Http\Request;
-use Illuminate\Support\Str;
 use Inertia\Inertia;
 
 class PermissionController extends Controller
@@ -75,7 +74,7 @@ class PermissionController extends Controller
      */
     public function create()
     {
-        //
+        return Inertia::render('permissions/create');
     }
 
     /**
@@ -83,11 +82,18 @@ class PermissionController extends Controller
      */
     public function store(PermissionRequest $request)
     {
+        // Verificar si ya existe un permiso con el mismo name
+        $existingPermission = Permission::where('name', $request->label)->first();
+        if ($existingPermission) {
+            return redirect()->back()->with('error', 'Ya existe un permiso con el nombre ' . $request->label);
+        }
+
         $permission = Permission::create([
             'module'      => $request->module,
             'label'       => $request->label,
-            'name'        => Str::slug($request->label),
+            'name'        => $request->label,
             'description' => $request->description,
+            'guard_name'  => 'web',
         ]);
 
         if ($permission) {
@@ -101,7 +107,15 @@ class PermissionController extends Controller
      */
     public function show(Permission $permission)
     {
-        //
+        return Inertia::render('permissions/show', [
+            'permission' => [
+                'id'          => $permission->id,
+                'name'        => $permission->name,
+                'label'       => $permission->label,
+                'module'      => $permission->module,
+                'description' => $permission->description,
+            ],
+        ]);
     }
 
     /**
@@ -109,7 +123,15 @@ class PermissionController extends Controller
      */
     public function edit(Permission $permission)
     {
-        //
+        return Inertia::render('permissions/edit', [
+            'permission' => [
+                'id'          => $permission->id,
+                'name'        => $permission->name,
+                'label'       => $permission->label,
+                'module'      => $permission->module,
+                'description' => $permission->description,
+            ],
+        ]);
     }
 
     /**
@@ -117,10 +139,18 @@ class PermissionController extends Controller
      */
     public function update(PermissionRequest $request, Permission $permission)
     {
+        // Verificar si otro permiso ya tiene el mismo name (excepto el permiso actual)
+        $existingPermission = Permission::where('name', $request->label)
+            ->where('id', '!=', $permission->id)
+            ->first();
+        if ($existingPermission) {
+            return redirect()->back()->with('error', 'Ya existe otro permiso con el nombre ' . $request->label);
+        }
+
         if ($permission) {
             $permission->module      = $request->module;
             $permission->label       = $request->label;
-            $permission->name        = Str::slug($request->label);
+            $permission->name        = $request->label;
             $permission->description = $request->description;
 
             $permission->save();

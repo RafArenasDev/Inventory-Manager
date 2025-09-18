@@ -25,10 +25,11 @@ class PermissionSeeder extends Seeder
 
         // Define CRUD actions
         $crudActions = [
-            'ver'      => 'Ver',
-            'crear'    => 'Crear',
-            'editar'   => 'Editar',
-            'eliminar' => 'Eliminar',
+            'ver'        => 'Ver',
+            'crear'      => 'Crear',
+            'editar'     => 'Editar',
+            'actualizar' => 'Actualizar',
+            'eliminar'   => 'Eliminar',
         ];
 
         foreach ($modules as $module => $moduleName) {
