@@ -159,7 +159,7 @@ export default function ProductsTable({
                         <TableRow>
                             <TableHead>Código</TableHead>
                             <TableHead>Imagen</TableHead>
-                            <TableHead>Nombre</TableHead>
+                            <TableHead className="max-w-[200px] sm:max-w-[250px]">Nombre</TableHead>
                             <TableHead>Categoría</TableHead>
                             <TableHead className="text-right">Stock</TableHead>
                             <TableHead className="text-right">Precio</TableHead>
@@ -184,8 +184,10 @@ export default function ProductsTable({
                                             <span className="text-gray-500 dark:text-gray-400">Sin imagen</span>
                                         )}
                                     </TableCell>
-                                    <TableCell className="max-w-xs">
-                                        <div className="font-medium">{product.name}</div>
+                                    <TableCell className="max-w-[200px] sm:max-w-[250px] w-48">
+                                        <div className="font-medium line-clamp-2 break-words">
+                                            {product.name}
+                                        </div>
                                         {/* {product.description && (
                                             <div className="text-xs text-gray-500 dark:text-gray-400 truncate">
                                                 {product.description}

@@ -74,29 +74,6 @@ const ProductForm: React.FC<ProductFormProps> = ({
     return parseFloat(ivaType);
   };
 
-  const detectIvaType = () => {
-    const withoutTax = parseInt(formData.price_without_tax || "0");
-    const withTax = parseInt(formData.price_with_tax || "0");
-
-    if (withoutTax === 0 && withTax === 0) {
-      return;
-    }
-
-    const calculatedIva = withTax - withoutTax;
-    const ivaPercentage = withoutTax > 0 ? Math.round((calculatedIva / withoutTax) * 100) : 0;
-
-    if (ivaPercentage === 0) {
-      setIvaType("0");
-    } else if (ivaPercentage === 19) {
-      setIvaType("19");
-    } else if (ivaPercentage === 5) {
-      setIvaType("5");
-    } else {
-      setIvaType("custom");
-      setCustomIva(ivaPercentage.toString());
-    }
-  };
-
   const handlePriceWithoutTaxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const rawValue = cleanNumber(e.target.value);
     const num = parseInt(rawValue || "0", 10);
@@ -110,7 +87,6 @@ const ProductForm: React.FC<ProductFormProps> = ({
       price_with_tax: withTax ? withTax.toString() : "",
       iva_value: newIvaValue ? newIvaValue.toString() : "",
     }));
-    detectIvaType();
   };
 
   const handlePriceWithTaxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -126,7 +102,6 @@ const ProductForm: React.FC<ProductFormProps> = ({
       price_without_tax: withoutTax ? withoutTax.toString() : "",
       iva_value: newIvaValue ? newIvaValue.toString() : "",
     }));
-    detectIvaType();
   };
 
   const handleSalePriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -138,43 +113,36 @@ const ProductForm: React.FC<ProductFormProps> = ({
   };
 
   const handleInputBlur = (field: 'price_without_tax' | 'price_with_tax' | 'sale_price') => {
-    const value = formData[field];
+    let newFormData = { ...formData };
+    const value = newFormData[field];
     const num = parseInt(value || "0", 10);
-    if (num > 0) {
-      const newValue = num.toString();
-      setFormData(prev => ({
-        ...prev,
-        [field]: newValue
-      }));
 
-      detectIvaType();
+    if (num > 0) {
+      newFormData[field] = num.toString();
 
       if (field === 'sale_price') {
+        setFormData(newFormData);
         return;
       }
 
+      const iva = getIvaRate();
+
       if (field === 'price_without_tax') {
-        const iva = getIvaRate();
         const withTax = Math.round(num * (1 + iva / 100));
         const newIvaValue = withTax - num;
-        setFormData(prev => ({
-          ...prev,
-          price_with_tax: withTax.toString(),
-          iva_value: newIvaValue.toString()
-        }));
+        newFormData.price_with_tax = withTax.toString();
+        newFormData.iva_value = newIvaValue.toString();
       }
 
       if (field === 'price_with_tax') {
-        const iva = getIvaRate();
         const withoutTax = Math.round(num / (1 + iva / 100));
         const newIvaValue = num - withoutTax;
-        setFormData(prev => ({
-          ...prev,
-          price_without_tax: withoutTax.toString(),
-          iva_value: newIvaValue.toString()
-        }));
+        newFormData.price_without_tax = withoutTax.toString();
+        newFormData.iva_value = newIvaValue.toString();
       }
     }
+
+    setFormData(newFormData);
   };
 
   const handleIvaTypeChange = (newIvaType: string) => {
@@ -184,9 +152,10 @@ const ProductForm: React.FC<ProductFormProps> = ({
       setCustomIva("");
     }
 
-    const withoutTaxNum = parseInt(formData.price_without_tax || "0");
-    const withTaxNum = parseInt(formData.price_with_tax || "0");
     const iva = newIvaType === "custom" ? (parseFloat(customIva) || 0) : parseFloat(newIvaType);
+    let newFormData = { ...formData };
+    const withoutTaxNum = parseInt(newFormData.price_without_tax || "0");
+    const withTaxNum = parseInt(newFormData.price_with_tax || "0");
 
     let newWithoutTax = withoutTaxNum;
     let newWithTax = withTaxNum;
@@ -205,12 +174,11 @@ const ProductForm: React.FC<ProductFormProps> = ({
       }
     }
 
-    setFormData(prev => ({
-      ...prev,
-      price_without_tax: newWithoutTax.toString(),
-      price_with_tax: newWithTax.toString(),
-      iva_value: newIvaValue.toString(),
-    }));
+    newFormData.price_without_tax = newWithoutTax.toString();
+    newFormData.price_with_tax = newWithTax.toString();
+    newFormData.iva_value = newIvaValue.toString();
+
+    setFormData(newFormData);
   };
 
   useEffect(() => {
