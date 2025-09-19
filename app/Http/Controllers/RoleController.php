@@ -17,11 +17,10 @@ class RoleController extends Controller
     {
         $permissions = Permission::get()->groupBy('module');
 
-        // Contruct the base query
+        // Construct the base query
         $rolesQuery = Role::with('permissions')->orderBy('id', 'desc');
 
-
-        // Aply search filter
+        // Apply search filter
         if ($request->filled('search')) {
             $search = $request->search;
             $rolesQuery->where(function ($query) use ($search) {
@@ -29,9 +28,9 @@ class RoleController extends Controller
             });
         }
 
-         // Count total and filtered permissions
-         $totalCount    = $rolesQuery->count();
-         $filteredCount = $rolesQuery->count();
+        // Count total and filtered permissions
+        $totalCount    = $rolesQuery->count();
+        $filteredCount = $rolesQuery->count();
 
         // Pagination
         $perPage = (int) ($request->per_page ?? 10);
@@ -108,15 +107,15 @@ class RoleController extends Controller
             'name'        => $request->name,
             'label'       => $request->label,
             'description' => $request->description,
-            'is_active'   => $request->is_active ?? true,
-            'guard_name'  => $request->guard_name ?? 'web',
+            'is_active'   => true,  // Siempre activo
+            'guard_name'  => 'web', // Siempre web
         ]);
 
-        if ($role) {
-            return redirect()->route('roles.index')->with('success', 'Rol creado correctamente.');
+        if ($role && $request->has('permissions')) {
+            $role->syncPermissions($request->permissions);
         }
 
-        return redirect()->back()->with('error', 'Error al crear el rol.');
+        return redirect()->route('roles.index')->with('success', 'Rol creado correctamente.');
     }
 
     /**
@@ -145,15 +144,15 @@ class RoleController extends Controller
             'name'        => $request->name,
             'label'       => $request->label,
             'description' => $request->description,
-            'is_active'   => $request->is_active ?? true,
-            'guard_name'  => $request->guard_name ?? 'web',
+            'is_active'   => true,  // Siempre activo
+            'guard_name'  => 'web', // Siempre web
         ]);
 
-        if ($role) {
-            return redirect()->route('roles.index')->with('success', 'Rol actualizado correctamente.');
+        if ($request->has('permissions')) {
+            $role->syncPermissions($request->permissions);
         }
 
-        return redirect()->back()->with('error', 'Error al actualizar el rol.');
+        return redirect()->route('roles.index')->with('success', 'Rol actualizado correctamente.');
     }
 
     /**

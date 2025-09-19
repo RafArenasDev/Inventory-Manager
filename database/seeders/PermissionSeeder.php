@@ -16,11 +16,12 @@ class PermissionSeeder extends Seeder
 
         // Define modules
         $modules = [
-            'usuarios'   => 'Usuarios',
-            'roles'      => 'Roles',
-            'permisos'   => 'Permisos',
-            'categorias' => 'Categorías',
-            'productos'  => 'Productos',
+            'usuarios'               => 'Usuarios',
+            'roles'                  => 'Roles',
+            'permisos'               => 'Permisos',
+            'categorias'             => 'Categorías',
+            'productos'              => 'Productos',
+            'movimientos-inventario' => 'Movimientos Inventario',
         ];
 
         // Define CRUD actions

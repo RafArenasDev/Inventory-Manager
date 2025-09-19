@@ -21,12 +21,11 @@ class RoleRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name'        => 'required|string|max:255|unique:roles,name,' . $this->route('role'),
-            'label'       => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'is_active'   => 'boolean',
-            'guard_name'  => 'required|string|in:web',
+            'name'          => 'required|string|max:255|unique:roles,name,' . $this->route('role'),
+            'label'         => 'required|string|max:255',
+            'description'   => 'nullable|string',
+            'permissions'   => 'nullable|array',
+            'permissions.*' => 'exists:permissions,id',
         ];
-
     }
 }

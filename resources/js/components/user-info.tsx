@@ -27,8 +27,8 @@ export function UserInfo({ user }: { user: User; showEmail?: boolean }) {
     const userRoleLabel = roleNames.length > 0 ? getRoleLabel(roleNames[0]) : '';
 
     // Debug: Log user data
-    console.log('Auth roles:', auth.roles);
-    console.log('User role label:', userRoleLabel);
+    // console.log('Auth roles:', auth.roles);
+    // console.log('User role label:', userRoleLabel);
 
     return (
         <>

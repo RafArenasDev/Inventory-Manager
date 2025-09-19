@@ -3,7 +3,7 @@ import { NavUser } from '@/components/nav-user';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
 import { type NavItem } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
-import { Key, LayoutGrid, Package, Shield, Tags, Users } from 'lucide-react';
+import { ClipboardList, Key, LayoutGrid, Package, Shield, Tags, Users } from 'lucide-react';
 import AppLogo from './app-logo';
 // import { NavFooter } from './nav-footer';
 
@@ -42,7 +42,14 @@ const mainNavItems: NavItem[] = [
         href: '/products',
         icon: Package,
         permission: 'Ver Productos',
+    },
+    {
+        title: 'Movimientos Inventario',
+        href: '/inventory-movements',
+        icon: ClipboardList,
+        permission: 'Ver Movimientos Inventario',
     }
+
 ];
 
 export function AppSidebar() {
@@ -54,7 +61,7 @@ export function AppSidebar() {
     const userPermissions = auth.permissions;
 
     // Debug: Log user permissions
-    console.log('User permissions:', userPermissions);
+    // console.log('User permissions:', userPermissions);
 
     // Filter items based on user permissions
     const filteredNavItems = mainNavItems.filter((item) => {

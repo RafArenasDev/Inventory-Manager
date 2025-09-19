@@ -24,6 +24,14 @@ interface Permission {
     module: string
 }
 
+interface RoleForForm {
+    id?: number;
+    name: string;
+    label: string;
+    description?: string;
+    permissions: number[];
+}
+
 interface RoleIndexProps {
     roles: {
         data: Role[]
@@ -50,7 +58,7 @@ const initialBreadcrumbs: BreadcrumbItem[] = [
 
 export default function RoleIndex({ roles, permissions, filters, totalCount, filteredCount }: RoleIndexProps) {
     const [isCreating, setIsCreating] = useState(false);
-    const [editingRole, setEditingRole] = useState<Role | null>(null);
+    const [editingRole, setEditingRole] = useState<RoleForForm | null>(null);
     const [breadcrumbs, setBreadcrumbs] = useState<BreadcrumbItem[]>(initialBreadcrumbs);
 
     useEffect(() => {
@@ -80,12 +88,25 @@ export default function RoleIndex({ roles, permissions, filters, totalCount, fil
     }, [isCreating, editingRole]);
 
     const handleCreateRole = () => {
-        setEditingRole(null);
+        const newRole: RoleForForm = {
+            name: '',
+            label: '',
+            description: '',
+            permissions: []
+        };
+        setEditingRole(newRole);
         setIsCreating(true);
     };
 
     const handleEditRole = (role: Role) => {
-        setEditingRole(role);
+        const roleForForm: RoleForForm = {
+            id: role.id,
+            name: role.name,
+            label: role.label,
+            description: role.description,
+            permissions: role.permissions.map(p => p.id)
+        };
+        setEditingRole(roleForForm);
         setIsCreating(false);
     };
 
