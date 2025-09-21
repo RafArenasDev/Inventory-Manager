@@ -52,6 +52,7 @@ interface RolesTableProps {
     filteredCount: number
     search: string
     onSearch: (search: string) => void
+    userPermissions: string[]
 }
 
 export default function RolesTable({
@@ -62,7 +63,8 @@ export default function RolesTable({
     totalCount,
     filteredCount,
     search,
-    onSearch
+    onSearch,
+    userPermissions
 }: RolesTableProps) {
 
     const handleDelete = (roleId: number, roleLabel: string) => {
@@ -99,6 +101,9 @@ export default function RolesTable({
         });
     };
 
+    // Check if the user has any permissions to show the "Acciones" column
+    const showActionsColumn = userPermissions.includes('Editar Roles') || userPermissions.includes('Eliminar Roles');
+
     return (
         <div className="space-y-4">
             {/* Añadimos el SearchInput aquí */}
@@ -110,14 +115,14 @@ export default function RolesTable({
                 />
             </div>
 
-            <div className="rounded-md border dark:border-gray-700 overflow-hidden">
+            <div className="rounded-md border overflow-hidden">
                 <Table>
                     <TableHeader className="bg-gray-400 dark:bg-gray-700">
                         <TableRow>
                             <TableHead>Nombre</TableHead>
                             <TableHead>Descripción</TableHead>
                             <TableHead>Permisos</TableHead>
-                            <TableHead className="text-right">Acciones</TableHead>
+                            {showActionsColumn && <TableHead className="text-right">Acciones</TableHead>}
                         </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -154,31 +159,36 @@ export default function RolesTable({
                                         ))}
                                     </div>
                                 </TableCell>
-                                <TableCell className="text-right">
-                                    <div className="flex justify-end gap-2">
-                                        <Button
-                                            variant="outline"
-                                            size="icon"
-                                            onClick={() => onEditRole(role)}
-                                            className="text-yellow-600 hover:text-yellow-700 border-yellow-300 hover:bg-yellow-50 dark:text-yellow-400 dark:hover:text-yellow-300 dark:border-yellow-600 dark:hover:bg-yellow-900/30"
-                                        >
-                                            <Pencil className="h-4 w-4" />
-                                        </Button>
-                                        <Button
-                                            variant="outline"
-                                            size="icon"
-                                            onClick={() => handleDelete(role.id, role.label)}
-                                            className="text-red-600 hover:text-red-700 border-red-300 hover:bg-red-50 dark:text-red-400 dark:hover:text-red-300 dark:border-red-600 dark:hover:bg-red-900/30"
-                                        >
-                                            <Trash2 className="h-4 w-4" />
-                                        </Button>
-                                    </div>
-                                </TableCell>
+                                {showActionsColumn && (
+                                    <TableCell className="text-right">
+                                        <div className="flex justify-end gap-2">
+                                            {userPermissions.includes('Editar Roles') && (
+                                                <Button
+                                                    variant="outline"
+                                                    size="icon"
+                                                    onClick={() => onEditRole(role)}
+                                                    className="text-yellow-600 hover:text-yellow-700 border-yellow-300 hover:bg-yellow-50 dark:text-yellow-400 dark:hover:text-yellow-300 dark:border-yellow-600 dark:hover:bg-yellow-900/30"
+                                                >
+                                                    <Pencil className="h-4 w-4" />
+                                                </Button>
+                                            )}
+                                            {userPermissions.includes('Eliminar Roles') && (
+                                                <Button
+                                                    variant="outline"
+                                                    size="icon"
+                                                    onClick={() => handleDelete(role.id, role.label)}
+                                                    className="text-red-600 hover:text-red-700 border-red-300 hover:bg-red-50 dark:text-red-400 dark:hover:text-red-300 dark:border-red-600 dark:hover:bg-red-900/30"
+                                                >
+                                                    <Trash2 className="h-4 w-4" />
+                                                </Button>
+                                            )}
+                                        </div>
+                                    </TableCell>
+                                )}
                             </TableRow>
                         ))}
                     </TableBody>
                 </Table>
-
             </div>
 
             <Pagination

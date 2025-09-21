@@ -2,7 +2,6 @@ import React, { useEffect } from 'react';
 import { useForm } from '@inertiajs/react';
 import Swal from 'sweetalert2';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 
 interface Category {
     id?: number;
@@ -13,9 +12,10 @@ interface Category {
 interface CategoryFormProps {
     category?: Category;
     onCancel: () => void;
+    userPermissions: string[]; // Añadido
 }
 
-const CategoryForm: React.FC<CategoryFormProps> = ({ category, onCancel }) => {
+const CategoryForm: React.FC<CategoryFormProps> = ({ category, onCancel, userPermissions }) => {
     const { data, setData, post, put, processing, errors, reset } = useForm({
         name: category?.name || '',
         description: category?.description || '',
@@ -86,6 +86,11 @@ const CategoryForm: React.FC<CategoryFormProps> = ({ category, onCancel }) => {
         }
     };
 
+    // Verificar permisos para el botón de submit
+    const canSubmit = category?.id
+        ? userPermissions.includes('Actualizar Categorías')
+        : userPermissions.includes('Crear Categorías');
+
     return (
         <div className="bg-white dark:bg-[oklch(0.100205_0_0)] overflow-hidden shadow-sm sm:rounded-lg p-6">
             <form onSubmit={handleSubmit} className="space-y-6">
@@ -133,12 +138,14 @@ const CategoryForm: React.FC<CategoryFormProps> = ({ category, onCancel }) => {
                     >
                         Cancelar
                     </Button>
-                    <Button
-                        type="submit"
-                        disabled={processing}
-                    >
-                        {processing ? 'Guardando...' : (category?.id ? 'Actualizar Categoría' : 'Crear Categoría')}
-                    </Button>
+                    {canSubmit && (
+                        <Button
+                            type="submit"
+                            disabled={processing}
+                        >
+                            {processing ? 'Guardando...' : (category?.id ? 'Actualizar Categoría' : 'Crear Categoría')}
+                        </Button>
+                    )}
                 </div>
             </form>
         </div>

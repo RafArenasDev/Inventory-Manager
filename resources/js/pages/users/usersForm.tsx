@@ -16,83 +16,53 @@ interface User {
     id?: number;
     name: string;
     email: string;
-    roles: string | string[]; // Puede ser string o array
-    normalizedRoles?: string[];
+    roles: string[];
+    password?: string;
+    confirm_password?: string;
 }
 
 interface UserFormProps {
     user?: User;
     roles: Role[];
     onCancel: () => void;
+    userPermissions: string[];
 }
 
-const UserForm: React.FC<UserFormProps> = ({ user, roles, onCancel }) => {
-    // Convertir labels de roles a nombres (admin, seller, etc.)
-    const convertLabelToName = (roleLabel: string): string => {
-        const roleFound = roles.find(r => r.label === roleLabel);
-        return roleFound ? roleFound.name : roleLabel;
-    };
-
-    // Normalizar roles: convertir labels a names
-    const normalizeRoles = (userRoles: string | string[] | undefined): string[] => {
-        if (!userRoles) return [];
-        if (Array.isArray(userRoles)) {
-            return userRoles.map(role => convertLabelToName(role));
-        }
-        return [convertLabelToName(userRoles)];
-    };
-
-    const initialRoles = user?.normalizedRoles
-        ? user.normalizedRoles.map(role => convertLabelToName(role))
-        : normalizeRoles(user?.roles);
-
+const UserForm: React.FC<UserFormProps> = ({ user, roles, onCancel, userPermissions }) => {
     const { data, setData, post, put, processing, errors, reset } = useForm({
         name: user?.name || '',
         email: user?.email || '',
-        password: '',
-        confirm_password: '',
-        roles: initialRoles,
+        password: user?.password || '',
+        confirm_password: user?.confirm_password || '',
+        roles: user?.roles || [],
     });
 
-    // Obtener el primer nombre de rol del estado actual del formulario
     const currentRoleName = data.roles?.[0] || '';
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
 
-        // Console.log de datos que se envían
-        console.log('Datos del formulario:', {
-            name: data.name,
-            email: data.email,
-            password: data.password ? '***' : 'vacío',
-            confirm_password: data.confirm_password ? '***' : 'vacío',
-            roles: data.roles,
-            currentRoleName,
-            isCreating: !user?.id,
-            userId: user?.id
-        });
-
         if (user?.id) {
             put(route('users.update', user.id), {
                 onSuccess: () => {
                     Swal.fire({
-                        position: "center",
-                        icon: "success",
-                        title: "Usuario actualizado correctamente",
+                        position: 'center',
+                        icon: 'success',
+                        title: 'Usuario actualizado correctamente',
                         showConfirmButton: false,
-                        timer: 2200
+                        timer: 2200,
                     });
                     reset();
                     onCancel();
                 },
                 onError: () => {
                     Swal.fire({
-                        position: "center",
-                        icon: "error",
-                        title: "Error al actualizar el usuario",
+                        position: 'center',
+                        icon: 'error',
+                        title: 'Error al actualizar el usuario',
                         text: 'Verifica los datos ingresados.',
                         showConfirmButton: false,
-                        timer: 2200
+                        timer: 2200,
                     });
                 },
             });
@@ -100,23 +70,23 @@ const UserForm: React.FC<UserFormProps> = ({ user, roles, onCancel }) => {
             post(route('users.store'), {
                 onSuccess: () => {
                     Swal.fire({
-                        position: "center",
-                        icon: "success",
-                        title: "Usuario creado correctamente",
+                        position: 'center',
+                        icon: 'success',
+                        title: 'Usuario creado correctamente',
                         showConfirmButton: false,
-                        timer: 2200
+                        timer: 2200,
                     });
                     reset();
                     onCancel();
                 },
                 onError: () => {
                     Swal.fire({
-                        position: "center",
-                        icon: "error",
-                        title: "Error al crear el usuario",
+                        position: 'center',
+                        icon: 'error',
+                        title: 'Error al crear el usuario',
                         text: 'Verifica los datos ingresados.',
                         showConfirmButton: false,
-                        timer: 2200
+                        timer: 2200,
                     });
                 },
             });
@@ -129,6 +99,10 @@ const UserForm: React.FC<UserFormProps> = ({ user, roles, onCancel }) => {
 
     const isEditing = !!user?.id;
     const passwordRequired = !isEditing;
+
+    const canSubmit = isEditing
+        ? userPermissions.includes('Editar Usuarios')
+        : userPermissions.includes('Crear Usuarios');
 
     return (
         <form onSubmit={handleSubmit} className="space-y-6">
@@ -175,7 +149,7 @@ const UserForm: React.FC<UserFormProps> = ({ user, roles, onCancel }) => {
                         value={data.password}
                         onChange={(e) => setData('password', e.target.value)}
                         className="w-full"
-                        placeholder={isEditing ? "Dejar vacío para mantener la contraseña actual" : "Ingrese la contraseña"}
+                        placeholder={isEditing ? 'Dejar vacío para mantener la contraseña actual' : 'Ingrese la contraseña'}
                         required={passwordRequired}
                         minLength={6}
                     />
@@ -183,7 +157,10 @@ const UserForm: React.FC<UserFormProps> = ({ user, roles, onCancel }) => {
                 </div>
 
                 <div>
-                    <Label htmlFor="confirm_password" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    <Label
+                        htmlFor="confirm_password"
+                        className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+                    >
                         Confirmar Contraseña {passwordRequired ? '*' : '(opcional)'}
                     </Label>
                     <Input
@@ -192,7 +169,7 @@ const UserForm: React.FC<UserFormProps> = ({ user, roles, onCancel }) => {
                         value={data.confirm_password}
                         onChange={(e) => setData('confirm_password', e.target.value)}
                         className="w-full"
-                        placeholder={isEditing ? "Dejar vacío para mantener la contraseña actual" : "Confirme la contraseña"}
+                        placeholder={isEditing ? 'Dejar vacío para mantener la contraseña actual' : 'Confirme la contraseña'}
                         required={passwordRequired}
                     />
                     {errors.confirm_password && <p className="mt-1 text-sm text-red-600">{errors.confirm_password}</p>}
@@ -219,20 +196,14 @@ const UserForm: React.FC<UserFormProps> = ({ user, roles, onCancel }) => {
             </div>
 
             <div className="flex justify-end space-x-3 pt-4 border-t border-gray-300 dark:border-gray-600">
-                <Button
-                    type="button"
-                    onClick={onCancel}
-                    variant="outline"
-                    disabled={processing}
-                >
+                <Button type="button" onClick={onCancel} variant="outline" disabled={processing}>
                     Cancelar
                 </Button>
-                <Button
-                    type="submit"
-                    disabled={processing}
-                >
-                    {processing ? 'Guardando...' : (user?.id ? 'Actualizar Usuario' : 'Crear Usuario')}
-                </Button>
+                {canSubmit && (
+                    <Button type="submit" disabled={processing}>
+                        {processing ? 'Guardando...' : isEditing ? 'Actualizar Usuario' : 'Crear Usuario'}
+                    </Button>
+                )}
             </div>
         </form>
     );

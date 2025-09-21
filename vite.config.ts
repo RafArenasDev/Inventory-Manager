@@ -22,4 +22,8 @@ export default defineConfig({
             'ziggy-js': resolve(__dirname, 'vendor/tightenco/ziggy'),
         },
     },
+    // server: {
+    //     host: 'inventory.local', // Usar el mismo dominio que el backend
+    //     port: 5173, // Puerto para el servidor de desarrollo
+    // },
 });

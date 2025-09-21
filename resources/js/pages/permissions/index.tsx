@@ -1,6 +1,6 @@
 import AppLayout from '@/layouts/app-layout';
 import { LinkProps, type BreadcrumbItem } from '@/types';
-import { Head } from '@inertiajs/react';
+import { Head, usePage } from '@inertiajs/react';
 import PermissionsTable from './permissionsTable';
 import { router } from '@inertiajs/react';
 import { Button } from '@/components/ui/button';
@@ -49,6 +49,9 @@ export default function PermissionIndex({
     const [isCreating, setIsCreating] = useState(false);
     const [editingPermission, setEditingPermission] = useState<Permission | null>(null);
     const [breadcrumbs, setBreadcrumbs] = useState<BreadcrumbItem[]>(initialBreadcrumbs);
+
+    const { auth } = usePage().props as unknown as { auth: { permissions: string[] } };
+    const userPermissions = auth.permissions;
 
     useEffect(() => {
         if (isCreating) {
@@ -128,19 +131,22 @@ export default function PermissionIndex({
                         <PermissionForm
                             permission={editingPermission ?? undefined}
                             onCancel={handleCancelForm}
+                            userPermissions={userPermissions}
                         />
                     </div>
                 ) : (
                     <>
                         <div className="flex items-center justify-between">
                             <h2 className="text-2xl font-bold tracking-tight">Permisos</h2>
-                            <Button
-                                onClick={() => setIsCreating(true)}
-                                className="gap-1"
-                            >
-                                <Plus className="h-4 w-4" />
-                                Nuevo Permiso
-                            </Button>
+                            {userPermissions.includes('Crear Permisos') && (
+                                <Button
+                                    onClick={() => setIsCreating(true)}
+                                    className="gap-1"
+                                >
+                                    <Plus className="h-4 w-4" />
+                                    Nuevo Permiso
+                                </Button>
+                            )}
                         </div>
                         <div className="bg-white dark:bg-[oklch(0.100205_0_0)] overflow-hidden shadow-sm sm:rounded-lg p-6">
                             <PermissionsTable
@@ -152,6 +158,7 @@ export default function PermissionIndex({
                                 search={filters.search || ''}
                                 onSearch={handleSearch}
                                 onEditPermission={handleEditPermission}
+                                userPermissions={userPermissions}
                             />
                         </div>
                     </>

@@ -95,7 +95,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
             ->middleware('permission:Eliminar Usuarios');
     });
 
-    // ========== MÓDULO INVENTARIO ==========
 
     // Categories
     Route::prefix('categories')->group(function () {
@@ -157,40 +156,45 @@ Route::middleware(['auth', 'verified'])->group(function () {
         });
     });
 
-// Inventory Movements
+    // Inventory Movements
     Route::prefix('inventory-movements')->group(function () {
         Route::get('/', [InventoryMovementController::class, 'index'])
             ->name('inventory-movements.index')
             ->middleware('permission:Ver Movimientos Inventario');
+
         Route::get('/create', [InventoryMovementController::class, 'create'])
             ->name('inventory-movements.create')
             ->middleware('permission:Crear Movimientos Inventario');
-        Route::post('/', [InventoryMovementController::class, 'store'])
-            ->name('inventory-movements.store')
-            ->middleware('permission:Crear Movimientos Inventario');
-        Route::get('/{inventoryMovement}', [InventoryMovementController::class, 'show'])
-            ->name('inventory-movements.show')
-            ->middleware('permission:Ver Movimientos Inventario');
-        Route::get('/{inventoryMovement}/edit', [InventoryMovementController::class, 'edit'])
-            ->name('inventory-movements.edit')
-            ->middleware('permission:Editar Movimientos Inventario');
-        Route::put('/{inventoryMovement}', [InventoryMovementController::class, 'update'])
-            ->name('inventory-movements.update')
-            ->middleware('permission:Actualizar Movimientos Inventario');
-        Route::delete('/{inventoryMovement}', [InventoryMovementController::class, 'destroy'])
-            ->name('inventory-movements.destroy')
-            ->middleware('permission:Eliminar Movimientos Inventario');
 
-        // Reportes y exportación
+        // Exportar movimientos a Excel
+        Route::get('/export', [InventoryMovementController::class, 'export'])
+            ->name('inventory-movements.export')
+            ->middleware('permission:Exportar Movimientos Inventario');
+
         Route::get('/stock-report', [InventoryMovementController::class, 'stockReport'])
             ->name('inventory-movements.stock-report')
             ->middleware('permission:Ver Movimientos Inventario');
+
         Route::get('/movements-report', [InventoryMovementController::class, 'movementsReport'])
             ->name('inventory-movements.movements-report')
             ->middleware('permission:Ver Movimientos Inventario');
-        Route::get('/export', [InventoryMovementController::class, 'export'])
-            ->name('inventory-movements.export')
+
+        // RUTAS CON PARÁMETROS AL FINAL
+        Route::post('/', [InventoryMovementController::class, 'store'])
+            ->name('inventory-movements.store')
+            ->middleware('permission:Crear Movimientos Inventario');
+
+        Route::get('/{inventoryMovement}', [InventoryMovementController::class, 'show'])
+            ->name('inventory-movements.show')
             ->middleware('permission:Ver Movimientos Inventario');
+
+        Route::get('/{inventoryMovement}/edit', [InventoryMovementController::class, 'edit'])
+            ->name('inventory-movements.edit')
+            ->middleware('permission:Editar Movimientos Inventario');
+
+        Route::put('/{inventoryMovement}', [InventoryMovementController::class, 'update'])
+            ->name('inventory-movements.update')
+            ->middleware('permission:Actualizar Movimientos Inventario');
     });
 
 });

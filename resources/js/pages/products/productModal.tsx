@@ -98,17 +98,10 @@ export default function ProductModal({ isOpen, onClose, product }: ProductModalP
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
-            <DialogContent className="sm:max-w-[550px] max-w-[95vw] max-h-[95vh] bg-white dark:bg-[oklch(0.100205_0_0)] rounded-2xl p-0 shadow-2xl">
+            <DialogContent
+                className="sm:max-w-[550px] max-w-[95vw] max-h-[95vh] bg-white dark:bg-[oklch(0.100205_0_0)] rounded-2xl p-0 shadow-2xl [&>button]:absolute [&>button]:top-4 [&>button]:right-4 [&>button]:z-10 [&>button]:p-2 [&>button]:rounded-full [&>button]:bg-white/90 [&>button]:dark:bg-gray-800/90 [&>button]:hover:bg-white [&>button]:dark:hover:bg-gray-700 [&>button]:transition-colors [&>button]:shadow-md [&>button]:border-0"
+            >
                 <div className="relative">
-                    {/* Botón de cerrar en esquina superior derecha */}
-                    <button
-                        onClick={onClose}
-                        className="absolute top-4 right-4 z-10 p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-                    >
-                        <svg className="h-5 w-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                        </svg>
-                    </button>
 
                     {/* Imagen protagonista */}
                     {product.image_path && (
@@ -205,31 +198,39 @@ export default function ProductModal({ isOpen, onClose, product }: ProductModalP
                                         )}
                                     </div>
                                 ) : (
-                                    /* Desktop: Cards sutiles con colores diferenciados */
-                                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                                        {product.price_without_tax !== undefined && (
+                                    /* Desktop: Grid que siempre tiene 3 columnas para mantener alineación */
+                                    <div className="grid grid-cols-3 gap-2">
+                                        {product.price_without_tax !== undefined ? (
                                             <div className="text-center p-2 bg-gray-50 dark:bg-gray-900/50 rounded border border-gray-200 dark:border-gray-700">
-                                                <p className="text-xs text-gray-500 dark:text-gray-400">Sin IVA</p>
+                                                <p className="text-xs text-black dark:text-gray-400">Sin IVA</p>
                                                 <p className="text-sm font-semibold text-gray-900 dark:text-gray-100 mt-0.5">
                                                     {formatCOP(product.price_without_tax)}
                                                 </p>
                                             </div>
+                                        ) : (
+                                            <div></div>
                                         )}
-                                        {product.price_with_tax !== undefined && (
+
+                                        {product.price_with_tax !== undefined ? (
                                             <div className="text-center p-2 bg-blue-50 dark:bg-blue-950/20 rounded border border-blue-200 dark:border-blue-800">
-                                                <p className="text-xs text-white dark:text-white px-1 py-0.5 rounded inline-block">Con IVA</p>
+                                                <p className="text-xs text-black dark:text-gray-400">Con IVA</p>
                                                 <p className="text-sm font-semibold text-blue-700 dark:text-blue-300 mt-0.5">
                                                     {formatCOP(product.price_with_tax)}
                                                 </p>
                                             </div>
+                                        ) : (
+                                            <div></div>
                                         )}
-                                        {displayIvaValue > 0 && (
+
+                                        {displayIvaValue > 0 ? (
                                             <div className="text-center p-2 bg-green-50 dark:bg-green-950/20 rounded border border-green-200 dark:border-green-800">
-                                                <p className="text-xs text-white dark:text-white px-1 py-0.5 rounded inline-block">Valor IVA</p>
+                                                <p className="text-xs text-black dark:text-gray-400">Valor IVA</p>
                                                 <p className="text-sm font-semibold text-green-700 dark:text-green-300 mt-0.5">
                                                     {formatCOP(displayIvaValue)}
                                                 </p>
                                             </div>
+                                        ) : (
+                                            <div></div>
                                         )}
                                     </div>
                                 )}
@@ -248,36 +249,6 @@ export default function ProductModal({ isOpen, onClose, product }: ProductModalP
                                 )}
                             </div>
                         )}
-
-                        {/* Fechas */}
-                        {/* {(product.created_at || product.updated_at) && (
-                            <div className="space-y-2 pt-3 border-t border-gray-100 dark:border-gray-800 text-xs text-gray-500 dark:text-gray-400">
-                                {product.created_at && (
-                                    <p className="flex items-center">
-                                        <span className="w-1 h-1 bg-gray-400 rounded-full mr-2"></span>
-                                        Creado: {new Date(product.created_at).toLocaleDateString('es-CO', {
-                                            year: 'numeric',
-                                            month: 'short',
-                                            day: 'numeric',
-                                            hour: '2-digit',
-                                            minute: '2-digit'
-                                        })}
-                                    </p>
-                                )}
-                                {product.updated_at && (
-                                    <p className="flex items-center">
-                                        <span className="w-1 h-1 bg-gray-400 rounded-full mr-2"></span>
-                                        Actualizado: {new Date(product.updated_at).toLocaleDateString('es-CO', {
-                                            year: 'numeric',
-                                            month: 'short',
-                                            day: 'numeric',
-                                            hour: '2-digit',
-                                            minute: '2-digit'
-                                        })}
-                                    </p>
-                                )}
-                            </div>
-                        )} */}
                     </div>
                 </div>
             </DialogContent>

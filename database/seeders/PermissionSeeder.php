@@ -35,23 +35,19 @@ class PermissionSeeder extends Seeder
 
         foreach ($modules as $module => $moduleName) {
             foreach ($crudActions as $action => $actionLabel) {
-                // Define permission label and name (same value)
                 $label = ($action === 'ver') ?
                 "Ver {$moduleName}" :
                 "{$actionLabel} {$moduleName}";
-                $name = $label;
 
-                // Define cleaner description
                 $descriptionText = ($action === 'ver') ?
                 "Permite ver el módulo de {$moduleName}" :
                 "Permite " . strtolower($actionLabel) . " " . $moduleName;
 
-                // Create permission if it doesn't exist
                 Permission::firstOrCreate(
-                    ['name' => $name, 'guard_name' => 'web'],
+                    ['name' => $label, 'guard_name' => 'web'],
                     [
                         'module'      => $moduleName,
-                        'name'        => $name,
+                        'name'        => $label,
                         'label'       => $label,
                         'description' => $descriptionText,
                         'guard_name'  => 'web',
@@ -59,5 +55,17 @@ class PermissionSeeder extends Seeder
                 );
             }
         }
+
+        // Permiso específico para exportar
+        Permission::firstOrCreate(
+            ['name' => 'Exportar Movimientos Inventario', 'guard_name' => 'web'],
+            [
+                'module'      => 'Movimientos Inventario',
+                'name'        => 'Exportar Movimientos Inventario',
+                'label'       => 'Exportar Movimientos Inventario',
+                'description' => 'Permite exportar los movimientos de inventario a Excel',
+                'guard_name'  => 'web',
+            ]
+        );
     }
 }

@@ -47,21 +47,28 @@ class ProductController extends Controller
 
         if ($perPage === -1) {
             $allProducts = $productsQuery->get()->map(function ($product) {
+                $initialMovement = InventoryMovement::where('id', $product->initial_movement_id)
+                    ->where('product_id', $product->id)
+                    ->first();
+
                 return [
-                    'id'                => $product->id,
-                    'code'              => $product->code,
-                    'name'              => $product->name,
-                    'category'          => $product->category->name,
-                    'category_id'       => $product->category_id,
-                    'stock'             => $product->stock,
-                    'price_without_tax' => $product->price_without_tax,
-                    'price_with_tax'    => $product->price_with_tax,
-                    'iva_value'         => $product->iva_value,
-                    'sale_price'        => $product->sale_price,
-                    'supplier'          => $product->supplier,
-                    'description'       => Str::limit($product->description ?? '', 50),
+                    'id'                  => $product->id,
+                    'code'                => $product->code,
+                    'name'                => $product->name,
+                    'category'            => $product->category->name,
+                    'category_id'         => $product->category_id,
+                    'stock'               => $product->stock,
+                    'price_without_tax'   => $product->price_without_tax,
+                    'price_with_tax'      => $product->price_with_tax,
+                    'iva_value'           => $product->iva_value,
+                    'sale_price'          => $product->sale_price,
+                    'supplier'            => $product->supplier,
+                    'description'         => Str::limit($product->description ?? '', 50),
                     // Para la tabla: URL completa para mostrar imágenes
-                    'image_path'        => $product->image_path ? Storage::url($product->image_path) : null,
+                    'image_path'          => $product->image_path ? Storage::url($product->image_path) : null,
+                    'movement_date'       => $initialMovement ? $initialMovement->date : null,
+                    'movement_notes'      => $initialMovement ? $initialMovement->notes : null,
+                    'initial_movement_id' => $initialMovement ? $initialMovement->id : null,
                 ];
             });
 
@@ -75,21 +82,28 @@ class ProductController extends Controller
         } else {
             $productsQuery = $productsQuery->paginate($perPage)->withQueryString();
             $productsQuery->getCollection()->transform(function ($product) {
+                $initialMovement = InventoryMovement::where('id', $product->initial_movement_id)
+                    ->where('product_id', $product->id)
+                    ->first();
+
                 return [
-                    'id'                => $product->id,
-                    'code'              => $product->code,
-                    'name'              => $product->name,
-                    'category'          => $product->category->name,
-                    'category_id'       => $product->category_id,
-                    'stock'             => $product->stock,
-                    'price_without_tax' => $product->price_without_tax,
-                    'price_with_tax'    => $product->price_with_tax,
-                    'iva_value'         => $product->iva_value,
-                    'sale_price'        => $product->sale_price,
-                    'supplier'          => $product->supplier,
-                    'description'       => Str::limit($product->description ?? '', 50),
+                    'id'                  => $product->id,
+                    'code'                => $product->code,
+                    'name'                => $product->name,
+                    'category'            => $product->category->name,
+                    'category_id'         => $product->category_id,
+                    'stock'               => $product->stock,
+                    'price_without_tax'   => $product->price_without_tax,
+                    'price_with_tax'      => $product->price_with_tax,
+                    'iva_value'           => $product->iva_value,
+                    'sale_price'          => $product->sale_price,
+                    'supplier'            => $product->supplier,
+                    'description'         => Str::limit($product->description ?? '', 50),
                     // Para la tabla: URL completa para mostrar imágenes
-                    'image_path'        => $product->image_path ? Storage::url($product->image_path) : null,
+                    'image_path'          => $product->image_path ? Storage::url($product->image_path) : null,
+                    'movement_date'       => $initialMovement ? $initialMovement->date : null,
+                    'movement_notes'      => $initialMovement ? $initialMovement->notes : null,
+                    'initial_movement_id' => $initialMovement ? $initialMovement->id : null,
                 ];
             });
         }
@@ -116,18 +130,21 @@ class ProductController extends Controller
     {
         // Validación manual para FormData
         $validated = $request->validate([
-            'code'              => 'required|string|max:50|unique:products,code',
-            'category_id'       => 'required|integer|exists:categories,id',
-            'name'              => 'required|string|max:255',
-            'description'       => 'nullable|string',
-            'image'             => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-            'image_path'        => 'nullable|string|max:255',
-            'price_without_tax' => 'required|integer|min:0',
-            'price_with_tax'    => 'required|integer|min:0',
-            'iva_value'         => 'nullable|integer|min:0',
-            'sale_price'        => 'required|integer|min:0',
-            'supplier'          => 'nullable|string|max:255',
-            'stock'             => 'nullable|integer|min:0',
+            'code'                => 'required|string|max:50|unique:products,code',
+            'category_id'         => 'required|integer|exists:categories,id',
+            'name'                => 'required|string|max:255',
+            'description'         => 'nullable|string',
+            'image'               => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'image_path'          => 'nullable|string|max:255',
+            'price_without_tax'   => 'required|integer|min:0',
+            'price_with_tax'      => 'required|integer|min:0',
+            'iva_value'           => 'nullable|integer|min:0',
+            'sale_price'          => 'required|integer|min:0',
+            'supplier'            => 'nullable|string|max:255',
+            'stock'               => 'nullable|integer|min:0',
+            'movement_date'       => 'nullable|date',
+            'movement_notes'      => 'nullable|string|max:500',
+            'initial_movement_id' => 'nullable|integer',
         ], [
             'code.required'              => 'El código del producto es obligatorio.',
             'code.unique'                => 'Ya existe un producto con este código.',
@@ -151,35 +168,49 @@ class ProductController extends Controller
         if ($request->hasFile('image')) {
             $imagePath = $request->file('image')->store('products', 'public');
         } elseif ($validated['image_path']) {
-            // Si viene image_path pero no hay nueva imagen, usar la existente (ruta relativa)
             $imagePath = $validated['image_path'];
-
-            // Limpiar si viene con URL completa
             if (str_starts_with($imagePath, '/storage/')) {
                 $imagePath = str_replace('/storage/', '', $imagePath);
             } elseif (str_starts_with($imagePath, 'http')) {
-                // Si es URL completa, extraer solo la ruta
                 $imagePath = parse_url($imagePath, PHP_URL_PATH);
                 $imagePath = str_replace('/storage/', '', $imagePath);
             }
         }
 
-        // Calcular IVA si no viene en el request
-        $ivaValue = $validated['iva_value'] ?? ($validated['price_with_tax'] - $validated['price_without_tax']);
+        $ivaValue     = $validated['iva_value'] ?? ($validated['price_with_tax'] - $validated['price_without_tax']);
+        $initialStock = $validated['stock'] ?? 0;
+        $initialDate  = $validated['movement_date'] ?? now()->format('Y-m-d');
+        $initialNotes = $validated['movement_notes'] ?: ($validated['supplier'] ? "Primer pedido {$validated['supplier']}" : 'Primer pedido');
 
+        // Crear el producto
         $product = Product::create([
-            'code'              => $validated['code'],
-            'category_id'       => $validated['category_id'],
-            'name'              => $validated['name'],
-            'description'       => $validated['description'],
-            'image_path'        => $imagePath,
-            'price_without_tax' => $validated['price_without_tax'],
-            'price_with_tax'    => $validated['price_with_tax'],
-            'iva_value'         => $ivaValue,
-            'sale_price'        => $validated['sale_price'],
-            'supplier'          => $validated['supplier'],
-            'stock'             => $validated['stock'] ?? 0,
+            'code'                => $validated['code'],
+            'category_id'         => $validated['category_id'],
+            'name'                => $validated['name'],
+            'description'         => $validated['description'],
+            'image_path'          => $imagePath,
+            'price_without_tax'   => $validated['price_without_tax'],
+            'price_with_tax'      => $validated['price_with_tax'],
+            'iva_value'           => $ivaValue,
+            'sale_price'          => $validated['sale_price'],
+            'supplier'            => $validated['supplier'],
+            'stock'               => $initialStock,
+            'initial_movement_id' => null, // Se asignará después si hay movimiento
         ]);
+
+        // Crear movimiento inicial si hay stock > 0
+        if ($initialStock > 0) {
+            $movement = InventoryMovement::create([
+                'product_id' => $product->id,
+                'type'       => 'Entrada',
+                'quantity'   => $initialStock,
+                'date'       => $initialDate,
+                'notes'      => $initialNotes,
+            ]);
+
+            // Asignar el movimiento inicial al producto
+            $product->update(['initial_movement_id' => $movement->id]);
+        }
 
         return redirect()->route('products.index')
             ->with('success', 'Producto creado correctamente.');
@@ -190,21 +221,25 @@ class ProductController extends Controller
         $product->load('category');
         $categories = Category::select('id', 'name')->orderBy('name')->get()->toArray();
 
+        $initialMovement = InventoryMovement::where('id', $product->initial_movement_id)->where('product_id', $product->id)->first();
+
         return Inertia::render('products/edit', [
             'product'    => [
-                'id'                => $product->id,
-                'code'              => $product->code,
-                'category_id'       => $product->category_id,
-                'name'              => $product->name,
-                'description'       => $product->description,
-                // Para el formulario: solo la ruta relativa para guardar correctamente
-                'image_path'        => $product->image_path,
-                'price_without_tax' => $product->price_without_tax,
-                'price_with_tax'    => $product->price_with_tax,
-                'iva_value'         => $product->iva_value,
-                'sale_price'        => $product->sale_price,
-                'supplier'          => $product->supplier,
-                'stock'             => $product->stock,
+                'id'                  => $product->id,
+                'code'                => $product->code,
+                'category_id'         => $product->category_id,
+                'name'                => $product->name,
+                'description'         => $product->description,
+                'image_path'          => $product->image_path,
+                'price_without_tax'   => $product->price_without_tax,
+                'price_with_tax'      => $product->price_with_tax,
+                'iva_value'           => $product->iva_value,
+                'sale_price'          => $product->sale_price,
+                'supplier'            => $product->supplier,
+                'stock'               => $product->stock,
+                'movement_date'       => $initialMovement ? $initialMovement->date->format('Y-m-d') : null,
+                'movement_notes'      => $initialMovement ? $initialMovement->notes : null,
+                'initial_movement_id' => $initialMovement ? $initialMovement->id : null,
             ],
             'categories' => $categories,
         ]);
@@ -212,21 +247,23 @@ class ProductController extends Controller
 
     public function update(Request $request, Product $product)
     {
-        // Validación manual para FormData con ID del producto para unique
         $productId = $product->id;
         $validated = $request->validate([
             'code' => "required|string|max:50|unique:products,code,{$productId}",
-            'category_id'       => 'required|integer|exists:categories,id',
-            'name'              => 'required|string|max:255',
-            'description'       => 'nullable|string',
-            'image'             => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-            'image_path'        => 'nullable|string|max:255',
-            'price_without_tax' => 'required|integer|min:0',
-            'price_with_tax'    => 'required|integer|min:0',
-            'iva_value'         => 'nullable|integer|min:0',
-            'sale_price'        => 'required|integer|min:0',
-            'supplier'          => 'nullable|string|max:255',
-            'stock'             => 'nullable|integer|min:0',
+            'category_id'         => 'required|integer|exists:categories,id',
+            'name'                => 'required|string|max:255',
+            'description'         => 'nullable|string',
+            'image'               => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'image_path'          => 'nullable|string|max:255',
+            'price_without_tax'   => 'required|integer|min:0',
+            'price_with_tax'      => 'required|integer|min:0',
+            'iva_value'           => 'nullable|integer|min:0',
+            'sale_price'          => 'required|integer|min:0',
+            'supplier'            => 'nullable|string|max:255',
+            'stock'               => 'nullable|integer|min:0',
+            'movement_date'       => 'nullable|date',
+            'movement_notes'      => 'nullable|string|max:500',
+            'initial_movement_id' => 'nullable|integer',
         ], [
             'code.required'              => 'El código del producto es obligatorio.',
             'code.unique'                => 'Ya existe un producto con este código.',
@@ -269,6 +306,9 @@ class ProductController extends Controller
 
         // Calcular IVA si no viene en el request
         $ivaValue = $validated['iva_value'] ?? ($validated['price_with_tax'] - $validated['price_without_tax']);
+        $newStock = $validated['stock'] ?? $product->stock;
+        $newDate  = $validated['movement_date'] ?? null;
+        $newNotes = $validated['movement_notes'] ?? '';
 
         $product->update([
             'code'              => $validated['code'],
@@ -281,8 +321,31 @@ class ProductController extends Controller
             'iva_value'         => $ivaValue,
             'sale_price'        => $validated['sale_price'],
             'supplier'          => $validated['supplier'],
-            'stock'             => $validated['stock'] ?? $product->stock,
+            'stock'             => $newStock,
         ]);
+
+        // Manejar movimiento inicial
+        $initialMovementId = $validated['initial_movement_id'] ?? $product->initial_movement_id;
+        if ($initialMovementId) {
+            $movement = InventoryMovement::where('id', $initialMovementId)->where('product_id', $product->id)->first();
+            if ($movement && $movement->type === 'Entrada') {
+                $movement->update([
+                    'quantity' => $newStock,
+                    'date'     => $newDate ?? $movement->date,
+                    'notes'    => $newNotes,
+                ]);
+            }
+        } else if ($newStock >= 0 || ! empty($newNotes)) {
+            $movement = InventoryMovement::create([
+                'product_id' => $product->id,
+                'type'       => 'Entrada',
+                'quantity'   => $newStock,
+                'date'       => $newDate ?? now()->format('Y-m-d'),
+                'notes'      => $newNotes,
+            ]);
+            $product->initial_movement_id = $movement->id;
+            $product->save();
+        }
 
         return redirect()->route('products.index')
             ->with('success', 'Producto actualizado correctamente.');
@@ -331,9 +394,19 @@ class ProductController extends Controller
                 ->with('error', 'No hay suficiente stock. Stock actual: ' . $product->stock);
         }
 
+        // Actualizar stock
+        if ($validated['type'] === 'entry') {
+            $product->increment('stock', $validated['quantity']);
+        } else { // 'exit'
+            $product->decrement('stock', $validated['quantity']);
+        }
+
+        // Convertir a los valores que usa tu enum
+        $movementType = $validated['type'] === 'entry' ? 'Entrada' : 'Salida';
+
         InventoryMovement::create([
             'product_id' => $product->id,
-            'type'       => $validated['type'],
+            'type'       => $movementType, // Usar el valor correcto del enum
             'quantity'   => $validated['quantity'],
             'date'       => $validated['date'],
             'notes'      => $validated['notes'],

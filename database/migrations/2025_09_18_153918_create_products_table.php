@@ -26,11 +26,12 @@ return new class extends Migration
 
             $table->string('supplier')->nullable();
             $table->integer('stock')->default(0);
+            $table->unsignedBigInteger('initial_movement_id')->nullable(); // Movimiento inicial
             $table->timestamps();
         });
     }
 
-    /**
+    /**|
      * Reverse the migrations.
      */
     public function down(): void

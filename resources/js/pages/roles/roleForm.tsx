@@ -1,3 +1,4 @@
+// Modified roleForm.tsx
 import React, { useEffect, useState } from 'react';
 import { useForm } from '@inertiajs/react';
 import Swal from 'sweetalert2';
@@ -29,9 +30,10 @@ interface RoleFormProps {
     role?: Role;
     onCancel: () => void;
     permissions: Record<string, Permission[]>;
+    userPermissions: string[];
 }
 
-const RoleForm: React.FC<RoleFormProps> = ({ role, onCancel, permissions }) => {
+const RoleForm: React.FC<RoleFormProps> = ({ role, onCancel, permissions, userPermissions }) => {
     const { data, setData, post, put, processing, errors, reset } = useForm({
         name: role?.name || '',
         label: role?.label || '',
@@ -129,6 +131,10 @@ const RoleForm: React.FC<RoleFormProps> = ({ role, onCancel, permissions }) => {
     };
 
     const allPermissions = Object.values(permissions).flat();
+
+    const canSubmit = role?.id
+        ? userPermissions.includes('Actualizar Roles')
+        : userPermissions.includes('Crear Roles');
 
     return (
         <div className="bg-white dark:bg-[oklch(0.100205_0_0)] overflow-hidden shadow-sm sm:rounded-lg p-6">
@@ -281,12 +287,14 @@ const RoleForm: React.FC<RoleFormProps> = ({ role, onCancel, permissions }) => {
                     >
                         Cancelar
                     </Button>
-                    <Button
-                        type="submit"
-                        disabled={processing}
-                    >
-                        {processing ? 'Guardando...' : (role?.id ? 'Actualizar Rol' : 'Crear Rol')}
-                    </Button>
+                    {canSubmit && (
+                        <Button
+                            type="submit"
+                            disabled={processing}
+                        >
+                            {processing ? 'Guardando...' : (role?.id ? 'Actualizar Rol' : 'Crear Rol')}
+                        </Button>
+                    )}
                 </div>
             </form>
         </div>

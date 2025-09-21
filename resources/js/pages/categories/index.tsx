@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import AppLayout from '@/layouts/app-layout';
 import { LinkProps, type BreadcrumbItem } from '@/types';
-import { Head, router } from '@inertiajs/react';
+import { Head, router, usePage } from '@inertiajs/react'; // Añadido usePage
 import CategoriesTable from './categoriesTable';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft, Plus } from 'lucide-react';
@@ -50,6 +50,10 @@ export default function CategoryIndex({ categories, filters, totalCount, filtere
     const [editingCategory, setEditingCategory] = useState<CategoryForForm | null>(null);
     const [breadcrumbs, setBreadcrumbs] = useState<BreadcrumbItem[]>(initialBreadcrumbs);
 
+    // Añadido: Obtener permisos del usuario
+    const { auth } = usePage().props as unknown as { auth: { permissions: string[] } };
+    const userPermissions = auth.permissions;
+
     useEffect(() => {
         if (isCreating) {
             setBreadcrumbs([
@@ -77,6 +81,9 @@ export default function CategoryIndex({ categories, filters, totalCount, filtere
     }, [isCreating, editingCategory]);
 
     const handleCreateCategory = () => {
+        if (!userPermissions.includes('Crear Categorías')) {
+            return; // No hacer nada si no tiene permisos
+        }
         const newCategory: CategoryForForm = {
             name: '',
             description: '',
@@ -86,6 +93,9 @@ export default function CategoryIndex({ categories, filters, totalCount, filtere
     };
 
     const handleEditCategory = (category: Category) => {
+        if (!userPermissions.includes('Actualizar Categorías')) {
+            return; // No hacer nada si no tiene permisos
+        }
         const categoryForForm: CategoryForForm = {
             id: category.id,
             name: category.name,
@@ -133,16 +143,19 @@ export default function CategoryIndex({ categories, filters, totalCount, filtere
                         <CategoryForm
                             category={editingCategory ?? undefined}
                             onCancel={handleCancelForm}
+                            userPermissions={userPermissions} // Añadido
                         />
                     </div>
                 ) : (
                     <>
                         <div className="flex items-center justify-between">
                             <h2 className="text-2xl font-bold tracking-tight">Categorías</h2>
-                            <Button onClick={handleCreateCategory} className="gap-1">
-                                <Plus className="h-4 w-4" />
-                                Nueva Categoría
-                            </Button>
+                            {userPermissions.includes('Crear Categorías') && ( // Condicional
+                                <Button onClick={handleCreateCategory} className="gap-1">
+                                    <Plus className="h-4 w-4" />
+                                    Nueva Categoría
+                                </Button>
+                            )}
                         </div>
                         <div className="bg-white dark:bg-[oklch(0.100205_0_0)] overflow-hidden shadow-sm sm:rounded-lg p-6">
                             <CategoriesTable
@@ -154,6 +167,7 @@ export default function CategoryIndex({ categories, filters, totalCount, filtere
                                 filteredCount={filteredCount}
                                 search={filters.search || ""}
                                 onSearch={handleSearch}
+                                userPermissions={userPermissions} // Añadido
                             />
                         </div>
                     </>

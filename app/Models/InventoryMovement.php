@@ -25,13 +25,13 @@ class InventoryMovement extends Model
     // Scope para movimientos de entrada
     public function scopeEntries($query)
     {
-        return $query->where('type', 'entry');
+        return $query->where('type', 'Entrada');
     }
 
     // Scope para movimientos de salida
     public function scopeExits($query)
     {
-        return $query->where('type', 'exit');
+        return $query->where('type', 'Salida');
     }
 
     // Scope por rango de fechas
@@ -43,45 +43,12 @@ class InventoryMovement extends Model
     // Accesor para tipo legible
     public function getTypeLabelAttribute()
     {
-        return $this->type === 'entry' ? 'Entrada' : 'Salida';
+        return $this->type === 'Entrada' ? 'Entrada' : 'Salida';
     }
 
     // Accesor para tipo con color
     public function getTypeClassAttribute()
     {
-        return $this->type === 'entry' ? 'success' : 'danger';
-    }
-
-    protected static function boot()
-    {
-        parent::boot();
-
-        static::created(function ($movement) {
-            $product = $movement->product;
-            $delta   = $movement->type === 'entry' ? $movement->quantity : -$movement->quantity;
-            $product->update(['stock' => $product->stock + $delta]);
-        });
-
-        static::updated(function ($movement) {
-            // Si se actualiza la cantidad o el tipo, recalcular el stock
-            if ($movement->isDirty(['quantity', 'type'])) {
-                $oldDelta = $movement->getOriginal('type') === 'entry'
-                    ? $movement->getOriginal('quantity')
-                    : -$movement->getOriginal('quantity');
-
-                $newDelta = $movement->type === 'entry'
-                    ? $movement->quantity
-                    : -$movement->quantity;
-
-                $product = $movement->product;
-                $product->update(['stock' => $product->stock + ($newDelta - $oldDelta)]);
-            }
-        });
-
-        static::deleted(function ($movement) {
-            // Revertir el stock al eliminar
-            $delta = $movement->type === 'entry' ? -$movement->quantity : $movement->quantity;
-            $movement->product->increment('stock', $delta);
-        });
+        return $this->type === 'Entrada' ? 'success' : 'danger';
     }
 }

@@ -15,9 +15,10 @@ interface Permission {
 interface PermissionFormProps {
     permission?: Permission;
     onCancel: () => void;
+    userPermissions: string[];
 }
 
-const PermissionForm: React.FC<PermissionFormProps> = ({ permission, onCancel }) => {
+const PermissionForm: React.FC<PermissionFormProps> = ({ permission, onCancel, userPermissions }) => {
     const actions = [
         { value: 'Ver', label: 'Ver' },
         { value: 'Crear', label: 'Crear' },
@@ -100,6 +101,10 @@ const PermissionForm: React.FC<PermissionFormProps> = ({ permission, onCancel })
             },
         });
     };
+
+    const canSubmit = permission?.id
+        ? userPermissions.includes('Actualizar Permisos')
+        : userPermissions.includes('Crear Permisos');
 
     return (
         <div className="space-y-6">
@@ -204,13 +209,15 @@ const PermissionForm: React.FC<PermissionFormProps> = ({ permission, onCancel })
                 >
                     Cancelar
                 </Button>
-                <Button
-                    type="button"
-                    onClick={handleSubmit}
-                    disabled={processing}
-                >
-                    {processing ? 'Guardando...' : (permission?.id ? 'Actualizar Permiso' : 'Crear Permiso')}
-                </Button>
+                {canSubmit && (
+                    <Button
+                        type="button"
+                        onClick={handleSubmit}
+                        disabled={processing}
+                    >
+                        {processing ? 'Guardando...' : (permission?.id ? 'Actualizar Permiso' : 'Crear Permiso')}
+                    </Button>
+                )}
             </div>
         </div>
     );

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { router } from "@inertiajs/react";
+import { useForm } from '@inertiajs/react'; // Cambiar a useForm para consistencia con RoleForm
 import Swal from "sweetalert2";
 import { Button } from "@/components/ui/button";
 
@@ -21,12 +21,16 @@ interface Product {
   sale_price?: number | null;
   supplier?: string | null;
   stock: number;
+  movement_date?: string;
+  movement_notes?: string;
+  initial_movement_id?: number;
 }
 
 interface ProductFormProps {
   product?: Product;
   categories: Category[];
   onCancel: () => void;
+  userPermissions: string[];  // Ya incluido
 }
 
 const formatCOP = (value: number) =>
@@ -45,142 +49,40 @@ const ProductForm: React.FC<ProductFormProps> = ({
   product,
   categories,
   onCancel,
+  userPermissions
 }) => {
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
-
-  const [formData, setFormData] = useState({
-    code: "",
-    category_id: "",
-    name: "",
-    description: "",
+  // Cambiar a useForm para consistencia con RoleForm
+  const { data, setData, post, put, processing, errors, reset } = useForm({
+    code: '',
+    category_id: '',
+    name: '',
+    description: '',
     image: null as File | null,
-    image_path: "",
-    price_without_tax: "",
-    price_with_tax: "",
-    iva_value: "",
-    sale_price: "",
-    supplier: "",
-    stock: "",
+    image_path: '',
+    price_without_tax: '',
+    price_with_tax: '',
+    iva_value: '',
+    sale_price: '',
+    supplier: '',
+    stock: '',
+    movement_date: '',
+    movement_notes: '',
+    initial_movement_id: '',
   });
 
-  // IVA
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [ivaType, setIvaType] = useState("19");
   const [customIva, setCustomIva] = useState("");
 
-  const getIvaRate = () => {
-    if (ivaType === "custom") {
-      return parseFloat(customIva) || 0;
-    }
-    return parseFloat(ivaType);
-  };
+  // Fecha actual en America/Bogota
+  const now = new Date();
+  const bogotaTime = new Date(now.toLocaleString("en-US", {timeZone: "America/Bogota"}));
+  const year = bogotaTime.getFullYear();
+  const month = String(bogotaTime.getMonth() + 1).padStart(2, '0');
+  const day = String(bogotaTime.getDate()).padStart(2, '0');
+  const formattedToday = `${year}-${month}-${day}`;
 
-  const handlePriceWithoutTaxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const rawValue = cleanNumber(e.target.value);
-    const num = parseInt(rawValue || "0", 10);
-    const iva = getIvaRate();
-    const withTax = Math.round(num * (1 + iva / 100));
-    const newIvaValue = withTax - num;
-
-    setFormData((prev) => ({
-      ...prev,
-      price_without_tax: rawValue,
-      price_with_tax: withTax ? withTax.toString() : "",
-      iva_value: newIvaValue ? newIvaValue.toString() : "",
-    }));
-  };
-
-  const handlePriceWithTaxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const rawValue = cleanNumber(e.target.value);
-    const num = parseInt(rawValue || "0", 10);
-    const iva = getIvaRate();
-    const withoutTax = Math.round(num / (1 + iva / 100));
-    const newIvaValue = num - withoutTax;
-
-    setFormData((prev) => ({
-      ...prev,
-      price_with_tax: rawValue,
-      price_without_tax: withoutTax ? withoutTax.toString() : "",
-      iva_value: newIvaValue ? newIvaValue.toString() : "",
-    }));
-  };
-
-  const handleSalePriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const rawValue = cleanNumber(e.target.value);
-    setFormData((prev) => ({
-      ...prev,
-      sale_price: rawValue,
-    }));
-  };
-
-  const handleInputBlur = (field: 'price_without_tax' | 'price_with_tax' | 'sale_price') => {
-    let newFormData = { ...formData };
-    const value = newFormData[field];
-    const num = parseInt(value || "0", 10);
-
-    if (num > 0) {
-      newFormData[field] = num.toString();
-
-      if (field === 'sale_price') {
-        setFormData(newFormData);
-        return;
-      }
-
-      const iva = getIvaRate();
-
-      if (field === 'price_without_tax') {
-        const withTax = Math.round(num * (1 + iva / 100));
-        const newIvaValue = withTax - num;
-        newFormData.price_with_tax = withTax.toString();
-        newFormData.iva_value = newIvaValue.toString();
-      }
-
-      if (field === 'price_with_tax') {
-        const withoutTax = Math.round(num / (1 + iva / 100));
-        const newIvaValue = num - withoutTax;
-        newFormData.price_without_tax = withoutTax.toString();
-        newFormData.iva_value = newIvaValue.toString();
-      }
-    }
-
-    setFormData(newFormData);
-  };
-
-  const handleIvaTypeChange = (newIvaType: string) => {
-    setIvaType(newIvaType);
-
-    if (newIvaType !== "custom") {
-      setCustomIva("");
-    }
-
-    const iva = newIvaType === "custom" ? (parseFloat(customIva) || 0) : parseFloat(newIvaType);
-    let newFormData = { ...formData };
-    const withoutTaxNum = parseInt(newFormData.price_without_tax || "0");
-    const withTaxNum = parseInt(newFormData.price_with_tax || "0");
-
-    let newWithoutTax = withoutTaxNum;
-    let newWithTax = withTaxNum;
-    let newIvaValue = 0;
-
-    if (newIvaType === "0") {
-      newWithTax = withoutTaxNum;
-      newIvaValue = 0;
-    } else {
-      if (withTaxNum > 0) {
-        newWithoutTax = Math.round(withTaxNum / (1 + iva / 100));
-        newIvaValue = withTaxNum - newWithoutTax;
-      } else if (withoutTaxNum > 0) {
-        newWithTax = Math.round(withoutTaxNum * (1 + iva / 100));
-        newIvaValue = newWithTax - withoutTaxNum;
-      }
-    }
-
-    newFormData.price_without_tax = newWithoutTax.toString();
-    newFormData.price_with_tax = newWithTax.toString();
-    newFormData.iva_value = newIvaValue.toString();
-
-    setFormData(newFormData);
-  };
-
+  // Inicializar datos del formulario
   useEffect(() => {
     if (product?.id) {
       const initialData = {
@@ -210,11 +112,15 @@ const ProductForm: React.FC<ProductFormProps> = ({
         stock: product.stock !== null && product.stock !== undefined
             ? product.stock.toString()
             : "",
+        movement_date: product.movement_date || formattedToday,
+        movement_notes: product.movement_notes || "",
+        initial_movement_id: product.initial_movement_id ? product.initial_movement_id.toString() : "",
       };
 
-      setFormData(initialData);
+      setData(initialData);
       setImagePreview(product.image_path || null);
 
+      // Calcular IVA inicial
       if (product.price_without_tax && product.price_with_tax) {
         const ivaPercentage = product.price_without_tax > 0
           ? Math.round(((product.price_with_tax - product.price_without_tax) / product.price_without_tax) * 100)
@@ -223,418 +129,583 @@ const ProductForm: React.FC<ProductFormProps> = ({
           setIvaType("0");
         } else if (ivaPercentage === 19) {
           setIvaType("19");
-        } else if (ivaPercentage === 5) {
-          setIvaType("5");
         } else {
           setIvaType("custom");
           setCustomIva(ivaPercentage.toString());
         }
       }
     } else {
-      setFormData({
-        code: "",
-        category_id: "",
-        name: "",
-        description: "",
+      // Para nuevo producto
+      setData({
+        code: '',
+        category_id: categories[0]?.id?.toString() || '',
+        name: '',
+        description: '',
         image: null,
-        image_path: "",
-        price_without_tax: "",
-        price_with_tax: "",
-        iva_value: "",
-        sale_price: "",
-        supplier: "",
-        stock: "",
+        image_path: '',
+        price_without_tax: '',
+        price_with_tax: '',
+        iva_value: '',
+        sale_price: '',
+        supplier: '',
+        stock: '',
+        movement_date: formattedToday,
+        movement_notes: '',
+        initial_movement_id: '',
       });
       setImagePreview(null);
       setIvaType("19");
       setCustomIva("");
     }
-  }, [product]);
+  }, [product, categories, setData]);
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setFormData((prev) => ({ ...prev, image: file }));
-      setImagePreview(URL.createObjectURL(file));
+  const getIvaRate = () => {
+    if (ivaType === "custom") {
+      return parseFloat(customIva) || 0;
     }
+    return parseFloat(ivaType);
   };
+
+  const ivaValueNum = parseInt(data.iva_value || "0", 10);
+
+  const isFormValid = data.code.trim() !== '' &&
+                      data.name.trim() !== '' &&
+                      data.category_id !== '' &&
+                      parseInt(data.stock || "0") >= 0 &&
+                      parseInt(data.sale_price || "0") > 0 &&
+                      (parseInt(data.price_without_tax || "0") > 0 || parseInt(data.price_with_tax || "0") > 0);
+
+  // Handlers para precios (mantener la lógica existente)
+  const handlePriceWithoutTaxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const rawValue = cleanNumber(e.target.value);
+    const num = parseInt(rawValue || "0", 10);
+    const iva = getIvaRate();
+    const withTax = Math.round(num * (1 + iva / 100));
+    const newIvaValue = withTax - num;
+
+    setData({
+      ...data,
+      price_without_tax: rawValue,
+      price_with_tax: withTax ? withTax.toString() : "",
+      iva_value: newIvaValue ? newIvaValue.toString() : "",
+    });
+  };
+
+  const handlePriceWithTaxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const rawValue = cleanNumber(e.target.value);
+    const num = parseInt(rawValue || "0", 10);
+    const iva = getIvaRate();
+    const withoutTax = Math.round(num / (1 + iva / 100));
+    const newIvaValue = num - withoutTax;
+
+    setData({
+      ...data,
+      price_with_tax: rawValue,
+      price_without_tax: withoutTax ? withoutTax.toString() : "",
+      iva_value: newIvaValue ? newIvaValue.toString() : "",
+    });
+  };
+
+  const handleSalePriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const rawValue = cleanNumber(e.target.value);
+    setData({ ...data, sale_price: rawValue });
+  };
+
+  const handleInputBlur = (field: 'price_without_tax' | 'price_with_tax' | 'sale_price') => {
+    let newData = { ...data };
+    const value = newData[field];
+    const num = parseInt(value || "0", 10);
+
+    if (num > 0) {
+      newData[field] = num.toString();
+
+      if (field === 'sale_price') {
+        setData(newData);
+        return;
+      }
+
+      const iva = getIvaRate();
+
+      if (field === 'price_without_tax') {
+        const withTax = Math.round(num * (1 + iva / 100));
+        const newIvaValue = withTax - num;
+        newData.price_with_tax = withTax.toString();
+        newData.iva_value = newIvaValue.toString();
+      }
+
+      if (field === 'price_with_tax') {
+        const withoutTax = Math.round(num / (1 + iva / 100));
+        const newIvaValue = num - withoutTax;
+        newData.price_without_tax = withoutTax.toString();
+        newData.iva_value = newIvaValue.toString();
+      }
+    }
+
+    setData(newData);
+  };
+
+  const handleIvaTypeChange = (newIvaType: string) => {
+    setIvaType(newIvaType);
+
+    if (newIvaType !== "custom") {
+      setCustomIva("");
+    }
+
+    const iva = newIvaType === "custom" ? (parseFloat(customIva) || 0) : parseFloat(newIvaType);
+    let newData = { ...data };
+    const withoutTaxNum = parseInt(newData.price_without_tax || "0");
+    const withTaxNum = parseInt(newData.price_with_tax || "0");
+
+    let newWithoutTax = withoutTaxNum;
+    let newWithTax = withTaxNum;
+    let newIvaValue = 0;
+
+    if (newIvaType === "0") {
+      newWithTax = withoutTaxNum;
+      newIvaValue = 0;
+    } else {
+      if (withTaxNum > 0) {
+        newWithoutTax = Math.round(withTaxNum / (1 + iva / 100));
+        newIvaValue = withTaxNum - newWithoutTax;
+      } else if (withoutTaxNum > 0) {
+        newWithTax = Math.round(withoutTaxNum * (1 + iva / 100));
+        newIvaValue = newWithTax - withoutTaxNum;
+      }
+    }
+
+    newData.price_without_tax = newWithoutTax.toString();
+    newData.price_with_tax = newWithTax.toString();
+    newData.iva_value = newIvaValue.toString();
+
+    setData(newData);
+  };
+
+  const handleCustomIvaChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setCustomIva(value);
+
+    // Recalcular precios si hay valores previos
+    const iva = parseFloat(value) || 0;
+    let newData = { ...data };
+    const withoutTaxNum = parseInt(newData.price_without_tax || "0");
+    const withTaxNum = parseInt(newData.price_with_tax || "0");
+
+    let newWithoutTax = withoutTaxNum;
+    let newWithTax = withTaxNum;
+    let newIvaValue = 0;
+
+    if (withTaxNum > 0) {
+      newWithoutTax = Math.round(withTaxNum / (1 + iva / 100));
+      newIvaValue = withTaxNum - newWithoutTax;
+    } else if (withoutTaxNum > 0) {
+      newWithTax = Math.round(withoutTaxNum * (1 + iva / 100));
+      newIvaValue = newWithTax - withoutTaxNum;
+    }
+
+    newData.price_without_tax = newWithoutTax.toString();
+    newData.price_with_tax = newWithTax.toString();
+    newData.iva_value = newIvaValue.toString();
+
+    setData(newData);
+  };
+
+  // NUEVO: Calcular canSubmit (igual que RoleForm)
+  const canSubmit = product?.id
+      ? userPermissions.includes('Actualizar Productos')
+      : userPermissions.includes('Crear Productos');
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    console.log('Form data being submitted:', formData);
-    console.log('IVA Type:', ivaType, 'Custom IVA:', customIva);
+    console.log(`Enviando datos para ${product?.id ? 'actualizar' : 'crear'} producto:`, data);
 
-    const data = new FormData();
-    data.append("code", formData.code);
-    data.append("category_id", formData.category_id);
-    data.append("name", formData.name);
-    data.append("description", formData.description);
-    data.append("price_without_tax", formData.price_without_tax);
-    data.append("price_with_tax", formData.price_with_tax);
-    data.append("iva_value", formData.iva_value || "0");
-    data.append("sale_price", formData.sale_price);
-    data.append("supplier", formData.supplier);
-    data.append("stock", formData.stock);
-
-    if (formData.image) {
-      data.append("image", formData.image);
-    } else if (formData.image_path) {
-      data.append("image_path", formData.image_path);
-    }
-
-    console.log('FormData entries:');
-    for (const pair of data.entries()) {
-      console.log(pair[0] + ': ' + pair[1]);
-    }
+    // Preparar datos para envío (manejar imagen)
+    const submitData = new FormData();
+    Object.keys(data).forEach(key => {
+      if (key === 'image' && data.image) {
+        submitData.append('image', data.image);
+      } else if (key !== 'image' && data[key as keyof typeof data] !== '') {
+        submitData.append(key, data[key as keyof typeof data] as string);
+      }
+    });
 
     if (product?.id) {
-      data.append('_method', 'PUT');
-      router.post(route("products.update", product.id), data, {
+      put(route('products.update', product.id), {
+        data: submitData,
+        forceFormData: true,
         onSuccess: () => {
-          console.log('Update success');
           Swal.fire({
             position: "center",
             icon: "success",
             title: "Producto actualizado correctamente",
             showConfirmButton: false,
-            timer: 2200,
+            timer: 2200
           });
+          reset();
           onCancel();
         },
-        onError: (errors) => {
-          console.error("Update errors:", errors);
+        onError: () => {
           Swal.fire({
             position: "center",
             icon: "error",
             title: "Error al actualizar el producto",
-            text: "Verifica los datos ingresados.",
+            text: 'Verifica los datos ingresados.',
             showConfirmButton: false,
-            timer: 2200,
+            timer: 2200
           });
         },
       });
     } else {
-      router.post(route("products.store"), data, {
+      post(route('products.store'), {
+        data: submitData,
+        forceFormData: true,
         onSuccess: () => {
-          console.log('Create success');
           Swal.fire({
             position: "center",
             icon: "success",
             title: "Producto creado correctamente",
             showConfirmButton: false,
-            timer: 2200,
+            timer: 2200
           });
+          reset();
           onCancel();
         },
-        onError: (errors) => {
-          console.error("Create errors:", errors);
+        onError: () => {
           Swal.fire({
             position: "center",
             icon: "error",
             title: "Error al crear el producto",
-            text: "Verifica los datos ingresados.",
+            text: 'Verifica los datos ingresados.',
             showConfirmButton: false,
-            timer: 2200,
+            timer: 2200
           });
         },
       });
     }
   };
 
-  const ivaValueNum =
-    parseInt(formData.price_with_tax || "0") -
-    parseInt(formData.price_without_tax || "0");
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setData('image', file);
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setImagePreview(e.target?.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
-  const isFormValid =
-    formData.code &&
-    formData.name &&
-    formData.price_without_tax &&
-    formData.category_id;
+  // Resto de handlers (code, name, description, etc.)
+  const handleInputChange = (field: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    setData(field, e.target.value);
+  };
 
   return (
     <div className="bg-white dark:bg-[oklch(0.100205_0_0)] overflow-hidden shadow-sm sm:rounded-lg p-6">
-      <form
-        onSubmit={handleSubmit}
-        className="space-y-6"
-        encType="multipart/form-data"
-      >
+      <form onSubmit={handleSubmit} className="space-y-6">
+        {/* Información básica */}
         <div className="space-y-4">
           {/* Código */}
           <div>
-            <label htmlFor="code" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Código *
             </label>
             <input
-              id="code"
               type="text"
-              value={formData.code}
-              onChange={(e) =>
-                setFormData((prev) => ({ ...prev, code: e.target.value }))
-              }
+              value={data.code}
+              onChange={handleInputChange('code')}
               className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-black text-gray-900 dark:text-gray-100"
+              placeholder="Código del producto"
               required
             />
+            {errors.code && <p className="mt-1 text-sm text-red-600">{errors.code}</p>}
           </div>
 
           {/* Categoría */}
           <div>
-            <label htmlFor="category_id" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Categoría *
             </label>
             <select
-              id="category_id"
-              value={formData.category_id}
-              onChange={(e) =>
-                setFormData((prev) => ({
-                  ...prev,
-                  category_id: e.target.value,
-                }))
-              }
+              value={data.category_id}
+              onChange={handleInputChange('category_id')}
               className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-black text-gray-900 dark:text-gray-100"
               required
             >
-              <option value="" disabled>
-                Selecciona una categoría
-              </option>
+              <option value="">Seleccione una categoría</option>
               {categories.map((category) => (
-                <option key={category.id} value={String(category.id)}>
+                <option key={category.id} value={category.id}>
                   {category.name}
                 </option>
               ))}
             </select>
+            {errors.category_id && <p className="mt-1 text-sm text-red-600">{errors.category_id}</p>}
           </div>
 
           {/* Nombre */}
           <div>
-            <label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Nombre *
             </label>
             <input
-              id="name"
               type="text"
-              value={formData.name}
-              onChange={(e) =>
-                setFormData((prev) => ({ ...prev, name: e.target.value }))
-              }
+              value={data.name}
+              onChange={handleInputChange('name')}
               className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-black text-gray-900 dark:text-gray-100"
+              placeholder="Nombre del producto"
               required
             />
+            {errors.name && <p className="mt-1 text-sm text-red-600">{errors.name}</p>}
           </div>
 
           {/* Descripción */}
           <div>
-            <label htmlFor="description" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Descripción
             </label>
             <textarea
-              id="description"
-              value={formData.description}
-              onChange={(e) =>
-                setFormData((prev) => ({
-                  ...prev,
-                  description: e.target.value,
-                }))
-              }
+              value={data.description}
+              onChange={handleInputChange('description')}
               rows={3}
               className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-black text-gray-900 dark:text-gray-100"
+              placeholder="Descripción del producto (opcional)"
             />
+            {errors.description && <p className="mt-1 text-sm text-red-600">{errors.description}</p>}
           </div>
 
           {/* Imagen */}
           <div>
-            <label htmlFor="image" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Imagen
             </label>
             <input
-              id="image"
               type="file"
               accept="image/*"
               onChange={handleImageChange}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-black text-gray-900 dark:text-gray-100"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-black text-gray-900 dark:text-gray-100 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
             />
             {imagePreview && (
               <div className="mt-2">
                 <img
                   src={imagePreview}
-                  alt="Vista previa"
-                  className="h-32 w-32 object-cover rounded border border-gray-200"
+                  alt="Preview"
+                  className="w-32 h-32 object-cover rounded-md border"
                 />
               </div>
             )}
-          </div>
-
-          {/* IVA */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Tarifa de IVA
-            </label>
-            <select
-              value={ivaType}
-              onChange={(e) => handleIvaTypeChange(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-black text-gray-900 dark:text-gray-100"
-            >
-              <option value="19">General (19%)</option>
-              <option value="5">Tarifa del 5%</option>
-              <option value="0">Exento (0%)</option>
-              <option value="custom">Personalizada</option>
-            </select>
-            {ivaType === "custom" && (
-              <div className="mt-2">
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  IVA personalizado (%)
-                </label>
-                <input
-                  type="number"
-                  value={customIva}
-                  onChange={(e) => {
-                    setCustomIva(e.target.value);
-                    handleIvaTypeChange("custom");
-                  }}
-                  placeholder="19"
-                  min="0"
-                  max="100"
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-black text-gray-900 dark:text-gray-100"
-                />
-              </div>
-            )}
-          </div>
-
-          {/* Precios */}
-          <div className="grid grid-cols-3 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Precio sin IVA *
-              </label>
-              <div className="relative">
-                <input
-                  type="text"
-                  value={
-                    formData.price_without_tax
-                      ? formatCOP(parseInt(formData.price_without_tax))
-                      : ""
-                  }
-                  onChange={handlePriceWithoutTaxChange}
-                  onBlur={() => handleInputBlur('price_without_tax')}
-                  placeholder="0"
-                  required
-                  className="w-full pl-8 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-black text-gray-900 dark:text-gray-100"
-                />
-                <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 text-sm pointer-events-none">
-                  $
-                </span>
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Precio con IVA *
-              </label>
-              <div className="relative">
-                <input
-                  type="text"
-                  value={
-                    formData.price_with_tax
-                      ? formatCOP(parseInt(formData.price_with_tax))
-                      : ""
-                  }
-                  onChange={handlePriceWithTaxChange}
-                  onBlur={() => handleInputBlur('price_with_tax')}
-                  placeholder="0"
-                  required
-                  className="w-full pl-8 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-black text-gray-900 dark:text-gray-100"
-                />
-                <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 text-sm pointer-events-none">
-                  $
-                </span>
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Precio de Venta *
-              </label>
-              <div className="relative">
-                <input
-                  type="text"
-                  value={
-                    formData.sale_price
-                      ? formatCOP(parseInt(formData.sale_price))
-                      : ""
-                  }
-                  onChange={handleSalePriceChange}
-                  onBlur={() => handleInputBlur('sale_price')}
-                  placeholder="0"
-                  required
-                  className="w-full pl-8 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-black text-gray-900 dark:text-gray-100"
-                />
-                <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 text-sm pointer-events-none">
-                  $
-                </span>
-              </div>
-            </div>
-          </div>
-
-          {/* Valor del IVA */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Valor IVA ({getIvaRate()}%)
-            </label>
-            <input
-              type="text"
-              value={ivaValueNum ? formatCOP(ivaValueNum) : ""}
-              readOnly
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm bg-gray-50 dark:bg-gray-800 cursor-not-allowed text-gray-900 dark:text-gray-100"
-            />
-          </div>
-
-          {/* Proveedor */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Proveedor
-            </label>
-            <input
-              type="text"
-              value={formData.supplier}
-              onChange={(e) =>
-                setFormData((prev) => ({ ...prev, supplier: e.target.value }))
-              }
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-black text-gray-900 dark:text-gray-100"
-            />
-          </div>
-
-          {/* Stock */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Stock Inicial
-            </label>
-            <input
-              type="number"
-              value={formData.stock}
-              onChange={(e) =>
-                setFormData((prev) => ({ ...prev, stock: e.target.value }))
-              }
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-black text-gray-900 dark:text-gray-100"
-            />
           </div>
         </div>
 
-        {/* Botones */}
+        {/* Precios */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              Precio sin IVA *
+            </label>
+            <div className="relative">
+              <input
+                type="text"
+                value={
+                  data.price_without_tax
+                    ? formatCOP(parseInt(data.price_without_tax))
+                    : ""
+                }
+                onChange={handlePriceWithoutTaxChange}
+                onBlur={() => handleInputBlur('price_without_tax')}
+                placeholder="0"
+                required
+                className="w-full pl-8 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-black text-gray-900 dark:text-gray-100"
+              />
+              <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 text-sm pointer-events-none">
+                $
+              </span>
+            </div>
+            {errors.price_without_tax && <p className="mt-1 text-sm text-red-600">{errors.price_without_tax}</p>}
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              Precio con IVA *
+            </label>
+            <div className="relative">
+              <input
+                type="text"
+                value={
+                  data.price_with_tax
+                    ? formatCOP(parseInt(data.price_with_tax))
+                    : ""
+                }
+                onChange={handlePriceWithTaxChange}
+                onBlur={() => handleInputBlur('price_with_tax')}
+                placeholder="0"
+                required
+                className="w-full pl-8 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-black text-gray-900 dark:text-gray-100"
+              />
+              <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 text-sm pointer-events-none">
+                $
+              </span>
+            </div>
+            {errors.price_with_tax && <p className="mt-1 text-sm text-red-600">{errors.price_with_tax}</p>}
+          </div>
+        </div>
+
+        {/* Selector de IVA */}
+        <div className="space-y-2">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+            Tipo de IVA
+          </label>
+          <div className="flex flex-wrap gap-2">
+            {[
+              { value: "0", label: "Exento (0%)" },
+              { value: "19", label: "General (19%)" },
+              { value: "custom", label: "Personalizado" }
+            ].map((option) => (
+              <button
+                key={option.value}
+                type="button"
+                onClick={() => handleIvaTypeChange(option.value)}
+                className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${
+                  ivaType === option.value
+                    ? "bg-blue-500 text-white"
+                    : "bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600"
+                }`}
+              >
+                {option.label}
+              </button>
+            ))}
+          </div>
+          {ivaType === "custom" && (
+            <div className="mt-2">
+              <input
+                type="number"
+                value={customIva}
+                onChange={handleCustomIvaChange}
+                placeholder="Porcentaje"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-black text-gray-900 dark:text-gray-100"
+                min="0"
+                max="100"
+                step="0.01"
+              />
+            </div>
+          )}
+        </div>
+
+        {/* Precio de Venta */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            Precio de Venta *
+          </label>
+          <div className="relative">
+            <input
+              type="text"
+              value={
+                data.sale_price
+                  ? formatCOP(parseInt(data.sale_price))
+                  : ""
+              }
+              onChange={handleSalePriceChange}
+              onBlur={() => handleInputBlur('sale_price')}
+              placeholder="0"
+              required
+              className="w-full pl-8 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-black text-gray-900 dark:text-gray-100"
+            />
+            <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 text-sm pointer-events-none">
+              $
+            </span>
+          </div>
+          {errors.sale_price && <p className="mt-1 text-sm text-red-600">{errors.sale_price}</p>}
+        </div>
+
+        {/* Valor del IVA */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            Valor IVA ({getIvaRate()}%)
+          </label>
+          <input
+            type="text"
+            value={ivaValueNum ? formatCOP(ivaValueNum) : ""}
+            readOnly
+            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm bg-gray-50 dark:bg-gray-800 cursor-not-allowed text-gray-900 dark:text-gray-100"
+          />
+        </div>
+
+        {/* Proveedor */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            Proveedor
+          </label>
+          <input
+            type="text"
+            value={data.supplier}
+            onChange={handleInputChange('supplier')}
+            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-black text-gray-900 dark:text-gray-100"
+          />
+          {errors.supplier && <p className="mt-1 text-sm text-red-600">{errors.supplier}</p>}
+        </div>
+
+        {/* Stock */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            Stock Inicial
+          </label>
+          <input
+            type="number"
+            value={data.stock}
+            onChange={handleInputChange('stock')}
+            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-black text-gray-900 dark:text-gray-100"
+            min="0"
+          />
+          {errors.stock && <p className="mt-1 text-sm text-red-600">{errors.stock}</p>}
+        </div>
+
+        {/* Campos de movimiento */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            Fecha de Entrada Inicial
+          </label>
+          <input
+            type="date"
+            value={data.movement_date}
+            onChange={handleInputChange('movement_date')}
+            max={formattedToday}
+            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-black text-gray-900 dark:text-gray-100"
+          />
+          {errors.movement_date && <p className="mt-1 text-sm text-red-600">{errors.movement_date}</p>}
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            Notas de Entrada Inicial
+          </label>
+          <textarea
+            value={data.movement_notes}
+            onChange={handleInputChange('movement_notes')}
+            rows={3}
+            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-black text-gray-900 dark:text-gray-100"
+            placeholder="Ej: Primer pedido Distriandina"
+          />
+          {errors.movement_notes && <p className="mt-1 text-sm text-red-600">{errors.movement_notes}</p>}
+        </div>
+
+        {/* Botones - CONDICIONADO */}
         <div className="flex justify-end space-x-3 pt-4 border-t border-gray-200 dark:border-gray-700">
           <Button
             type="button"
             variant="outline"
             onClick={onCancel}
-            disabled={!isFormValid}
+            disabled={processing || !isFormValid}
           >
             Cancelar
           </Button>
-          <Button
-            type="submit"
-            disabled={!isFormValid}
-          >
-            {product?.id ? "Actualizar Producto" : "Crear Producto"}
-          </Button>
+          {canSubmit && (
+            <Button
+              type="submit"
+              disabled={processing || !isFormValid}
+            >
+              {processing ? 'Guardando...' : (product?.id ? "Actualizar Producto" : "Crear Producto")}
+            </Button>
+          )}
         </div>
       </form>
     </div>

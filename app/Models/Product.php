@@ -12,11 +12,11 @@ class Product extends Model
     protected $fillable = [
         'code', 'category_id', 'name', 'description',
         'image_path', 'price_without_tax', 'price_with_tax', 'iva_value',
-        'sale_price', 'supplier', 'stock',
+        'sale_price', 'supplier', 'stock', 'initial_movement_id',
     ];
 
     protected $casts = [
-        'price_without_tax' => 'integer', // Cambiado a integer para consistencia con la migración
+        'price_without_tax' => 'integer',
         'price_with_tax'    => 'integer',
         'iva_value'         => 'integer',
         'sale_price'        => 'integer',

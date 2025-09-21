@@ -12,7 +12,7 @@ import { router } from "@inertiajs/react"
 import { Pagination } from "@/components/ui/pagination"
 import SearchInput from "@/components/ui/search-input"
 import Swal from 'sweetalert2'
-import { Badge } from "@/components/ui/badge" // Importar componente Badge
+import { Badge } from "@/components/ui/badge"
 
 interface Permission {
     id: number;
@@ -43,7 +43,8 @@ interface PermissionsTableProps {
     filteredCount: number;
     search: string;
     onSearch: (search: string) => void;
-    onEditPermission?: (permission: Permission) => void; // Añadir esta prop
+    onEditPermission?: (permission: Permission) => void;
+    userPermissions: string[];
 }
 
 export default function PermissionsTable({
@@ -54,7 +55,8 @@ export default function PermissionsTable({
     filteredCount,
     search,
     onSearch,
-    onEditPermission // Añadir esta prop
+    onEditPermission,
+    userPermissions
 }: PermissionsTableProps) {
 
     const handleDelete = (permissionId: number, permissionLabel: string) => {
@@ -101,6 +103,9 @@ export default function PermissionsTable({
         }
     };
 
+    // Check if the user has any permissions to show the "Acciones" column
+    const showActionsColumn = userPermissions.includes('Editar Permisos') || userPermissions.includes('Eliminar Permisos');
+
     return (
         <div className="space-y-4">
             {/* Barra de búsqueda y controles */}
@@ -121,7 +126,7 @@ export default function PermissionsTable({
                             <TableHead>Módulo</TableHead>
                             <TableHead className="w-[200px]">Nombre</TableHead>
                             <TableHead>Descripción</TableHead>
-                            <TableHead className="text-right w-[120px]">Acciones</TableHead>
+                            {showActionsColumn && <TableHead className="text-right w-[120px]">Acciones</TableHead>}
                         </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -136,37 +141,42 @@ export default function PermissionsTable({
                                     <TableCell className="font-medium">
                                         <div className="flex flex-col">
                                             <span className="font-semibold">{permission.name}</span>
-                                            {/* <span className="text-xs text-gray-500 dark:text-gray-400">{permission.name}</span> */}
                                         </div>
                                     </TableCell>
                                     <TableCell className="text-gray-600 dark:text-gray-300">
                                         {permission.description || '-'}
                                     </TableCell>
-                                    <TableCell className="text-right">
-                                        <div className="flex justify-end gap-2">
-                                            <Button
-                                                variant="outline"
-                                                size="icon"
-                                                onClick={(e) => handleEdit(permission, e)}
-                                                className="text-yellow-600 hover:text-yellow-700 border-yellow-300 hover:bg-yellow-50 dark:text-yellow-400 dark:hover:text-yellow-300 dark:border-yellow-600 dark:hover:bg-yellow-900/30"
-                                            >
-                                                <Pencil className="h-4 w-4" />
-                                            </Button>
-                                            <Button
-                                                variant="outline"
-                                                size="icon"
-                                                onClick={() => handleDelete(permission.id, permission.label)}
-                                                className="text-red-600 hover:text-red-700 border-red-300 hover:bg-red-50 dark:text-red-400 dark:hover:text-red-300 dark:border-red-600 dark:hover:bg-red-900/30"
-                                            >
-                                                <Trash2 className="h-4 w-4" />
-                                            </Button>
-                                        </div>
-                                    </TableCell>
+                                    {showActionsColumn && (
+                                        <TableCell className="text-right">
+                                            <div className="flex justify-end gap-2">
+                                                {userPermissions.includes('Editar Permisos') && (
+                                                    <Button
+                                                        variant="outline"
+                                                        size="icon"
+                                                        onClick={(e) => handleEdit(permission, e)}
+                                                        className="text-yellow-600 hover:text-yellow-700 border-yellow-300 hover:bg-yellow-50 dark:text-yellow-400 dark:hover:text-yellow-300 dark:border-yellow-600 dark:hover:bg-yellow-900/30"
+                                                    >
+                                                        <Pencil className="h-4 w-4" />
+                                                    </Button>
+                                                )}
+                                                {userPermissions.includes('Eliminar Permisos') && (
+                                                    <Button
+                                                        variant="outline"
+                                                        size="icon"
+                                                        onClick={() => handleDelete(permission.id, permission.label)}
+                                                        className="text-red-600 hover:text-red-700 border-red-300 hover:bg-red-50 dark:text-red-400 dark:hover:text-red-300 dark:border-red-600 dark:hover:bg-red-900/30"
+                                                    >
+                                                        <Trash2 className="h-4 w-4" />
+                                                    </Button>
+                                                )}
+                                            </div>
+                                        </TableCell>
+                                    )}
                                 </TableRow>
                             ))
                         ) : (
                             <TableRow>
-                                <TableCell colSpan={4} className="text-center py-8 text-gray-500 dark:text-gray-400">
+                                <TableCell colSpan={showActionsColumn ? 4 : 3} className="text-center py-8 text-gray-500 dark:text-gray-400">
                                     No se encontraron permisos
                                     {search && (
                                         <span>

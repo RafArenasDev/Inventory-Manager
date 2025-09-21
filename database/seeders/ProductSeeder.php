@@ -2448,62 +2448,71 @@ class ProductSeeder extends Seeder
             $ivaValue = $priceWithTax - $priceWithoutTax;
 
             $product = Product::create([
-                'code'              => $productData['code'],
-                'category_id'       => $category->id,
-                'name'              => ucwords(strtolower($productData['name'])),
-                'description'       => $productData['description'] ?? null,
-                'price_without_tax' => $priceWithoutTax,
-                'price_with_tax'    => $priceWithTax,
-                'iva_value'         => $ivaValue, // Nuevo campo
-                'sale_price'        => $salePrice,
-                'supplier'          => $productData['supplier'] ?? null,
-                'stock'             => $productData['stock'] ?? 0,
-                'image_path'        => null,
+                'code'                => $productData['code'],
+                'category_id'         => $category->id,
+                'name'                => ucwords(strtolower($productData['name'])),
+                'description'         => $productData['description'] ?? null,
+                'price_without_tax'   => $priceWithoutTax,
+                'price_with_tax'      => $priceWithTax,
+                'iva_value'           => $ivaValue,
+                'sale_price'          => $salePrice,
+                'supplier'            => $productData['supplier'] ?? null,
+                'stock'               => $productData['stock'] ?? 0,
+                'image_path'          => null,
+                'initial_movement_id' => null, // Se asignará después del movimiento
             ]);
 
             // Crear un movimiento de inventario para el stock inicial del producto
-            if ($product && $productData['stock'] > 0) {
-                // valores por defecto por si el supplier no coincide
+            if ($product && ($productData['stock'] ?? 0) > 0) {
+                // Valores por defecto
                 $movementDate = Carbon::now();
                 $note         = null;
 
-                switch ($productData['supplier']) {
+                // Lógica de fechas y notas por proveedor
+                switch ($productData['supplier'] ?? '') {
                     case 'Distriandina':
                         $distriandinaCount++;
                         if ($distriandinaCount <= 50) {
-                            $movementDate = Carbon::create(2025, 8, 15); // primera fecha agosto
-                            $note         = "Primer pedido (Distriandina)";
+                            $movementDate = Carbon::create(2025, 8, 15);
+                            $note         = "Primer pedido Distriandina";
                         } else {
-                            $movementDate = Carbon::create(2025, 8, 26); // semana y media después
-                            $note         = "Segundo pedido (Distriandina)";
+                            $movementDate = Carbon::create(2025, 8, 26);
+                            $note         = "Segundo pedido Distriandina";
                         }
                         break;
 
                     case 'Okla':
-                        $movementDate = Carbon::create(2025, 8, 30); // finales de agosto
-                        $note         = "Primer pedido (Okla)";
+                        $movementDate = Carbon::create(2025, 8, 30);
+                        $note         = "Primer pedido Okla";
                         break;
 
                     case 'Lubriter Aceites':
-                        $movementDate = Carbon::create(2025, 9, 2); // empezando septiembre
-                        $note         = "Primer pedido (Lubriter Aceites)";
+                        $movementDate = Carbon::create(2025, 9, 2);
+                        $note         = "Primer pedido Lubriter Aceites";
+                        break;
+
+                    default:
+                        $note = "Pedido {$productData['supplier']}";
                         break;
                 }
 
-                // Fallback de nota si no se asignó (proveedor no listado)
-                if (! $note) {
-                    $note = "Pedido ({$productData['supplier']})";
-                }
-
-                InventoryMovement::create([
+                // Crear el movimiento inicial
+                $movement = InventoryMovement::create([
                     'product_id' => $product->id,
-                    'type'       => 'entry',
+                    'type'       => 'Entrada',
                     'quantity'   => $productData['stock'],
                     'date'       => $movementDate->toDateString(),
                     'notes'      => $note,
                 ]);
+
+                // Asignar este movimiento como el inicial del producto
+                $product->update([
+                    'initial_movement_id' => $movement->id,
+                ]);
+
+                \Log::info("Producto '{$product->code}' creado con movimiento inicial ID: {$movement->id} - {$note}");
             } else {
-                \Log::warning("No se creó movimiento para el producto {$productData['code']} porque el stock es 0 o el producto no se creó correctamente.");
+                \Log::warning("No se creó movimiento para el producto '{$productData['code']}' porque el stock es 0.");
             }
         }
 

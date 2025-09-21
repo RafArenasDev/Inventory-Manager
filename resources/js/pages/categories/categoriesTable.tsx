@@ -43,6 +43,7 @@ interface CategoriesTableProps {
     filteredCount: number
     search: string
     onSearch: (search: string) => void
+    userPermissions: string[] // Añadido
 }
 
 export default function CategoriesTable({
@@ -53,7 +54,8 @@ export default function CategoriesTable({
     totalCount,
     filteredCount,
     search,
-    onSearch
+    onSearch,
+    userPermissions // Añadido
 }: CategoriesTableProps) {
 
     const handleDelete = (categoryId: number, categoryName: string) => {
@@ -90,6 +92,9 @@ export default function CategoriesTable({
         });
     };
 
+    // Check if the user has any permissions to show the "Acciones" column
+    const showActionsColumn = userPermissions.includes('Actualizar Categorías') || userPermissions.includes('Eliminar Categorías');
+
     return (
         <div className="space-y-4">
             {/* Añadimos el SearchInput aquí */}
@@ -108,7 +113,7 @@ export default function CategoriesTable({
                             <TableHead>Nombre</TableHead>
                             <TableHead>Descripción</TableHead>
                             <TableHead>Productos</TableHead>
-                            <TableHead className="text-right">Acciones</TableHead>
+                            {showActionsColumn && <TableHead className="text-right">Acciones</TableHead>} {/* Condicional */}
                         </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -132,31 +137,37 @@ export default function CategoriesTable({
                                     {category.products_count !== 1 ? 's' : ''}
                                 </span>
                                 </TableCell>
-                                <TableCell className="text-right">
-                                    <div className="flex justify-end gap-2">
-                                        <Button
-                                            variant="outline"
-                                            size="icon"
-                                            onClick={() => onEditCategory(category)}
-                                            className="text-yellow-600 hover:text-yellow-700 border-yellow-300 hover:bg-yellow-50 dark:text-yellow-400 dark:hover:text-yellow-300 dark:border-yellow-600 dark:hover:bg-yellow-900/30"
-                                        >
-                                            <Pencil className="h-4 w-4" />
-                                        </Button>
-                                        <Button
-                                            variant="outline"
-                                            size="icon"
-                                            onClick={() => handleDelete(category.id, category.name)}
-                                            className="text-red-600 hover:text-red-700 border-red-300 hover:bg-red-50 dark:text-red-400 dark:hover:text-red-300 dark:border-red-600 dark:hover:bg-red-900/30"
-                                        >
-                                            <Trash2 className="h-4 w-4" />
-                                        </Button>
-                                    </div>
-                                </TableCell>
+                                {showActionsColumn && ( // Condicional
+                                    <TableCell className="text-right">
+                                        <div className="flex justify-end gap-2">
+                                            {userPermissions.includes('Actualizar Categorías') && ( // Condicional
+                                                <Button
+                                                    variant="outline"
+                                                    size="icon"
+                                                    onClick={() => onEditCategory(category)}
+                                                    className="text-yellow-600 hover:text-yellow-700 border-yellow-300 hover:bg-yellow-50 dark:text-yellow-400 dark:hover:text-yellow-300 dark:border-yellow-600 dark:hover:bg-yellow-900/30"
+                                                >
+                                                    <Pencil className="h-4 w-4" />
+                                                </Button>
+                                            )}
+                                            {userPermissions.includes('Eliminar Categorías') && ( // Condicional
+                                                <Button
+                                                    variant="outline"
+                                                    size="icon"
+                                                    onClick={() => handleDelete(category.id, category.name)}
+                                                    className="text-red-600 hover:text-red-700 border-red-300 hover:bg-red-50 dark:text-red-400 dark:hover:text-red-300 dark:border-red-600 dark:hover:bg-red-900/30"
+                                                >
+                                                    <Trash2 className="h-4 w-4" />
+                                                </Button>
+                                            )}
+                                        </div>
+                                    </TableCell>
+                                )}
                             </TableRow>
                         ))}
                         {categories.data.length === 0 && (
                             <TableRow>
-                                <TableCell colSpan={4} className="h-24 text-center text-gray-500 dark:text-gray-400">
+                                <TableCell colSpan={showActionsColumn ? 4 : 3} className="h-24 text-center text-gray-500 dark:text-gray-400">
                                     No se encontraron categorías.
                                 </TableCell>
                             </TableRow>

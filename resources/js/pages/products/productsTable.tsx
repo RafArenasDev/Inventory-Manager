@@ -15,9 +15,8 @@ import SearchInput from "@/components/ui/search-input"
 import { Badge } from "@/components/ui/badge"
 import { useState } from "react"
 import ProductModal from "./productModal"
-import { LinkProps } from '@/types'; // Importar desde '@/types' para consistencia
+import { LinkProps } from '@/types';
 
-// Interface unificada para productos (coincide con index y productForm)
 interface Product {
     id?: number;
     code: string;
@@ -28,7 +27,7 @@ interface Product {
     image_path?: string | null;
     price_without_tax?: number | null;
     price_with_tax?: number | null;
-    iva_value?: number | null; // Nuevo campo
+    iva_value?: number | null;
     sale_price?: number | null;
     supplier?: string | null;
     stock: number;
@@ -51,6 +50,7 @@ interface ProductsTableProps {
     filteredCount: number
     search: string
     onSearch: (search: string) => void
+    userPermissions: string[]
 }
 
 export default function ProductsTable({
@@ -61,7 +61,8 @@ export default function ProductsTable({
     totalCount,
     filteredCount,
     search,
-    onSearch
+    onSearch,
+    userPermissions
 }: ProductsTableProps) {
     const [isModalOpen, setIsModalOpen] = useState(false)
     const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
@@ -143,6 +144,11 @@ export default function ProductsTable({
         onEditProduct(productWithCategoryId);
     };
 
+    // Calcular si mostrar columna de acciones (igual que roles)
+    const showActionsColumn = userPermissions.includes('Ver Productos') ||
+                              userPermissions.includes('Editar Productos') ||
+                              userPermissions.includes('Eliminar Productos');
+
     return (
         <div className="space-y-4">
             <div className="flex justify-between items-center">
@@ -164,7 +170,7 @@ export default function ProductsTable({
                             <TableHead className="text-right">Stock</TableHead>
                             <TableHead className="text-right">Precio</TableHead>
                             <TableHead>Proveedor</TableHead>
-                            <TableHead className="text-right">Acciones</TableHead>
+                            {showActionsColumn && <TableHead className="text-right">Acciones</TableHead>}
                         </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -188,11 +194,6 @@ export default function ProductsTable({
                                         <div className="font-medium line-clamp-2 break-words">
                                             {product.name}
                                         </div>
-                                        {/* {product.description && (
-                                            <div className="text-xs text-gray-500 dark:text-gray-400 truncate">
-                                                {product.description}
-                                            </div>
-                                        )} */}
                                     </TableCell>
                                     <TableCell>
                                         <Badge variant="outline" className="text-xs">
@@ -213,40 +214,48 @@ export default function ProductsTable({
                                     <TableCell className="text-xs">
                                         {product.supplier || '-'}
                                     </TableCell>
-                                    <TableCell className="text-right">
-                                        <div className="flex justify-end gap-2">
-                                            <Button
-                                                variant="outline"
-                                                size="icon"
-                                                onClick={() => handleViewProduct(product)}
-                                                className="text-blue-600 hover:text-blue-700 border-blue-300 hover:bg-blue-50 dark:text-blue-400 dark:hover:text-blue-300 dark:border-blue-600 dark:hover:bg-blue-900/30"
-                                            >
-                                                <Eye className="h-4 w-4" />
-                                            </Button>
-                                            <Button
-                                                variant="outline"
-                                                size="icon"
-                                                onClick={() => handleEditProduct(product)}
-                                                className="text-yellow-600 hover:text-yellow-700 border-yellow-300 hover:bg-yellow-50 dark:text-yellow-400 dark:hover:text-yellow-300 dark:border-yellow-600 dark:hover:bg-yellow-900/30"
-                                            >
-                                                <Pencil className="h-4 w-4" />
-                                            </Button>
-                                            <Button
-                                                variant="outline"
-                                                size="icon"
-                                                onClick={() => handleDelete(product.id!, product.name)} // ! para asumir que existe en lista
-                                                className="text-red-600 hover:text-red-700 border-red-300 hover:bg-red-50 dark:text-red-400 dark:hover:text-red-300 dark:border-red-600 dark:hover:bg-red-900/30"
-                                            >
-                                                <Trash2 className="h-4 w-4" />
-                                            </Button>
-                                        </div>
-                                    </TableCell>
+                                    {showActionsColumn && (
+                                        <TableCell className="text-right">
+                                            <div className="flex justify-end gap-2">
+                                                {userPermissions.includes('Ver Productos') && (  // CONDICIONADO: botón ver
+                                                    <Button
+                                                        variant="outline"
+                                                        size="icon"
+                                                        onClick={() => handleViewProduct(product)}
+                                                        className="text-blue-600 hover:text-blue-700 border-blue-300 hover:bg-blue-50 dark:text-blue-400 dark:hover:text-blue-300 dark:border-blue-600 dark:hover:bg-blue-900/30"
+                                                    >
+                                                        <Eye className="h-4 w-4" />
+                                                    </Button>
+                                                )}
+                                                {userPermissions.includes('Editar Productos') && (  // CONDICIONADO: botón editar
+                                                    <Button
+                                                        variant="outline"
+                                                        size="icon"
+                                                        onClick={() => handleEditProduct(product)}
+                                                        className="text-yellow-600 hover:text-yellow-700 border-yellow-300 hover:bg-yellow-50 dark:text-yellow-400 dark:hover:text-yellow-300 dark:border-yellow-600 dark:hover:bg-yellow-900/30"
+                                                    >
+                                                        <Pencil className="h-4 w-4" />
+                                                    </Button>
+                                                )}
+                                                {userPermissions.includes('Eliminar Productos') && (  // CONDICIONADO: botón eliminar
+                                                    <Button
+                                                        variant="outline"
+                                                        size="icon"
+                                                        onClick={() => handleDelete(product.id!, product.name)}
+                                                        className="text-red-600 hover:text-red-700 border-red-300 hover:bg-red-50 dark:text-red-400 dark:hover:text-red-300 dark:border-red-600 dark:hover:bg-red-900/30"
+                                                    >
+                                                        <Trash2 className="h-4 w-4" />
+                                                    </Button>
+                                                )}
+                                            </div>
+                                        </TableCell>
+                                    )}
                                 </TableRow>
                             );
                         })}
                         {products.data.length === 0 && (
                             <TableRow>
-                                <TableCell colSpan={8} className="h-24 text-center text-gray-500 dark:text-gray-400">
+                                <TableCell colSpan={showActionsColumn ? 8 : 7} className="h-24 text-center text-gray-500 dark:text-gray-400">
                                     <div className="flex flex-col items-center gap-2">
                                         <Package className="h-8 w-8 text-gray-400" />
                                         <span>No se encontraron productos.</span>

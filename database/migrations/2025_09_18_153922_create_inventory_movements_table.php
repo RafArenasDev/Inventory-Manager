@@ -13,8 +13,8 @@ return new class extends Migration
     {
         Schema::create('inventory_movements', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('product_id')->constrained()->onDelete('cascade');
-            $table->enum('type', ['entry', 'exit']);
+            $table->unsignedBigInteger('product_id');
+            $table->enum('type', ['Entrada', 'Salida']);
             $table->integer('quantity');
             $table->date('date');
             $table->text('notes')->nullable();

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import AppLayout from '@/layouts/app-layout';
 import { LinkProps, type BreadcrumbItem } from '@/types';
-import { Head, router } from '@inertiajs/react';
+import { Head, router, usePage } from '@inertiajs/react';
 import RolesTable from './rolesTable';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft, Plus } from 'lucide-react';
@@ -60,6 +60,9 @@ export default function RoleIndex({ roles, permissions, filters, totalCount, fil
     const [isCreating, setIsCreating] = useState(false);
     const [editingRole, setEditingRole] = useState<RoleForForm | null>(null);
     const [breadcrumbs, setBreadcrumbs] = useState<BreadcrumbItem[]>(initialBreadcrumbs);
+
+    const { auth } = usePage().props as unknown as { auth: { permissions: string[] } };
+    const userPermissions = auth.permissions;
 
     useEffect(() => {
         if (isCreating) {
@@ -149,16 +152,19 @@ export default function RoleIndex({ roles, permissions, filters, totalCount, fil
                             role={editingRole ?? undefined}
                             permissions={permissions}
                             onCancel={handleCancelForm}
+                            userPermissions={userPermissions}
                         />
                     </div>
                 ) : (
                     <>
                         <div className="flex items-center justify-between">
                             <h2 className="text-2xl font-bold tracking-tight">Roles</h2>
-                            <Button onClick={handleCreateRole} className="gap-1">
-                                <Plus className="h-4 w-4" />
-                                Nuevo Rol
-                            </Button>
+                            {userPermissions.includes('Crear Roles') && (
+                                <Button onClick={handleCreateRole} className="gap-1">
+                                    <Plus className="h-4 w-4" />
+                                    Nuevo Rol
+                                </Button>
+                            )}
                         </div>
                         <div className="bg-white dark:bg-[oklch(0.100205_0_0)] overflow-hidden shadow-sm sm:rounded-lg p-6">
                             <RolesTable
@@ -171,6 +177,7 @@ export default function RoleIndex({ roles, permissions, filters, totalCount, fil
                                 filteredCount={filteredCount}
                                 search={filters.search || ""}
                                 onSearch={handleSearch}
+                                userPermissions={userPermissions}
                             />
                         </div>
                     </>

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import AppLayout from '@/layouts/app-layout';
 import { LinkProps, type BreadcrumbItem } from '@/types';
-import { Head, router } from '@inertiajs/react';
+import { Head, router, usePage } from '@inertiajs/react'; // Agregar usePage
 import ProductsTable from './productsTable';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft, Plus } from 'lucide-react';
@@ -64,6 +64,10 @@ export default function ProductIndex({
     const [isCreating, setIsCreating] = useState(false);
     const [editingProduct, setEditingProduct] = useState<Product | null>(null);
     const [breadcrumbs, setBreadcrumbs] = useState<BreadcrumbItem[]>(initialBreadcrumbs);
+
+    // Obtener userPermissions desde auth (igual que roles)
+    const { auth } = usePage().props as unknown as { auth: { permissions: string[] } };
+    const userPermissions = auth.permissions;
 
     useEffect(() => {
         if (isCreating) {
@@ -159,6 +163,7 @@ export default function ProductIndex({
                             product={editingProduct ?? undefined}
                             categories={categories}
                             onCancel={handleCancelForm}
+                            userPermissions={userPermissions}
                         />
                     </div>
                 ) : (
@@ -166,10 +171,12 @@ export default function ProductIndex({
                         <div className="flex items-center justify-between">
                             <h2 className="text-2xl font-bold tracking-tight">Productos</h2>
                             <div className="flex items-center gap-2">
-                                <Button onClick={handleCreateProduct} className="gap-1">
-                                    <Plus className="h-4 w-4" />
-                                    Nuevo Producto
-                                </Button>
+                                {userPermissions.includes('Crear Productos') && (
+                                    <Button onClick={handleCreateProduct} className="gap-1">
+                                        <Plus className="h-4 w-4" />
+                                        Nuevo Producto
+                                    </Button>
+                                )}
                             </div>
                         </div>
                         <div className="bg-white dark:bg-[oklch(0.100205_0_0)] overflow-hidden shadow-sm sm:rounded-lg p-6">
@@ -182,6 +189,7 @@ export default function ProductIndex({
                                 filteredCount={filteredCount}
                                 search={filters.search || ''}
                                 onSearch={handleSearch}
+                                userPermissions={userPermissions}
                             />
                         </div>
                     </>
