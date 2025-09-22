@@ -3,7 +3,7 @@ import { NavUser } from '@/components/nav-user';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
 import { type NavItem } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
-import { ClipboardList, Key, LayoutGrid, Package, Shield, Tags, Users } from 'lucide-react';
+import { ClipboardList, Key, LayoutGrid, Package, Shield, Tags, Truck, Users } from 'lucide-react'; // AGREGAR Truck
 import AppLogo from './app-logo';
 // import { NavFooter } from './nav-footer';
 
@@ -32,6 +32,12 @@ const mainNavItems: NavItem[] = [
         permission: 'Ver Usuarios',
     },
     {
+        title: 'Proveedores', // AGREGAR ESTE ÍTEM
+        href: '/suppliers',
+        icon: Truck,
+        permission: 'Ver Proveedores',
+    },
+    {
         title: 'Categorías',
         href: '/categories',
         icon: Tags,
@@ -49,7 +55,6 @@ const mainNavItems: NavItem[] = [
         icon: ClipboardList,
         permission: 'Ver Movimientos Inventario',
     }
-
 ];
 
 export function AppSidebar() {

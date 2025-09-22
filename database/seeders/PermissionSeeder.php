@@ -14,11 +14,12 @@ class PermissionSeeder extends Seeder
         // Reset cached roles and permissions
         app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
 
-        // Define modules
+        // Define modules - AGREGAR PROVEEDORES
         $modules = [
             'usuarios'               => 'Usuarios',
             'roles'                  => 'Roles',
             'permisos'               => 'Permisos',
+            'proveedores'            => 'Proveedores', // AGREGAR ESTA LÍNEA
             'categorias'             => 'Categorías',
             'productos'              => 'Productos',
             'movimientos-inventario' => 'Movimientos Inventario',

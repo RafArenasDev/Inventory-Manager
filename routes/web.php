@@ -5,6 +5,7 @@ use App\Http\Controllers\InventoryMovementController;
 use App\Http\Controllers\PermissionController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\RoleController;
+use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -95,6 +96,30 @@ Route::middleware(['auth', 'verified'])->group(function () {
             ->middleware('permission:Eliminar Usuarios');
     });
 
+    // Suppliers - AGREGAR ESTE BLOQUE
+    Route::prefix('suppliers')->group(function () {
+        Route::get('/', [SupplierController::class, 'index'])
+            ->name('suppliers.index')
+            ->middleware('permission:Ver Proveedores');
+        Route::get('/create', [SupplierController::class, 'create'])
+            ->name('suppliers.create')
+            ->middleware('permission:Crear Proveedores');
+        Route::post('/', [SupplierController::class, 'store'])
+            ->name('suppliers.store')
+            ->middleware('permission:Crear Proveedores');
+        Route::get('/{supplier}', [SupplierController::class, 'show'])
+            ->name('suppliers.show')
+            ->middleware('permission:Ver Proveedores');
+        Route::get('/{supplier}/edit', [SupplierController::class, 'edit'])
+            ->name('suppliers.edit')
+            ->middleware('permission:Editar Proveedores');
+        Route::put('/{supplier}', [SupplierController::class, 'update'])
+            ->name('suppliers.update')
+            ->middleware('permission:Actualizar Proveedores');
+        Route::delete('/{supplier}', [SupplierController::class, 'destroy'])
+            ->name('suppliers.destroy')
+            ->middleware('permission:Eliminar Proveedores');
+    });
 
     // Categories
     Route::prefix('categories')->group(function () {

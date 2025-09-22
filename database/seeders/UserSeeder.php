@@ -42,11 +42,11 @@ class UserSeeder extends Seeder
         );
         $seller->assignRole('seller');
 
-        // Create 30 additional users with factory and assign random roles
-        User::factory(100)->create()->each(function ($user) use ($roles) {
-            // Asignar un rol aleatorio
-            $randomRole = $roles->random();
-            $user->assignRole($randomRole->name);
-        });
+        // // Create 30 additional users with factory and assign random roles
+        // User::factory(100)->create()->each(function ($user) use ($roles) {
+        //     // Asignar un rol aleatorio
+        //     $randomRole = $roles->random();
+        //     $user->assignRole($randomRole->name);
+        // });
     }
 }
