@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
@@ -32,10 +31,15 @@ class PasswordResetLinkController extends Controller
             'email' => 'required|email',
         ]);
 
-        Password::sendResetLink(
+        $status = Password::sendResetLink(
             $request->only('email')
         );
 
-        return back()->with('status', __('A reset link will be sent if the account exists.'));
+        if ($status === Password::RESET_LINK_SENT) {
+            // REDIRIGIR AL LOGIN con mensaje de éxito
+            return redirect()->route('login')->with('status', 'Revisa tu bandeja de entrada o carpeta de spam.');
+        }
+
+        return back()->withErrors(['email' => 'No se pudo enviar el enlace de recuperación. Verifica que el correo sea correcto.']);
     }
 }

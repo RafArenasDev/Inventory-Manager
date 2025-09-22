@@ -1,7 +1,8 @@
-// Components
 import { Head, useForm } from '@inertiajs/react';
 import { LoaderCircle } from 'lucide-react';
 import { FormEventHandler } from 'react';
+import { useEffect } from 'react';
+import Swal from 'sweetalert2';
 
 import TextLink from '@/components/text-link';
 import { Button } from '@/components/ui/button';
@@ -12,28 +13,65 @@ export default function VerifyEmail({ status }: { status?: string }) {
 
     const submit: FormEventHandler = (e) => {
         e.preventDefault();
-
-        post(route('verification.send'));
+        post(route('verification.send'), {
+            onSuccess: () => {
+                Swal.fire({
+                    icon: 'success',
+                    title: '¡Enlace reenviado!',
+                    text: 'Un nuevo enlace de verificación ha sido enviado a tu correo electrónico.',
+                    timer: 2000,
+                    timerProgressBar: true,
+                    showConfirmButton: false,
+                    toast: true,
+                    position: 'top-end'
+                });
+            },
+            onError: () => {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'No se pudo reenviar el enlace. Inténtalo de nuevo.',
+                    timer: 2000,
+                    timerProgressBar: true,
+                    showConfirmButton: false,
+                    toast: true,
+                    position: 'top-end'
+                });
+            }
+        });
     };
 
-    return (
-        <AuthLayout title="Verify email" description="Please verify your email address by clicking on the link we just emailed to you.">
-            <Head title="Email verification" />
+    // Mostrar alerta de éxito
+    useEffect(() => {
+        if (status === 'verification-link-sent') {
+            Swal.fire({
+                icon: 'success',
+                title: '¡Enlace enviado!',
+                text: 'Un nuevo enlace de verificación ha sido enviado a tu correo electrónico.',
+                timer: 2000,
+                timerProgressBar: true,
+                showConfirmButton: false,
+                toast: true,
+                position: 'top-end'
+            });
+        }
+    }, [status]);
 
-            {status === 'verification-link-sent' && (
-                <div className="mb-4 text-center text-sm font-medium text-green-600">
-                    A new verification link has been sent to the email address you provided during registration.
-                </div>
-            )}
+    return (
+        <AuthLayout
+            title="Verificar correo electrónico"
+            description="Por favor verifica tu dirección de correo electrónico haciendo clic en el enlace que te enviamos."
+        >
+            <Head title="Verificar correo electrónico" />
 
             <form onSubmit={submit} className="space-y-6 text-center">
                 <Button disabled={processing} variant="secondary">
-                    {processing && <LoaderCircle className="h-4 w-4 animate-spin" />}
-                    Resend verification email
+                    {processing && <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />}
+                    Reenviar enlace de verificación
                 </Button>
 
                 <TextLink href={route('logout')} method="post" className="mx-auto block text-sm">
-                    Log out
+                    Cerrar sesión
                 </TextLink>
             </form>
         </AuthLayout>
