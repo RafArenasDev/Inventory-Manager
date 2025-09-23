@@ -6,9 +6,19 @@ use App\Models\Supplier;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Style\Alignment;
+use PhpOffice\PhpSpreadsheet\Style\Border;
+use PhpOffice\PhpSpreadsheet\Style\Fill;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 
 class SupplierController extends Controller
 {
+    /**
+     * Summary of index
+     * @param \Illuminate\Http\Request $request
+     * @return \Inertia\Response
+     */
     public function index(Request $request)
     {
         $suppliersQuery = Supplier::orderBy('id', 'desc');
@@ -44,6 +54,7 @@ class SupplierController extends Controller
                     'products_count' => $supplier->products()->count(),
                     'main_contact'   => $supplier->main_contact,
                     'main_phone'     => $supplier->main_phone,
+                    'is_active'      => $supplier->is_active,
                 ];
             });
 
@@ -73,6 +84,7 @@ class SupplierController extends Controller
                     'products_count' => $supplier->products()->count(),
                     'main_contact'   => $supplier->main_contact,
                     'main_phone'     => $supplier->main_phone,
+                    'is_active'      => $supplier->is_active,
                 ];
             });
         }
@@ -85,11 +97,20 @@ class SupplierController extends Controller
         ]);
     }
 
+    /**
+     * Summary of create
+     * @return void
+     */
     public function create()
     {
         //
     }
 
+    /**
+     * Summary of store
+     * @param \App\Http\Requests\SupplierRequest $request
+     * @return RedirectResponse
+     */
     public function store(SupplierRequest $request): RedirectResponse
     {
         $supplier = Supplier::create([
@@ -108,16 +129,32 @@ class SupplierController extends Controller
         return redirect()->route('suppliers.index')->with('success', 'Proveedor creado correctamente.');
     }
 
+    /**
+     * Summary of show
+     * @param \App\Models\Supplier $supplier
+     * @return void
+     */
     public function show(Supplier $supplier)
     {
         //
     }
 
+    /**
+     * Summary of edit
+     * @param \App\Models\Supplier $supplier
+     * @return void
+     */
     public function edit(Supplier $supplier)
     {
         //
     }
 
+    /**
+     * Summary of update
+     * @param \App\Http\Requests\SupplierRequest $request
+     * @param mixed $id
+     * @return RedirectResponse
+     */
     public function update(SupplierRequest $request, $id): RedirectResponse
     {
         $supplier = Supplier::findOrFail($id);
@@ -131,12 +168,17 @@ class SupplierController extends Controller
             'address'        => $request->address,
             'email'          => $request->email,
             'description'    => $request->description,
-            'is_active'      => true,
+            'is_active'      => $request->is_active,
         ]);
 
         return redirect()->route('suppliers.index')->with('success', 'Proveedor actualizado correctamente.');
     }
 
+    /**
+     * Summary of destroy
+     * @param \App\Models\Supplier $supplier
+     * @return RedirectResponse
+     */
     public function destroy(Supplier $supplier)
     {
         if ($supplier->products()->count() > 0) {
@@ -148,5 +190,124 @@ class SupplierController extends Controller
             return redirect()->route('suppliers.index')->with('success', 'Proveedor eliminado correctamente.');
         }
         return redirect()->back()->with('error', 'Error al eliminar el proveedor.');
+    }
+
+    /**
+     * Summary of export
+     * @param \Illuminate\Http\Request $request
+     * @return \Symfony\Component\HttpFoundation\StreamedResponse
+     */
+    public function export(Request $request)
+    {
+        $suppliersQuery = Supplier::orderBy('id', 'asc');
+
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $suppliersQuery->where(function ($query) use ($search) {
+                $query->where('name', 'like', "%{$search}%")
+                    ->orWhere('representative', 'like', "%{$search}%")
+                    ->orWhere('nit_number', 'like', "%{$search}%")
+                    ->orWhere('email', 'like', "%{$search}%");
+            });
+        }
+
+        $suppliers = $suppliersQuery->get();
+
+        $spreadsheet = new Spreadsheet();
+        $sheet       = $spreadsheet->getActiveSheet();
+        $sheet->setTitle('Proveedores');
+
+        $headers = [
+            'A1' => 'ID',
+            'B1' => 'Nombre',
+            'C1' => 'Representante',
+            'D1' => 'NIT',
+            'E1' => 'Teléfono',
+            'F1' => 'Celular',
+            'G1' => 'Email',
+            'H1' => 'Dirección',
+            'I1' => 'Descripción',
+            'J1' => 'Estado',
+            'K1' => 'Fecha Registro',
+        ];
+
+        foreach ($headers as $cell => $value) {
+            $sheet->setCellValue($cell, $value);
+        }
+
+        $headerStyle = [
+            'font'      => [
+                'bold'  => true,
+                'color' => ['rgb' => 'FFFFFF'],
+            ],
+            'fill'      => [
+                'fillType'   => Fill::FILL_SOLID,
+                'startColor' => ['rgb' => '4472C4'],
+            ],
+            'alignment' => [
+                'horizontal' => Alignment::HORIZONTAL_CENTER,
+                'vertical'   => Alignment::VERTICAL_CENTER,
+            ],
+            'borders'   => [
+                'allBorders' => [
+                    'borderStyle' => Border::BORDER_THIN,
+                    'color'       => ['rgb' => '000000'],
+                ],
+            ],
+        ];
+
+        $sheet->getStyle('A1:K1')->applyFromArray($headerStyle);
+
+        $row = 2;
+        foreach ($suppliers as $supplier) {
+            $sheet->setCellValue('A' . $row, $supplier->id);
+            $sheet->setCellValue('B' . $row, $supplier->name);
+            $sheet->setCellValue('C' . $row, $supplier->representative ?? '');
+            $sheet->setCellValue('D' . $row, $supplier->nit_number . '-' . $supplier->nit_digit);
+            $sheet->setCellValue('E' . $row, $supplier->phone ?? '');
+            $sheet->setCellValue('F' . $row, $supplier->cellphone ?? '');
+            $sheet->setCellValue('G' . $row, $supplier->email ?? '');
+            $sheet->setCellValue('H' . $row, $supplier->address ?? '');
+            $sheet->setCellValue('I' . $row, $supplier->description ?? '');
+            $sheet->setCellValue('J' . $row, $supplier->is_active ? 'Activo' : 'Inactivo');
+            $sheet->setCellValue('K' . $row, $supplier->created_at->format('d/m/Y H:i:s'));
+            $row++;
+        }
+
+        $dataStyle = [
+            'borders'   => [
+                'allBorders' => [
+                    'borderStyle' => Border::BORDER_THIN,
+                    'color'       => ['rgb' => 'CCCCCC'],
+                ],
+            ],
+            'alignment' => [
+                'vertical' => Alignment::VERTICAL_CENTER,
+            ],
+        ];
+
+        if ($row > 2) {
+            $sheet->getStyle('A1:K' . ($row - 1))->applyFromArray($dataStyle);
+        }
+
+        $sheet->getStyle('A2:A' . ($row - 1))->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+        $sheet->getStyle('D2:D' . ($row - 1))->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+        $sheet->getStyle('J2:J' . ($row - 1))->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+
+        foreach (range('A', 'K') as $col) {
+            $sheet->getColumnDimension($col)->setAutoSize(true);
+        }
+
+        $sheet->getRowDimension(1)->setRowHeight(25);
+
+        $filename = 'proveedores_' . now()->format('Y-m-d_H-i-s') . '.xlsx';
+
+        $writer = new Xlsx($spreadsheet);
+
+        return response()->streamDownload(function () use ($writer) {
+            $writer->save('php://output');
+        }, $filename, [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        ]);
     }
 }

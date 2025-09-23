@@ -57,7 +57,7 @@ class PermissionSeeder extends Seeder
             }
         }
 
-        // Permiso específico para exportar
+        // Permiso específico para exportar movimientos inventario
         Permission::firstOrCreate(
             ['name' => 'Exportar Movimientos Inventario', 'guard_name' => 'web'],
             [
@@ -68,5 +68,18 @@ class PermissionSeeder extends Seeder
                 'guard_name'  => 'web',
             ]
         );
+
+        // Permiso específico para exportar proveedores
+        Permission::firstOrCreate(
+            ['name' => 'Exportar Proveedores', 'guard_name' => 'web'],
+            [
+                'module'      => 'Proveedores',
+                'name'        => 'Exportar Proveedores',
+                'label'       => 'Exportar Proveedores',
+                'description' => 'Permite exportar los proveedores a Excel',
+                'guard_name'  => 'web',
+            ]
+        );
+
     }
 }

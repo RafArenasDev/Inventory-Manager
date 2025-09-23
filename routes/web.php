@@ -96,8 +96,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
             ->middleware('permission:Eliminar Usuarios');
     });
 
-    // Suppliers - AGREGAR ESTE BLOQUE
+    // Suppliers
     Route::prefix('suppliers')->group(function () {
+        Route::get('/export', [SupplierController::class, 'export'])
+            ->name('suppliers.export')
+            ->middleware('permission:Exportar Proveedores');
         Route::get('/', [SupplierController::class, 'index'])
             ->name('suppliers.index')
             ->middleware('permission:Ver Proveedores');

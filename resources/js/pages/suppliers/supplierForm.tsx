@@ -1,4 +1,3 @@
-// supplierForm.tsx
 import React, { useState } from 'react';
 import { useForm } from '@inertiajs/react';
 import Swal from 'sweetalert2';
@@ -35,7 +34,7 @@ const SupplierForm: React.FC<SupplierFormProps> = ({ supplier, onCancel, userPer
         address: supplier?.address || '',
         email: supplier?.email || '',
         description: supplier?.description || '',
-        is_active: true,
+        is_active: supplier?.id ? supplier.is_active : true,
     });
 
     const [nitNumberError, setNitNumberError] = useState<string>('');
@@ -279,9 +278,23 @@ const SupplierForm: React.FC<SupplierFormProps> = ({ supplier, onCancel, userPer
                     />
                     {errors.description && <p className="mt-1 text-sm text-red-600">{errors.description}</p>}
                 </div>
-            </div>
 
-            <input type="hidden" name="is_active" value="1" />
+                {supplier?.id && (
+                    <div className="md:col-span-2">
+                        <label htmlFor="is_active" className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                            <input
+                                type="checkbox"
+                                id="is_active"
+                                checked={data.is_active}
+                                onChange={(e) => setData('is_active', e.target.checked)}
+                                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 dark:border-gray-600 rounded"
+                            />
+                            Proveedor Activo
+                        </label>
+                        {errors.is_active && <p className="mt-1 text-sm text-red-600">{errors.is_active}</p>}
+                    </div>
+                )}
+            </div>
 
             <div className="flex justify-end space-x-3 pt-4 border-t border-gray-200 dark:border-gray-700">
                 <Button

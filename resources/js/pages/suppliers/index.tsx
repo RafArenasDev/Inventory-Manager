@@ -21,6 +21,7 @@ interface Supplier {
     products_count: number
     main_contact: string
     main_phone: string
+    is_active: boolean
     created_at: string
     updated_at: string
 }
@@ -36,6 +37,7 @@ interface SupplierForForm {
     address?: string | null;
     email?: string | null;
     description?: string | null;
+    is_active?: boolean;
 }
 
 interface SupplierIndexProps {
@@ -104,7 +106,8 @@ export default function SupplierIndex({ suppliers, filters, totalCount, filtered
             cellphone: '',
             address: '',
             email: '',
-            description: ''
+            description: '',
+            is_active: true
         };
         setEditingSupplier(newSupplier);
         setIsCreating(true);
@@ -122,6 +125,7 @@ export default function SupplierIndex({ suppliers, filters, totalCount, filtered
             address: supplier.address,
             email: supplier.email,
             description: supplier.description,
+            is_active: supplier.is_active
         };
         setEditingSupplier(supplierForForm);
         setIsCreating(false);
@@ -181,6 +185,7 @@ export default function SupplierIndex({ suppliers, filters, totalCount, filtered
                         <div className="bg-white dark:bg-[oklch(0.100205_0_0)] overflow-hidden shadow-sm sm:rounded-lg p-6">
                             <SuppliersTable
                                 suppliers={suppliers}
+                                filters={filters}
                                 perPage={filters.per_page || "10"}
                                 onPerPageChange={() => { }}
                                 onEditSupplier={handleEditSupplier}
