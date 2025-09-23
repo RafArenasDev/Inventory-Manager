@@ -196,10 +196,10 @@ export default function SuppliersTable({
                                         {supplier.email || '-'}
                                     </TableCell>
                                     <TableCell>
-                                        <span className={`inline-flex items-center justify-center px-2 py-1 text-xs font-medium rounded-full border w-20 text-center ${
+                                        <span className={`inline-flex items-center justify-center px-2 py-1 text-xs font-bold rounded-full border w-20 text-center shadow-sm ${
                                             supplier.is_active
-                                                ? 'bg-green-100 text-green-800 border-green-300 dark:bg-green-900/30 dark:text-green-300 dark:border-green-600'
-                                                : 'bg-red-100 text-red-800 border-red-300 dark:bg-red-900/30 dark:text-red-300 dark:border-red-600'
+                                                ? 'bg-green-600 text-white dark:bg-green-700'
+                                                : 'bg-red-600 text-white dark:bg-red-700 '
                                         }`}>
                                             {supplier.is_active ? 'Activo' : 'Inactivo'}
                                         </span>
@@ -209,22 +209,24 @@ export default function SuppliersTable({
                                             <div className="flex justify-end gap-2">
                                                 {userPermissions.includes('Editar Proveedores') && (
                                                     <Button
-                                                        variant="outline"
+                                                        variant="default"
                                                         size="icon"
                                                         onClick={() => onEditSupplier(supplier)}
-                                                        className="text-yellow-600 hover:text-yellow-700 border-yellow-300 hover:bg-yellow-50 dark:text-yellow-400 dark:hover:text-yellow-300 dark:border-yellow-600 dark:hover:bg-yellow-900/30"
+                                                        className="bg-yellow-500 hover:bg-yellow-600 text-white"
+                                                        aria-label="Editar proveedor"
                                                     >
-                                                        <Pencil className="h-4 w-4" />
+                                                        <Pencil className="h-4 w-4 text-white" />
                                                     </Button>
                                                 )}
                                                 {userPermissions.includes('Eliminar Proveedores') && (
                                                     <Button
-                                                        variant="outline"
+                                                        variant="default"
                                                         size="icon"
                                                         onClick={() => handleDelete(supplier.id, supplier.name)}
-                                                        className="text-red-600 hover:text-red-700 border-red-300 hover:bg-red-50 dark:text-red-400 dark:hover:text-red-300 dark:border-red-600 dark:hover:bg-red-900/30"
+                                                        className="bg-red-600 hover:bg-red-700 text-white"
+                                                        aria-label="Eliminar proveedor"
                                                     >
-                                                        <Trash2 className="h-4 w-4" />
+                                                        <Trash2 className="h-4 w-4 text-white" />
                                                     </Button>
                                                 )}
                                             </div>

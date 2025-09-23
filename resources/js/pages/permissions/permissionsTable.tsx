@@ -12,7 +12,6 @@ import { router } from "@inertiajs/react"
 import { Pagination } from "@/components/ui/pagination"
 import SearchInput from "@/components/ui/search-input"
 import Swal from 'sweetalert2'
-import { Badge } from "@/components/ui/badge"
 
 interface Permission {
     id: number;
@@ -134,9 +133,9 @@ export default function PermissionsTable({
                             permissions.data.map((permission) => (
                                 <TableRow key={permission.id} className="hover:bg-gray-50 dark:hover:bg-gray-800/50">
                                     <TableCell>
-                                        <Badge variant="secondary" className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                                        <span className="text-xs px-3 py-1 rounded-full bg-blue-600 text-white font-bold w-fit min-w-[100px] flex justify-center items-center shadow-sm dark:bg-blue-700">
                                             {permission.module}
-                                        </Badge>
+                                        </span>
                                     </TableCell>
                                     <TableCell className="font-medium">
                                         <div className="flex flex-col">
@@ -151,22 +150,24 @@ export default function PermissionsTable({
                                             <div className="flex justify-end gap-2">
                                                 {userPermissions.includes('Editar Permisos') && (
                                                     <Button
-                                                        variant="outline"
+                                                        variant="default"
                                                         size="icon"
                                                         onClick={(e) => handleEdit(permission, e)}
-                                                        className="text-yellow-600 hover:text-yellow-700 border-yellow-300 hover:bg-yellow-50 dark:text-yellow-400 dark:hover:text-yellow-300 dark:border-yellow-600 dark:hover:bg-yellow-900/30"
+                                                        className="bg-yellow-500 hover:bg-yellow-600 text-white"
+                                                        aria-label="Editar permiso"
                                                     >
-                                                        <Pencil className="h-4 w-4" />
+                                                        <Pencil className="h-4 w-4 text-white" />
                                                     </Button>
                                                 )}
                                                 {userPermissions.includes('Eliminar Permisos') && (
                                                     <Button
-                                                        variant="outline"
+                                                        variant="default"
                                                         size="icon"
                                                         onClick={() => handleDelete(permission.id, permission.label)}
-                                                        className="text-red-600 hover:text-red-700 border-red-300 hover:bg-red-50 dark:text-red-400 dark:hover:text-red-300 dark:border-red-600 dark:hover:bg-red-900/30"
+                                                        className="bg-red-600 hover:bg-red-700 text-white"
+                                                        aria-label="Eliminar permiso"
                                                     >
-                                                        <Trash2 className="h-4 w-4" />
+                                                        <Trash2 className="h-4 w-4 text-white" />
                                                     </Button>
                                                 )}
                                             </div>

@@ -142,14 +142,14 @@ export default function RolesTable({
                                             }, {} as Record<string, Permission[]>)
                                         ).map(([module, modulePermissions]) => (
                                             <div key={module} className="flex flex-col gap-1.5">
-                                                <span className="text-xs px-3 py-1 rounded-full bg-blue-600 text-white font-medium w-fit shadow-sm">
+                                                <span className="text-xs px-3 py-1 rounded-full bg-blue-600 text-white font-bold w-fit shadow-sm dark:bg-blue-700">
                                                     {module}
                                                 </span>
                                                 <div className="flex flex-wrap gap-2 pl-3">
                                                     {modulePermissions.map((permission) => (
                                                         <span
                                                             key={permission.id}
-                                                            className="text-xs px-2.5 py-1 rounded-full bg-blue-100 text-blue-800 border border-blue-200 font-medium"
+                                                            className="text-xs px-2.5 py-1 rounded-full bg-gray-200 text-gray-800 font-medium border border-gray-300 shadow-sm dark:bg-gray-600 dark:text-gray-200 dark:border-gray-500"
                                                         >
                                                             {permission.label}
                                                         </span>
@@ -164,22 +164,24 @@ export default function RolesTable({
                                         <div className="flex justify-end gap-2">
                                             {userPermissions.includes('Editar Roles') && (
                                                 <Button
-                                                    variant="outline"
+                                                    variant="default"
                                                     size="icon"
                                                     onClick={() => onEditRole(role)}
-                                                    className="text-yellow-600 hover:text-yellow-700 border-yellow-300 hover:bg-yellow-50 dark:text-yellow-400 dark:hover:text-yellow-300 dark:border-yellow-600 dark:hover:bg-yellow-900/30"
+                                                    className="bg-yellow-500 hover:bg-yellow-600 text-white"
+                                                    aria-label="Editar rol"
                                                 >
-                                                    <Pencil className="h-4 w-4" />
+                                                    <Pencil className="h-4 w-4 text-white" />
                                                 </Button>
                                             )}
                                             {userPermissions.includes('Eliminar Roles') && (
                                                 <Button
-                                                    variant="outline"
+                                                    variant="default"
                                                     size="icon"
                                                     onClick={() => handleDelete(role.id, role.label)}
-                                                    className="text-red-600 hover:text-red-700 border-red-300 hover:bg-red-50 dark:text-red-400 dark:hover:text-red-300 dark:border-red-600 dark:hover:bg-red-900/30"
+                                                    className="bg-red-600 hover:bg-red-700 text-white"
+                                                    aria-label="Eliminar rol"
                                                 >
-                                                    <Trash2 className="h-4 w-4" />
+                                                    <Trash2 className="h-4 w-4 text-white" />
                                                 </Button>
                                             )}
                                         </div>

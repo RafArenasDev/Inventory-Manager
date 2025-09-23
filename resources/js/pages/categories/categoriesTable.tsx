@@ -43,7 +43,7 @@ interface CategoriesTableProps {
     filteredCount: number
     search: string
     onSearch: (search: string) => void
-    userPermissions: string[] // Añadido
+    userPermissions: string[]
 }
 
 export default function CategoriesTable({
@@ -55,7 +55,7 @@ export default function CategoriesTable({
     filteredCount,
     search,
     onSearch,
-    userPermissions // Añadido
+    userPermissions
 }: CategoriesTableProps) {
 
     const handleDelete = (categoryId: number, categoryName: string) => {
@@ -113,7 +113,7 @@ export default function CategoriesTable({
                             <TableHead>Nombre</TableHead>
                             <TableHead>Descripción</TableHead>
                             <TableHead>Productos</TableHead>
-                            {showActionsColumn && <TableHead className="text-right">Acciones</TableHead>} {/* Condicional */}
+                            {showActionsColumn && <TableHead className="text-right">Acciones</TableHead>}
                         </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -126,38 +126,40 @@ export default function CategoriesTable({
                                     </span>
                                 </TableCell>
                                 <TableCell>
-                                <span
-                                    className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                                    category.products_count === 0
-                                        ? 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400'
-                                        : 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400'
-                                    }`}
-                                >
-                                    {category.products_count || 0} producto
-                                    {category.products_count !== 1 ? 's' : ''}
-                                </span>
+                                    <span
+                                        className={`inline-flex items-center justify-center px-2.5 py-0.5 rounded-full text-xs font-bold w-28 text-center shadow-sm ${
+                                            category.products_count === 0
+                                                ? 'bg-red-600 text-white dark:bg-red-700'
+                                                : 'bg-green-600 text-white dark:bg-green-700'
+                                        }`}
+                                    >
+                                        {category.products_count || 0} - Producto
+                                        {category.products_count !== 1 ? 's' : ''}
+                                    </span>
                                 </TableCell>
-                                {showActionsColumn && ( // Condicional
+                                {showActionsColumn && (
                                     <TableCell className="text-right">
                                         <div className="flex justify-end gap-2">
-                                            {userPermissions.includes('Actualizar Categorías') && ( // Condicional
+                                            {userPermissions.includes('Actualizar Categorías') && (
                                                 <Button
-                                                    variant="outline"
+                                                    variant="default"
                                                     size="icon"
                                                     onClick={() => onEditCategory(category)}
-                                                    className="text-yellow-600 hover:text-yellow-700 border-yellow-300 hover:bg-yellow-50 dark:text-yellow-400 dark:hover:text-yellow-300 dark:border-yellow-600 dark:hover:bg-yellow-900/30"
+                                                    className="bg-yellow-500 hover:bg-yellow-600 text-white"
+                                                    aria-label="Editar categoría"
                                                 >
-                                                    <Pencil className="h-4 w-4" />
+                                                    <Pencil className="h-4 w-4 text-white" />
                                                 </Button>
                                             )}
-                                            {userPermissions.includes('Eliminar Categorías') && ( // Condicional
+                                            {userPermissions.includes('Eliminar Categorías') && (
                                                 <Button
-                                                    variant="outline"
+                                                    variant="default"
                                                     size="icon"
                                                     onClick={() => handleDelete(category.id, category.name)}
-                                                    className="text-red-600 hover:text-red-700 border-red-300 hover:bg-red-50 dark:text-red-400 dark:hover:text-red-300 dark:border-red-600 dark:hover:bg-red-900/30"
+                                                    className="bg-red-600 hover:bg-red-700 text-white"
+                                                    aria-label="Eliminar categoría"
                                                 >
-                                                    <Trash2 className="h-4 w-4" />
+                                                    <Trash2 className="h-4 w-4 text-white" />
                                                 </Button>
                                             )}
                                         </div>

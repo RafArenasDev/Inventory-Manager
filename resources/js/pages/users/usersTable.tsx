@@ -103,18 +103,6 @@ export default function UsersTable({
         return role ? role.label : roleName;
     };
 
-    const getRoleBadgeStyle = (roleLabel: string) => {
-        const baseStyle = 'text-xs px-3 py-1 rounded-full text-center min-w-[100px]';
-
-        if (roleLabel === 'Administrador') {
-            return `${baseStyle} bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200`;
-        } else if (roleLabel === 'Vendedor') {
-            return `${baseStyle} bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200`;
-        }
-
-        return `${baseStyle} bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200`;
-    };
-
     const showActionsColumn = userPermissions.includes('Editar Usuarios') || userPermissions.includes('Eliminar Usuarios');
 
     return (
@@ -149,13 +137,18 @@ export default function UsersTable({
                                             user.roles.map((roleName) => {
                                                 const roleLabel = getRoleLabel(roleName);
                                                 return (
-                                                    <span key={roleName} className={getRoleBadgeStyle(roleLabel)}>
+                                                    <span
+                                                        key={roleName}
+                                                        className="text-xs px-3 py-1 rounded-full bg-blue-600 text-white font-bold w-fit min-w-[100px] text-center shadow-sm dark:bg-blue-700"
+                                                    >
                                                         {roleLabel}
                                                     </span>
                                                 );
                                             })
                                         ) : (
-                                            <span className="text-xs text-gray-500">Sin rol</span>
+                                            <span className="text-xs px-3 py-1 rounded-full bg-gray-200 text-gray-800 font-medium w-fit min-w-[100px] text-center shadow-sm dark:bg-gray-600 dark:text-gray-200">
+                                                Sin rol
+                                            </span>
                                         )}
                                     </div>
                                 </TableCell>
@@ -164,22 +157,24 @@ export default function UsersTable({
                                         <div className="flex justify-end gap-2">
                                             {userPermissions.includes('Editar Usuarios') && (
                                                 <Button
-                                                    variant="outline"
+                                                    variant="default"
                                                     size="icon"
                                                     onClick={() => onEditUser(user)}
-                                                    className="text-yellow-600 hover:text-yellow-700 border-yellow-300 hover:bg-yellow-50 dark:text-yellow-400 dark:hover:text-yellow-300 dark:border-yellow-600 dark:hover:bg-yellow-900/30"
+                                                    className="bg-yellow-500 hover:bg-yellow-600 text-white"
+                                                    aria-label="Editar usuario"
                                                 >
-                                                    <Pencil className="h-4 w-4" />
+                                                    <Pencil className="h-4 w-4 text-white" />
                                                 </Button>
                                             )}
                                             {userPermissions.includes('Eliminar Usuarios') && (
                                                 <Button
-                                                    variant="outline"
+                                                    variant="default"
                                                     size="icon"
                                                     onClick={() => handleDelete(user.id, user.name)}
-                                                    className="text-red-600 hover:text-red-700 border-red-300 hover:bg-red-50 dark:text-red-400 dark:hover:text-red-300 dark:border-red-600 dark:hover:bg-red-900/30"
+                                                    className="bg-red-600 hover:bg-red-700 text-white"
+                                                    aria-label="Eliminar usuario"
                                                 >
-                                                    <Trash2 className="h-4 w-4" />
+                                                    <Trash2 className="h-4 w-4 text-white" />
                                                 </Button>
                                             )}
                                         </div>

@@ -12,7 +12,6 @@ import { Pagination } from "@/components/ui/pagination"
 import { router } from "@inertiajs/react"
 import Swal from 'sweetalert2'
 import SearchInput from "@/components/ui/search-input"
-import { Badge } from "@/components/ui/badge"
 import { useState } from "react"
 import ProductModal from "./productModal"
 import { LinkProps } from '@/types';
@@ -103,15 +102,15 @@ export default function ProductsTable({
 
     const getStockStatus = (stock: number) => {
         if (stock === 0) {
-            return { variant: 'destructive' as const, label: 'Sin Stock', color: 'bg-red-100 text-red-800 border-red-200 dark:bg-red-900/20 dark:text-red-400 dark:border-red-600' };
+            return { label: 'Sin Stock', color: 'bg-red-600 text-white font-bold dark:bg-red-700' };
         } else if (stock <= 3) {
-            return { variant: 'destructive' as const, label: 'Bajo', color: 'bg-red-100 text-red-800 border-red-200 dark:bg-red-900/20 dark:text-red-400 dark:border-red-600' };
+            return { label: 'Bajo', color: 'bg-red-600 text-white font-bold dark:bg-red-700' };
         } else if (stock <= 7) {
-            return { variant: 'secondary' as const, label: 'Medio', color: 'bg-orange-100 text-orange-800 border-orange-200 dark:bg-orange-900/20 dark:text-orange-400 dark:border-orange-600' };
+            return { label: 'Medio', color: 'bg-orange-600 text-white font-bold dark:bg-orange-700' };
         } else if (stock <= 15) {
-            return { variant: 'secondary' as const, label: 'Bueno', color: 'bg-yellow-100 text-yellow-800 border-yellow-200 dark:bg-yellow-900/20 dark:text-yellow-400 dark:border-yellow-600' };
+            return { label: 'Bueno', color: 'bg-yellow-600 text-white font-bold dark:bg-yellow-700' };
         } else {
-            return { variant: 'default' as const, label: 'Óptimo', color: 'bg-green-100 text-green-800 border-green-200 dark:bg-green-900/20 dark:text-green-400 dark:border-green-600' };
+            return { label: 'Óptimo', color: 'bg-green-600 text-white font-bold dark:bg-green-700' };
         }
     };
 
@@ -133,18 +132,13 @@ export default function ProductsTable({
     };
 
     const handleEditProduct = (product: Product) => {
-        // Asegurar que category_id esté presente para el formulario
         const productWithCategoryId = {
             ...product,
-            category_id: product.category_id || (product.id ?? 0) // fallback si no hay category_id
+            category_id: product.category_id || (product.id ?? 0)
         };
-
-        console.log('Producto seleccionado para editar:', productWithCategoryId);
-        console.log('Category ID:', productWithCategoryId.category_id);
         onEditProduct(productWithCategoryId);
     };
 
-    // Calcular si mostrar columna de acciones (igual que roles)
     const showActionsColumn = userPermissions.includes('Ver Productos') ||
                               userPermissions.includes('Editar Productos') ||
                               userPermissions.includes('Eliminar Productos');
@@ -167,8 +161,8 @@ export default function ProductsTable({
                             <TableHead>Imagen</TableHead>
                             <TableHead className="max-w-[200px] sm:max-w-[250px]">Nombre</TableHead>
                             <TableHead>Categoría</TableHead>
-                            <TableHead className="text-right">Stock</TableHead>
-                            <TableHead className="text-right">Precio</TableHead>
+                            <TableHead>Stock</TableHead>
+                            <TableHead>Precio</TableHead>
                             <TableHead>Proveedor</TableHead>
                             {showActionsColumn && <TableHead className="text-right">Acciones</TableHead>}
                         </TableRow>
@@ -178,8 +172,8 @@ export default function ProductsTable({
                             const stockStatus = getStockStatus(product.stock);
                             return (
                                 <TableRow key={product.id ?? product.code} className="hover:bg-gray-50 dark:hover:bg-gray-800/50">
-                                    <TableCell className="font-medium">{product.code}</TableCell>
-                                    <TableCell>
+                                    <TableCell className="font-medium text-left">{product.code}</TableCell>
+                                    <TableCell className="text-left">
                                         {product.image_path ? (
                                             <img
                                                 src={product.image_path}
@@ -190,61 +184,61 @@ export default function ProductsTable({
                                             <span className="text-gray-500 dark:text-gray-400">Sin imagen</span>
                                         )}
                                     </TableCell>
-                                    <TableCell className="max-w-[200px] sm:max-w-[250px] w-48">
+                                    <TableCell className="max-w-[200px] sm:max-w-[250px] w-48 text-left">
                                         <div className="font-medium line-clamp-2 break-words">
                                             {product.name}
                                         </div>
                                     </TableCell>
-                                    <TableCell>
-                                        <Badge variant="outline" className="text-xs">
+                                    <TableCell className="text-left">
+                                        <span className="text-xs px-3 py-1 rounded-full bg-blue-600 text-white font-bold w-fit shadow-sm dark:bg-blue-700">
                                             {product.category || 'Sin categoría'}
-                                        </Badge>
+                                        </span>
                                     </TableCell>
-                                    <TableCell className="text-right">
-                                        <Badge
-                                            variant={stockStatus.variant}
-                                            className={`text-xs font-medium ${stockStatus.color}`}
-                                        >
+                                    <TableCell className="text-left">
+                                        <span className={`text-xs px-3 py-1 rounded-full ${stockStatus.color} w-fit shadow-sm`}>
                                             {stockStatus.label} ({product.stock})
-                                        </Badge>
+                                        </span>
                                     </TableCell>
-                                    <TableCell className="text-right font-medium">
+                                    <TableCell className="text-left font-medium">
                                         {formatPrice(product.sale_price)}
                                     </TableCell>
-                                    <TableCell className="text-xs">
+                                    <TableCell className="text-xs text-left">
                                         {product.supplier || '-'}
                                     </TableCell>
                                     {showActionsColumn && (
                                         <TableCell className="text-right">
                                             <div className="flex justify-end gap-2">
-                                                {userPermissions.includes('Ver Productos') && (  // CONDICIONADO: botón ver
+                                                {userPermissions.includes('Ver Productos') && (
                                                     <Button
-                                                        variant="outline"
+                                                        variant="default"
                                                         size="icon"
                                                         onClick={() => handleViewProduct(product)}
-                                                        className="text-blue-600 hover:text-blue-700 border-blue-300 hover:bg-blue-50 dark:text-blue-400 dark:hover:text-blue-300 dark:border-blue-600 dark:hover:bg-blue-900/30"
+                                                        className="bg-blue-600 hover:bg-blue-700 text-white"
+                                                        aria-label="Ver producto"
                                                     >
-                                                        <Eye className="h-4 w-4" />
+                                                        <Eye className="h-4 w-4 text-white" />
                                                     </Button>
                                                 )}
-                                                {userPermissions.includes('Editar Productos') && (  // CONDICIONADO: botón editar
+                                                {userPermissions.includes('Editar Productos') && (
                                                     <Button
-                                                        variant="outline"
+                                                        variant="default"
                                                         size="icon"
                                                         onClick={() => handleEditProduct(product)}
-                                                        className="text-yellow-600 hover:text-yellow-700 border-yellow-300 hover:bg-yellow-50 dark:text-yellow-400 dark:hover:text-yellow-300 dark:border-yellow-600 dark:hover:bg-yellow-900/30"
+                                                        className="bg-yellow-500 hover:bg-yellow-600 text-white"
+                                                        aria-label="Editar producto"
                                                     >
-                                                        <Pencil className="h-4 w-4" />
+                                                        <Pencil className="h-4 w-4 text-white" />
                                                     </Button>
                                                 )}
-                                                {userPermissions.includes('Eliminar Productos') && (  // CONDICIONADO: botón eliminar
+                                                {userPermissions.includes('Eliminar Productos') && (
                                                     <Button
-                                                        variant="outline"
+                                                        variant="default"
                                                         size="icon"
                                                         onClick={() => handleDelete(product.id!, product.name)}
-                                                        className="text-red-600 hover:text-red-700 border-red-300 hover:bg-red-50 dark:text-red-400 dark:hover:text-red-300 dark:border-red-600 dark:hover:bg-red-900/30"
+                                                        className="bg-red-600 hover:bg-red-700 text-white"
+                                                        aria-label="Eliminar producto"
                                                     >
-                                                        <Trash2 className="h-4 w-4" />
+                                                        <Trash2 className="h-4 w-4 text-white" />
                                                     </Button>
                                                 )}
                                             </div>
@@ -256,9 +250,9 @@ export default function ProductsTable({
                         {products.data.length === 0 && (
                             <TableRow>
                                 <TableCell colSpan={showActionsColumn ? 8 : 7} className="h-24 text-center text-gray-500 dark:text-gray-400">
-                                    <div className="flex flex-col items-center gap-2">
-                                        <Package className="h-8 w-8 text-gray-400" />
-                                        <span>No se encontraron productos.</span>
+                                    <div className="flex flex-col items-center justify-center gap-2">
+                                        <Package className="h-8 w-8 text-gray-400 dark:text-gray-500" />
+                                        <span className="text-sm font-medium">No se encontraron productos</span>
                                     </div>
                                 </TableCell>
                             </TableRow>
