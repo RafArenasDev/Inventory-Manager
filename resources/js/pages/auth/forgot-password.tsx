@@ -2,14 +2,12 @@ import { Head, useForm } from '@inertiajs/react';
 import { LoaderCircle, ArrowLeft } from 'lucide-react';
 import { FormEventHandler } from 'react';
 import Swal from 'sweetalert2';
-
-import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import AuthSplitLayout from '@/layouts/auth/auth-split-layout';
 
-export default function ForgotPassword({ errors }: { errors?: { email?: string } }) {
+export default function ForgotPassword() {
     const { data, setData, post, processing } = useForm<Required<{ email: string }>>({
         email: '',
     });
@@ -24,14 +22,15 @@ export default function ForgotPassword({ errors }: { errors?: { email?: string }
             onError: (errors) => {
                 if (errors.email) {
                     Swal.fire({
-                        title: "Error al enviar el enlace",
+                        title: "Correo no encontrado",
                         icon: "error",
-                        text: errors.email,
+                        text: 'El correo electrónico ingresado no está registrado en la aplicación. Contacta al administrador si necesitas acceso.',
                         draggable: true,
                         confirmButtonText: 'OK'
                     });
                 }
-            }
+            },
+            preserveScroll: true
         });
     };
 
@@ -50,14 +49,15 @@ export default function ForgotPassword({ errors }: { errors?: { email?: string }
                             id="email"
                             type="email"
                             name="email"
+                            required
                             autoComplete="email"
                             value={data.email}
                             autoFocus
                             onChange={(e) => setData('email', e.target.value)}
                             placeholder="correo@ejemplo.com"
-                            className={errors?.email ? 'ring-1 ring-red-500' : ''}
+                            className=""
                         />
-                        <InputError message={errors?.email} />
+                        {/* <InputError message={formErrors.email} /> */}
                     </div>
 
                     <div className="my-6 flex items-center justify-start">

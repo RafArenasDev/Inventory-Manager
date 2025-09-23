@@ -130,7 +130,7 @@ export default function SuppliersTable({
                             <TableRow key={supplier.id}>
                                 <TableCell className="font-medium">{supplier.name}</TableCell>
                                 <TableCell>{supplier.representative || '-'}</TableCell>
-                                <TableCell className="font-mono">{`${supplier.nit_number} - ${supplier.nit_digit}`}</TableCell>
+                                <TableCell className="font-mono">{`${supplier.nit_number}-${supplier.nit_digit}`}</TableCell>
                                 <TableCell>
                                     <div className="flex items-center gap-2">
                                         <Phone className="h-4 w-4 text-gray-500" />
