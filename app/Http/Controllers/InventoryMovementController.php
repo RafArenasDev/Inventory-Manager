@@ -5,6 +5,7 @@ use App\Http\Requests\InventoryMovementRequest;
 use App\Models\Category;
 use App\Models\InventoryMovement;
 use App\Models\Product;
+use App\Models\Supplier;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
@@ -17,7 +18,7 @@ class InventoryMovementController extends Controller
 {
     public function index(Request $request)
     {
-        $movementsQuery = InventoryMovement::with(['product.category'])
+        $movementsQuery = InventoryMovement::with(['product.category', 'supplier'])
             ->latest('date')
             ->orderBy('created_at', 'desc');
 
@@ -29,6 +30,9 @@ class InventoryMovementController extends Controller
                     ->orWhereHas('product', function ($q) use ($search) {
                         $q->where('name', 'like', "%{$search}%")
                             ->orWhere('code', 'like', "%{$search}%");
+                    })
+                    ->orWhereHas('supplier', function ($q) use ($search) {
+                        $q->where('name', 'like', "%{$search}%");
                     });
             });
         }
@@ -74,6 +78,10 @@ class InventoryMovementController extends Controller
                         'name'  => $movement->product->name,
                         'stock' => $movement->product->stock,
                     ],
+                    'supplier'   => $movement->supplier ? [
+                        'id'   => $movement->supplier->id,
+                        'name' => $movement->supplier->name,
+                    ] : null,
                     'category'   => $movement->product->category->name,
                 ];
             });
@@ -101,6 +109,10 @@ class InventoryMovementController extends Controller
                         'name'  => $movement->product->name,
                         'stock' => $movement->product->stock,
                     ],
+                    'supplier'   => $movement->supplier ? [
+                        'id'   => $movement->supplier->id,
+                        'name' => $movement->supplier->name,
+                    ] : null,
                     'category'   => $movement->product->category->name,
                 ];
             });
@@ -108,8 +120,12 @@ class InventoryMovementController extends Controller
 
         return Inertia::render('inventoryMovements/index', [
             'movements'     => $movementsQuery,
-            'products'      => Product::with('category')
-                ->select('id', 'code', 'name')
+            'products'      => Product::with(['category', 'supplier'])
+                ->select('id', 'code', 'name', 'supplier_id')
+                ->orderBy('name')
+                ->get(),
+            'suppliers'     => Supplier::select('id', 'name')
+                ->where('is_active', true)
                 ->orderBy('name')
                 ->get(),
             'filters'       => $request->only([
@@ -123,8 +139,12 @@ class InventoryMovementController extends Controller
     public function create()
     {
         return Inertia::render('inventoryMovements/index', [
-            'products' => Product::with('category')
-                ->select('id', 'code', 'name', 'stock')
+            'products'  => Product::with(['category', 'supplier'])
+                ->select('id', 'code', 'name', 'supplier_id')
+                ->orderBy('name')
+                ->get(),
+            'suppliers' => Supplier::select('id', 'name')
+                ->where('is_active', true)
                 ->orderBy('name')
                 ->get(),
         ]);
@@ -134,22 +154,26 @@ class InventoryMovementController extends Controller
     {
         $validated = $request->validated();
 
-        // Convertir string a enum value
-        $validated['type'] = $validated['type'] === 'Entrada' ? 'Entrada' : 'Salida';
-
         $product = Product::findOrFail($validated['product_id']);
 
-        if ($validated['type'] === 'Salida' && $product->stock < $validated['quantity']) {
+        // Validar stock para movimientos de salida
+        if (in_array($validated['type'], ['Salida', 'Devolucion Proveedor', 'Consignacion Salida', 'Cambio Salida']) && $product->stock < $validated['quantity']) {
             return back()->with('error',
                 'No hay suficiente stock. Stock actual: ' . $product->stock
             )->withInput();
         }
 
-        // Update stock
-        if ($validated['type'] === 'Entrada') {
+        // Update stock based on movement type
+        if (in_array($validated['type'], ['Entrada', 'Devolucion Cliente', 'Consignacion Entrada', 'Cambio Entrada'])) {
             $product->increment('stock', $validated['quantity']);
-        } else {
+        } elseif (in_array($validated['type'], ['Salida', 'Devolucion Proveedor', 'Consignacion Salida', 'Cambio Salida'])) {
             $product->decrement('stock', $validated['quantity']);
+        } elseif ($validated['type'] === 'Ajuste Inventario') {
+            if ($validated['quantity'] >= 0) {
+                $product->increment('stock', $validated['quantity']);
+            } else {
+                $product->decrement('stock', abs($validated['quantity']));
+            }
         }
 
         $movement = InventoryMovement::create($validated);
@@ -160,7 +184,7 @@ class InventoryMovementController extends Controller
 
     public function show(InventoryMovement $inventoryMovement)
     {
-        $inventoryMovement->load(['product.category']);
+        $inventoryMovement->load(['product.category', 'supplier']);
 
         return Inertia::render('inventoryMovements/show', [
             'movement' => [
@@ -179,25 +203,34 @@ class InventoryMovementController extends Controller
                     'unit_price' => $inventoryMovement->product->unit_price,
                     'category'   => $inventoryMovement->product->category->name,
                 ],
+                'supplier'   => $inventoryMovement->supplier ? [
+                    'id'   => $inventoryMovement->supplier->id,
+                    'name' => $inventoryMovement->supplier->name,
+                ] : null,
             ],
         ]);
     }
 
     public function edit(InventoryMovement $inventoryMovement)
     {
-        $inventoryMovement->load(['product.category']);
+        $inventoryMovement->load(['product.category', 'supplier']);
 
         return Inertia::render('inventoryMovements/index', [
-            'movement' => [
-                'id'         => $inventoryMovement->id,
-                'product_id' => $inventoryMovement->product_id,
-                'type'       => $inventoryMovement->type,
-                'quantity'   => $inventoryMovement->quantity,
-                'date'       => $inventoryMovement->date->format('Y-m-d'),
-                'notes'      => $inventoryMovement->notes,
+            'movement'  => [
+                'id'          => $inventoryMovement->id,
+                'type'        => $inventoryMovement->type,
+                'product_id'  => $inventoryMovement->product->id,
+                'supplier_id' => $inventoryMovement->supplier->id ?? null,
+                'quantity'    => $inventoryMovement->quantity,
+                'date'        => $inventoryMovement->date->format('Y-m-d'),
+                'notes'       => $inventoryMovement->notes,
             ],
-            'products' => Product::with('category')
-                ->select('id', 'code', 'name', 'stock')
+            'products'  => Product::with(['category', 'supplier'])
+                ->select('id', 'code', 'name', 'supplier_id')
+                ->orderBy('name')
+                ->get(),
+            'suppliers' => Supplier::select('id', 'name')
+                ->where('is_active', true)
                 ->orderBy('name')
                 ->get(),
         ]);
@@ -205,31 +238,41 @@ class InventoryMovementController extends Controller
 
     public function update(InventoryMovementRequest $request, InventoryMovement $inventoryMovement)
     {
-        $validated         = $request->validated();
-        $validated['type'] = $validated['type'] === 'Entrada' ? 'Entrada' : 'Salida';
+        $validated = $request->validated();
 
-        $newProduct = Product::findOrFail($validated['product_id']);
+        $product = $inventoryMovement->product;
 
-        // Validar stock para salidas
-        if ($validated['type'] === 'Salida' && $newProduct->stock < $validated['quantity']) {
+        // Revertir el efecto del movimiento anterior en el stock
+        if (in_array($inventoryMovement->type, ['Entrada', 'Devolucion Cliente', 'Consignacion Entrada', 'Cambio Entrada'])) {
+            $product->decrement('stock', $inventoryMovement->quantity);
+        } elseif (in_array($inventoryMovement->type, ['Salida', 'Devolucion Proveedor', 'Consignacion Salida', 'Cambio Salida'])) {
+            $product->increment('stock', $inventoryMovement->quantity);
+        } elseif ($inventoryMovement->type === 'Ajuste Inventario') {
+            if ($inventoryMovement->quantity >= 0) {
+                $product->decrement('stock', $inventoryMovement->quantity);
+            } else {
+                $product->increment('stock', abs($inventoryMovement->quantity));
+            }
+        }
+
+        // Validar stock para el nuevo movimiento si es de salida
+        if (in_array($validated['type'], ['Salida', 'Devolucion Proveedor', 'Consignacion Salida', 'Cambio Salida']) && $product->stock < $validated['quantity']) {
             return back()->with('error',
-                'No hay suficiente stock en el producto seleccionado. Stock actual: ' . $newProduct->stock
+                'No hay suficiente stock después de revertir el movimiento anterior. Stock actual: ' . $product->stock
             )->withInput();
         }
 
-        // Revertir el efecto del movimiento original
-        $oldProduct = $inventoryMovement->product;
-        if ($inventoryMovement->type === 'Entrada') {
-            $oldProduct->decrement('stock', $inventoryMovement->quantity);
-        } else {
-            $oldProduct->increment('stock', $inventoryMovement->quantity);
-        }
-
-        // Aplicar el nuevo efecto
-        if ($validated['type'] === 'Entrada') {
-            $newProduct->increment('stock', $validated['quantity']);
-        } else {
-            $newProduct->decrement('stock', $validated['quantity']);
+        // Aplicar el nuevo efecto en el stock
+        if (in_array($validated['type'], ['Entrada', 'Devolucion Cliente', 'Consignacion Entrada', 'Cambio Entrada'])) {
+            $product->increment('stock', $validated['quantity']);
+        } elseif (in_array($validated['type'], ['Salida', 'Devolucion Proveedor', 'Consignacion Salida', 'Cambio Salida'])) {
+            $product->decrement('stock', $validated['quantity']);
+        } elseif ($validated['type'] === 'Ajuste Inventario') {
+            if ($validated['quantity'] >= 0) {
+                $product->increment('stock', $validated['quantity']);
+            } else {
+                $product->decrement('stock', abs($validated['quantity']));
+            }
         }
 
         $inventoryMovement->update($validated);
@@ -238,111 +281,32 @@ class InventoryMovementController extends Controller
             ->with('success', 'Movimiento de inventario actualizado correctamente.');
     }
 
-    // public function destroy(InventoryMovement $inventoryMovement)
-    // {
-    //     if ($inventoryMovement->date->isPast()) {
-    //         return response()->json([
-    //             'errors' => [
-    //                 'delete' => ['No se pueden eliminar movimientos de fechas anteriores.'],
-    //             ],
-    //         ], 422);
-    //     }
-
-    //     // Revert stock change
-    //     if ($inventoryMovement->type === 'Entrada') {
-    //         $inventoryMovement->product->decrement('stock', $inventoryMovement->quantity);
-    //     } else {
-    //         $inventoryMovement->product->increment('stock', $inventoryMovement->quantity);
-    //     }
-
-    //     $inventoryMovement->delete();
-
-    //     return response()->noContent();
-    // }
-    public function cancel(nventoryMovement $inventoryMovement)
+    public function destroy(InventoryMovement $inventoryMovement)
     {
-        if ($inventoryMovement->date->isFuture()) {
-            return back()->withErrors([
-                'cancel' => ['No se pueden anular movimientos de fechas futuras.'],
-            ])->onlyInput();
+        $product = $inventoryMovement->product;
+
+        // Revertir el efecto en el stock
+        if (in_array($inventoryMovement->type, ['Entrada', 'Devolucion Cliente', 'Consignacion Entrada', 'Cambio Entrada'])) {
+            $product->decrement('stock', $inventoryMovement->quantity);
+        } elseif (in_array($inventoryMovement->type, ['Salida', 'Devolucion Proveedor', 'Consignacion Salida', 'Cambio Salida'])) {
+            $product->increment('stock', $inventoryMovement->quantity);
+        } elseif ($inventoryMovement->type === 'Ajuste Inventario') {
+            if ($inventoryMovement->quantity >= 0) {
+                $product->decrement('stock', $inventoryMovement->quantity);
+            } else {
+                $product->increment('stock', abs($inventoryMovement->quantity));
+            }
         }
 
-        if ($inventoryMovement->cancelled_at) {
-            return back()->withErrors([
-                'cancel' => ['El movimiento ya está anulado.'],
-            ])->onlyInput();
-        }
-
-        // Revertir el efecto del movimiento
-        if ($inventoryMovement->type === 'Entrada') {
-            $inventoryMovement->product->decrement('stock', $inventoryMovement->quantity);
-        } else {
-            $inventoryMovement->product->increment('stock', $inventoryMovement->quantity);
-        }
-
-        $inventoryMovement->update(['cancelled_at' => now()]);
+        $inventoryMovement->delete();
 
         return redirect()->route('inventory-movements.index')
-            ->with('success', 'Movimiento anulado correctamente.');
+            ->with('success', 'Movimiento de inventario eliminado correctamente.');
     }
 
-    public function stockReport(Request $request)
+    public function report(Request $request)
     {
-        $query = Product::with('category')
-            ->select('products.*', 'categories.name as category_name')
-            ->join('categories', 'products.category_id', '=', 'categories.id');
-
-        if ($request->filled('category_id')) {
-            $query->where('category_id', $request->category_id);
-        }
-
-        if ($request->filled('low_stock_only')) {
-            $query->where('stock', '<=', 5);
-        }
-
-        if ($request->filled('out_of_stock_only')) {
-            $query->where('stock', 0);
-        }
-
-        $products = $query->orderBy('stock', 'asc')->get();
-
-        $totalProducts = $products->count();
-        $totalStock    = $products->sum('stock');
-        $totalValue    = $products->sum(function ($product) {
-            return $product->stock * ($product->unit_price ?? 0);
-        });
-
-        $lowStockProducts   = $products->where('stock', '<=', 5)->count();
-        $outOfStockProducts = $products->where('stock', 0)->count();
-
-        return Inertia::render('inventoryMovements/stock-report', [
-            'products'   => $products->map(function ($product) {
-                return [
-                    'id'            => $product->id,
-                    'code'          => $product->code,
-                    'name'          => $product->name,
-                    'category_name' => $product->category_name,
-                    'stock'         => $product->stock,
-                    'unit_price'    => $product->unit_price,
-                    'total_value'   => $product->stock * ($product->unit_price ?? 0),
-                    'stock_status'  => $product->stock <= 5 ? 'low' : ($product->stock == 0 ? 'out' : 'ok'),
-                ];
-            }),
-            'summary'    => [
-                'total_products'        => $totalProducts,
-                'total_stock'           => $totalStock,
-                'total_value'           => number_format($totalValue, 2),
-                'low_stock_products'    => $lowStockProducts,
-                'out_of_stock_products' => $outOfStockProducts,
-            ],
-            'filters'    => $request->only(['category_id', 'low_stock_only', 'out_of_stock_only']),
-            'categories' => Category::select('id', 'name')->orderBy('name')->get(),
-        ]);
-    }
-
-    public function movementsReport(Request $request)
-    {
-        $query = InventoryMovement::with(['product.category'])
+        $query = InventoryMovement::query()
             ->selectRaw('
                 inventory_movements.*,
                 categories.name as category_name,
@@ -350,7 +314,8 @@ class InventoryMovementController extends Controller
                 products.code as product_code
             ')
             ->join('products', 'inventory_movements.product_id', '=', 'products.id')
-            ->join('categories', 'products.category_id', '=', 'categories.id');
+            ->join('categories', 'products.category_id', '=', 'categories.id')
+            ->leftJoin('suppliers', 'inventory_movements.supplier_id', '=', 'suppliers.id');
 
         if ($request->filled('date_from')) {
             $query->whereDate('inventory_movements.date', '>=', $request->date_from);
@@ -370,10 +335,11 @@ class InventoryMovementController extends Controller
 
         $movements = $query->orderBy('inventory_movements.date', 'desc')->get();
 
-        $totalEntries   = $movements->where('type', 'Entrada')->sum('quantity');
-        $totalExits     = $movements->where('type', 'Salida')->sum('quantity');
-        $netMovement    = $totalEntries - $totalExits;
-        $totalMovements = $movements->count();
+        $totalEntries     = $movements->whereIn('type', ['Entrada', 'Devolucion Cliente', 'Consignacion Entrada', 'Cambio Entrada'])->sum('quantity');
+        $totalExits       = $movements->whereIn('type', ['Salida', 'Devolucion Proveedor', 'Consignacion Salida', 'Cambio Salida'])->sum('quantity');
+        $totalAdjustments = $movements->where('type', 'Ajuste Inventario')->sum('quantity');
+        $netMovement      = $totalEntries - $totalExits + $totalAdjustments;
+        $totalMovements   = $movements->count();
 
         return Inertia::render('inventoryMovements/movements-report', [
             'movements'  => $movements->map(function ($movement) {
@@ -388,15 +354,20 @@ class InventoryMovementController extends Controller
                         'code' => $movement->product_code,
                         'name' => $movement->product_name,
                     ],
+                    'supplier'      => $movement->supplier ? [
+                        'id'   => $movement->supplier->id,
+                        'name' => $movement->supplier->name,
+                    ] : null,
                     'category_name' => $movement->category_name,
                 ];
             }),
             'summary'    => [
-                'total_movements' => $totalMovements,
-                'total_entries'   => $totalEntries,
-                'total_exits'     => $totalExits,
-                'net_movement'    => $netMovement,
-                'period'          => [
+                'total_movements'   => $totalMovements,
+                'total_entries'     => $totalEntries,
+                'total_exits'       => $totalExits,
+                'total_adjustments' => $totalAdjustments,
+                'net_movement'      => $netMovement,
+                'period'            => [
                     'from' => $request->date_from ?? 'Inicio',
                     'to'   => $request->date_to ?? 'Actual',
                 ],
@@ -409,8 +380,8 @@ class InventoryMovementController extends Controller
     public function export(Request $request)
     {
         // Aplicar los mismos filtros que en index()
-        $movementsQuery = InventoryMovement::with(['product.category'])
-            ->orderBy('id', 'asc'); // CAMBIO: Ordenar por ID ascendente
+        $movementsQuery = InventoryMovement::with(['product.category', 'supplier'])
+            ->orderBy('id', 'asc');
 
         // Search filter
         if ($request->filled('search')) {
@@ -420,6 +391,9 @@ class InventoryMovementController extends Controller
                     ->orWhereHas('product', function ($q) use ($search) {
                         $q->where('name', 'like', "%{$search}%")
                             ->orWhere('code', 'like', "%{$search}%");
+                    })
+                    ->orWhereHas('supplier', function ($q) use ($search) {
+                        $q->where('name', 'like', "%{$search}%");
                     });
             });
         }
@@ -454,11 +428,12 @@ class InventoryMovementController extends Controller
             'C1' => 'Producto',
             'D1' => 'Código Producto',
             'E1' => 'Categoría',
-            'F1' => 'Cantidad',
-            'G1' => 'Stock Actual',
-            'H1' => 'Fecha Movimiento',
-            'I1' => 'Notas',
-            'J1' => 'Fecha Registro',
+            'F1' => 'Proveedor',
+            'G1' => 'Cantidad',
+            'H1' => 'Stock Actual',
+            'I1' => 'Fecha Movimiento',
+            'J1' => 'Notas',
+            'K1' => 'Fecha Registro',
         ];
 
         // Escribir encabezados
@@ -489,7 +464,7 @@ class InventoryMovementController extends Controller
         ];
 
         // Aplicar estilo a encabezados
-        $sheet->getStyle('A1:J1')->applyFromArray($headerStyle);
+        $sheet->getStyle('A1:K1')->applyFromArray($headerStyle);
 
         // Escribir datos
         $row = 2;
@@ -499,11 +474,12 @@ class InventoryMovementController extends Controller
             $sheet->setCellValue('C' . $row, $movement->product->name);
             $sheet->setCellValue('D' . $row, $movement->product->code);
             $sheet->setCellValue('E' . $row, $movement->product->category->name);
-            $sheet->setCellValue('F' . $row, $movement->quantity);
-            $sheet->setCellValue('G' . $row, $movement->product->stock);
-            $sheet->setCellValue('H' . $row, $movement->date->format('d/m/Y'));
-            $sheet->setCellValue('I' . $row, $movement->notes ?? '');
-            $sheet->setCellValue('J' . $row, $movement->created_at->format('d/m/Y H:i:s'));
+            $sheet->setCellValue('F' . $row, $movement->supplier->name ?? '');
+            $sheet->setCellValue('G' . $row, $movement->quantity);
+            $sheet->setCellValue('H' . $row, $movement->product->stock);
+            $sheet->setCellValue('I' . $row, $movement->date->format('d/m/Y'));
+            $sheet->setCellValue('J' . $row, $movement->notes ?? '');
+            $sheet->setCellValue('K' . $row, $movement->created_at->format('d/m/Y H:i:s'));
             $row++;
         }
 
@@ -522,16 +498,16 @@ class InventoryMovementController extends Controller
 
         // Aplicar bordes a todos los datos
         if ($row > 2) {
-            $sheet->getStyle('A1:J' . ($row - 1))->applyFromArray($dataStyle);
+            $sheet->getStyle('A1:K' . ($row - 1))->applyFromArray($dataStyle);
         }
 
         // Centrar columnas numéricas
         $sheet->getStyle('A2:A' . ($row - 1))->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-        $sheet->getStyle('F2:G' . ($row - 1))->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-        $sheet->getStyle('H2:H' . ($row - 1))->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+        $sheet->getStyle('G2:H' . ($row - 1))->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+        $sheet->getStyle('I2:I' . ($row - 1))->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
 
         // Autoajustar columnas
-        foreach (range('A', 'J') as $col) {
+        foreach (range('A', 'K') as $col) {
             $sheet->getColumnDimension($col)->setAutoSize(true);
         }
 
@@ -549,5 +525,4 @@ class InventoryMovementController extends Controller
             'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
         ]);
     }
-
 }

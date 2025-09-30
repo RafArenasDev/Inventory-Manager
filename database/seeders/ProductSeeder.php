@@ -18,7 +18,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'CABLE FRENO DEL BOXER CT',
                 'stock'         => 2,
                 'description'   => 'Cable de freno delantero para Boxer CT.',
-                'supplier'      => 'Distriandina',
+                'supplier'      => 1,
                 'unit_price'    => 18000,
             ],
             [
@@ -27,7 +27,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'FILTRO ACEITE PULSAR 200 NS',
                 'stock'         => 1,
                 'description'   => 'Filtro de aceite original para Pulsar 200 NS.',
-                'supplier'      => 'Distriandina',
+                'supplier'      => 1,
                 'unit_price'    => 10200,
             ],
             [
@@ -36,7 +36,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'FILTRO AIRE PULSAR 135 LS GB',
                 'stock'         => 2,
                 'description'   => 'Filtro de aire para Pulsar 135 LS GB.',
-                'supplier'      => 'Distriandina',
+                'supplier'      => 1,
                 'unit_price'    => 8500,
             ],
             [
@@ -45,7 +45,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'FILT AIR PUL135 LS/BOXBM100 /150XCD',
                 'stock'         => 1,
                 'description'   => 'Filtro de aire compatible con Pulsar 135 LS, Boxer BM100 y 150XCD.',
-                'supplier'      => 'Distriandina',
+                'supplier'      => 1,
                 'unit_price'    => 8500,
             ],
             [
@@ -54,7 +54,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'FILT AIRE DISCOVER 125/135 GN BJAC',
                 'stock'         => 2,
                 'description'   => 'Filtro de aire para Discover 125/135 GN BJAC.',
-                'supplier'      => 'Distriandina',
+                'supplier'      => 1,
                 'unit_price'    => 8500,
             ],
             [
@@ -63,7 +63,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'GUAYA CLUTC PULSAR 200NS GNBJAC',
                 'stock'         => 1,
                 'description'   => 'Guaya de clutch para Pulsar 200NS GNBJAC.',
-                'supplier'      => 'Distriandina',
+                'supplier'      => 1,
                 'unit_price'    => 15000,
             ],
             [
@@ -72,7 +72,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'GUAYA ACL BOXCT100MV/PLAT 100 GB',
                 'stock'         => 1,
                 'description'   => 'Guaya de acelerador para Boxer CT100MV y Platino 100 GB.',
-                'supplier'      => 'Distriandina',
+                'supplier'      => 1,
                 'unit_price'    => 12000,
             ],
             [
@@ -81,7 +81,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'GUAYA ACL BOX CT 100/06/18 GEN BJC',
                 'stock'         => 1,
                 'description'   => 'Guaya de acelerador para Boxer CT 100/06/18 GEN BJC.',
-                'supplier'      => 'Distriandina',
+                'supplier'      => 1,
                 'unit_price'    => 12000,
             ],
             [
@@ -90,7 +90,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'GUAYA ACL PULSAR 200 NS GEN BJAC',
                 'stock'         => 1,
                 'description'   => 'Guaya de acelerador para Pulsar 200 NS GEN BJAC.',
-                'supplier'      => 'Distriandina',
+                'supplier'      => 1,
                 'unit_price'    => 15000,
             ],
             [
@@ -99,7 +99,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'GUAYA ACL PULSAR 180 II/DISCOV 135',
                 'stock'         => 1,
                 'description'   => 'Guaya de acelerador para Pulsar 180 II y Discover 135.',
-                'supplier'      => 'Distriandina',
+                'supplier'      => 1,
                 'unit_price'    => 14000,
             ],
             [
@@ -108,7 +108,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'MGTA DER PUL 180/200NS/220 PULS II GB',
                 'stock'         => 2,
                 'description'   => 'Manigueta derecha para Pulsar 180/200NS/220 Pulsar II GB.',
-                'supplier'      => 'Distriandina',
+                'supplier'      => 1,
                 'unit_price'    => 25000,
             ],
             [
@@ -117,7 +117,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'MGTA IZQ PULS 180 II/135 LS    GN BJAC',
                 'stock'         => 1,
                 'description'   => 'Manigueta izquierda para Pulsar 180 II/135 LS GN BJAC.',
-                'supplier'      => 'Distriandina',
+                'supplier'      => 1,
                 'unit_price'    => 25000,
             ],
             [
@@ -126,7 +126,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'MGTA IZQ PUL200NS UG220DISC125ST/100M',
                 'stock'         => 1,
                 'description'   => 'Manigueta izquierda para Pulsar 200NS, UG220, Discover 125ST/100M.',
-                'supplier'      => 'Distriandina',
+                'supplier'      => 1,
                 'unit_price'    => 25000,
             ],
             [
@@ -135,7 +135,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'MGTA FRNO BOX CT 100 LARGA GN BJAC',
                 'stock'         => 2,
                 'description'   => 'Manigueta de freno larga para Boxer CT 100 GN BJAC.',
-                'supplier'      => 'Distriandina',
+                'supplier'      => 1,
                 'unit_price'    => 22000,
             ],
             [
@@ -144,7 +144,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'PAST FNO DEL PULSAR 200 NS GEN BJAC',
                 'stock'         => 2,
                 'description'   => 'Pastillas de freno delantero para Pulsar 200 NS GEN BJAC.',
-                'supplier'      => 'Distriandina',
+                'supplier'      => 1,
                 'unit_price'    => 28000,
             ],
             [
@@ -153,7 +153,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'PAS FNO PULS 180 CLASIC/PULS 200 GENBJAC',
                 'stock'         => 2,
                 'description'   => 'Pastillas de freno para Pulsar 180 Classic/Pulsar 200 GENBJAC.',
-                'supplier'      => 'Distriandina',
+                'supplier'      => 1,
                 'unit_price'    => 28000,
             ],
             [
@@ -162,7 +162,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'CANASTILLA CLUTCH BOX BM100 ES125',
                 'stock'         => 1,
                 'description'   => 'Canastilla de clutch para Boxer BM100 ES125.',
-                'supplier'      => 'Distriandina',
+                'supplier'      => 1,
                 'unit_price'    => 85000,
             ],
             [
@@ -171,7 +171,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'CANASTILLA CLUYCH BOXER 100 CT GNBJ2',
                 'stock'         => 2,
                 'description'   => 'Canastilla de clutch para Boxer 100 CT GNBJ2.',
-                'supplier'      => 'Distriandina',
+                'supplier'      => 1,
                 'unit_price'    => 85000,
             ],
             [
@@ -180,7 +180,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'FLASHER PULS/BOXBM150/100CLAS100 DISC',
                 'stock'         => 1,
                 'description'   => 'Flasher universal para Pulsar, Boxer BM150/100, Classic 100, Discover.',
-                'supplier'      => 'Distriandina',
+                'supplier'      => 1,
                 'unit_price'    => 12000,
             ],
             [
@@ -189,7 +189,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'EMPQ CIL PULSARNS200/RS200 GEN BJAC',
                 'stock'         => 2,
                 'description'   => 'Empaque de cilindro para Pulsar NS200/RS200 GEN BJAC.',
-                'supplier'      => 'Distriandina',
+                'supplier'      => 1,
                 'unit_price'    => 15000,
             ],
             [
@@ -198,7 +198,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'EMPQ EXHOST PULS NS200/RS200 GN BJC',
                 'stock'         => 2,
                 'description'   => 'Empaque de escape para Pulsar NS200/RS200 GN BJC.',
-                'supplier'      => 'Distriandina',
+                'supplier'      => 1,
                 'unit_price'    => 8000,
             ],
             [
@@ -207,7 +207,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'ACEITE 4TCELERITY TITANIO',
                 'stock'         => 5,
                 'description'   => 'Aceite 4T Celerity Titanio para motocicletas.',
-                'supplier'      => 'Distriandina',
+                'supplier'      => 1,
                 'unit_price'    => 35000,
             ],
             [
@@ -216,7 +216,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'ACEITE 2T CELERITY FD BIO ANTIHUMO',
                 'stock'         => 2,
                 'description'   => 'Aceite 2T Celerity FD Bio antihumo para motores de 2 tiempos.',
-                'supplier'      => 'Distriandina',
+                'supplier'      => 1,
                 'unit_price'    => 28000,
             ],
             [
@@ -225,7 +225,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'GRASA ROJ/AMAR AA MU/USOS TITAN',
                 'stock'         => 4,
                 'description'   => 'Grasa multiusos Titan roja/amarilla para múltiples aplicaciones.',
-                'supplier'      => 'Distriandina',
+                'supplier'      => 1,
                 'unit_price'    => 15000,
             ],
             [
@@ -234,7 +234,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'ADAP ESPJ 8MMA10MM X1 EVOL.EMC',
                 'stock'         => 6,
                 'description'   => 'Adaptador espejo 8mm a 10mm x1 Evolution EMC.',
-                'supplier'      => 'Distriandina',
+                'supplier'      => 1,
                 'unit_price'    => 5000,
             ],
             [
@@ -243,7 +243,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'ADAP ESPJ 10MMA 8MM X 1 NARITA RMC',
                 'stock'         => 6,
                 'description'   => 'Adaptador espejo 10mm a 8mm x1 Narita RMC.',
-                'supplier'      => 'Distriandina',
+                'supplier'      => 1,
                 'unit_price'    => 5000,
             ],
             [
@@ -252,7 +252,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'ADAP ESPJ DER 10MMA8MM R-IZQX1',
                 'stock'         => 6,
                 'description'   => 'Adaptador espejo derecho 10mm a 8mm rosca izquierda x1.',
-                'supplier'      => 'Distriandina',
+                'supplier'      => 1,
                 'unit_price'    => 5000,
             ],
             [
@@ -261,7 +261,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'AMARRA PLASTICA NEG X 100 UND C/U',
                 'stock'         => 300,
                 'description'   => 'Amarras plásticas negras x 100 unidades cada una.',
-                'supplier'      => 'Distriandina',
+                'supplier'      => 1,
                 'unit_price'    => 2500,
             ],
             [
@@ -270,7 +270,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'AMARRA PLASTICA NEG CORTA X 100 UN C/U',
                 'stock'         => 300,
                 'description'   => 'Amarras plásticas negras cortas x 100 unidades cada una.',
-                'supplier'      => 'Distriandina',
+                'supplier'      => 1,
                 'unit_price'    => 2000,
             ],
             [
@@ -279,7 +279,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'ARAND PIÑ SAL YAMAHA UNIV',
                 'stock'         => 3,
                 'description'   => 'Arandela de piñón de salida universal para Yamaha.',
-                'supplier'      => 'Distriandina',
+                'supplier'      => 1,
                 'unit_price'    => 3000,
             ],
             [
@@ -288,7 +288,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'ARAND PIÑ SAL GS125/GN125 SPARTAN',
                 'stock'         => 3,
                 'description'   => 'Arandela de piñón de salida para GS125/GN125 Spartan.',
-                'supplier'      => 'Distriandina',
+                'supplier'      => 1,
                 'unit_price'    => 3000,
             ],
             [
@@ -297,7 +297,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'ARAND PIÑ SAL YBR-XTZ  SPARTAN',
                 'stock'         => 3,
                 'description'   => 'Arandela de piñón de salida para YBR-XTZ Spartan.',
-                'supplier'      => 'Distriandina',
+                'supplier'      => 1,
                 'unit_price'    => 3000,
             ],
             [
@@ -306,7 +306,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'ARAND PIÑ SAL BEST S&K',
                 'stock'         => 3,
                 'description'   => 'Arandela de piñón de salida Best S&K.',
-                'supplier'      => 'Distriandina',
+                'supplier'      => 1,
                 'unit_price'    => 3000,
             ],
             [
@@ -315,7 +315,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'ARD PIÑ SAL CBF 150,XL 125/185 AK125',
                 'stock'         => 3,
                 'description'   => 'Arandela de piñón de salida para CBF 150, XL 125/185, AK125.',
-                'supplier'      => 'Distriandina',
+                'supplier'      => 1,
                 'unit_price'    => 3000,
             ],
             [
@@ -324,7 +324,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'ARAND PIÑ SALIDA  BOXER S&K',
                 'stock'         => 4,
                 'description'   => 'Arandela de piñón de salida para Boxer S&K.',
-                'supplier'      => 'Distriandina',
+                'supplier'      => 1,
                 'unit_price'    => 3000,
             ],
             [
@@ -333,7 +333,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'FILTRO AIRE BOXER CT 100',
                 'stock'         => 3,
                 'description'   => 'Filtro de aire para Boxer CT 100.',
-                'supplier'      => 'Distriandina',
+                'supplier'      => 1,
                 'unit_price'    => 8500,
             ],
             [
@@ -342,7 +342,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'GUAY ACL PULSAR135LS PULS180II',
                 'stock'         => 2,
                 'description'   => 'Guaya de acelerador para Pulsar 135LS y Pulsar 180II.',
-                'supplier'      => 'Distriandina',
+                'supplier'      => 1,
                 'unit_price'    => 12000,
             ],
             [
@@ -351,7 +351,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'GUAYA CLUTCHDISCOVER 125 ST TG',
                 'stock'         => 1,
                 'description'   => 'Guaya de clutch para Discover 125 ST TG.',
-                'supplier'      => 'Distriandina',
+                'supplier'      => 1,
                 'unit_price'    => 13000,
             ],
             [
@@ -360,7 +360,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'GUAYA CLUTCH PULSAR 150 NS TG',
                 'stock'         => 1,
                 'description'   => 'Guaya de clutch para Pulsar 150 NS TG.',
-                'supplier'      => 'Distriandina',
+                'supplier'      => 1,
                 'unit_price'    => 13000,
             ],
             [
@@ -369,7 +369,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'GUAYA  ACEL PULSAR 135 LS TG',
                 'stock'         => 1,
                 'description'   => 'Guaya de acelerador para Pulsar 135 LS TG.',
-                'supplier'      => 'Distriandina',
+                'supplier'      => 1,
                 'unit_price'    => 12000,
             ],
             [
@@ -378,7 +378,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'GUAYA ACELE PULSAR 180 UG TG',
                 'stock'         => 1,
                 'description'   => 'Guaya de acelerador para Pulsar 180 UG TG.',
-                'supplier'      => 'Distriandina',
+                'supplier'      => 1,
                 'unit_price'    => 12000,
             ],
             [
@@ -387,7 +387,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'GUAYA ACEL PULSAR 150 NS TG',
                 'stock'         => 1,
                 'description'   => 'Guaya de acelerador para Pulsar 150 NS TG.',
-                'supplier'      => 'Distriandina',
+                'supplier'      => 1,
                 'unit_price'    => 12000,
             ],
             [
@@ -396,7 +396,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'ARANDELA PIÑ SAL  XL125  KEYMAN',
                 'stock'         => 1,
                 'description'   => 'Arandela de piñón de salida para XL125 Keyman.',
-                'supplier'      => 'Distriandina',
+                'supplier'      => 1,
                 'unit_price'    => 3000,
             ],
             [
@@ -405,7 +405,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'AGUJA+BAS CARB FR80-V80  KEYMAN',
                 'stock'         => 1,
                 'description'   => 'Aguja y base de carburador para FR80-V80 Keyman.',
-                'supplier'      => 'Distriandina',
+                'supplier'      => 1,
                 'unit_price'    => 18000,
             ],
             [
@@ -414,7 +414,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'AGUJA+BASE CARB AGILITY VITON HEAD',
                 'stock'         => 1,
                 'description'   => 'Aguja y base de carburador para Agility Viton Head.',
-                'supplier'      => 'Distriandina',
+                'supplier'      => 1,
                 'unit_price'    => 18000,
             ],
             [
@@ -423,7 +423,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'AGUJA+BASE CARB AX 100/115 KEYMAN',
                 'stock'         => 2,
                 'description'   => 'Aguja y base de carburador para AX 100/115 Keyman.',
-                'supplier'      => 'Distriandina',
+                'supplier'      => 1,
                 'unit_price'    => 18000,
             ],
             [
@@ -432,7 +432,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'AGUJA+BASE CARB BOXER 100CT  DH1210-44',
                 'stock'         => 2,
                 'description'   => 'Aguja y base de carburador para Boxer 100CT DH1210-44.',
-                'supplier'      => 'Distriandina',
+                'supplier'      => 1,
                 'unit_price'    => 18000,
             ],
             [
@@ -441,7 +441,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'AGUJA+BASE CARB BWS 15',
                 'stock'         => 2,
                 'description'   => 'Aguja y base de carburador para BWS 15.',
-                'supplier'      => 'Distriandina',
+                'supplier'      => 1,
                 'unit_price'    => 18000,
             ],
             [
@@ -450,7 +450,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'AGUJA+BASE CARB C90',
                 'stock'         => 1,
                 'description'   => 'Aguja y base de carburador para C90.',
-                'supplier'      => 'Distriandina',
+                'supplier'      => 1,
                 'unit_price'    => 18000,
             ],
             [
@@ -459,7 +459,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'AGUJA+BASE CARB C100 WAVE/II',
                 'stock'         => 1,
                 'description'   => 'Aguja y base de carburador para C100 Wave/II.',
-                'supplier'      => 'Distriandina',
+                'supplier'      => 1,
                 'unit_price'    => 18000,
             ],
             [
@@ -468,7 +468,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'AGUJA+BASE CARB FZ16',
                 'stock'         => 1,
                 'description'   => 'Aguja y base de carburador para FZ16.',
-                'supplier'      => 'Distriandina',
+                'supplier'      => 1,
                 'unit_price'    => 18000,
             ],
             [
@@ -477,7 +477,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'AGUJA+BASE CARB GN 125 P-C KEYMAN',
                 'stock'         => 1,
                 'description'   => 'Aguja y base de carburador para GN 125 P-C Keyman.',
-                'supplier'      => 'Distriandina',
+                'supplier'      => 1,
                 'unit_price'    => 18000,
             ],
             [
@@ -486,7 +486,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'AGUJA + BASE CARB  LIBERO 110',
                 'stock'         => 1,
                 'description'   => 'Aguja y base de carburador para Libero 110.',
-                'supplier'      => 'Distriandina',
+                'supplier'      => 1,
                 'unit_price'    => 18000,
             ],
             [
@@ -495,7 +495,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'AGUJA + BASE  CARB PLATINO 100',
                 'stock'         => 1,
                 'description'   => 'Aguja y base de carburador para Platino 100.',
-                'supplier'      => 'Distriandina',
+                'supplier'      => 1,
                 'unit_price'    => 18000,
             ],
             [
@@ -504,7 +504,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'AGUJA + BASE RX 100',
                 'stock'         => 1,
                 'description'   => 'Aguja y base de carburador para RX 100.',
-                'supplier'      => 'Distriandina',
+                'supplier'      => 1,
                 'unit_price'    => 18000,
             ],
             [
@@ -513,7 +513,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'DADOS DE TRASMISION KYMCO',
                 'stock'         => 1,
                 'description'   => 'Dados de transmisión para scooter Kymco.',
-                'supplier'      => 'Distriandina',
+                'supplier'      => 1,
                 'unit_price'    => 45000,
             ],
             [
@@ -522,7 +522,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'BALINERA 6000 ZZ DOB SELLO',
                 'stock'         => 6,
                 'description'   => 'Balinera 6000 ZZ con doble sello.',
-                'supplier'      => 'Distriandina',
+                'supplier'      => 1,
                 'unit_price'    => 8000,
             ],
             [
@@ -531,7 +531,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'BALINERA 6001 ZZ SELLO MET AKITA',
                 'stock'         => 4,
                 'description'   => 'Balinera 6001 ZZ con sello metálico Akita.',
-                'supplier'      => 'Distriandina',
+                'supplier'      => 1,
                 'unit_price'    => 9000,
             ],
             [
@@ -540,7 +540,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'BALINERA H6205 2RS UNIV SELL CAUC',
                 'stock'         => 4,
                 'description'   => 'Balinera H6205 2RS universal con sello de caucho.',
-                'supplier'      => 'Distriandina',
+                'supplier'      => 1,
                 'unit_price'    => 12000,
             ],
             [
@@ -549,7 +549,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'BALINERA 628 HTH  TW',
                 'stock'         => 4,
                 'description'   => 'Balinera 628 HTH TW.',
-                'supplier'      => 'Distriandina',
+                'supplier'      => 1,
                 'unit_price'    => 7000,
             ],
             [
@@ -558,7 +558,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'BALINERA 6004 DMA',
                 'stock'         => 4,
                 'description'   => 'Balinera 6004 DMA.',
-                'supplier'      => 'Distriandina',
+                'supplier'      => 1,
                 'unit_price'    => 10000,
             ],
             [
@@ -567,7 +567,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'BALINERA 6201 DMA',
                 'stock'         => 4,
                 'description'   => 'Balinera 6201 DMA.',
-                'supplier'      => 'Distriandina',
+                'supplier'      => 1,
                 'unit_price'    => 8500,
             ],
             [
@@ -576,7 +576,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'BALINERA 6200 DMA',
                 'stock'         => 4,
                 'description'   => 'Balinera 6200 DMA.',
-                'supplier'      => 'Distriandina',
+                'supplier'      => 1,
                 'unit_price'    => 8000,
             ],
             [
@@ -585,7 +585,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'BALINERA 6202 DMA',
                 'stock'         => 4,
                 'description'   => 'Balinera 6202 DMA.',
-                'supplier'      => 'Distriandina',
+                'supplier'      => 1,
                 'unit_price'    => 9000,
             ],
             [
@@ -594,7 +594,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'BALINERA 6203',
                 'stock'         => 4,
                 'description'   => 'Balinera 6203.',
-                'supplier'      => 'Distriandina',
+                'supplier'      => 1,
                 'unit_price'    => 9500,
             ],
             [
@@ -603,7 +603,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'BALINERA 6301 2RS',
                 'stock'         => 4,
                 'description'   => 'Balinera 6301 2RS con doble sello.',
-                'supplier'      => 'Distriandina',
+                'supplier'      => 1,
                 'unit_price'    => 15000,
             ],
             [
@@ -612,7 +612,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'BALINERA 6201 2RS UNIVERSAL SELLADA',
                 'stock'         => 4,
                 'description'   => 'Balinera 6201 2RS universal sellada.',
-                'supplier'      => 'Distriandina',
+                'supplier'      => 1,
                 'unit_price'    => 8500,
             ],
             [
@@ -621,7 +621,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'BALINERA 6202  2 RS UNIVERSAL SELLADA',
                 'stock'         => 4,
                 'description'   => 'Balinera 6202 2RS universal sellada.',
-                'supplier'      => 'Distriandina',
+                'supplier'      => 1,
                 'unit_price'    => 9000,
             ],
             [
@@ -630,7 +630,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'BALINERA 6203 2RS UNIVERSAL SELLADA',
                 'stock'         => 4,
                 'description'   => 'Balinera 6203 2RS universal sellada.',
-                'supplier'      => 'Distriandina',
+                'supplier'      => 1,
                 'unit_price'    => 9500,
             ],
             [
@@ -639,7 +639,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'BALINERA 6301 2RS 2RS UNIVERSAL SELLADA',
                 'stock'         => 4,
                 'description'   => 'Balinera 6301 2RS universal sellada.',
-                'supplier'      => 'Distriandina',
+                'supplier'      => 1,
                 'unit_price'    => 15000,
             ],
             [
@@ -648,7 +648,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'BALINERA 6302 2RS UNIVERSAL SELLADA',
                 'stock'         => 4,
                 'description'   => 'Balinera 6302 2RS universal sellada.',
-                'supplier'      => 'Distriandina',
+                'supplier'      => 1,
                 'unit_price'    => 16000,
             ],
             [
@@ -657,7 +657,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'BALINERA 6004 2RS UNIVERSAL SELLADA',
                 'stock'         => 4,
                 'description'   => 'Balinera 6004 2RS universal sellada.',
-                'supplier'      => 'Distriandina',
+                'supplier'      => 1,
                 'unit_price'    => 10000,
             ],
             [
@@ -666,7 +666,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'BALINERA 6002 2 RS UNIVERSAL SELLO CAUCHO PFI',
                 'stock'         => 2,
                 'description'   => 'Balinera 6002 2RS universal con sello de caucho PFI.',
-                'supplier'      => 'Distriandina',
+                'supplier'      => 1,
                 'unit_price'    => 8000,
             ],
             [
@@ -675,7 +675,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'BALINERA 6001ZZ UNIVERSAL SELLO METALICO',
                 'stock'         => 2,
                 'description'   => 'Balinera 6001ZZ universal con sello metálico.',
-                'supplier'      => 'Distriandina',
+                'supplier'      => 1,
                 'unit_price'    => 9000,
             ],
             [
@@ -684,7 +684,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'BALINERA 6000 2 RS SELLO CAUCHO NARITA',
                 'stock'         => 4,
                 'description'   => 'Balinera 6000 2RS con sello de caucho marca Narita.',
-                'supplier'      => 'Distriandina',
+                'supplier'      => 1,
                 'unit_price'    => 8000,
             ],
             [
@@ -693,7 +693,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'BANDA AKT 125SL OSAKA',
                 'stock'         => 3,
                 'description'   => 'Banda de freno para AKT 125SL marca Osaka.',
-                'supplier'      => 'Distriandina',
+                'supplier'      => 1,
                 'unit_price'    => 12000,
             ],
             [
@@ -702,7 +702,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'BANDA AX100-115BOXER PLATINO',
                 'stock'         => 3,
                 'description'   => 'Banda de freno para AX100-115, Boxer y Platino.',
-                'supplier'      => 'Distriandina',
+                'supplier'      => 1,
                 'unit_price'    => 12000,
             ],
             [
@@ -711,7 +711,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'BANDA BWS  125 OSAKA',
                 'stock'         => 3,
                 'description'   => 'Banda de freno para BWS 125 marca Osaka.',
-                'supplier'      => 'Distriandina',
+                'supplier'      => 1,
                 'unit_price'    => 12000,
             ],
             [
@@ -720,7 +720,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'BANDA C70-AKT 125    OSAKA',
                 'stock'         => 6,
                 'description'   => 'Banda de freno para C70-AKT 125 marca Osaka.',
-                'supplier'      => 'Distriandina',
+                'supplier'      => 1,
                 'unit_price'    => 12000,
             ],
             [
@@ -729,7 +729,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'BANDA  DEL HONDA C90-XL 100-125-185-AK110-ECO100 OSAKA',
                 'stock'         => 3,
                 'description'   => 'Banda de freno para Honda C90-XL 100-125-185-AK110-ECO100 marca Osaka.',
-                'supplier'      => 'Distriandina',
+                'supplier'      => 1,
                 'unit_price'    => 12000,
             ],
             [
@@ -738,7 +738,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'BANDAS DT 100-125-RS125,BOXER, PLATINO',
                 'stock'         => 2,
                 'description'   => 'Bandas de freno para DT 100-125-RS125, Boxer y Platino.',
-                'supplier'      => 'Distriandina',
+                'supplier'      => 1,
                 'unit_price'    => 12000,
             ],
             [
@@ -747,7 +747,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'BANDAS FZ 16-CRYPTON, LIBERO 125',
                 'stock'         => 2,
                 'description'   => 'Bandas de freno para FZ 16-Crypton y Libero 125.',
-                'supplier'      => 'Distriandina',
+                'supplier'      => 1,
                 'unit_price'    => 12000,
             ],
             [
@@ -756,7 +756,7 @@ class ProductSeeder extends Seeder
                 'name'          => ',BANDA PULS 180/ DISC OVER  125/135',
                 'stock'         => 3,
                 'description'   => 'Banda de freno para Pulsar 180 y Discover 125/135.',
-                'supplier'      => 'Distriandina',
+                'supplier'      => 1,
                 'unit_price'    => 12000,
             ],
             [
@@ -765,7 +765,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'BANDA RX100-115-V80-CRYPTON',
                 'stock'         => 2,
                 'description'   => 'Banda de freno para RX100-115-V80-Crypton.',
-                'supplier'      => 'Distriandina',
+                'supplier'      => 1,
                 'unit_price'    => 12000,
             ],
             [
@@ -774,7 +774,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'BANDA AX100- BOXER CT100',
                 'stock'         => 3,
                 'description'   => 'Banda de freno para AX100 y Boxer CT100.',
-                'supplier'      => 'Distriandina',
+                'supplier'      => 1,
                 'unit_price'    => 12000,
             ],
             [
@@ -783,7 +783,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'BANDA DEL/CB125-CB110- ECO DE LUX',
                 'stock'         => 2,
                 'description'   => 'Banda de freno para CB125, CB110 y Eco de Lux.',
-                'supplier'      => 'Distriandina',
+                'supplier'      => 1,
                 'unit_price'    => 0,
             ],
             [
@@ -792,7 +792,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'BANDAS DEL-TRAS AKT110-AKT 125 FLEX',
                 'stock'         => 2,
                 'description'   => 'Bandas de freno delanteras y traseras para AKT110 y AKT125 Flex.',
-                'supplier'      => 'Distriandina',
+                'supplier'      => 1,
                 'unit_price'    => 0,
             ],
             [
@@ -801,7 +801,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'BOBINA DE ALTA BOXER CT TW  S,K',
                 'stock'         => 1,
                 'description'   => 'Bobina de alta para Boxer CT TW S,K.',
-                'supplier'      => 'Distriandina',
+                'supplier'      => 1,
                 'unit_price'    => 0,
             ],
             [
@@ -810,7 +810,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'BOBINA DE ALTA BOXER CT 100  DMA',
                 'stock'         => 1,
                 'description'   => 'Bobina de alta para Boxer CT 100 DMA.',
-                'supplier'      => 'Distriandina',
+                'supplier'      => 1,
                 'unit_price'    => 0,
             ],
             [
@@ -819,7 +819,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'BOBINA DE ALTA BOXER CT100/PULS 135LS/150-180',
                 'stock'         => 1,
                 'description'   => 'Bobina de alta para Boxer CT100 y Pulsar 135LS/150/180.',
-                'supplier'      => 'Distriandina',
+                'supplier'      => 1,
                 'unit_price'    => 0,
             ],
             [
@@ -828,7 +828,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'BOBINA DE ALTA BWS125 4TJIANXIN',
                 'stock'         => 1,
                 'description'   => 'Bobina de alta para BWS125 4T Jianxin.',
-                'supplier'      => 'Distriandina',
+                'supplier'      => 1,
                 'unit_price'    => 0,
             ],
             [
@@ -837,7 +837,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'BOBINAPULSORA DTK125(2CABLES)',
                 'stock'         => 1,
                 'description'   => 'Bobina pulsora para DTK125 con 2 cables.',
-                'supplier'      => 'Distriandina',
+                'supplier'      => 1,
                 'unit_price'    => 0,
             ],
             [
@@ -846,7 +846,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'BOBINA PULSORA YBR 125',
                 'stock'         => 1,
                 'description'   => 'Bobina pulsora para YBR 125.',
-                'supplier'      => 'Distriandina',
+                'supplier'      => 1,
                 'unit_price'    => 0,
             ],
             [
@@ -855,7 +855,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'BUJIA CR8E-PULSAR  NGK',
                 'stock'         => 2,
                 'description'   => 'Bujía NGK CR8E para Pulsar.',
-                'supplier'      => 'Distriandina',
+                'supplier'      => 1,
                 'unit_price'    => 0,
             ],
             [
@@ -864,7 +864,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'BUJIA CR7HSA 10MMR CORTA NGK',
                 'stock'         => 3,
                 'description'   => 'Bujía NGK CR7HSA 10mm corta.',
-                'supplier'      => 'Distriandina',
+                'supplier'      => 1,
                 'unit_price'    => 0,
             ],
             [
@@ -873,7 +873,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'BOMBILLO LED BAYONETA-12 V VRS COLORES',
                 'stock'         => 3,
                 'description'   => 'Bombillo LED bayoneta 12V varios colores.',
-                'supplier'      => 'Distriandina',
+                'supplier'      => 1,
                 'unit_price'    => 0,
             ],
             [
@@ -882,7 +882,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'BOMBILLO DIR-G18BA15S12V 10W TSPTE',
                 'stock'         => 6,
                 'description'   => 'Bombillo direccional G18BA15S 12V 10W transparente.',
-                'supplier'      => 'Distriandina',
+                'supplier'      => 1,
                 'unit_price'    => 0,
             ],
             [
@@ -891,7 +891,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'BOMBILLO DIR-G18BA15S12V 10W NARANJA',
                 'stock'         => 6,
                 'description'   => 'Bombillo direccional G18BA15S 12V 10W color naranja.',
-                'supplier'      => 'Distriandina',
+                'supplier'      => 1,
                 'unit_price'    => 0,
             ],
             [
@@ -900,7 +900,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'BOMBILLO FAROLA P43-12 V-35/35HALLTRIC refAH740414 DUNA',
                 'stock'         => 6,
                 'description'   => 'Bombillo de farola P43 12V 35/35 Halltric ref. AH740414 Duna.',
-                'supplier'      => 'Distriandina',
+                'supplier'      => 1,
                 'unit_price'    => 0,
             ],
             [
@@ -909,7 +909,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'C/PIE TRA ACTIVE 110/AKT 110 X 2 UNDS',
                 'stock'         => 1,
                 'description'   => 'Calapié trasero para Active 110 y AKT 110 (x2 unidades).',
-                'supplier'      => 'Distriandina',
+                'supplier'      => 1,
                 'unit_price'    => 0,
             ],
             [
@@ -918,7 +918,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'C/PIE TRA AKT 125-150-180 TTR X 2 UNDS',
                 'stock'         => 1,
                 'description'   => 'Calapié trasero para AKT 125, 150 y 180 TTR (x2 unidades).',
-                'supplier'      => 'Distriandina',
+                'supplier'      => 1,
                 'unit_price'    => 0,
             ],
             [
@@ -927,7 +927,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'C/PIE TRA-AKT 125 FLEX X 2 UNDS',
                 'stock'         => 2,
                 'description'   => 'Calapié trasero para AKT 125 Flex (x2 unidades).',
-                'supplier'      => 'Distriandina',
+                'supplier'      => 1,
                 'unit_price'    => 0,
             ],
             [
@@ -936,7 +936,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'C/PIE TRA AX100/RX/V80 X 2 UNDS',
                 'stock'         => 2,
                 'description'   => 'Calapié trasero para AX100, RX y V80 (x2 unidades).',
-                'supplier'      => 'Distriandina',
+                'supplier'      => 1,
                 'unit_price'    => 0,
             ],
             [
@@ -945,7 +945,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'C/PIE TRA BOXER CT100 X 2 UNDS',
                 'stock'         => 2,
                 'description'   => 'Calapié trasero para Boxer CT100 (x2 unidades).',
-                'supplier'      => 'Distriandina',
+                'supplier'      => 1,
                 'unit_price'    => 0,
             ],
             [
@@ -954,7 +954,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'C/PIE TRA CB110 X 2 UNDS',
                 'stock'         => 2,
                 'description'   => 'Calapié trasero para CB110 (x2 unidades).',
-                'supplier'      => 'Distriandina',
+                'supplier'      => 1,
                 'unit_price'    => 0,
             ],
             [
@@ -963,7 +963,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'C/PIE TRA CBF 125/150 HONDA',
                 'stock'         => 2,
                 'description'   => 'Calapié trasero para Honda CBF 125/150.',
-                'supplier'      => 'Distriandina',
+                'supplier'      => 1,
                 'unit_price'    => 0,
             ],
             [
@@ -972,7 +972,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'C/PIE TRA FD115 VIVA-VIVAX-BEST X 2 UNDS',
                 'stock'         => 1,
                 'description'   => 'Calapié trasero para FD115 Viva, Vivax y Best (x2 unidades).',
-                'supplier'      => 'Distriandina',
+                'supplier'      => 1,
                 'unit_price'    => 0,
             ],
             [
@@ -981,7 +981,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'C/PIE TRA GN125H/AKT NKD/AX4',
                 'stock'         => 1,
                 'description'   => 'Calapié trasero para GN125H, AKT NKD y AX4.',
-                'supplier'      => 'Distriandina',
+                'supplier'      => 1,
                 'unit_price'    => 0,
             ],
             [
@@ -990,7 +990,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'C/PIE TRA PULSAR 135/180 X 2 UNDS',
                 'stock'         => 1,
                 'description'   => 'Calapié trasero para Pulsar 135 y 180 (x2 unidades).',
-                'supplier'      => 'Distriandina',
+                'supplier'      => 1,
                 'unit_price'    => 0,
             ],
             [
@@ -999,7 +999,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'CAUCH C/PIE DEL BOXER CT100 PAR',
                 'stock'         => 2,
                 'description'   => 'Caucho de calapié delantero para Boxer CT100 (par).',
-                'supplier'      => 'Distriandina',
+                'supplier'      => 1,
                 'unit_price'    => 0,
             ],
             [
@@ -1008,7 +1008,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'CAUCH C/PIE DEL CRYPTON 115 PAR',
                 'stock'         => 2,
                 'description'   => 'Caucho de calapié delantero para Crypton 115 (par).',
-                'supplier'      => 'Distriandina',
+                'supplier'      => 1,
                 'unit_price'    => 0,
             ],
             [
@@ -1017,7 +1017,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'CAUCH C/PIE DEL LIBERO 125 PAR',
                 'stock'         => 2,
                 'description'   => 'Caucho de calapié delantero para Libero 125 (par).',
-                'supplier'      => 'Distriandina',
+                'supplier'      => 1,
                 'unit_price'    => 0,
             ],
             [
@@ -1026,7 +1026,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'CAUCH C/PIE DEL PULSAR PAR',
                 'stock'         => 2,
                 'description'   => 'Caucho de calapié delantero para Pulsar (par).',
-                'supplier'      => 'Distriandina',
+                'supplier'      => 1,
                 'unit_price'    => 0,
             ],
             [
@@ -1035,7 +1035,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'CAUCH TAP LAT AK125-XL-BOXER',
                 'stock'         => 6,
                 'description'   => 'Caucho tapa lateral para AK125, XL y Boxer.',
-                'supplier'      => 'Distriandina',
+                'supplier'      => 1,
                 'unit_price'    => 0,
             ],
             [
@@ -1044,7 +1044,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'CAUCH TAP LAT BOXER CT EN U',
                 'stock'         => 6,
                 'description'   => 'Caucho tapa lateral en U para Boxer CT.',
-                'supplier'      => 'Distriandina',
+                'supplier'      => 1,
                 'unit_price'    => 0,
             ],
             [
@@ -1053,7 +1053,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'CAUCH TAP LAT DT PEQUEÑO',
                 'stock'         => 6,
                 'description'   => 'Caucho tapa lateral DT pequeño.',
-                'supplier'      => 'Distriandina',
+                'supplier'      => 1,
                 'unit_price'    => 0,
             ],
             [
@@ -1062,7 +1062,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'CAUCH TAP LAT GN125',
                 'stock'         => 6,
                 'description'   => 'Caucho tapa lateral GN125.',
-                'supplier'      => 'Distriandina',
+                'supplier'      => 1,
                 'unit_price'    => 0,
             ],
             [
@@ -1071,7 +1071,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'CAUCH TAP LAT PULSAR/DISCOVER',
                 'stock'         => 6,
                 'description'   => 'Caucho tapa lateral para Pulsar y Discover.',
-                'supplier'      => 'Distriandina',
+                'supplier'      => 1,
                 'unit_price'    => 0,
             ],
             [
@@ -1080,7 +1080,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'CAUCH TAP LAT SEGURO DT',
                 'stock'         => 3,
                 'description'   => 'Caucho tapa lateral con seguro para DT.',
-                'supplier'      => 'Distriandina',
+                'supplier'      => 1,
                 'unit_price'    => 0,
             ],
             [
@@ -1089,7 +1089,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'TOPE GATO CENTRAL AKT125-NKD-SL',
                 'stock'         => 3,
                 'description'   => 'Tope de gato central para AKT125, NKD y SL.',
-                'supplier'      => 'Distriandina',
+                'supplier'      => 1,
                 'unit_price'    => 0,
             ],
             [
@@ -1098,7 +1098,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'TOPE GTO CENT BOXER-PULS-DISCOVER',
                 'stock'         => 3,
                 'description'   => 'Tope de gato central para Boxer, Pulsar y Discover.',
-                'supplier'      => 'Distriandina',
+                'supplier'      => 1,
                 'unit_price'    => 0,
             ],
             [
@@ -1107,7 +1107,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'CAUCHO BUJE AMORT/ UNIVSAL GDE',
                 'stock'         => 4,
                 'description'   => 'Caucho buje de amortiguador universal grande.',
-                'supplier'      => 'Distriandina',
+                'supplier'      => 1,
                 'unit_price'    => 0,
             ],
             [
@@ -1116,7 +1116,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'CAUCHO BUJE AMORT UNIVSAL PEQ',
                 'stock'         => 4,
                 'description'   => 'Caucho buje de amortiguador universal pequeño.',
-                'supplier'      => 'Distriandina',
+                'supplier'      => 1,
                 'unit_price'    => 0,
             ],
             [
@@ -1125,7 +1125,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'CAUCHO MANZANA AX100-FR-TS',
                 'stock'         => 1,
                 'description'   => 'Caucho manzana para AX100, FR y TS.',
-                'supplier'      => 'Distriandina',
+                'supplier'      => 1,
                 'unit_price'    => 0,
             ],
             [
@@ -1134,7 +1134,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'CAUCHO MANZANA CB110',
                 'stock'         => 1,
                 'description'   => 'Caucho manzana para CB110.',
-                'supplier'      => 'Distriandina',
+                'supplier'      => 1,
                 'unit_price'    => 0,
             ],
             [
@@ -1143,7 +1143,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'CAUCHO MANZANA FZ16/R-15',
                 'stock'         => 1,
                 'description'   => 'Caucho manzana para FZ16 y R-15.',
-                'supplier'      => 'Distriandina',
+                'supplier'      => 1,
                 'unit_price'    => 0,
             ],
             [
@@ -1152,7 +1152,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'CAUCHOS MANZANA RX115- DT 125',
                 'stock'         => 1,
                 'description'   => 'Caucho manzana para RX115 y DT125.',
-                'supplier'      => 'Distriandina',
+                'supplier'      => 1,
                 'unit_price'    => 0,
             ],
             [
@@ -1161,7 +1161,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'CAUCHO MANZANA XL-AKT125S/TT/YBR/LIBERO',
                 'stock'         => 1,
                 'description'   => 'Caucho manzana para XL, AKT125S, TT, YBR y Libero.',
-                'supplier'      => 'Distriandina',
+                'supplier'      => 1,
                 'unit_price'    => 0,
             ],
             [
@@ -1170,7 +1170,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'CAUCHOS MANZANA PULSAR 200 NS',
                 'stock'         => 2,
                 'description'   => 'Caucho manzana para Pulsar 200 NS.',
-                'supplier'      => 'Distriandina',
+                'supplier'      => 1,
                 'unit_price'    => 0,
             ],
             [
@@ -1179,7 +1179,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'CAUCHO DESLI-CADENA AKT 110',
                 'stock'         => 1,
                 'description'   => 'Caucho deslizador de cadena para AKT 110.',
-                'supplier'      => 'Distriandina',
+                'supplier'      => 1,
                 'unit_price'    => 0,
             ],
             [
@@ -1188,7 +1188,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'CAUCHO DESLI CAD/AKT125 SPORT-SL-NKD',
                 'stock'         => 3,
                 'description'   => 'Caucho deslizador de cadena para AKT125 Sport, SL y NKD.',
-                'supplier'      => 'Distriandina',
+                'supplier'      => 1,
                 'unit_price'    => 0,
             ],
             [
@@ -1197,7 +1197,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'CAUCHO DESL-CAD AKT125/150 TT ENDURO',
                 'stock'         => 1,
                 'description'   => 'Caucho deslizador de cadena para AKT125/150 TT Enduro.',
-                'supplier'      => 'Distriandina',
+                'supplier'      => 1,
                 'unit_price'    => 0,
             ],
             [
@@ -1206,7 +1206,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'CAUCHO DESL-CAD BOXER CT/PLATINO BM',
                 'stock'         => 3,
                 'description'   => 'Caucho deslizador de cadena para Boxer CT y Platino BM.',
-                'supplier'      => 'Distriandina',
+                'supplier'      => 1,
                 'unit_price'    => 0,
             ],
             [
@@ -1215,7 +1215,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'CAUCHO DESL-CAD DISCOVER 100/125/135',
                 'stock'         => 2,
                 'description'   => 'Caucho deslizador de cadena para Discover 100, 125 y 135.',
-                'supplier'      => 'Distriandina',
+                'supplier'      => 1,
                 'unit_price'    => 0,
             ],
             [
@@ -1224,7 +1224,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'CAUCHO DESL-CAD VIVA115/VIVAX/BEST125',
                 'stock'         => 2,
                 'description'   => 'Caucho deslizador de cadena para Viva115, Vivax y Best125.',
-                'supplier'      => 'Distriandina',
+                'supplier'      => 1,
                 'unit_price'    => 0,
             ],
             [
@@ -1233,7 +1233,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'CAUCHO CAMP AK125SL/NKD/FZ HJ',
                 'stock'         => 3,
                 'description'   => 'Caucho campana para AK125SL, NKD y FZ HJ.',
-                'supplier'      => 'Distriandina',
+                'supplier'      => 1,
                 'unit_price'    => 0,
             ],
             [
@@ -1242,7 +1242,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'CAUCHO CAMP-AKT EVO R3 JBT',
                 'stock'         => 3,
                 'description'   => 'Caucho campana para AKT EVO R3 JBT.',
-                'supplier'      => 'Distriandina',
+                'supplier'      => 1,
                 'unit_price'    => 0,
             ],
             [
@@ -1251,7 +1251,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'CAUCHO CAMP AX100-VIVAX-FR80-AK100 COMPLETO',
                 'stock'         => 2,
                 'description'   => 'Caucho campana completo para AX100, Vivax, FR80 y AK100.',
-                'supplier'      => 'Distriandina',
+                'supplier'      => 1,
                 'unit_price'    => 0,
             ],
             [
@@ -1260,7 +1260,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'CAUCHOS CAMP BOXER CT/DISCOVER 100/110/PLATINO CADELI.HJ',
                 'stock'         => 3,
                 'description'   => 'Cauchos campana para Boxer CT, Discover 100/110 y Platino Cadeli HJ.',
-                'supplier'      => 'Distriandina',
+                'supplier'      => 1,
                 'unit_price'    => 0,
             ],
             [
@@ -1269,7 +1269,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'CAUCHO CAMP BIZ-WAVE-CB110-AX4-BEST CADELI.',
                 'stock'         => 2,
                 'description'   => 'Caucho campana para Biz, Wave, CB110, AX4 y Best Cadeli.',
-                'supplier'      => 'Distriandina',
+                'supplier'      => 1,
                 'unit_price'    => 0,
             ],
             [
@@ -1278,7 +1278,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'CAUCHO CAMP C70-C90-AKT110 LONA JBT.TW',
                 'stock'         => 2,
                 'description'   => 'Caucho campana para C70, C90 y AKT110 lona JBT TW.',
-                'supplier'      => 'Distriandina',
+                'supplier'      => 1,
                 'unit_price'    => 0,
             ],
             [
@@ -1287,7 +1287,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'CAUCHO CAMP CBF150-CBZ LONA JBT.KTO.',
                 'stock'         => 2,
                 'description'   => 'Caucho campana para CBF150 y CBZ lona JBT KTO.',
-                'supplier'      => 'Distriandina',
+                'supplier'      => 1,
                 'unit_price'    => 0,
             ],
             [
@@ -1296,7 +1296,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'CAUCHO CAM PULSAR180 MV/NS200/WIND125/BM100TANQ SCORPION',
                 'stock'         => 3,
                 'description'   => 'Caucho campana para Pulsar 180 MV, NS200, Wind125 y BM100 Tanq Scorpion.',
-                'supplier'      => 'Distriandina',
+                'supplier'      => 1,
                 'unit_price'    => 0,
             ],
             [
@@ -1305,7 +1305,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'CAUCHO CAMP V80-RX115-CRYPTON110 LONA JBT.KTO',
                 'stock'         => 2,
                 'description'   => 'Caucho campana para V80, RX115 y Crypton110 lona JBT KTO.',
-                'supplier'      => 'Distriandina',
+                'supplier'      => 1,
                 'unit_price'    => 0,
             ],
             [
@@ -1314,7 +1314,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'CAUCHO CAMPANA APACHE 160',
                 'stock'         => 1,
                 'description'   => 'Caucho campana para Apache 160.',
-                'supplier'      => 'Distriandina',
+                'supplier'      => 1,
                 'unit_price'    => 0,
             ],
             [
@@ -1323,7 +1323,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'CAUCHO CAMP AKT CR5',
                 'stock'         => 2,
                 'description'   => 'Caucho campana para AKT CR5.',
-                'supplier'      => 'Distriandina',
+                'supplier'      => 1,
                 'unit_price'    => 0,
             ],
             [
@@ -1332,7 +1332,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'CAUCHO PEDAL CRANK AX-100/115, FZ50-FR-AKT-TT150',
                 'stock'         => 2,
                 'description'   => 'Caucho pedal crank para AX-100/115, FZ50, FR, AKT y TT150.',
-                'supplier'      => 'Distriandina',
+                'supplier'      => 1,
                 'unit_price'    => 0,
             ],
             [
@@ -1341,7 +1341,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'CAUCHO PEDAL CRANK CBF150 28311KC5 000',
                 'stock'         => 2,
                 'description'   => 'Caucho pedal crank para CBF150, referencia 28311KC5 000.',
-                'supplier'      => 'Distriandina',
+                'supplier'      => 1,
                 'unit_price'    => 0,
             ],
             [
@@ -1350,7 +1350,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'CAUCHO PEDAL CRANK PULSAR 180 NAL',
                 'stock'         => 2,
                 'description'   => 'Caucho pedal crank para Pulsar 180 nacional.',
-                'supplier'      => 'Distriandina',
+                'supplier'      => 1,
                 'unit_price'    => 0,
             ],
             [
@@ -1359,7 +1359,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'CUÑA VOLANTE DT100-125 16MM',
                 'stock'         => 3,
                 'description'   => 'Cuña de volante para DT100 y DT125, medida 16mm.',
-                'supplier'      => 'Distriandina',
+                'supplier'      => 1,
                 'unit_price'    => 0,
             ],
             [
@@ -1368,7 +1368,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'CUÑA VOLANTE TS125',
                 'stock'         => 3,
                 'description'   => 'Cuña de volante para motocicleta TS125.',
-                'supplier'      => 'Distriandina',
+                'supplier'      => 1,
                 'unit_price'    => 0,
             ],
             [
@@ -1377,7 +1377,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'CUÑA CLUTCH TS 125/185',
                 'stock'         => 2,
                 'description'   => 'Cuña de clutch para modelos TS125 y TS185.',
-                'supplier'      => 'Distriandina',
+                'supplier'      => 1,
                 'unit_price'    => 0,
             ],
             [
@@ -1386,7 +1386,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'GUIA CADENILLA DISTRIB AGILITY SPARTAN',
                 'stock'         => 1,
                 'description'   => 'Guía de cadenilla de distribución para Agility Spartan.',
-                'supplier'      => 'Distriandina',
+                'supplier'      => 1,
                 'unit_price'    => 0,
             ],
             [
@@ -1395,7 +1395,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'CADENILLA DISTRIBUCION AX4-BEST SPARTAN',
                 'stock'         => 1,
                 'description'   => 'Cadenilla de distribución para AX4 y Best Spartan.',
-                'supplier'      => 'Distriandina',
+                'supplier'      => 1,
                 'unit_price'    => 0,
             ],
             [
@@ -1404,7 +1404,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'CABLE CLUTCH TRENZ 7X7 1.8MMX 150 CM UNIV',
                 'stock'         => 6,
                 'description'   => 'Cable de clutch universal trenzado 7x7, medida 1.8mm x 150cm.',
-                'supplier'      => 'Distriandina',
+                'supplier'      => 1,
                 'unit_price'    => 0,
             ],
             [
@@ -1413,7 +1413,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'CABLE CLUTCH TRENZADO 3.00 MTSC-G UNIV',
                 'stock'         => 6,
                 'description'   => 'Cable de clutch trenzado universal de 3.00 mts C-G.',
-                'supplier'      => 'Distriandina',
+                'supplier'      => 1,
                 'unit_price'    => 0,
             ],
             [
@@ -1422,7 +1422,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'CABLE ACEL/ TRENZ 7X7 1.5 MM X 150 CM UNIV',
                 'stock'         => 6,
                 'description'   => 'Cable de acelerador trenzado universal 7x7, 1.5mm x 150cm.',
-                'supplier'      => 'Distriandina',
+                'supplier'      => 1,
                 'unit_price'    => 0,
             ],
             [
@@ -1431,7 +1431,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'TERMINAL ELECTRICO MACHO CILINDRICO',
                 'stock'         => 20,
                 'description'   => 'Terminal eléctrico macho cilíndrico.',
-                'supplier'      => 'Distriandina',
+                'supplier'      => 1,
                 'unit_price'    => 0,
             ],
             [
@@ -1440,7 +1440,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'TERMINAL ELECTRICO HEMBRA CILINDRICO',
                 'stock'         => 20,
                 'description'   => 'Terminal eléctrico hembra cilíndrico.',
-                'supplier'      => 'Distriandina',
+                'supplier'      => 1,
                 'unit_price'    => 0,
             ],
             [
@@ -1449,7 +1449,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'TERMINAL ELECTRICO MACHO PLANO TW.O',
                 'stock'         => 20,
                 'description'   => 'Terminal eléctrico macho plano TW.O.',
-                'supplier'      => 'Distriandina',
+                'supplier'      => 1,
                 'unit_price'    => 0,
             ],
             [
@@ -1458,7 +1458,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'CI ENCENDIDO AX100 FORTE',
                 'stock'         => 1,
                 'description'   => 'CI de encendido para AX100 marca Forte.',
-                'supplier'      => 'Distriandina',
+                'supplier'      => 1,
                 'unit_price'    => 0,
             ],
             [
@@ -1467,7 +1467,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'CDI ENCENDIDO BOXER100CT-PLATINO KTO/APM',
                 'stock'         => 1,
                 'description'   => 'CDI de encendido para Boxer 100 CT y Platino KTO/APM.',
-                'supplier'      => 'Distriandina',
+                'supplier'      => 1,
                 'unit_price'    => 0,
             ],
             [
@@ -1476,7 +1476,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'CDI ENCENDIDO C100 WAVE APM BOIH230017',
                 'stock'         => 1,
                 'description'   => 'CDI de encendido para C100 Wave APM, ref. BOIH230017.',
-                'supplier'      => 'Distriandina',
+                'supplier'      => 1,
                 'unit_price'    => 0,
             ],
             [
@@ -1485,7 +1485,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'COCA STOP PULSAR 180 DJ 201074',
                 'stock'         => 2,
                 'description'   => 'Coca stop para Pulsar 180 DJ, ref. 201074.',
-                'supplier'      => 'Distriandina',
+                'supplier'      => 1,
                 'unit_price'    => 0,
             ],
             [
@@ -1494,7 +1494,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'COCA STOP AK125 BK',
                 'stock'         => 1,
                 'description'   => 'Coca stop para AK125 BK.',
-                'supplier'      => 'Distriandina',
+                'supplier'      => 1,
                 'unit_price'    => 0,
             ],
             [
@@ -1503,7 +1503,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'COMANDO DER-AK 110S TW',
                 'stock'         => 1,
                 'description'   => 'Comando derecho para AK 110S TW.',
-                'supplier'      => 'Distriandina',
+                'supplier'      => 1,
                 'unit_price'    => 0,
             ],
             [
@@ -1512,7 +1512,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'COMANDO DER- AKT 125-NKD VB0715',
                 'stock'         => 1,
                 'description'   => 'Comando derecho para AKT 125 NKD, ref. VB0715.',
-                'supplier'      => 'Distriandina',
+                'supplier'      => 1,
                 'unit_price'    => 0,
             ],
             [
@@ -1521,7 +1521,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'COMANDO DER AKT 200',
                 'stock'         => 1,
                 'description'   => 'Comando derecho para AKT 200.',
-                'supplier'      => 'Distriandina',
+                'supplier'      => 1,
                 'unit_price'    => 0,
             ],
             [
@@ -1530,7 +1530,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'COMANDO DER BOXER CT1007PLATINO MV EVOL',
                 'stock'         => 1,
                 'description'   => 'Comando derecho para Boxer CT100 y Platino MV Evol.',
-                'supplier'      => 'Distriandina',
+                'supplier'      => 1,
                 'unit_price'    => 0,
             ],
             [
@@ -1539,7 +1539,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'COMANDO DER C100 WAVE COMD 3002',
                 'stock'         => 1,
                 'description'   => 'Comando derecho para C100 Wave, ref. COMD 3002.',
-                'supplier'      => 'Distriandina',
+                'supplier'      => 1,
                 'unit_price'    => 0,
             ],
             [
@@ -1548,7 +1548,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'COMANDO DER PULSAR 135 DQYB SBK6-039',
                 'stock'         => 1,
                 'description'   => 'Comando derecho para Pulsar 135, ref. DQYB SBK6-039.',
-                'supplier'      => 'Distriandina',
+                'supplier'      => 1,
                 'unit_price'    => 0,
             ],
             [
@@ -1557,7 +1557,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'COMANDO DER RX100/115M-N 827726',
                 'stock'         => 1,
                 'description'   => 'Comando derecho para RX100 y RX115M-N, ref. 827726.',
-                'supplier'      => 'Distriandina',
+                'supplier'      => 1,
                 'unit_price'    => 0,
             ],
             [
@@ -1566,7 +1566,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'COMANDO IZQD AKT125 SPORT A40016',
                 'stock'         => 1,
                 'description'   => 'Comando izquierdo para AKT125 Sport, ref. A40016.',
-                'supplier'      => 'Distriandina',
+                'supplier'      => 1,
                 'unit_price'    => 0,
             ],
             [
@@ -1575,7 +1575,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'COMANDO IZQD AK125 SL-NKD GOLF- BU0710',
                 'stock'         => 2,
                 'description'   => 'Comando izquierdo para AK125 SL-NKD Golf, ref. BU0710.',
-                'supplier'      => 'Distriandina',
+                'supplier'      => 1,
                 'unit_price'    => 0,
             ],
             [
@@ -1584,7 +1584,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'COMANDO IZQD AKT EVO 125 NE GX 827742',
                 'stock'         => 1,
                 'description'   => 'Comando izquierdo para AKT EVO 125 NE GX, ref. 827742.',
-                'supplier'      => 'Distriandina',
+                'supplier'      => 1,
                 'unit_price'    => 0,
             ],
             [
@@ -1593,7 +1593,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'CONECTOR CARBURADOR>FILTRO-BOXER CT100 1619',
                 'stock'         => 2,
                 'description'   => 'Conector de carburador a filtro para Boxer CT100, ref. 1619.',
-                'supplier'      => 'Distriandina',
+                'supplier'      => 1,
                 'unit_price'    => 0,
             ],
             [
@@ -1602,7 +1602,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'CONECTOR CARBURADOR>FILTRO BOXER/PLATINO 1620',
                 'stock'         => 2,
                 'description'   => 'Conector de carburador a filtro para Boxer y Platino, ref. 1620.',
-                'supplier'      => 'Distriandina',
+                'supplier'      => 1,
                 'unit_price'    => 0,
             ],
             [
@@ -1611,7 +1611,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'CONECTOR CARB>FILTRO LIBERO 125/YBR 125',
                 'stock'         => 2,
                 'description'   => 'Conector de carburador a filtro para Libero 125 y YBR 125.',
-                'supplier'      => 'Distriandina',
+                'supplier'      => 1,
                 'unit_price'    => 0,
             ],
             [
@@ -1620,7 +1620,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'PITO-12V TABOR .VAOX BOC010',
                 'stock'         => 3,
                 'description'   => 'Pito 12V Tabor VAOX, ref. BOC010.',
-                'supplier'      => 'Distriandina',
+                'supplier'      => 1,
                 'unit_price'    => 0,
             ],
             [
@@ -1629,7 +1629,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'PITO 12 V UNIVERSAL',
                 'stock'         => 3,
                 'description'   => 'Pito universal de 12V.',
-                'supplier'      => 'Distriandina',
+                'supplier'      => 1,
                 'unit_price'    => 0,
             ],
             [
@@ -1638,7 +1638,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'PITO 12 V NEGRO HIBARI MOTOTEC 3210',
                 'stock'         => 2,
                 'description'   => 'Pito 12V negro Hibari Mototec, ref. 3210.',
-                'supplier'      => 'Distriandina',
+                'supplier'      => 1,
                 'unit_price'    => 0,
             ],
             [
@@ -1647,7 +1647,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'ARANDELA PIÑON SALIDA XR125L/150L/190L/XRE-190/CB190R/CB160F',
                 'stock'         => 10,
                 'description'   => 'Arandela de piñón de salida para XR125L, XR150L, XR190L, XRE190, CB190R y CB160F.',
-                'supplier'      => 'OKLA',
+                'supplier'      => 2,
                 'unit_price'    => 0,
             ],
             [
@@ -1656,7 +1656,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'BALINERA 6200 2RS SELLO CAUCHO KDYD',
                 'stock'         => 4,
                 'description'   => 'Balinera 6200 2RS con sello de caucho marca KDYD.',
-                'supplier'      => 'OKLA',
+                'supplier'      => 2,
                 'unit_price'    => 0,
             ],
             [
@@ -1665,7 +1665,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'BALINERA 6201 2RS SELLO CAUCHO KDYD',
                 'stock'         => 4,
                 'description'   => 'Balinera 6201 2RS con sello de caucho marca KDYD.',
-                'supplier'      => 'OKLA',
+                'supplier'      => 2,
                 'unit_price'    => 0,
             ],
             [
@@ -1674,7 +1674,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'BALINERA 628 2RS (CLUTCH BOXER100 TODOS LOS MOD KDYD',
                 'stock'         => 4,
                 'description'   => 'Balinera 628 2RS para clutch Boxer100 todos los modelos, marca KDYD.',
-                'supplier'      => 'OKLA',
+                'supplier'      => 2,
                 'unit_price'    => 0,
             ],
             [
@@ -1683,7 +1683,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'BALINERA 6301 2RS SELLO CAUCHO KDYD',
                 'stock'         => 4,
                 'description'   => 'Balinera 6301 2RS con sello de caucho marca KDYD.',
-                'supplier'      => 'OKLA',
+                'supplier'      => 2,
                 'unit_price'    => 0,
             ],
             [
@@ -1692,7 +1692,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'BALINERA 6303 2RS SELLO CAUCHO CAMPANA TRASERA AKT-TTR KDYD',
                 'stock'         => 4,
                 'description'   => 'Balinera 6303 2RS con sello de caucho para campana trasera AKT/TTR, marca KDYD.',
-                'supplier'      => 'OKLA',
+                'supplier'      => 2,
                 'unit_price'    => 0,
             ],
             [
@@ -1701,7 +1701,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'BANDAS DE FRENO TRAS DT-125K/175K/LIBERO 110/YBR 125/BWS100',
                 'stock'         => 2,
                 'description'   => 'Bandas de freno traseras para DT125K, DT175K, Libero 110, YBR125 y BWS100.',
-                'supplier'      => 'OKLA',
+                'supplier'      => 2,
                 'unit_price'    => 0,
             ],
             [
@@ -1710,7 +1710,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'BANDAS FRENO TRAS PULSAR 180-135- DISCOVER 125/135',
                 'stock'         => 2,
                 'description'   => 'Bandas de freno traseras para Pulsar 180/135 y Discover 125/135.',
-                'supplier'      => 'OKLA',
+                'supplier'      => 2,
                 'unit_price'    => 0,
             ],
             [
@@ -1719,7 +1719,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'BOBINA DE ALTA AKT125SL/SPORT/CG-125 BERA-150',
                 'stock'         => 1,
                 'description'   => 'Bobina de alta para AKT125 SL, Sport, CG125 y Bera150.',
-                'supplier'      => 'OKLA',
+                'supplier'      => 2,
                 'unit_price'    => 0,
             ],
             [
@@ -1728,7 +1728,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'BOMBA FRENO DEL CO-003A AKTEVO-125/150 NE CON MANIGUETA',
                 'stock'         => 1,
                 'description'   => 'Bomba de freno delantera CO-003A para AKT EVO 125/150 NE con manigueta.',
-                'supplier'      => 'OKLA',
+                'supplier'      => 2,
                 'unit_price'    => 0,
             ],
             [
@@ -1737,7 +1737,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'BOMBA FRENDEL UNIV/TROMPO CUADRADO CON MANIGUETA (MF125)',
                 'stock'         => 2,
                 'description'   => 'Bomba de freno delantera universal con trompo cuadrado y manigueta (MF125).',
-                'supplier'      => 'OKLA',
+                'supplier'      => 2,
                 'unit_price'    => 0,
             ],
             [
@@ -1746,7 +1746,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'BOMBA DE FRENO TRAS UNIVERSAL MDA-126 MIYAZUKA',
                 'stock'         => 2,
                 'description'   => 'Bomba de freno trasera universal modelo MDA-126 marca Miyazuka.',
-                'supplier'      => 'OKLA',
+                'supplier'      => 2,
                 'unit_price'    => 0,
             ],
             [
@@ -1755,7 +1755,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'BUJE PORTASPROKET AX-100/AX100 2-115',
                 'stock'         => 3,
                 'description'   => 'Buje portasproket para AX100 y AX100 2-115.',
-                'supplier'      => 'OKLA',
+                'supplier'      => 2,
                 'unit_price'    => 0,
             ],
             [
@@ -1764,7 +1764,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'BUJE PORTA SPROKET AX4',
                 'stock'         => 2,
                 'description'   => 'Buje porta sproket para AX4.',
-                'supplier'      => 'OKLA',
+                'supplier'      => 2,
                 'unit_price'    => 0,
             ],
             [
@@ -1773,7 +1773,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'BUJE PORTASPROKET BEST-125/FD-115 VIVA/VIVAX',
                 'stock'         => 3,
                 'description'   => 'Buje portasproket para Best125, FD115 Viva y Vivax.',
-                'supplier'      => 'OKLA',
+                'supplier'      => 2,
                 'unit_price'    => 0,
             ],
             [
@@ -1782,7 +1782,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'PORTA SPROKET RX-100/115 CON TUERCA',
                 'stock'         => 2,
                 'description'   => 'Porta sproket para RX100/115 con tuerca.',
-                'supplier'      => 'OKLA',
+                'supplier'      => 2,
                 'unit_price'    => 0,
             ],
             [
@@ -1791,7 +1791,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'BUJE PORTA SPROKET RX-100A CLASSIC/YD-110 LIBERO CON TUERCA',
                 'stock'         => 5,
                 'description'   => 'Buje porta sproket para RX100A Classic y YD110 Libero con tuerca.',
-                'supplier'      => 'OKLA',
+                'supplier'      => 2,
                 'unit_price'    => 0,
             ],
             [
@@ -1800,7 +1800,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'BUJE PORTA SPROKET SZR-160',
                 'stock'         => 5,
                 'description'   => 'Buje porta sproket para SZR160.',
-                'supplier'      => 'OKLA',
+                'supplier'      => 2,
                 'unit_price'    => 0,
             ],
             [
@@ -1809,7 +1809,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'BUJE PORTA SPROKET TVS-100 SPORT CON TUERCA',
                 'stock'         => 5,
                 'description'   => 'Buje porta sproket para TVS100 Sport con tuerca.',
-                'supplier'      => 'OKLA',
+                'supplier'      => 2,
                 'unit_price'    => 0,
             ],
             [
@@ -1818,7 +1818,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'BUJE PORTA SPROKET V-80 CON TUERCA',
                 'stock'         => 2,
                 'description'   => 'Buje porta sproket para V80 con tuerca.',
-                'supplier'      => 'OKLA',
+                'supplier'      => 2,
                 'unit_price'    => 0,
             ],
             [
@@ -1827,7 +1827,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'BUJIA IRIDIUM KANUNI K-CR7HIX (BOXER 100 CT/DISCOVER 100)',
                 'stock'         => 2,
                 'description'   => 'Bujía de iridium Kanuni K-CR7HIX compatible con Boxer 100 CT y Discover 100.',
-                'supplier'      => 'OKLA',
+                'supplier'      => 2,
                 'unit_price'    => 0,
             ],
             [
@@ -1836,7 +1836,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'CALAPIE DEL AKT-125/150/180 TTR PAR',
                 'stock'         => 2,
                 'description'   => 'Calapie delantero para AKT 125, 150 y 180 TTR (par).',
-                'supplier'      => 'OKLA',
+                'supplier'      => 2,
                 'unit_price'    => 0,
             ],
             [
@@ -1845,7 +1845,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'CALAPIE DEL COMPLETO MRX-150 (PAR)',
                 'stock'         => 2,
                 'description'   => 'Calapie delantero completo para MRX 150 (par).',
-                'supplier'      => 'OKLA',
+                'supplier'      => 2,
                 'unit_price'    => 0,
             ],
             [
@@ -1854,7 +1854,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'CALAPIE DEL PULSAR 160/200 NS PAR',
                 'stock'         => 2,
                 'description'   => 'Calapie delantero para Pulsar 160 y 200 NS (par).',
-                'supplier'      => 'OKLA',
+                'supplier'      => 2,
                 'unit_price'    => 0,
             ],
             [
@@ -1863,7 +1863,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'CALAPIE TRAS COMPLETO PULSAR-160/200 NS PAR',
                 'stock'         => 1,
                 'description'   => 'Calapie trasero completo para Pulsar 160 y 200 NS (par).',
-                'supplier'      => 'OKLA',
+                'supplier'      => 2,
                 'unit_price'    => 0,
             ],
             [
@@ -1872,7 +1872,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'CAPUCHON BUJIA BOXER CT-100/BM-100/PLATINO-100-125',
                 'stock'         => 3,
                 'description'   => 'Capuchón de bujía para Boxer CT100, BM100 y Platino 100-125.',
-                'supplier'      => 'OKLA',
+                'supplier'      => 2,
                 'unit_price'    => 0,
             ],
             [
@@ -1881,7 +1881,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'CAPUCHON BUJIA BWS 125 II-X MOTARD',
                 'stock'         => 2,
                 'description'   => 'Capuchón de bujía para BWS 125 II-X Motard.',
-                'supplier'      => 'OKLA',
+                'supplier'      => 2,
                 'unit_price'    => 0,
             ],
             [
@@ -1890,7 +1890,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'CAPUCHON BUJIA CB-110',
                 'stock'         => 3,
                 'description'   => 'Capuchón de bujía para Honda CB110.',
-                'supplier'      => 'OKLA',
+                'supplier'      => 2,
                 'unit_price'    => 0,
             ],
             [
@@ -1899,7 +1899,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'CAPUCHON BUJIA CBF-125',
                 'stock'         => 3,
                 'description'   => 'Capuchón de bujía para Honda CBF125.',
-                'supplier'      => 'OKLA',
+                'supplier'      => 2,
                 'unit_price'    => 0,
             ],
             [
@@ -1908,7 +1908,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'CAPUCHON BUJIA DISCOVER 125-135 DERECHO CON PROTECTOR',
                 'stock'         => 3,
                 'description'   => 'Capuchón de bujía derecho con protector para Discover 125 y 135.',
-                'supplier'      => 'OKLA',
+                'supplier'      => 2,
                 'unit_price'    => 0,
             ],
             [
@@ -1917,7 +1917,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'CAPUCHON BUJIA DISCOVER 125/125ST/135 IZQDO',
                 'stock'         => 3,
                 'description'   => 'Capuchón de bujía izquierdo para Discover 125, 125ST y 135.',
-                'supplier'      => 'OKLA',
+                'supplier'      => 2,
                 'unit_price'    => 0,
             ],
             [
@@ -1926,7 +1926,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'CAPUCHON BUJIA ECO-100 DELUXE ROJO (TODOS LOS MODELOS SILICONA ALTA)',
                 'stock'         => 3,
                 'description'   => 'Capuchón de bujía rojo de silicona alta para Eco 100 Deluxe (todos los modelos).',
-                'supplier'      => 'OKLA',
+                'supplier'      => 2,
                 'unit_price'    => 0,
             ],
             [
@@ -1935,7 +1935,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'CAPUCHON BUJIA FZ-16',
                 'stock'         => 2,
                 'description'   => 'Capuchón de bujía para FZ-16.',
-                'supplier'      => 'OKLA',
+                'supplier'      => 2,
                 'unit_price'    => 0,
             ],
             [
@@ -1944,7 +1944,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'CAPUCHON BUJIA PULSAR -180',
                 'stock'         => 3,
                 'description'   => 'Capuchón de bujía para Pulsar 180.',
-                'supplier'      => 'OKLA',
+                'supplier'      => 2,
                 'unit_price'    => 0,
             ],
             [
@@ -1953,7 +1953,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'CAPUCHON BUJIA PULSAR -200NS ESPECIAL LARGO',
                 'stock'         => 3,
                 'description'   => 'Capuchón de bujía especial largo para Pulsar 200 NS.',
-                'supplier'      => 'OKLA',
+                'supplier'      => 2,
                 'unit_price'    => 0,
             ],
             [
@@ -1962,7 +1962,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'CAPUCHON BUJIA YBR 125',
                 'stock'         => 2,
                 'description'   => 'Capuchón de bujía para Yamaha YBR 125.',
-                'supplier'      => 'OKLA',
+                'supplier'      => 2,
                 'unit_price'    => 0,
             ],
             [
@@ -1971,7 +1971,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'CARCAZA FAROLA VIVA115R NEGRO',
                 'stock'         => 1,
                 'description'   => 'Carcaza de farola color negro para Viva 115R.',
-                'supplier'      => 'OKLA',
+                'supplier'      => 2,
                 'unit_price'    => 0,
             ],
             [
@@ -1980,7 +1980,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'CDI DE ENCENDIDO BOXER100CT/PLATINO-100MB-100KNS-017',
                 'stock'         => 1,
                 'description'   => 'CDI de encendido para Boxer 100 CT, Platino 100MB y 100KNS-017.',
-                'supplier'      => 'OKLA',
+                'supplier'      => 2,
                 'unit_price'    => 0,
             ],
             [
@@ -1989,7 +1989,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'CHAPETA #10 P/CARENAJES UNIV (TORN GOLOSO)',
                 'stock'         => 20,
                 'description'   => 'Chapeta #10 para carenajes universales (Tornillo Goloso).',
-                'supplier'      => 'OKLA',
+                'supplier'      => 2,
                 'unit_price'    => 0,
             ],
             [
@@ -1998,7 +1998,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'CHAPETA #8 CARENAJES UNIV (TORN GOLOSO)',
                 'stock'         => 20,
                 'description'   => 'Chapeta #8 para carenajes universales (Tornillo Goloso).',
-                'supplier'      => 'OKLA',
+                'supplier'      => 2,
                 'unit_price'    => 0,
             ],
             [
@@ -2007,7 +2007,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'CHAPETA M5 CARENAJES UNIV CORTA TORNI 5 MM',
                 'stock'         => 20,
                 'description'   => 'Chapeta M5 corta para carenajes universales, tornillo 5 mm.',
-                'supplier'      => 'OKLA',
+                'supplier'      => 2,
                 'unit_price'    => 0,
             ],
             [
@@ -2016,7 +2016,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'COMANDO DER AKT-125/150 EVO NE (271590251-001)',
                 'stock'         => 2,
                 'description'   => 'Comando derecho para AKT 125 y 150 EVO NE (271590251-001).',
-                'supplier'      => 'OKLA',
+                'supplier'      => 2,
                 'unit_price'    => 0,
             ],
             [
@@ -2025,7 +2025,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'COMANDO DER AKT CR5-180 (7701023152334)',
                 'stock'         => 1,
                 'description'   => 'Comando derecho para AKT CR5 180 (7701023152334).',
-                'supplier'      => 'OKLA',
+                'supplier'      => 2,
                 'unit_price'    => 0,
             ],
             [
@@ -2034,7 +2034,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'COMANDO DER BOXER-100BM CLASSIC CON MANIGUETA',
                 'stock'         => 1,
                 'description'   => 'Comando derecho con manigueta para Boxer 100 BM Classic.',
-                'supplier'      => 'OKLA',
+                'supplier'      => 2,
                 'unit_price'    => 0,
             ],
             [
@@ -2043,7 +2043,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'COMANDO DER CB-125E/STROM-125',
                 'stock'         => 1,
                 'description'   => 'Comando derecho para Honda CB-125E y Storm 125.',
-                'supplier'      => 'OKLA',
+                'supplier'      => 2,
                 'unit_price'    => 0,
             ],
             [
@@ -2052,7 +2052,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'COMANDO DER CB-160F (35150-K38-901)',
                 'stock'         => 2,
                 'description'   => 'Comando derecho para Honda CB-160F (35150-K38-901).',
-                'supplier'      => 'OKLA',
+                'supplier'      => 2,
                 'unit_price'    => 0,
             ],
             [
@@ -2061,7 +2061,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'COMANDO DER GN-125H (9 CABLES)',
                 'stock'         => 1,
                 'description'   => 'Comando derecho para GN-125H con 9 cables.',
-                'supplier'      => 'OKLA',
+                'supplier'      => 2,
                 'unit_price'    => 0,
             ],
             [
@@ -2070,7 +2070,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'COMANDO IZQD AKT-CR5 180 (7701023152310)',
                 'stock'         => 1,
                 'description'   => 'Comando izquierdo para AKT CR5 180 (7701023152310).',
-                'supplier'      => 'OKLA',
+                'supplier'      => 2,
                 'unit_price'    => 0,
             ],
             [
@@ -2079,7 +2079,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'COMANDO IZQDO BOXER100CT/PLATINO-100 (2007-2019) CON MANIGUETA',
                 'stock'         => 2,
                 'description'   => 'Comando izquierdo con manigueta para Boxer 100 CT y Platino 100 (2007-2019).',
-                'supplier'      => 'OKLA',
+                'supplier'      => 2,
                 'unit_price'    => 0,
             ],
             [
@@ -2088,7 +2088,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'CORREA DE TRASMISION AGILITY-125 781X20X30',
                 'stock'         => 1,
                 'description'   => 'Correa de transmisión para Agility 125, medidas 781x20x30.',
-                'supplier'      => 'OKLA',
+                'supplier'      => 2,
                 'unit_price'    => 0,
             ],
             [
@@ -2097,7 +2097,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'CORREA DE TRASMISION BWS 100 14VP 757X17.3X28',
                 'stock'         => 1,
                 'description'   => 'Correa de transmisión para BWS 100 14VP, medidas 757x17.3x28.',
-                'supplier'      => 'OKLA',
+                'supplier'      => 2,
                 'unit_price'    => 0,
             ],
             [
@@ -2106,7 +2106,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'CORREA TRASMISION BWS 125 II (5S9) (805X21.5X30)',
                 'stock'         => 1,
                 'description'   => 'Correa de transmisión para BWS 125 II (5S9), medidas 805x21.5x30.',
-                'supplier'      => 'OKLA',
+                'supplier'      => 2,
                 'unit_price'    => 0,
             ],
             [
@@ -2115,7 +2115,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'CORTAVIENTOS AGILITY EXTREME NEGRO PAR',
                 'stock'         => 2,
                 'description'   => 'Juego de cortavientos en color negro para Agility Extreme (par).',
-                'supplier'      => 'OKLA',
+                'supplier'      => 2,
                 'unit_price'    => 0,
             ],
             [
@@ -2124,7 +2124,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'CORTAVIENTOS BWS 125 II NEGRO PAR',
                 'stock'         => 1,
                 'description'   => 'Juego de cortavientos en color negro para BWS 125 II (par).',
-                'supplier'      => 'OKLA',
+                'supplier'      => 2,
                 'unit_price'    => 0,
             ],
             [
@@ -2133,7 +2133,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'CORTAVIENTOS PULSAR 135 LS NEGRO PAR',
                 'stock'         => 2,
                 'description'   => 'Juego de cortavientos en color negro para Pulsar 135 LS (par).',
-                'supplier'      => 'OKLA',
+                'supplier'      => 2,
                 'unit_price'    => 0,
             ],
             [
@@ -2142,7 +2142,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'EJE RUEDA DELANTERO DISCOVER-125/135/125ST/PULSAR-135LS/180',
                 'stock'         => 3,
                 'description'   => 'Eje de rueda delantera para Discover 125, 135, 125ST y Pulsar 135 LS/180.',
-                'supplier'      => 'OKLA',
+                'supplier'      => 2,
                 'unit_price'    => 0,
             ],
             [
@@ -2151,7 +2151,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'EJE RUEDA TRASERA BOXER CT-100 (AXLE REAR)',
                 'stock'         => 2,
                 'description'   => 'Eje de rueda trasera para Boxer CT 100 (Axle, Rear Boxer CT100).',
-                'supplier'      => 'OKLA',
+                'supplier'      => 2,
                 'unit_price'    => 0,
             ],
             [
@@ -2160,7 +2160,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'KIT ARRASTRE PLATEADO AKT-125 EVO 15T/38T+428HX 124L',
                 'stock'         => 1,
                 'description'   => 'Kit de arrastre plateado para AKT 125 EVO (15T/38T + cadena 428HX 124L).',
-                'supplier'      => 'OKLA',
+                'supplier'      => 2,
                 'unit_price'    => 0,
             ],
             [
@@ -2169,7 +2169,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'KIT DE ARRASTRE PLATEADO AKT-125 SPORT 15T/38T + 428HX120L',
                 'stock'         => 1,
                 'description'   => 'Kit de arrastre plateado para AKT 125 Sport (15T/38T + cadena 428HX 120L).',
-                'supplier'      => 'OKLA',
+                'supplier'      => 2,
                 'unit_price'    => 0,
             ],
             [
@@ -2178,7 +2178,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'KIT ARRASTRE PLATEADO GN-125H 12T/41T +428HX124L',
                 'stock'         => 1,
                 'description'   => 'Kit de arrastre plateado para GN-125H (12T/41T + cadena 428HX 124L).',
-                'supplier'      => 'OKLA',
+                'supplier'      => 2,
                 'unit_price'    => 0,
             ],
             [
@@ -2187,7 +2187,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'KIT DE ARRASTRE PLATEADO GN-125H 15T/42T+428 HX124L',
                 'stock'         => 1,
                 'description'   => 'Kit de arrastre plateado para GN-125H (piñón 15T, corona 42T, cadena 428HX 124L).',
-                'supplier'      => 'OKLA',
+                'supplier'      => 2,
                 'unit_price'    => 0,
             ],
             [
@@ -2196,7 +2196,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'KIT ARRASTRE PREMIUM P/NEGRA GS 125 14T/46T +428HX124L',
                 'stock'         => 1,
                 'description'   => 'Kit de arrastre premium plateado para Suzuki GS 125 (piñón 14T, corona 46T, cadena 428HX 124L).',
-                'supplier'      => 'OKLA',
+                'supplier'      => 2,
                 'unit_price'    => 0,
             ],
             [
@@ -2205,7 +2205,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'KIT PIÑON DEL/TRAS AKT 125-EVO 15T/38T FOR 428',
                 'stock'         => 2,
                 'description'   => 'Kit de piñón delantero/trasero para AKT 125 EVO (piñón 15T, corona 38T, para cadena 428).',
-                'supplier'      => 'OKLA',
+                'supplier'      => 2,
                 'unit_price'    => 0,
             ],
             [
@@ -2214,7 +2214,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'KIT PIÑON DEL/TRAS AKT-125 FLEX 14T/34T FOR 428',
                 'stock'         => 2,
                 'description'   => 'Kit de piñón delantero/trasero para AKT 125 FLEX (piñón 14T, corona 34T, para cadena 428).',
-                'supplier'      => 'OKLA',
+                'supplier'      => 2,
                 'unit_price'    => 0,
             ],
             [
@@ -2223,7 +2223,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'KIT PIÑON DEL/TRAS AKT-125 SL/NKD-125 13T/38T FOR 428',
                 'stock'         => 1,
                 'description'   => 'Kit de piñón delantero/trasero para AKT 125 SL y NKD 125 (piñón 13T, corona 38T, para cadena 428).',
-                'supplier'      => 'OKLA',
+                'supplier'      => 2,
                 'unit_price'    => 0,
             ],
             [
@@ -2232,7 +2232,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'KIT PIÑON DEL/TRAS AKT-125 SL NKD-125 14T/38T FOR 428',
                 'stock'         => 1,
                 'description'   => 'Kit de piñón delantero/trasero para AKT 125 SL y NKD 125 (piñón 14T, corona 38T, para cadena 428).',
-                'supplier'      => 'OKLA',
+                'supplier'      => 2,
                 'unit_price'    => 0,
             ],
             [
@@ -2241,7 +2241,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'KIT PIÑON DEL/TRAS AKT-125 SPORT 15T/38T FOR 428',
                 'stock'         => 2,
                 'description'   => 'Kit de piñón delantero/trasero para AKT 125 Sport (piñón 15T, corona 38T, para cadena 428).',
-                'supplier'      => 'OKLA',
+                'supplier'      => 2,
                 'unit_price'    => 0,
             ],
             [
@@ -2250,7 +2250,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'KIT PIÑON DEL/TRAS AKT-180/200 XM 13T/36T FOR 520',
                 'stock'         => 1,
                 'description'   => 'Kit de piñón delantero/trasero para AKT 180/200 XM (piñón 13T, corona 36T, para cadena 520).',
-                'supplier'      => 'OKLA',
+                'supplier'      => 2,
                 'unit_price'    => 0,
             ],
             [
@@ -2259,7 +2259,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'KIT PIÑON DEL/TRAS AKT-CR4 125 14T/40T FOR 428',
                 'stock'         => 1,
                 'description'   => 'Kit de piñón delantero/trasero para AKT CR4 125 (piñón 14T, corona 40T, para cadena 428).',
-                'supplier'      => 'OKLA',
+                'supplier'      => 2,
                 'unit_price'    => 0,
             ],
             [
@@ -2268,7 +2268,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'KIT PIÑON DEL/TRAS BOXER-100CT/PLATINO 13T/42T FOR 428',
                 'stock'         => 1,
                 'description'   => 'Kit de piñón delantero/trasero para Boxer 100 CT y Platino (piñón 13T, corona 42T, para cadena 428).',
-                'supplier'      => 'OKLA',
+                'supplier'      => 2,
                 'unit_price'    => 0,
             ],
             [
@@ -2277,7 +2277,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'KIT PIÑON DEL/TRAS BOXER 100 CT/PLATINO 14T/42T',
                 'stock'         => 1,
                 'description'   => 'Kit de piñón delantero/trasero para Boxer 100 CT y Platino (piñón 14T, corona 42T, para cadena 428).',
-                'supplier'      => 'OKLA',
+                'supplier'      => 2,
                 'unit_price'    => 0,
             ],
             [
@@ -2286,7 +2286,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'KIT PIÑON DEL/TRAS DISCOVER-125/135/PULSAR-180 4H 14T/42T',
                 'stock'         => 1,
                 'description'   => 'Kit de piñón delantero/trasero para Discover 125/135 y Pulsar 180 (piñón 14T, corona 42T, para cadena 428).',
-                'supplier'      => 'OKLA',
+                'supplier'      => 2,
                 'unit_price'    => 0,
             ],
             [
@@ -2295,7 +2295,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'KIT PIÑON DEL/TRAS XTZ-125 14T/50T',
                 'stock'         => 1,
                 'description'   => 'Kit de piñón delantero/trasero para Yamaha XTZ 125 (piñón 14T, corona 50T, para cadena 428).',
-                'supplier'      => 'OKLA',
+                'supplier'      => 2,
                 'unit_price'    => 0,
             ],
             [
@@ -2304,7 +2304,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'MANIGUETA IZQDA CLUTCH BOXER CT 100 CORTA',
                 'stock'         => 3,
                 'description'   => 'Manigueta izquierda de clutch corta para Boxer CT 100.',
-                'supplier'      => 'OKLA',
+                'supplier'      => 2,
                 'unit_price'    => 0,
             ],
             [
@@ -2313,7 +2313,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'PATA LATERAL BOXER CT100/PLATINO-100 CON RESORTE, TORNILLO Y TUERCA',
                 'stock'         => 2,
                 'description'   => 'Pata lateral completa para Boxer CT 100 y Platino 100, incluye resorte, tornillo y tuerca.',
-                'supplier'      => 'OKLA',
+                'supplier'      => 2,
                 'unit_price'    => 0,
             ],
             [
@@ -2322,7 +2322,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'PIÑON SALIDA (DEL) PLATINO-100/BOXER 100CT 14T',
                 'stock'         => 3,
                 'description'   => 'Piñón de salida delantero 14T para Platino 100 y Boxer 100 CT, para cadena 428.',
-                'supplier'      => 'OKLA',
+                'supplier'      => 2,
                 'unit_price'    => 0,
             ],
             [
@@ -2331,7 +2331,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'PIÑON SALIDA PULSAR 135 LS/DISCOVER-100/100+/125ST/150ST/PLATINO',
                 'stock'         => 3,
                 'description'   => 'Piñón de salida para Pulsar 135 LS, Discover 100/100+/125ST/150ST y Platino, para cadena 428.',
-                'supplier'      => 'OKLA',
+                'supplier'      => 2,
                 'unit_price'    => 0,
             ],
             [
@@ -2340,7 +2340,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'SPROKET AKT 125 TT ENDURO 46T',
                 'stock'         => 1,
                 'description'   => 'Sprocket trasero 46T para AKT 125 TT Enduro, para cadena 428.',
-                'supplier'      => 'OKLA',
+                'supplier'      => 2,
                 'unit_price'    => 0,
             ],
             [
@@ -2349,7 +2349,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'SPROKET AKT-125 SL/NKD 125 38T',
                 'stock'         => 1,
                 'description'   => 'Sprocket trasero 38T para AKT 125 SL y NKD 125, para cadena 428.',
-                'supplier'      => 'OKLA',
+                'supplier'      => 2,
                 'unit_price'    => 0,
             ],
             [
@@ -2358,7 +2358,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'SPROKET BEST-125/AX-4/VIVA-R 35T',
                 'stock'         => 2,
                 'description'   => 'Sprocket trasero 35T para Best 125, AX4 y Viva-R, para cadena 428.',
-                'supplier'      => 'OKLA',
+                'supplier'      => 2,
                 'unit_price'    => 0,
             ],
             [
@@ -2367,7 +2367,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'SPROKET BOXER-100 CT/PLATINO 42T',
                 'stock'         => 1,
                 'description'   => 'Sprocket trasero 42T para Boxer 100 CT y Platino, para cadena 428.',
-                'supplier'      => 'OKLA',
+                'supplier'      => 2,
                 'unit_price'    => 0,
             ],
             [
@@ -2376,7 +2376,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'SPROKET ECO DE LUXE 44T',
                 'stock'         => 1,
                 'description'   => 'Sprocket trasero 44T para Eco Deluxe, para cadena 420.',
-                'supplier'      => 'OKLA',
+                'supplier'      => 2,
                 'unit_price'    => 0,
             ],
             [
@@ -2385,7 +2385,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'SPROKET GN 125H 41T',
                 'stock'         => 1,
                 'description'   => 'Sprocket trasero 41T para Suzuki GN 125H, para cadena 428.',
-                'supplier'      => 'OKLA',
+                'supplier'      => 2,
                 'unit_price'    => 0,
             ],
             [
@@ -2394,7 +2394,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'SPROKET GN125H 45T',
                 'stock'         => 1,
                 'description'   => 'Sprocket trasero 45T para Suzuki GN 125H, para cadena 428.',
-                'supplier'      => 'OKLA',
+                'supplier'      => 2,
                 'unit_price'    => 0,
             ],
             [
@@ -2403,7 +2403,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'ACEITE MOBIL SUPER 4T MX 10W-30 X 1 LT',
                 'stock'         => 12,
                 'description'   => 'Aceite Mobil Super 4T MX 10W-30 para motocicletas, presentación de 1 litro.',
-                'supplier'      => 'Lubriter Aceites',
+                'supplier'      => 3,
                 'unit_price'    => 0,
             ],
             [
@@ -2412,7 +2412,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'ACEITE TERPEL CELERITY 20W50 TITANIO X 1 L',
                 'stock'         => 12,
                 'description'   => 'Aceite Terpel Celerity 20W50 con aditivos Titanio, presentación de 1 litro.',
-                'supplier'      => 'Lubriter Aceites',
+                'supplier'      => 3,
                 'unit_price'    => 0,
             ],
             [
@@ -2421,7 +2421,7 @@ class ProductSeeder extends Seeder
                 'name'          => 'ACEITE MOBIL SUPERMOTO 4T 20W50 X 1 LT',
                 'stock'         => 12,
                 'description'   => 'Aceite Mobil Supermoto 4T 20W50 para motocicletas, presentación de 1 litro.',
-                'supplier'      => 'Lubriter Aceites',
+                'supplier'      => 3,
                 'unit_price'    => 0,
             ],
 
@@ -2429,7 +2429,7 @@ class ProductSeeder extends Seeder
 
         $distriandinaCount = 0;
 
-// En tu seeder donde creas los productos
+        // En tu seeder donde creas los productos
         foreach ($products as $productData) {
             // Buscar la categoría del producto
             $category = Category::where('name', $productData['category_name'])->first();
@@ -2456,7 +2456,7 @@ class ProductSeeder extends Seeder
                 'price_with_tax'      => $priceWithTax,
                 'iva_value'           => $ivaValue,
                 'sale_price'          => $salePrice,
-                'supplier'            => $productData['supplier'] ?? null,
+                'supplier_id'         => $productData['supplier'] ?? null,
                 'stock'               => $productData['stock'] ?? 0,
                 'image_path'          => null,
                 'initial_movement_id' => null, // Se asignará después del movimiento
@@ -2467,10 +2467,11 @@ class ProductSeeder extends Seeder
                 // Valores por defecto
                 $movementDate = Carbon::now();
                 $note         = null;
+                $supplierId   = $productData['supplier'] ?? null;
 
                 // Lógica de fechas y notas por proveedor
-                switch ($productData['supplier'] ?? '') {
-                    case 'Distriandina':
+                switch ($supplierId) {
+                    case 1: // Distriandina
                         $distriandinaCount++;
                         if ($distriandinaCount <= 50) {
                             $movementDate = Carbon::create(2025, 8, 15);
@@ -2481,28 +2482,29 @@ class ProductSeeder extends Seeder
                         }
                         break;
 
-                    case 'Okla':
+                    case 2: // Okla
                         $movementDate = Carbon::create(2025, 8, 30);
                         $note         = "Primer pedido Okla";
                         break;
 
-                    case 'Lubriter Aceites':
+                    case 3: // Lubriter Aceites
                         $movementDate = Carbon::create(2025, 9, 2);
                         $note         = "Primer pedido Lubriter Aceites";
                         break;
 
                     default:
-                        $note = "Pedido {$productData['supplier']}";
+                        $note = $supplierId ? "Pedido proveedor {$supplierId}" : "Stock inicial";
                         break;
                 }
 
                 // Crear el movimiento inicial
                 $movement = InventoryMovement::create([
-                    'product_id' => $product->id,
-                    'type'       => 'Entrada',
-                    'quantity'   => $productData['stock'],
-                    'date'       => $movementDate->toDateString(),
-                    'notes'      => $note,
+                    'product_id'  => $product->id,
+                    'supplier_id' => $supplierId,
+                    'type'        => 'Entrada',
+                    'quantity'    => $productData['stock'],
+                    'date'        => $movementDate->toDateString(),
+                    'notes'       => $note,
                 ]);
 
                 // Asignar este movimiento como el inicial del producto

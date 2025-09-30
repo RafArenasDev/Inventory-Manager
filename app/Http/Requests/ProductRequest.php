@@ -14,9 +14,10 @@ class ProductRequest extends FormRequest
     {
         $productId = $this->route('product')?->id ?? $this->input('id');
 
-        $rules = [
+        return [
             'code' => ['required', 'string', 'max:50', $productId ? "unique:products,code,{$productId}" : 'unique:products,code'],
             'category_id'       => ['required', 'integer', 'exists:categories,id'],
+            'supplier_id'       => ['nullable', 'integer', 'exists:suppliers,id'],
             'name'              => ['required', 'string', 'max:255'],
             'description'       => ['nullable', 'string'],
             'image'             => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif', 'max:2048'],
@@ -25,11 +26,8 @@ class ProductRequest extends FormRequest
             'price_with_tax'    => ['required', 'integer', 'min:0'],
             'iva_value'         => ['nullable', 'integer', 'min:0'],
             'sale_price'        => ['required', 'integer', 'min:0'],
-            'supplier'          => ['nullable', 'string', 'max:255'],
             'stock'             => ['nullable', 'integer', 'min:0'],
         ];
-
-        return $rules;
     }
 
     public function messages()
@@ -39,6 +37,7 @@ class ProductRequest extends FormRequest
             'code.unique'                => 'Ya existe un producto con este código.',
             'category_id.required'       => 'Debe seleccionar una categoría.',
             'category_id.exists'         => 'La categoría seleccionada no es válida.',
+            'supplier_id.exists'         => 'El proveedor seleccionado no es válido.',
             'name.required'              => 'El nombre del producto es obligatorio.',
             'image.image'                => 'El archivo debe ser una imagen.',
             'image.mimes'                => 'La imagen debe ser un archivo JPEG, PNG, JPG o GIF.',
@@ -53,23 +52,18 @@ class ProductRequest extends FormRequest
         ];
     }
 
-    /**
-     * Prepare the data for validation.
-     *
-     * @return void
-     */
     protected function prepareForValidation()
     {
         $this->merge([
             'code'              => $this->input('code'),
             'category_id'       => $this->input('category_id'),
+            'supplier_id'       => $this->input('supplier_id'),
             'name'              => $this->input('name'),
             'description'       => $this->input('description'),
             'price_without_tax' => $this->input('price_without_tax'),
             'price_with_tax'    => $this->input('price_with_tax'),
             'iva_value'         => $this->input('iva_value'),
             'sale_price'        => $this->input('sale_price'),
-            'supplier'          => $this->input('supplier'),
             'stock'             => $this->input('stock'),
             'image_path'        => $this->input('image_path'),
         ]);

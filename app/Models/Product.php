@@ -12,7 +12,7 @@ class Product extends Model
     protected $fillable = [
         'code', 'category_id', 'name', 'description',
         'image_path', 'price_without_tax', 'price_with_tax', 'iva_value',
-        'sale_price', 'supplier', 'stock', 'initial_movement_id',
+        'sale_price', 'supplier_id', 'stock', 'initial_movement_id',
     ];
 
     protected $casts = [
@@ -28,30 +28,31 @@ class Product extends Model
         return $this->belongsTo(Category::class);
     }
 
+    public function supplier()
+    {
+        return $this->belongsTo(Supplier::class);
+    }
+
     public function movements()
     {
         return $this->hasMany(InventoryMovement::class);
     }
 
-    // Acceso para obtener el nombre corto
     public function getShortDescriptionAttribute()
     {
         return Str::limit($this->description ?? '', 50);
     }
 
-    // Acceso para obtener el IVA calculado (mantener para compatibilidad)
     public function getTaxValueAttribute()
     {
         return $this->iva_value;
     }
 
-    // Scope para productos con bajo stock
     public function scopeLowStock($query, $threshold = 5)
     {
         return $query->where('stock', '<=', $threshold);
     }
 
-    // Scope para productos sin stock
     public function scopeOutOfStock($query)
     {
         return $query->where('stock', 0);

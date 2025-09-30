@@ -4,11 +4,9 @@ import {
     DialogTitle,
     DialogDescription,
 } from "@/components/ui/dialog"
-import { Badge } from "@/components/ui/badge"
 
-// Importa la interfaz unificada (puedes importarla desde productsTable o definirla aquí)
 interface Product {
-    id?: number;
+    id: number;
     code: string;
     category_id?: number | string;
     category?: string;
@@ -17,12 +15,16 @@ interface Product {
     image_path?: string | null;
     price_without_tax?: number | null;
     price_with_tax?: number | null;
-    iva_value?: number | null; // Nuevo campo
+    iva_value?: number | null;
     sale_price?: number | null;
     supplier?: string | null;
+    supplier_id?: number | null;
     stock: number;
     created_at?: string;
     updated_at?: string;
+    movement_date?: string;
+    movement_notes?: string;
+    initial_movement_id?: number;
 }
 
 interface ProductModalProps {
@@ -49,31 +51,31 @@ export default function ProductModal({ isOpen, onClose, product }: ProductModalP
             return {
                 variant: 'destructive' as const,
                 label: 'Sin Stock',
-                color: 'bg-red-100 text-red-800 border-red-200 dark:bg-red-900/20 dark:text-red-400 dark:border-red-600'
+                color: 'bg-red-600 text-white font-bold dark:bg-red-700'
             };
         } else if (stock <= 3) {
             return {
                 variant: 'destructive' as const,
                 label: 'Bajo',
-                color: 'bg-red-100 text-red-800 border-red-200 dark:bg-red-900/20 dark:text-red-400 dark:border-red-600'
+                color: 'bg-red-600 text-white font-bold dark:bg-red-700'
             };
         } else if (stock <= 7) {
             return {
                 variant: 'secondary' as const,
                 label: 'Medio',
-                color: 'bg-orange-100 text-orange-800 border-orange-200 dark:bg-orange-900/20 dark:text-orange-400 dark:border-orange-600'
+                color: 'bg-orange-600 text-white font-bold dark:bg-orange-700'
             };
         } else if (stock <= 15) {
             return {
                 variant: 'secondary' as const,
                 label: 'Bueno',
-                color: 'bg-yellow-100 text-yellow-800 border-yellow-200 dark:bg-yellow-900/20 dark:text-yellow-400 dark:border-yellow-600'
+                color: 'bg-yellow-600 text-white font-bold dark:bg-yellow-700'
             };
         } else {
             return {
                 variant: 'default' as const,
                 label: 'Óptimo',
-                color: 'bg-green-100 text-green-800 border-green-200 dark:bg-green-900/20 dark:text-green-400 dark:border-green-600'
+                color: 'bg-green-600 text-white font-bold dark:bg-green-700'
             };
         }
     };
@@ -82,18 +84,15 @@ export default function ProductModal({ isOpen, onClose, product }: ProductModalP
 
     const stockStatus = getStockStatus(product.stock);
 
-    // Calcular IVA calculado para mostrar (si no hay iva_value guardado)
     const calculatedIvaValue = product.price_with_tax !== undefined &&
                               product.price_without_tax !== undefined
         ? (product.price_with_tax ?? 0) - (product.price_without_tax ?? 0)
         : 0;
 
-    // Usar el valor guardado si existe, sino el calculado
     const displayIvaValue = product.iva_value !== null && product.iva_value !== undefined
         ? product.iva_value
         : calculatedIvaValue;
 
-    // Detectar si es mobile
     const isMobile = typeof window !== 'undefined' && window.innerWidth < 640;
 
     return (
@@ -103,7 +102,6 @@ export default function ProductModal({ isOpen, onClose, product }: ProductModalP
             >
                 <div className="relative">
 
-                    {/* Imagen protagonista */}
                     {product.image_path && (
                         <div className="relative">
                             <img
@@ -114,32 +112,26 @@ export default function ProductModal({ isOpen, onClose, product }: ProductModalP
                         </div>
                     )}
 
-                    {/* Contenido principal */}
                     <div className="p-6 space-y-4">
-                        {/* Header: Nombre, Descripción, Código y Categoría */}
                         <div className="space-y-2">
-                            {/* Nombre */}
                             <DialogTitle className="text-xl font-bold text-gray-900 dark:text-gray-100">
                                 {product.name}
                             </DialogTitle>
 
-                            {/* Descripción */}
                             <DialogDescription className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
                                 {product.description || 'Sin descripción disponible'}
                             </DialogDescription>
 
-                            {/* Código y Categoría - mismo tamaño */}
                             <div className="flex justify-between items-center text-xs text-gray-600 dark:text-gray-400">
-                                <span className="font-mono bg-gray-100 dark:bg-gray-800 px-2.5 py-1 rounded">
+                                <span className="text-xs px-3 py-1 rounded-full bg-blue-600 text-white font-bold w-fit shadow-sm dark:bg-blue-700 font-mono cursor-pointer" onClick={() => navigator.clipboard.writeText(product.code)}>
                                     {product.code}
                                 </span>
-                                <Badge variant="outline" className="text-xs font-medium px-2.5 py-1">
+                                <span className="text-xs px-3 py-1 rounded-full bg-gray-600 text-white font-bold w-fit shadow-sm dark:bg-gray-700">
                                     {product.category || 'Sin categoría'}
-                                </Badge>
+                                </span>
                             </div>
                         </div>
 
-                        {/* Precio de venta - más pequeño */}
                         <div className="text-center py-2.5 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/20 dark:to-indigo-950/20 rounded-lg border border-blue-100 dark:border-blue-900/30">
                             <h3 className="text-sm font-semibold text-blue-600 dark:text-blue-400 mb-0.5">Precio de Venta</h3>
                             <p className="text-xl font-bold text-gray-900 dark:text-gray-100">
@@ -147,30 +139,28 @@ export default function ProductModal({ isOpen, onClose, product }: ProductModalP
                             </p>
                         </div>
 
-                        {/* Stock y Proveedor en la misma línea */}
                         <div className="flex justify-between items-center gap-4 text-sm">
                             <div className="flex items-center gap-1">
                                 <span className="font-medium text-gray-700 dark:text-gray-300">Stock:</span>
-                                <Badge
-                                    variant={stockStatus.variant}
-                                    className={`font-medium ${stockStatus.color}`}
-                                >
-                                    {stockStatus.label} ({product.stock})
-                                </Badge>
+                                <span className="font-medium text-gray-900 dark:text-gray-100 ml-1">
+                                    {product.stock}
+                                </span>
+                                <span></span>
+                                <span className={`text-xs px-3 py-1 rounded-full ${stockStatus.color} w-fit shadow-sm`}>
+                                    {stockStatus.label}
+                                </span>
                             </div>
                             <div className="flex items-center gap-1">
                                 <span className="font-medium text-gray-700 dark:text-gray-300">Proveedor:</span>
-                                <span className="font-medium text-gray-900 dark:text-gray-100 truncate">
+                                <span className="text-xs px-3 py-1 rounded-full bg-emerald-600 text-white font-bold w-fit shadow-sm dark:bg-emerald-700">
                                     {product.supplier || '-'}
                                 </span>
                             </div>
                         </div>
 
-                        {/* Detalles de precios - SIN leyenda */}
                         {(product.price_without_tax !== undefined || displayIvaValue > 0) && (
                             <div className="pt-3 border-t border-gray-100 dark:border-gray-800">
                                 {isMobile ? (
-                                    /* Mobile: Lista simple sin decoración */
                                     <div className="space-y-2 text-sm">
                                         {product.price_without_tax !== undefined && (
                                             <div className="flex justify-between items-center py-1">
@@ -198,7 +188,6 @@ export default function ProductModal({ isOpen, onClose, product }: ProductModalP
                                         )}
                                     </div>
                                 ) : (
-                                    /* Desktop: Grid que siempre tiene 3 columnas para mantener alineación */
                                     <div className="grid grid-cols-3 gap-2">
                                         {product.price_without_tax !== undefined ? (
                                             <div className="text-center p-2 bg-gray-50 dark:bg-gray-900/50 rounded border border-gray-200 dark:border-gray-700">
@@ -235,7 +224,6 @@ export default function ProductModal({ isOpen, onClose, product }: ProductModalP
                                     </div>
                                 )}
 
-                                {/* Mostrar diferencia si hay iva_value guardado y es diferente al calculado */}
                                 {product.iva_value !== null && product.iva_value !== undefined &&
                                  product.iva_value !== calculatedIvaValue &&
                                  calculatedIvaValue > 0 && (

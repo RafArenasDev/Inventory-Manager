@@ -14,7 +14,18 @@ return new class extends Migration
         Schema::create('inventory_movements', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('product_id');
-            $table->enum('type', ['Entrada', 'Salida']);
+            $table->foreignId('supplier_id')->nullable()->constrained()->onDelete('set null');
+            $table->enum('type', [
+                'Entrada',
+                'Salida',
+                'Devolucion Cliente',
+                'Devolucion Proveedor',
+                'Consignacion Entrada',
+                'Consignacion Salida',
+                'Cambio Entrada',
+                'Cambio Salida',
+                'Ajuste Inventario',
+            ]);
             $table->integer('quantity');
             $table->date('date');
             $table->text('notes')->nullable();

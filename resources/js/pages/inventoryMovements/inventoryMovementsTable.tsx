@@ -11,10 +11,16 @@ interface Product {
   name: string;
 }
 
+interface Supplier {
+  id: number;
+  name: string;
+}
+
 interface InventoryMovement {
   id: number;
   type: string;
   product: Product;
+  supplier?: Supplier;
   quantity: number;
   notes?: string;
   created_at: string;
@@ -67,7 +73,32 @@ export default function InventoryMovementsTable({
   filters,
   userPermissions,
   showActionsColumn,
-  }: MovementsTableProps) {
+}: MovementsTableProps) {
+
+  const getTypeBadgeClass = (type: string) => {
+    switch (type) {
+      case 'Entrada':
+        return 'bg-green-500 dark:bg-green-600';
+      case 'Devolucion Cliente':
+        return 'bg-green-600 dark:bg-green-700';
+      case 'Consignacion Entrada':
+        return 'bg-green-700 dark:bg-green-800';
+      case 'Cambio Entrada':
+        return 'bg-green-800 dark:bg-green-900';
+      case 'Salida':
+        return 'bg-red-500 dark:bg-red-600';
+      case 'Devolucion Proveedor':
+        return 'bg-red-600 dark:bg-red-700';
+      case 'Consignacion Salida':
+        return 'bg-red-700 dark:bg-red-800';
+      case 'Cambio Salida':
+        return 'bg-red-800 dark:bg-red-900';
+      case 'Ajuste Inventario':
+        return 'bg-blue-600 dark:bg-blue-700';
+      default:
+        return 'bg-gray-600 dark:bg-gray-700';
+    }
+  };
 
   const handleExport = () => {
     // Construir URL con los filtros actuales
@@ -90,7 +121,7 @@ export default function InventoryMovementsTable({
       {/* Buscador y Exportar */}
       <div className="flex justify-between items-center">
         <SearchInput
-          placeholder="Buscar por producto o tipo..."
+          placeholder="Buscar por producto, tipo o proveedor..."
           searchValue={search}
           onSearch={onSearch}
         />
@@ -122,6 +153,7 @@ export default function InventoryMovementsTable({
               <TableHead>Tipo</TableHead>
               <TableHead>Cantidad</TableHead>
               <TableHead>Producto</TableHead>
+              <TableHead>Proveedor</TableHead>
               <TableHead>Descripción</TableHead>
               <TableHead>Fecha</TableHead>
               {showActionsColumn && <TableHead className="text-right">Acciones</TableHead>}
@@ -132,16 +164,17 @@ export default function InventoryMovementsTable({
               movements.data.map((m) => (
                 <TableRow key={m.id}>
                   <TableCell className="capitalize font-medium">
-                    <span className={`px-2 py-1 rounded-full text-xs ${
-                      m.type === 'Entrada'
-                        ? 'bg-green-100 text-green-800'
-                        : 'bg-red-100 text-red-800'
-                    }`}>
+                    <span className={`text-xs px-3 py-1 rounded-full font-bold w-fit shadow-sm text-white ${getTypeBadgeClass(m.type)}`}>
                       {m.type}
                     </span>
                   </TableCell>
                   <TableCell className="font-medium">{m.quantity}</TableCell>
                   <TableCell>{m.product.name}</TableCell>
+                  <TableCell>
+                    <span className="text-xs px-3 py-1 rounded-full bg-gray-600 text-white font-bold w-fit shadow-sm dark:bg-gray-700">
+                      {m.supplier?.name || '-'}
+                    </span>
+                  </TableCell>
                   <TableCell className="max-w-xs truncate">{m.notes || "-"}</TableCell>
                   <TableCell>
                     {m.date
@@ -159,14 +192,15 @@ export default function InventoryMovementsTable({
                         {(userPermissions.includes('Editar Movimientos Inventario') ||
                           userPermissions.includes('Actualizar Movimientos Inventario')) && (
                           <Button
-                            variant="outline"
+                            variant="default"
                             size="icon"
                             onClick={() => {
                               onEditMovement(m);
                             }}
-                            className="text-yellow-600 border-yellow-300 hover:bg-yellow-50 dark:text-yellow-400 dark:border-yellow-600 dark:hover:bg-yellow-900/30"
+                            className="bg-yellow-500 hover:bg-yellow-600 text-white"
+                            aria-label="Editar movimiento"
                           >
-                            <Pencil className="h-4 w-4" />
+                            <Pencil className="h-4 w-4 text-white" />
                           </Button>
                         )}
                       </div>
@@ -176,7 +210,7 @@ export default function InventoryMovementsTable({
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={showActionsColumn ? 6 : 5} className="h-24 text-center">
+                <TableCell colSpan={showActionsColumn ? 7 : 6} className="h-24 text-center">
                   No se encontraron movimientos.
                 </TableCell>
               </TableRow>

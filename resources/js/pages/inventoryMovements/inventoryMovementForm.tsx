@@ -9,8 +9,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 
 interface InventoryMovementForForm {
   id?: number;
-  type: 'Entrada' | 'Salida';
+  type: 'Entrada' | 'Salida' | 'Devolucion Cliente' | 'Devolucion Proveedor' | 'Consignacion Entrada' | 'Consignacion Salida' | 'Cambio Entrada' | 'Cambio Salida' | 'Ajuste Inventario' | "";
   product_id: number | "" | null;
+  supplier_id: number | "" | null;
   quantity: number;
   date: string;
   notes?: string;
@@ -19,12 +20,23 @@ interface InventoryMovementForForm {
 interface Product {
   id: number;
   name: string;
+  supplier_id?: number | null;
+  supplier?: {
+    id: number;
+    name: string;
+  };
+}
+
+interface Supplier {
+  id: number;
+  name: string;
 }
 
 interface InventoryMovementFormProps {
   movement?: InventoryMovementForForm;
   onCancel: () => void;
   products: Product[];
+  suppliers: Supplier[];
   userPermissions: string[];
 }
 
@@ -36,15 +48,16 @@ const InventoryMovementForm: React.FC<InventoryMovementFormProps> = ({
 }) => {
   // Fecha actual en America/Bogota
   const now = new Date();
-  const bogotaTime = new Date(now.toLocaleString("en-US", {timeZone: "America/Bogota"}));
+  const bogotaTime = new Date(now.toLocaleString("es-CO", { timeZone: "America/Bogota" }));
   const year = bogotaTime.getFullYear();
   const month = String(bogotaTime.getMonth() + 1).padStart(2, '0');
   const day = String(bogotaTime.getDate()).padStart(2, '0');
   const formattedToday = `${year}-${month}-${day}`;
 
   const { data, setData, post, put, processing, errors, reset } = useForm({
-    type: movement?.type || "Entrada",
+    type: movement?.type || "",
     product_id: movement?.product_id || "",
+    supplier_id: movement?.supplier_id || "",
     quantity: movement?.quantity || 0,
     date: movement?.date || formattedToday,
     notes: movement?.notes || "",
@@ -55,6 +68,7 @@ const InventoryMovementForm: React.FC<InventoryMovementFormProps> = ({
       setData({
         type: movement.type,
         product_id: movement.product_id ?? "",
+        supplier_id: movement.supplier_id ?? "",
         quantity: movement.quantity,
         date: movement.date,
         notes: movement.notes || "",
@@ -63,6 +77,15 @@ const InventoryMovementForm: React.FC<InventoryMovementFormProps> = ({
       setData("date", formattedToday);
     }
   }, [movement, setData, formattedToday]);
+
+  const handleProductChange = (value: string) => {
+    const productId = value ? Number(value) : "";
+    setData("product_id", productId);
+    const selectedProduct = products.find(p => p.id === productId);
+    setData("supplier_id", selectedProduct?.supplier_id ?? "");
+  };
+
+  const supplierName = products.find(p => p.id === (typeof data.product_id === 'number' ? data.product_id : 0))?.supplier?.name ?? "";
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -75,7 +98,7 @@ const InventoryMovementForm: React.FC<InventoryMovementFormProps> = ({
             icon: "success",
             title: "Movimiento actualizado correctamente",
             showConfirmButton: false,
-            timer: 2200
+            timer: 2200,
           });
           reset();
           onCancel();
@@ -88,7 +111,7 @@ const InventoryMovementForm: React.FC<InventoryMovementFormProps> = ({
               title: "Error al actualizar el movimiento",
               text: 'Por favor corrija los errores en el formulario.',
               showConfirmButton: false,
-              timer: 2200
+              timer: 2200,
             });
           }
         },
@@ -101,7 +124,7 @@ const InventoryMovementForm: React.FC<InventoryMovementFormProps> = ({
             icon: "success",
             title: "Movimiento registrado correctamente",
             showConfirmButton: false,
-            timer: 2200
+            timer: 2200,
           });
           reset();
           onCancel();
@@ -114,7 +137,7 @@ const InventoryMovementForm: React.FC<InventoryMovementFormProps> = ({
               title: "Error al crear el movimiento",
               text: 'Por favor corrija los errores en el formulario.',
               showConfirmButton: false,
-              timer: 2200
+              timer: 2200,
             });
           }
         },
@@ -127,21 +150,34 @@ const InventoryMovementForm: React.FC<InventoryMovementFormProps> = ({
     ? userPermissions.includes('Actualizar Movimientos Inventario')
     : userPermissions.includes('Crear Movimientos Inventario');
 
+  const quantityMin = data.type === 'Ajuste Inventario' ? undefined : 1;
+
   return (
     <div className="bg-white dark:bg-[oklch(0.100205_0_0)] overflow-hidden shadow-sm sm:rounded-lg p-6">
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Tipo */}
         <div>
-          <Label htmlFor="type" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+          <Label htmlFor="type" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
             Tipo *
           </Label>
-          <Select value={data.type} onValueChange={(value: 'Entrada' | 'Salida') => setData("type", value)}>
-            <SelectTrigger className="mt-1">
+          <Select
+            value={data.type || ""}
+            onValueChange={(value) => setData("type", value)}
+            required
+          >
+            <SelectTrigger className="mt-1 w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-black text-gray-900 dark:text-gray-100">
               <SelectValue placeholder="Seleccione un tipo" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="Entrada">Entrada</SelectItem>
               <SelectItem value="Salida">Salida</SelectItem>
+              <SelectItem value="Devolucion Cliente">Devolución Cliente</SelectItem>
+              <SelectItem value="Devolucion Proveedor">Devolución Proveedor</SelectItem>
+              <SelectItem value="Consignacion Entrada">Consignación Entrada</SelectItem>
+              <SelectItem value="Consignacion Salida">Consignación Salida</SelectItem>
+              <SelectItem value="Cambio Entrada">Cambio Entrada</SelectItem>
+              <SelectItem value="Cambio Salida">Cambio Salida</SelectItem>
+              <SelectItem value="Ajuste Inventario">Ajuste Inventario</SelectItem>
             </SelectContent>
           </Select>
           {errors.type && <p className="mt-1 text-sm text-red-600">{errors.type}</p>}
@@ -149,7 +185,7 @@ const InventoryMovementForm: React.FC<InventoryMovementFormProps> = ({
 
         {/* Fecha */}
         <div>
-          <Label htmlFor="date" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+          <Label htmlFor="date" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
             Fecha *
           </Label>
           <Input
@@ -158,7 +194,7 @@ const InventoryMovementForm: React.FC<InventoryMovementFormProps> = ({
             value={data.date}
             onChange={(e) => setData("date", e.target.value)}
             max={formattedToday}
-            className="mt-1"
+            className="mt-1 w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-black text-gray-900 dark:text-gray-100"
             required
           />
           {errors.date && <p className="mt-1 text-sm text-red-600">{errors.date}</p>}
@@ -166,16 +202,15 @@ const InventoryMovementForm: React.FC<InventoryMovementFormProps> = ({
 
         {/* Producto */}
         <div>
-          <Label htmlFor="product_id" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+          <Label htmlFor="product_id" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
             Producto *
           </Label>
           <Select
             value={typeof data.product_id === 'number' ? data.product_id.toString() : ""}
-            onValueChange={(value) =>
-              setData("product_id", value ? Number(value) : "")
-            }
+            onValueChange={handleProductChange}
+            required
           >
-            <SelectTrigger className="mt-1">
+            <SelectTrigger className="mt-1 w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-black text-gray-900 dark:text-gray-100">
               <SelectValue placeholder="Seleccione un producto" />
             </SelectTrigger>
             <SelectContent>
@@ -186,14 +221,27 @@ const InventoryMovementForm: React.FC<InventoryMovementFormProps> = ({
               ))}
             </SelectContent>
           </Select>
-          {errors.product_id && (
-            <p className="mt-1 text-sm text-red-600">{errors.product_id}</p>
-          )}
+          {errors.product_id && <p className="mt-1 text-sm text-red-600">{errors.product_id}</p>}
+        </div>
+
+        {/* Proveedor */}
+        <div>
+          <Label htmlFor="supplier_name" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            Proveedor *
+          </Label>
+          <Input
+            id="supplier_name"
+            type="text"
+            value={supplierName}
+            readOnly
+            className="mt-1 w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100 cursor-not-allowed"
+          />
+          {errors.supplier_id && <p className="mt-1 text-sm text-red-600">{errors.supplier_id}</p>}
         </div>
 
         {/* Cantidad */}
         <div>
-          <Label htmlFor="quantity" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+          <Label htmlFor="quantity" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
             Cantidad *
           </Label>
           <Input
@@ -204,39 +252,45 @@ const InventoryMovementForm: React.FC<InventoryMovementFormProps> = ({
               const val = e.target.value;
               setData("quantity", val ? parseInt(val) : 0);
             }}
-            min="1"
+            min={quantityMin}
             placeholder="0"
             required
-            className="mt-1"
+            className="mt-1 w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-black text-gray-900 dark:text-gray-100"
           />
-          {errors.quantity && (
-            <p className="mt-1 text-sm text-red-600">{errors.quantity}</p>
-          )}
+          {errors.quantity && <p className="mt-1 text-sm text-red-600">{errors.quantity}</p>}
         </div>
 
         {/* Notas */}
         <div>
-          <Label htmlFor="notes" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+          <Label htmlFor="notes" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
             Notas
           </Label>
           <Textarea
             id="notes"
             value={data.notes}
             onChange={(e) => setData("notes", e.target.value)}
-            className="mt-1"
+            className="mt-1 w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-black text-gray-900 dark:text-gray-100"
             rows={3}
             placeholder="Opcional: agregar notas sobre este movimiento..."
           />
           {errors.notes && <p className="mt-1 text-sm text-red-600">{errors.notes}</p>}
         </div>
 
-        {/* Botones */}
-        <div className="flex justify-end space-x-3 border-t pt-4">
-          <Button type="button" variant="outline" onClick={onCancel} disabled={processing}>
+        {/* Botones de acción */}
+        <div className="flex justify-end space-x-3 pt-4 border-t border-gray-200 dark:border-gray-700">
+          <Button
+            type="button"
+            onClick={onCancel}
+            variant="outline"
+            disabled={processing}
+          >
             Cancelar
           </Button>
           {canSubmit && (
-            <Button type="submit" disabled={processing}>
+            <Button
+              type="submit"
+              disabled={processing}
+            >
               {processing ? "Guardando..." : movement?.id ? "Actualizar" : "Registrar"}
             </Button>
           )}

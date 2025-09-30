@@ -12,16 +12,27 @@ interface Product {
   code?: string;
   name: string;
   stock?: number;
+  supplier_id?: number | null;
+  supplier?: {
+    id: number;
+    name: string;
+  };
   category?: {
     id: number;
     name: string;
   };
 }
 
+interface Supplier {
+  id: number;
+  name: string;
+}
+
 interface InventoryMovement {
   id: number;
   type: string;
   product: Product;
+  supplier?: Supplier;
   quantity: number;
   notes?: string;
   created_at: string;
@@ -30,8 +41,9 @@ interface InventoryMovement {
 
 interface InventoryMovementForForm {
   id?: number;
-  product_id: number | "" | null;
-  type: 'Entrada' | 'Salida';
+  product_id: number | "";
+  supplier_id: number | "";
+  type: 'Entrada' | 'Salida' | 'Devolucion Cliente' | 'Devolucion Proveedor' | 'Consignacion Entrada' | 'Consignacion Salida' | 'Cambio Entrada' | 'Cambio Salida' | 'Ajuste Inventario' | "";
   quantity: number;
   date: string;
   notes?: string;
@@ -46,6 +58,7 @@ interface InventoryMovementIndexProps {
     total: number;
   };
   products: Product[];
+  suppliers: Supplier[];
   filters: {
     search?: string;
     per_page?: string;
@@ -68,6 +81,7 @@ const initialBreadcrumbs: BreadcrumbItem[] = [
 export default function InventoryMovementsIndex({
   movements,
   products,
+  suppliers,
   filters,
   totalCount,
   filteredCount,
@@ -108,7 +122,8 @@ export default function InventoryMovementsIndex({
 
     const newMovement: InventoryMovementForForm = {
       product_id: "",
-      type: 'Entrada',
+      supplier_id: "",
+      type: "",
       quantity: 0,
       date: formattedToday,
       notes: '',
@@ -121,9 +136,10 @@ export default function InventoryMovementsIndex({
     const movementForForm: InventoryMovementForForm = {
       id: movement.id,
       product_id: movement.product.id,
-      type: movement.type as 'Entrada' | 'Salida',
+      supplier_id: movement.supplier?.id ?? "",
+      type: movement.type as 'Entrada' | 'Salida' | 'Devolucion Cliente' | 'Devolucion Proveedor' | 'Consignacion Entrada' | 'Consignacion Salida' | 'Cambio Entrada' | 'Cambio Salida' | 'Ajuste Inventario' | "",
       quantity: movement.quantity,
-      date: movement.date || movement.created_at,
+      date: movement.date || movement.created_at.split('T')[0],
       notes: movement.notes,
     };
     setEditingMovement(movementForForm);
@@ -171,8 +187,9 @@ export default function InventoryMovementsIndex({
               </Button>
             </div>
             <InventoryMovementForm
-              movement={editingMovement ?? undefined}
+              movement={editingMovement as InventoryMovementForForm}
               products={products}
+              suppliers={suppliers}
               onCancel={handleCancelForm}
               userPermissions={userPermissions}
             />

@@ -17,7 +17,7 @@ import ProductModal from "./productModal"
 import { LinkProps } from '@/types';
 
 interface Product {
-    id?: number;
+    id: number;
     code: string;
     category_id?: number | string;
     category?: string;
@@ -29,9 +29,13 @@ interface Product {
     iva_value?: number | null;
     sale_price?: number | null;
     supplier?: string | null;
+    supplier_id?: number | null;
     stock: number;
     created_at?: string;
     updated_at?: string;
+    movement_date?: string;
+    movement_notes?: string;
+    initial_movement_id?: number;
 }
 
 interface ProductsTableProps {
@@ -131,14 +135,6 @@ export default function ProductsTable({
         setIsModalOpen(true);
     };
 
-    const handleEditProduct = (product: Product) => {
-        const productWithCategoryId = {
-            ...product,
-            category_id: product.category_id || (product.id ?? 0)
-        };
-        onEditProduct(productWithCategoryId);
-    };
-
     const showActionsColumn = userPermissions.includes('Ver Productos') ||
                               userPermissions.includes('Editar Productos') ||
                               userPermissions.includes('Eliminar Productos');
@@ -171,7 +167,7 @@ export default function ProductsTable({
                         {products.data.map((product) => {
                             const stockStatus = getStockStatus(product.stock);
                             return (
-                                <TableRow key={product.id ?? product.code} className="hover:bg-gray-50 dark:hover:bg-gray-800/50">
+                                <TableRow key={product.id} className="hover:bg-gray-50 dark:hover:bg-gray-800/50">
                                     <TableCell className="font-medium text-left">{product.code}</TableCell>
                                     <TableCell className="text-left">
                                         {product.image_path ? (
@@ -191,19 +187,22 @@ export default function ProductsTable({
                                     </TableCell>
                                     <TableCell className="text-left">
                                         <span className="text-xs px-3 py-1 rounded-full bg-blue-600 text-white font-bold w-fit shadow-sm dark:bg-blue-700">
-                                            {product.category || 'Sin categoría'}
+                                            { product.category }
                                         </span>
                                     </TableCell>
                                     <TableCell className="text-left">
-                                        <span className={`text-xs px-3 py-1 rounded-full ${stockStatus.color} w-fit shadow-sm`}>
-                                            {stockStatus.label} ({product.stock})
+                                        <span className={`inline-flex items-center gap-2 text-xs px-3 py-1 rounded-full ${stockStatus.color} w-fit shadow-sm`}>
+                                            <span className="font-bold">{product.stock}</span>
+                                            <span>{stockStatus.label}</span>
                                         </span>
                                     </TableCell>
                                     <TableCell className="text-left font-medium">
                                         {formatPrice(product.sale_price)}
                                     </TableCell>
                                     <TableCell className="text-xs text-left">
-                                        {product.supplier || '-'}
+                                        <span className="text-xs px-3 py-1 rounded-full bg-gray-600 text-white font-bold w-fit shadow-sm dark:bg-gray-700">
+                                            {product.supplier || '-'}
+                                        </span>
                                     </TableCell>
                                     {showActionsColumn && (
                                         <TableCell className="text-right">
@@ -223,7 +222,7 @@ export default function ProductsTable({
                                                     <Button
                                                         variant="default"
                                                         size="icon"
-                                                        onClick={() => handleEditProduct(product)}
+                                                        onClick={() => onEditProduct(product)}
                                                         className="bg-yellow-500 hover:bg-yellow-600 text-white"
                                                         aria-label="Editar producto"
                                                     >
@@ -234,7 +233,7 @@ export default function ProductsTable({
                                                     <Button
                                                         variant="default"
                                                         size="icon"
-                                                        onClick={() => handleDelete(product.id!, product.name)}
+                                                        onClick={() => handleDelete(product.id, product.name)}
                                                         className="bg-red-600 hover:bg-red-700 text-white"
                                                         aria-label="Eliminar producto"
                                                     >

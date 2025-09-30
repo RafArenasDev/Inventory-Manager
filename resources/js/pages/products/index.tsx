@@ -1,20 +1,24 @@
 import { useState, useEffect } from 'react';
 import AppLayout from '@/layouts/app-layout';
 import { LinkProps, type BreadcrumbItem } from '@/types';
-import { Head, router, usePage } from '@inertiajs/react'; // Agregar usePage
+import { Head, router, usePage } from '@inertiajs/react';
 import ProductsTable from './productsTable';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft, Plus } from 'lucide-react';
 import ProductForm from './productForm';
 
-// Interface unificada para productos
 interface Category {
     id: number;
     name: string;
 }
 
+interface Supplier {
+    id: number;
+    name: string;
+}
+
 interface Product {
-    id?: number;
+    id: number;
     code: string;
     category_id?: number | string;
     category?: string;
@@ -23,11 +27,32 @@ interface Product {
     image_path?: string | null;
     price_without_tax?: number | null;
     price_with_tax?: number | null;
+    iva_value?: number | null;
     sale_price?: number | null;
     supplier?: string | null;
+    supplier_id?: number | null;
     stock: number;
     created_at?: string;
     updated_at?: string;
+    movement_date?: string;
+    movement_notes?: string;
+    initial_movement_id?: number;
+}
+
+interface ProductForForm {
+    id?: number;
+    code: string;
+    category_id: number;
+    name: string;
+    description: string;
+    image_path?: string | null;
+    price_without_tax: string;
+    price_with_tax: string;
+    iva_value: string;
+    sale_price: string;
+    supplier_id?: number | string;
+    stock: string;
+    movement_notes: string;
 }
 
 interface ProductIndexProps {
@@ -39,6 +64,7 @@ interface ProductIndexProps {
         total: number;
     };
     categories: Category[];
+    suppliers: Supplier[];
     filters: {
         search?: string;
         per_page?: string;
@@ -57,15 +83,15 @@ const initialBreadcrumbs: BreadcrumbItem[] = [
 export default function ProductIndex({
     products,
     categories,
+    suppliers,
     filters,
     totalCount,
     filteredCount,
 }: ProductIndexProps) {
     const [isCreating, setIsCreating] = useState(false);
-    const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+    const [editingProduct, setEditingProduct] = useState<ProductForForm | null>(null);
     const [breadcrumbs, setBreadcrumbs] = useState<BreadcrumbItem[]>(initialBreadcrumbs);
 
-    // Obtener userPermissions desde auth (igual que roles)
     const { auth } = usePage().props as unknown as { auth: { permissions: string[] } };
     const userPermissions = auth.permissions;
 
@@ -95,30 +121,46 @@ export default function ProductIndex({
     }, [isCreating, editingProduct]);
 
     const handleCreateProduct = () => {
-        const newProduct: Product = {
+        const newProduct: ProductForForm = {
             code: '',
-            category_id: categories[0]?.id || '',
+            category_id: (categories[0]?.id ?? 0),
             name: '',
             description: '',
             image_path: '',
-            price_without_tax: null,
-            price_with_tax: null,
-            sale_price: null,
-            supplier: '',
-            stock: 0,
+            price_without_tax: '',
+            price_with_tax: '',
+            iva_value: '',
+            sale_price: '',
+            supplier_id: '',
+            stock: '0',
+            movement_notes: '',
         };
         setEditingProduct(newProduct);
         setIsCreating(true);
     };
 
     const handleEditProduct = (product: Product) => {
-        // Asegurar que category_id esté presente
-        const categoryId = categories.find((cat) => cat.name === product.category)?.id ||
-                          product.category_id || '';
+        const categoryIdRaw =
+            categories.find((cat) => cat.name === product.category)?.id ??
+            product.category_id ??
+            categories[0]?.id ??
+            0;
+        const categoryId = typeof categoryIdRaw === 'string' ? parseInt(categoryIdRaw, 10) : categoryIdRaw;
 
-        const productForForm: Product = {
-            ...product,
+        const productForForm: ProductForForm = {
+            id: product.id,
+            code: product.code || '',
             category_id: categoryId,
+            name: product.name || '',
+            description: product.description || '',
+            image_path: product.image_path || '',
+            price_without_tax: product.price_without_tax?.toString() || '',
+            price_with_tax: product.price_with_tax?.toString() || '',
+            iva_value: product.iva_value?.toString() || '',
+            sale_price: product.sale_price?.toString() || '',
+            supplier_id: product.supplier_id?.toString() || '',
+            stock: product.stock?.toString() || '0',
+            movement_notes: product.movement_notes || '',
         };
         setEditingProduct(productForForm);
         setIsCreating(false);
@@ -160,10 +202,12 @@ export default function ProductIndex({
                             </Button>
                         </div>
                         <ProductForm
-                            product={editingProduct ?? undefined}
+                            product={editingProduct as ProductForForm}
                             categories={categories}
+                            suppliers={suppliers}
                             onCancel={handleCancelForm}
                             userPermissions={userPermissions}
+                            isCreating={isCreating}
                         />
                     </div>
                 ) : (

@@ -28,42 +28,36 @@ class Supplier extends Model
         'nit_digit'  => 'string',
     ];
 
-    // Accesor para NIT completo
     public function getNitAttribute()
     {
         return $this->nit_number . '-' . $this->nit_digit;
     }
 
-    // Relaciones
     public function products()
     {
-        return $this->hasMany(Product::class, 'supplier');
+        return $this->hasMany(Product::class);
     }
 
     public function inventoryMovements()
     {
-        return $this->hasManyThrough(InventoryMovement::class, Product::class, 'supplier', 'product_id');
+        return $this->hasManyThrough(InventoryMovement::class, Product::class);
     }
 
-    // Accesor para descripción corta
     public function getShortDescriptionAttribute()
     {
         return Str::limit($this->description ?? '', 100);
     }
 
-    // Accesor para contacto principal
     public function getMainContactAttribute()
     {
         return $this->representative ?? $this->name;
     }
 
-    // Accesor para teléfono principal
     public function getMainPhoneAttribute()
     {
         return $this->cellphone ?? $this->phone;
     }
 
-    // Scope para proveedores activos
     public function scopeActive($query)
     {
         return $query->where('is_active', true);
