@@ -75,7 +75,7 @@ export default function UserIndex({ users, roles, filters, totalCount, filteredC
             setBreadcrumbs([
                 ...initialBreadcrumbs,
                 {
-                    title: `Editar Usuario`,
+                    title: `Editar Usuario: ${editingUser.name}`,
                     href: `/users/${editingUser.id}/edit`,
                 },
             ]);

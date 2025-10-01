@@ -14,14 +14,16 @@ class PermissionSeeder extends Seeder
         // Reset cached roles and permissions
         app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
 
-        // Define modules - AGREGAR PROVEEDORES
+        // Define modules
         $modules = [
             'usuarios'               => 'Usuarios',
             'roles'                  => 'Roles',
             'permisos'               => 'Permisos',
-            'proveedores'            => 'Proveedores', // AGREGAR ESTA LÍNEA
+            'proveedores'            => 'Proveedores',
+            'clientes'               => 'Clientes',
             'categorias'             => 'Categorías',
             'productos'              => 'Productos',
+            'ventas'                 => 'Ventas',
             'movimientos-inventario' => 'Movimientos Inventario',
         ];
 
@@ -77,6 +79,18 @@ class PermissionSeeder extends Seeder
                 'name'        => 'Exportar Proveedores',
                 'label'       => 'Exportar Proveedores',
                 'description' => 'Permite exportar los proveedores a Excel',
+                'guard_name'  => 'web',
+            ]
+        );
+
+        // Permiso específico para exportar ventas
+        Permission::firstOrCreate(
+            ['name' => 'Exportar Ventas', 'guard_name' => 'web'],
+            [
+                'module'      => 'Ventas',
+                'name'        => 'Exportar Ventas',
+                'label'       => 'Exportar Ventas',
+                'description' => 'Permite exportar las ventas a Excel',
                 'guard_name'  => 'web',
             ]
         );

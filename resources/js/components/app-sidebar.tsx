@@ -3,9 +3,8 @@ import { NavUser } from '@/components/nav-user';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
 import { type NavItem } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
-import { ClipboardList, Key, LayoutGrid, Package, Shield, Tags, Truck, Users } from 'lucide-react'; // AGREGAR Truck
+import { ClipboardList, Key, LayoutGrid, Package, Shield, ShoppingCart, Tags, Truck, Users } from 'lucide-react';
 import AppLogo from './app-logo';
-// import { NavFooter } from './nav-footer';
 
 const mainNavItems: NavItem[] = [
     {
@@ -32,7 +31,7 @@ const mainNavItems: NavItem[] = [
         permission: 'Ver Usuarios',
     },
     {
-        title: 'Proveedores', // AGREGAR ESTE ÍTEM
+        title: 'Proveedores',
         href: '/suppliers',
         icon: Truck,
         permission: 'Ver Proveedores',
@@ -54,7 +53,19 @@ const mainNavItems: NavItem[] = [
         href: '/inventory-movements',
         icon: ClipboardList,
         permission: 'Ver Movimientos Inventario',
-    }
+    },
+    {
+        title: 'Clientes',
+        href: '/clients',
+        icon: Users,
+        permission: 'Ver Clientes',
+    },
+    {
+        title: 'Ventas',
+        href: '/sales',
+        icon: ShoppingCart,
+        permission: 'Ver Ventas',
+    },
 ];
 
 export function AppSidebar() {
@@ -65,21 +76,10 @@ export function AppSidebar() {
     const { auth } = (usePage().props as unknown as { auth: Auth });
     const userPermissions = auth.permissions;
 
-    // Debug: Log user permissions
-    // console.log('User permissions:', userPermissions);
-
-    // Filter items based on user permissions
     const filteredNavItems = mainNavItems.filter((item) => {
-        // If item has no permission requirement, show it
         if (!item.permission) return true;
-
-        // Check if user has the required permission
         return userPermissions.includes(item.permission);
     });
-
-    // const appVersion = '1.0.0';
-    // const currentYear = new Date().getFullYear();
-    // const companyName = 'RafArenasDev';
 
     return (
         <Sidebar collapsible="icon" variant="inset">
@@ -101,11 +101,6 @@ export function AppSidebar() {
 
             <SidebarFooter>
                 <NavUser />
-                {/* <NavFooter
-                    version={appVersion}
-                    companyName={companyName}
-                    currentYear={currentYear}
-                /> */}
             </SidebarFooter>
         </Sidebar>
     );

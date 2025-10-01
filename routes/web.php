@@ -1,10 +1,12 @@
 <?php
 
 use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\ClientController;
 use App\Http\Controllers\InventoryMovementController;
 use App\Http\Controllers\PermissionController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\RoleController;
+use App\Http\Controllers\SaleController;
 use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
@@ -223,6 +225,56 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::put('/{inventoryMovement}', [InventoryMovementController::class, 'update'])
             ->name('inventory-movements.update')
             ->middleware('permission:Actualizar Movimientos Inventario');
+    });
+
+    // Clients
+    Route::prefix('clients')->group(function () {
+        Route::get('/', [ClientController::class, 'index'])
+            ->name('clients.index')
+            ->middleware('permission:Ver Clientes');
+        Route::get('/create', [ClientController::class, 'create'])
+            ->name('clients.create')
+            ->middleware('permission:Crear Clientes');
+        Route::post('/', [ClientController::class, 'store'])
+            ->name('clients.store')
+            ->middleware('permission:Crear Clientes');
+        Route::get('/{client}', [ClientController::class, 'show'])
+            ->name('clients.show')
+            ->middleware('permission:Ver Clientes');
+        Route::get('/{client}/edit', [ClientController::class, 'edit'])
+            ->name('clients.edit')
+            ->middleware('permission:Editar Clientes');
+        Route::put('/{client}', [ClientController::class, 'update'])
+            ->name('clients.update')
+            ->middleware('permission:Editar Clientes');
+        Route::delete('/{client}', [ClientController::class, 'destroy'])
+            ->name('clients.destroy')
+            ->middleware('permission:Eliminar Clientes');
+        Route::get('/{client}/history', [ClientController::class, 'history'])
+            ->name('clients.history')
+            ->middleware('permission:Ver Clientes');
+        Route::get('/cities/{departmentId}', [ClientController::class, 'getCities'])
+            ->name('clients.cities')
+            ->middleware('permission:Ver Clientes');
+    });
+
+    // Sales
+    Route::prefix('sales')->group(function () {
+        Route::get('/', [SaleController::class, 'index'])
+            ->name('sales.index')
+            ->middleware('permission:Ver Ventas');
+        Route::get('/create', [SaleController::class, 'create'])
+            ->name('sales.create')
+            ->middleware('permission:Crear Ventas');
+        Route::post('/', [SaleController::class, 'store'])
+            ->name('sales.store')
+            ->middleware('permission:Crear Ventas');
+        Route::get('/{sale}', [SaleController::class, 'show'])
+            ->name('sales.show')
+            ->middleware('permission:Ver Ventas');
+        Route::get('/{sale}/pdf', [SaleController::class, 'generatePdf'])
+            ->name('sales.pdf')
+            ->middleware('permission:Ver Ventas');
     });
 
 });
