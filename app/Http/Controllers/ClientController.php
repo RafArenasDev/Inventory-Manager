@@ -62,20 +62,27 @@ class ClientController extends Controller
             Log::info('Clients Fetched (Paginated)', ['clients' => $clients]);
         }
 
+        $departments = Department::all()->map(fn($dept) => ['id' => $dept->id, 'name' => $dept->name]);
+        $cities      = City::all()->map(fn($city) => ['id' => $city->id, 'name' => $city->name, 'department_id' => $city->department_id]);
+
         return Inertia::render('clients/index', [
             'clients'       => $clients,
             'filters'       => $request->only(['search', 'per_page']),
             'totalCount'    => $totalCount,
             'filteredCount' => $filteredCount,
+            'departments'   => $departments,
+            'cities'        => $cities,
         ]);
     }
 
     public function create()
     {
-        $cities = City::all()->map(fn($city) => ['id' => $city->id, 'name' => $city->name, 'department_id' => $city->department_id]);
+        $departments = Department::all()->map(fn($dept) => ['id' => $dept->id, 'name' => $dept->name]);
+        $cities      = City::all()->map(fn($city) => ['id' => $city->id, 'name' => $city->name, 'department_id' => $city->department_id]);
+
         return Inertia::render('clients/index', [
             'showCreateForm' => true,
-            'departments'    => Department::all()->map(fn($dept) => ['id' => $dept->id, 'name' => $dept->name]),
+            'departments'    => $departments,
             'cities'         => $cities,
         ]);
     }
@@ -88,6 +95,51 @@ class ClientController extends Controller
         return redirect()->route('clients.index')->with('success', 'Cliente creado correctamente.');
     }
 
+    public function quickStore(ClientRequest $request)
+    {
+        $validated = $request->validate([
+            'document_type'      => ['required', 'in:CC,TI,CE,Pasaporte,NIT'],
+            'document_number'    => ['required', 'string', 'unique:clients,document_number'],
+            'verification_digit' => ['nullable', 'required_if:document_type,NIT', 'numeric'],
+            'name'               => ['required', 'string', 'max:255'],
+            'department_id'      => ['nullable', 'exists:departments,id'],
+            'city_id'            => ['nullable', 'exists:cities,id'],
+            'phone'              => ['nullable', 'string'],
+            'cellphone'          => ['nullable', 'string'],
+            'address'            => ['nullable', 'string'],
+            'email'              => ['nullable', 'email'],
+            'is_active'          => ['boolean'],
+        ]);
+
+        $validated['document_number'] = in_array($validated['document_type'], ['CC', 'TI', 'NIT']) ? (int) $validated['document_number'] : $validated['document_number'];
+        $client                       = Client::create($validated);
+
+        // Cargar las relaciones para obtener los nombres
+        $client->load(['department', 'city']);
+
+        $response = [
+            'id'                 => $client->id,
+            'name'               => $client->name,
+            'document_type'      => $client->document_type,
+            'document_number'    => $client->document_number,
+            'verification_digit' => $client->verification_digit,
+            'email'              => $client->email,
+            'phone'              => $client->phone,
+            'cellphone'          => $client->cellphone,
+            'address'            => $client->address,
+            'department_id'      => $client->department_id,
+            'department'         => $client->department ? $client->department->name : null,
+            'city_id'            => $client->city_id,
+            'city'               => $client->city ? $client->city->name : null,
+            'is_active'          => $client->is_active,
+        ];
+
+        Log::info('Client Quick Created', ['client' => $response]);
+
+        return response()->json($response);
+
+    }
+
     public function show(Client $client)
     {
         return Inertia::render('clients/show', [
@@ -97,10 +149,12 @@ class ClientController extends Controller
 
     public function edit(Client $client)
     {
-        $cities = City::all()->map(fn($city) => ['id' => $city->id, 'name' => $city->name, 'department_id' => $city->department_id]);
+        $departments = Department::all()->map(fn($dept) => ['id' => $dept->id, 'name' => $dept->name]);
+        $cities      = City::all()->map(fn($city) => ['id' => $city->id, 'name' => $city->name, 'department_id' => $city->department_id]);
+
         return Inertia::render('clients/index', [
             'editingClient' => $client,
-            'departments'   => Department::all()->map(fn($dept) => ['id' => $dept->id, 'name' => $dept->name]),
+            'departments'   => $departments,
             'cities'        => $cities,
         ]);
     }

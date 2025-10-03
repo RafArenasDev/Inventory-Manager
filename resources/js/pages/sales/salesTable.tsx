@@ -7,7 +7,7 @@ import {
     TableRow,
 } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
-import { Pencil, Trash2 } from "lucide-react"
+import { Ban, FileText, Eye } from "lucide-react"
 import { Pagination } from "@/components/ui/pagination"
 import { router } from "@inertiajs/react"
 import Swal from 'sweetalert2'
@@ -16,24 +16,44 @@ import SearchInput from "@/components/ui/search-input"
 interface SaleItem {
     id: number;
     product_id: number;
+    product_name?: string;
+    product_code?: string;
     quantity: number;
     price_at_sale: number;
     subtotal: number;
-    item_discount: number;
+}
+
+interface Client {
+    id: number;
+    name: string;
+    document_type: string;
+    document_number: string;
+    verification_digit?: number;
+    department?: string;
+    city?: string;
+    email?: string;
+    phone?: string;
+    cellphone?: string;
+    address?: string;
 }
 
 interface Sale {
     id: number;
-    client?: { id: number; name: string };
+    invoice_number: string;
+    client?: Client;
     user: { id: number; name: string };
     sale_date: string;
+    sale_time: string;
     total_without_tax: number;
-    total_with_tax: number;
+    total_with_discount: number;
     discount: number;
     total_paid: number;
     payment_method: string;
     notes?: string;
     items: SaleItem[];
+    discount_percentage: number;
+    public_invoice_url: string | null;
+    is_cancelled: boolean;
 }
 
 interface LinkProps {
@@ -52,42 +72,54 @@ interface SalesTableProps {
     };
     perPage: string;
     onPerPageChange: () => void;
-    onEditSale: (sale: Sale) => void;
     totalCount: number;
     filteredCount: number;
     search: string;
     onSearch: (search: string) => void;
     userPermissions: string[];
+    onViewInvoice: (url: string) => void;
 }
+
+const formatCurrency = (value: number): string => {
+    return `$ ${Math.round(value).toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.')}`;
+};
+
+const formatDate = (dateString: string): string => {
+    const date = new Date(dateString);
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const year = date.getFullYear();
+    return `${day}/${month}/${year}`;
+};
 
 export default function SalesTable({
     sales,
     perPage,
     onPerPageChange,
-    onEditSale,
     totalCount,
     filteredCount,
     search,
     onSearch,
     userPermissions,
+    onViewInvoice,
 }: SalesTableProps) {
-    const handleDelete = (saleId: number, saleDate: string) => {
+    const handleCancel = (sale: Sale) => {
         Swal.fire({
             title: "¿Estás seguro?",
-            text: `Esta acción eliminará la venta del ${saleDate} permanentemente`,
+            text: `Esta acción anulará la venta ${sale.invoice_number}`,
             icon: "warning",
             showCancelButton: true,
             confirmButtonColor: "#3085d6",
             cancelButtonColor: "#d33",
-            confirmButtonText: "Sí, eliminar!",
+            confirmButtonText: "Sí, anular!",
             cancelButtonText: "Cancelar",
         }).then((result) => {
             if (result.isConfirmed) {
-                router.delete(route('sales.destroy', saleId), {
+                router.post(route('sales.cancel', sale.id), {}, {
                     onSuccess: () => {
                         Swal.fire({
-                            title: "Eliminada!",
-                            text: "La venta ha sido eliminada.",
+                            title: "Anulada!",
+                            text: "La venta ha sido anulada.",
                             icon: "success",
                             timer: 2200,
                             showConfirmButton: false,
@@ -96,7 +128,7 @@ export default function SalesTable({
                     onError: () => {
                         Swal.fire({
                             title: "Error!",
-                            text: "No se pudo eliminar la venta.",
+                            text: "No se pudo anular la venta.",
                             icon: "error",
                         });
                     },
@@ -105,13 +137,13 @@ export default function SalesTable({
         });
     };
 
-    const showActionsColumn = userPermissions.includes('Editar Ventas') || userPermissions.includes('Eliminar Ventas');
+    const showActionsColumn = userPermissions.includes('Eliminar Ventas') || sales.data.some(sale => sale.public_invoice_url);
 
     return (
         <div className="space-y-4">
             <div className="flex justify-between items-center">
                 <SearchInput
-                    placeholder="Buscar por Cliente o Fecha..."
+                    placeholder="Buscar por Cliente, Documento o Nº Factura..."
                     searchValue={search}
                     onSearch={onSearch}
                 />
@@ -121,56 +153,68 @@ export default function SalesTable({
                 <Table>
                     <TableHeader className="bg-gray-400 dark:bg-gray-700">
                         <TableRow>
+                            <TableHead>Nº Factura</TableHead>
                             <TableHead>Fecha</TableHead>
+                            <TableHead>Hora</TableHead>
                             <TableHead>Cliente</TableHead>
-                            <TableHead>Método de Pago</TableHead>
-                            <TableHead>Total Pagado</TableHead>
-                            <TableHead>Items</TableHead>
+                            <TableHead>Total</TableHead>
+                            <TableHead>Productos</TableHead>
+                            <TableHead>Estado</TableHead>
                             {showActionsColumn && <TableHead className="text-right">Acciones</TableHead>}
                         </TableRow>
                     </TableHeader>
                     <TableBody>
                         {sales.data.map((sale) => (
-                            <TableRow key={sale.id}>
-                                <TableCell>{sale.sale_date}</TableCell>
-                                <TableCell>{sale.client?.name || 'Sin cliente'}</TableCell>
-                                <TableCell>{sale.payment_method}</TableCell>
-                                <TableCell>{sale.total_paid.toFixed(2)}</TableCell>
+                            <TableRow key={sale.id} className={sale.is_cancelled ? 'bg-red-50 dark:bg-red-900/10' : ''}>
+                                <TableCell className="font-medium">{sale.invoice_number}</TableCell>
+                                <TableCell>{formatDate(sale.sale_date)}</TableCell>
+                                <TableCell>{sale.sale_time}</TableCell>
+                                <TableCell>{sale.client?.name || 'Cliente no especificado'}</TableCell>
+                                <TableCell className="font-semibold">{formatCurrency(sale.total_paid)}</TableCell>
+                                <TableCell>{sale.items.length}</TableCell>
                                 <TableCell>
-                                    <div className="flex flex-col gap-2">
-                                        {sale.items.map((item) => (
-                                            <span
-                                                key={item.id}
-                                                className="text-xs px-2.5 py-1 rounded-full bg-gray-200 text-gray-800 font-medium border border-gray-300 shadow-sm dark:bg-gray-600 dark:text-gray-200 dark:border-gray-500"
-                                            >
-                                                Item {item.product_id}: {item.quantity} x {item.price_at_sale.toFixed(2)} - Desc: {item.item_discount.toFixed(2)}
-                                            </span>
-                                        ))}
-                                    </div>
+                                    {sale.is_cancelled ? (
+                                        <span className="px-3 py-1 bg-red-500 text-white text-xs font-semibold rounded-full">
+                                            ANULADA
+                                        </span>
+                                    ) : (
+                                        <span className="px-3 py-1 bg-green-500 text-white text-xs font-semibold rounded-full">
+                                            ACTIVA
+                                        </span>
+                                    )}
                                 </TableCell>
                                 {showActionsColumn && (
                                     <TableCell className="text-right">
                                         <div className="flex justify-end gap-2">
-                                            {userPermissions.includes('Editar Ventas') && (
+                                            <Button
+                                                variant="default"
+                                                size="icon"
+                                                onClick={() => router.visit(route('sales.show', sale.id))}
+                                                className="bg-green-500 hover:bg-green-600 text-white"
+                                                aria-label="Ver detalles"
+                                            >
+                                                <Eye className="h-4 w-4 text-white" />
+                                            </Button>
+                                            {sale.public_invoice_url && (
                                                 <Button
                                                     variant="default"
                                                     size="icon"
-                                                    onClick={() => onEditSale(sale)}
-                                                    className="bg-yellow-500 hover:bg-yellow-600 text-white"
-                                                    aria-label="Editar venta"
+                                                    onClick={() => onViewInvoice(sale.public_invoice_url!)}
+                                                    className="bg-blue-500 hover:bg-blue-600 text-white"
+                                                    aria-label="Ver factura"
                                                 >
-                                                    <Pencil className="h-4 w-4 text-white" />
+                                                    <FileText className="h-4 w-4 text-white" />
                                                 </Button>
                                             )}
-                                            {userPermissions.includes('Eliminar Ventas') && (
+                                            {userPermissions.includes('Eliminar Ventas') && !sale.is_cancelled && (
                                                 <Button
                                                     variant="default"
                                                     size="icon"
-                                                    onClick={() => handleDelete(sale.id, sale.sale_date)}
+                                                    onClick={() => handleCancel(sale)}
                                                     className="bg-red-600 hover:bg-red-700 text-white"
-                                                    aria-label="Eliminar venta"
+                                                    aria-label="Anular venta"
                                                 >
-                                                    <Trash2 className="h-4 w-4 text-white" />
+                                                    <Ban className="h-4 w-4 text-white" />
                                                 </Button>
                                             )}
                                         </div>

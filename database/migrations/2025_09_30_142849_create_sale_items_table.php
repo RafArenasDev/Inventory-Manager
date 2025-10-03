@@ -18,7 +18,6 @@ return new class extends Migration
             $table->integer('quantity');
             $table->bigInteger('price_at_sale');
             $table->bigInteger('subtotal');
-            $table->bigInteger('item_discount')->default(0);
             $table->timestamps();
         });
     }

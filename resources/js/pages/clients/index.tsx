@@ -144,7 +144,7 @@ export default function ClientIndex({
 
     const handleCreateClient = () => {
         const newClient: ClientForForm = {
-            document_type: 'NIT',
+            document_type: '',
             document_number: '',
             verification_digit: undefined,
             name: '',

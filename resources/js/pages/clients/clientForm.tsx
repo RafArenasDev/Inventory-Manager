@@ -8,8 +8,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Checkbox } from "@/components/ui/checkbox"
 import axios from 'axios';
 
+// Interface unificada - id es requerido para Client
 interface Client {
-    id?: number;
+    id: number;
     document_type: string;
     document_number: number | string;
     verification_digit?: number;
@@ -34,15 +35,16 @@ interface City {
 }
 
 interface ClientFormProps {
-    client?: Client;
+    client?: Omit<Client, 'id'> & { id?: number }; // id opcional para creación
     onCancel: () => void;
     userPermissions: string[];
     departments?: Department[];
     cities?: City[];
+    onSuccess?: (client: Client) => void;
 }
 
-const ClientForm: React.FC<ClientFormProps> = ({ client, onCancel, userPermissions, departments = [], cities = [] }) => {
-    const { data, setData, post, put, processing, reset, errors } = useForm({
+const ClientForm: React.FC<ClientFormProps> = ({ client, onCancel, userPermissions, departments = [], onSuccess }) => {
+    const { data, setData, put, processing, reset, errors } = useForm({
         document_type: client?.document_type || '',
         document_number: client?.document_number || '',
         verification_digit: client?.verification_digit || '',
@@ -56,7 +58,13 @@ const ClientForm: React.FC<ClientFormProps> = ({ client, onCancel, userPermissio
         is_active: client?.id ? !!client.is_active : true,
     });
 
-    const [availableCities, setAvailableCities] = useState<City[]>(cities);
+    const [availableCities, setAvailableCities] = useState<City[]>([]);
+
+    useEffect(() => {
+        if (client?.department_id) {
+            fetchCities(client.department_id.toString());
+        }
+    }, []);
 
     useEffect(() => {
         if (data.department_id) {
@@ -123,8 +131,9 @@ const ClientForm: React.FC<ClientFormProps> = ({ client, onCancel, userPermissio
                 },
             });
         } else {
-            post(route('clients.store'), {
-                onSuccess: () => {
+            // Usar quickStore para creación rápida desde ventas
+            axios.post(route('clients.quickStore'), data)
+                .then((response) => {
                     Swal.fire({
                         position: 'center',
                         icon: 'success',
@@ -133,9 +142,14 @@ const ClientForm: React.FC<ClientFormProps> = ({ client, onCancel, userPermissio
                         timer: 2200,
                     });
                     reset();
-                    onCancel();
-                },
-                onError: () => {
+                    if (onSuccess) {
+                        onSuccess(response.data);
+                    } else {
+                        onCancel();
+                    }
+                })
+                .catch((error) => {
+                    console.error('Error creating client:', error);
                     Swal.fire({
                         position: 'center',
                         icon: 'error',
@@ -144,8 +158,7 @@ const ClientForm: React.FC<ClientFormProps> = ({ client, onCancel, userPermissio
                         showConfirmButton: false,
                         timer: 2200,
                     });
-                },
-            });
+                });
         }
     };
 
@@ -158,27 +171,27 @@ const ClientForm: React.FC<ClientFormProps> = ({ client, onCancel, userPermissio
     return (
         <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-4">
-                <div>
-                    <Label htmlFor="document_type" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                        Tipo de Documento *
-                    </Label>
-                    <Select
-                        value={data.document_type}
-                        onValueChange={(value: string) => setData('document_type', value)}
-                    >
-                        <SelectTrigger className="w-full">
-                            <SelectValue placeholder="Seleccione tipo de documento" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="CC">CC</SelectItem>
-                            <SelectItem value="TI">TI</SelectItem>
-                            <SelectItem value="CE">CE</SelectItem>
-                            <SelectItem value="Pasaporte">Pasaporte</SelectItem>
-                            <SelectItem value="NIT">NIT</SelectItem>
-                        </SelectContent>
-                    </Select>
-                    {errors.document_type && <p className="mt-1 text-sm text-red-600">{errors.document_type}</p>}
-                </div>
+            <div>
+                <Label htmlFor="document_type" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    Tipo de Documento *
+                </Label>
+                <Select
+                    value={data.document_type || ''}
+                    onValueChange={(value: string) => setData('document_type', value)}
+                >
+                    <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Seleccione tipo de documento" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="CC">CC</SelectItem>
+                        <SelectItem value="TI">TI</SelectItem>
+                        <SelectItem value="CE">CE</SelectItem>
+                        <SelectItem value="Pasaporte">Pasaporte</SelectItem>
+                        <SelectItem value="NIT">NIT</SelectItem>
+                    </SelectContent>
+                </Select>
+                {errors.document_type && <p className="mt-1 text-sm text-red-600">{errors.document_type}</p>}
+            </div>
 
                 <div>
                     <Label htmlFor="document_number" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
@@ -236,7 +249,6 @@ const ClientForm: React.FC<ClientFormProps> = ({ client, onCancel, userPermissio
                         value={data.department_id?.toString() || ''}
                         onValueChange={(value: string) => {
                             setData('department_id', value ? parseInt(value) : '');
-                            fetchCities(value);
                         }}
                     >
                         <SelectTrigger className="w-full">

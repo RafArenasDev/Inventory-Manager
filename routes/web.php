@@ -133,26 +133,29 @@ Route::middleware(['auth', 'verified'])->group(function () {
             ->middleware('permission:Ver Categorías');
         Route::get('/create', [CategoryController::class, 'create'])
             ->name('categories.create')
-            ->middleware('permission:Crear Categorías');
+            ->middleware('permission:Crear Categorias');
         Route::post('/', [CategoryController::class, 'store'])
             ->name('categories.store')
-            ->middleware('permission:Crear Categorías');
+            ->middleware('permission:Crear Categorias');
         Route::get('/{category}', [CategoryController::class, 'show'])
             ->name('categories.show')
-            ->middleware('permission:Ver Categorías');
+            ->middleware('permission:Ver Categorias');
         Route::get('/{category}/edit', [CategoryController::class, 'edit'])
             ->name('categories.edit')
-            ->middleware('permission:Editar Categorías');
+            ->middleware('permission:Editar Categorias');
         Route::put('/{category}', [CategoryController::class, 'update'])
             ->name('categories.update')
-            ->middleware('permission:Actualizar Categorías');
+            ->middleware('permission:Actualizar Categorias');
         Route::delete('/{category}', [CategoryController::class, 'destroy'])
             ->name('categories.destroy')
-            ->middleware('permission:Eliminar Categorías');
+            ->middleware('permission:Eliminar Categorias');
     });
 
     // Products
     Route::prefix('products')->group(function () {
+        Route::get('/export', [ProductController::class, 'export'])
+            ->name('products.export')
+            ->middleware('permission:Exportar Productos');
         Route::get('/', [ProductController::class, 'index'])
             ->name('products.index')
             ->middleware('permission:Ver Productos');
@@ -238,6 +241,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('/', [ClientController::class, 'store'])
             ->name('clients.store')
             ->middleware('permission:Crear Clientes');
+        Route::post('/quick-store', [ClientController::class, 'quickStore']) // ← Ruta para crear clientes desde ventas
+            ->name('clients.quickStore')
+            ->middleware('permission:Crear Clientes');
         Route::get('/{client}', [ClientController::class, 'show'])
             ->name('clients.show')
             ->middleware('permission:Ver Clientes');
@@ -275,8 +281,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/{sale}/pdf', [SaleController::class, 'generatePdf'])
             ->name('sales.pdf')
             ->middleware('permission:Ver Ventas');
+        Route::post('/{sale}/cancel', [SaleController::class, 'cancel'])
+            ->name('sales.cancel')
+            ->middleware('permission:Eliminar Ventas');
     });
 
+    Route::get('/sales/client-by-document', [SaleController::class, 'getClientByDocument'])->name('sales.client-by-document');
+    Route::get('/sales/product-by-code', [SaleController::class, 'getProductByCode'])->name('sales.product-by-code');
 });
 
 require __DIR__ . '/settings.php';
