@@ -351,39 +351,26 @@ Route::middleware(['auth', 'verified'])->group(function () {
     });
 
     // Cash Register (Caja)
-    Route::prefix('cash-register')->group(function () {
+    Route::prefix('cash-register')->middleware(['auth', 'verified'])->group(function () {
         Route::get('/', [CashRegisterController::class, 'index'])
             ->name('cash-register.index')
             ->middleware('permission:Ver Caja');
-        Route::get('/today', [CashRegisterController::class, 'today'])
-            ->name('cash-register.today')
-            ->middleware('permission:Ver Caja');
-        Route::post('/open', [CashRegisterController::class, 'open'])
-            ->name('cash-register.open')
-            ->middleware('permission:Abrir Caja');
-        Route::post('/{cashRegister}/close', [CashRegisterController::class, 'close'])
-            ->name('cash-register.close')
-            ->middleware('permission:Cerrar Caja');
-        Route::get('/{cashRegister}', [CashRegisterController::class, 'show'])
-            ->name('cash-register.show')
-            ->middleware('permission:Ver Caja');
+        Route::get('/create', [CashRegisterController::class, 'create'])
+            ->name('cash-register.create')
+            ->middleware('permission:Crear Caja');
+        Route::post('/', [CashRegisterController::class, 'store'])
+            ->name('cash-register.store')
+            ->middleware('permission:Crear Caja');
+        Route::get('/{cashRegister}/edit', [CashRegisterController::class, 'edit'])
+            ->name('cash-register.edit')
+            ->middleware('permission:Actualizar Caja');
+        Route::put('/{cashRegister}', [CashRegisterController::class, 'update'])
+            ->name('cash-register.update')
+            ->middleware('permission:Actualizar Caja');
+        Route::get('/export', [CashRegisterController::class, 'export'])
+            ->name('cash-register.export')
+            ->middleware('permission:Exportar Caja');
     });
-
-// // Financial Reports (Reportes Financieros)
-//     Route::prefix('reports/financial')->group(function () {
-//         Route::get('/', [FinancialReportController::class, 'index'])
-//             ->name('reports.financial.index')
-//             ->middleware('permission:Ver Reportes Financieros');
-//         Route::get('/profit-loss', [FinancialReportController::class, 'profitLoss'])
-//             ->name('reports.financial.profit-loss')
-//             ->middleware('permission:Ver Reportes Financieros');
-//         Route::get('/cash-flow', [FinancialReportController::class, 'cashFlow'])
-//             ->name('reports.financial.cash-flow')
-//             ->middleware('permission:Ver Reportes Financieros');
-//         Route::get('/export', [FinancialReportController::class, 'export'])
-//             ->name('reports.financial.export')
-//             ->middleware('permission:Exportar Reportes Financieros');
-//     });
 
 });
 

@@ -99,6 +99,18 @@ class PermissionSeeder extends Seeder
             ]
         );
 
+        // Permiso específico para exportar caja
+        Permission::firstOrCreate(
+            ['name' => 'Exportar Caja', 'guard_name' => 'web'],
+            [
+                'module'      => 'Caja',
+                'name'        => 'Exportar Caja',
+                'label'       => 'Exportar Caja',
+                'description' => 'Permite exportar los registros de caja a Excel',
+                'guard_name'  => 'web',
+            ]
+        );
+
         // ==================== PERMISOS ESPECÍFICOS DE FINANZAS Y CAJA ====================
 
         // Permiso para abrir caja
@@ -174,6 +186,5 @@ class PermissionSeeder extends Seeder
                 'guard_name'  => 'web',
             ]
         );
-
     }
 }

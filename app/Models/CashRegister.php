@@ -12,32 +12,29 @@ class CashRegister extends Model
         'register_date',
         'opened_by',
         'closed_by',
-        'opening_balance',
+        'opening_amount',
+        'closing_amount',
         'total_sales',
         'total_income',
         'total_expenses',
-        'expected_balance',
-        'actual_balance',
         'difference',
         'opened_at',
         'closed_at',
         'is_closed',
-        'opening_notes',
-        'closing_notes',
+        'notes',
     ];
 
     protected $casts = [
-        'register_date'    => 'date',
-        'opening_balance'  => 'integer',
-        'total_sales'      => 'integer',
-        'total_income'     => 'integer',
-        'total_expenses'   => 'integer',
-        'expected_balance' => 'integer',
-        'actual_balance'   => 'integer',
-        'difference'       => 'integer',
-        'opened_at'        => 'datetime',
-        'closed_at'        => 'datetime',
-        'is_closed'        => 'boolean',
+        'register_date'  => 'date',
+        'opening_amount' => 'integer',
+        'closing_amount' => 'integer',
+        'total_sales'    => 'integer',
+        'total_income'   => 'integer',
+        'total_expenses' => 'integer',
+        'difference'     => 'integer',
+        'opened_at'      => 'datetime',
+        'closed_at'      => 'datetime',
+        'is_closed'      => 'boolean',
     ];
 
     public function openedBy()
@@ -74,20 +71,24 @@ class CashRegister extends Model
         return $this->difference > 0;
     }
 
-    // Accesor para formato de balance
-    public function getFormattedExpectedBalanceAttribute()
+    // Formatos
+    public function getFormattedOpeningAmountAttribute()
     {
-        return '$' . number_format($this->expected_balance, 0, ',', '.');
+        return '$' . number_format($this->opening_amount, 0, ',', '.');
     }
 
-    public function getFormattedActualBalanceAttribute()
+    public function getFormattedClosingAmountAttribute()
     {
-        return '$' . number_format($this->actual_balance, 0, ',', '.');
+        return '$' . number_format($this->closing_amount ?? 0, 0, ',', '.');
     }
 
     public function getFormattedDifferenceAttribute()
     {
+        if (is_null($this->difference)) {
+            return null;
+        }
         $sign = $this->difference >= 0 ? '+' : '';
         return $sign . '$' . number_format($this->difference, 0, ',', '.');
     }
+
 }

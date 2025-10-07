@@ -17,12 +17,12 @@ export default function AuthSplitLayout({ children, title, description }: PropsW
             <div className="bg-muted relative hidden h-full flex-col items-center justify-center p-10 text-white lg:flex dark:border-r">
                 <div className="absolute inset-0 bg-zinc-950" />
                 <div className="relative z-20 flex flex-col items-center gap-6">
-                    <AppLogoIcon className="w-auto h-180 fill-current text-white" /> 
+                    <AppLogoIcon className="w-auto h-180 fill-current text-white" />
                     <Link
                         href={route('home')}
                         className="text-2xl font-bold tracking-tight text-center font-sans"
                     >
-                        POS Inventory System
+                        Inventory Manager
                     </Link>
                 </div>
             </div>

@@ -9,23 +9,31 @@ use App\Models\Transaction;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Style\Alignment;
+use PhpOffice\PhpSpreadsheet\Style\Border;
+use PhpOffice\PhpSpreadsheet\Style\Fill;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 
 class CashRegisterController extends Controller
 {
-    /**
-     * Display a listing of cash registers.
-     */
     public function index(Request $request)
     {
-        // Construct the base query
-        $cashRegistersQuery = CashRegister::with(['openedBy', 'closedBy'])
+        config(['app.timezone' => 'America/Bogota']);
+        date_default_timezone_set('America/Bogota');
+
+        $cashQuery = CashRegister::with(['openedBy' => function ($query) {
+            $query->select('id', 'name');
+        }, 'closedBy' => function ($query) {
+            $query->select('id', 'name');
+        }])
             ->orderBy('register_date', 'desc');
 
-        // Apply search filter
         if ($request->filled('search')) {
             $search = $request->search;
-            $cashRegistersQuery->where(function ($query) use ($search) {
+            $cashQuery->where(function ($query) use ($search) {
                 $query->whereDate('register_date', 'like', "%{$search}%")
                     ->orWhereHas('openedBy', function ($q) use ($search) {
                         $q->where('name', 'like', "%{$search}%");
@@ -33,35 +41,17 @@ class CashRegisterController extends Controller
             });
         }
 
-        // Apply date range filter
-        if ($request->filled('date_from')) {
-            $cashRegistersQuery->where('register_date', '>=', $request->date_from);
-        }
-        if ($request->filled('date_to')) {
-            $cashRegistersQuery->where('register_date', '<=', $request->date_to);
-        }
-
-        // Apply status filter
-        if ($request->filled('status')) {
-            if ($request->status === 'open') {
-                $cashRegistersQuery->where('is_closed', false);
-            } elseif ($request->status === 'closed') {
-                $cashRegistersQuery->where('is_closed', true);
-            }
-        }
-
-        // Count total and filtered
         $totalCount    = CashRegister::count();
-        $filteredCount = $cashRegistersQuery->count();
-
-        // Pagination
-        $perPage = (int) ($request->per_page ?? 10);
+        $filteredCount = $cashQuery->count();
+        $perPage       = (int) ($request->per_page ?? 10);
 
         if ($perPage === -1) {
-            $allCashRegisters = $cashRegistersQuery->get();
+            $allCash = $cashQuery->get()->map(function ($register) {
+                return $this->formatCashRegister($register);
+            });
 
             $cashRegisters = [
-                'data'     => $allCashRegisters,
+                'data'     => $allCash,
                 'total'    => $filteredCount,
                 'per_page' => $perPage,
                 'from'     => 1,
@@ -69,200 +59,288 @@ class CashRegisterController extends Controller
                 'links'    => [],
             ];
         } else {
-            $cashRegisters = $cashRegistersQuery->paginate($perPage)->withQueryString();
+            $cashRegisters = $cashQuery->paginate($perPage)->withQueryString();
+            $cashRegisters->getCollection()->transform(function ($register) {
+                return $this->formatCashRegister($register);
+            });
         }
 
-        // Check if there's an open register today
         $todayRegister = CashRegister::where('register_date', today())
             ->where('is_closed', false)
             ->first();
 
+        if ($todayRegister) {
+            $todayRegister = $this->formatCashRegister($todayRegister);
+        }
+
         return Inertia::render('cashRegister/index', [
             'cashRegisters' => $cashRegisters,
-            'filters'       => $request->only(['search', 'per_page', 'date_from', 'date_to', 'status']),
+            'filters'       => $request->only(['search', 'per_page']),
             'totalCount'    => $totalCount,
             'filteredCount' => $filteredCount,
             'todayRegister' => $todayRegister,
         ]);
     }
 
-    /**
-     * Display today's cash register.
-     */
-    public function today()
+    public function create()
     {
-        $todayRegister = CashRegister::where('register_date', today())->first();
-
-        if (! $todayRegister) {
-            return Inertia::render('cashRegister/today', [
-                'cashRegister' => null,
-                'canOpen'      => true,
-            ]);
-        }
-
-        // Load relations
-        $todayRegister->load(['openedBy', 'closedBy']);
-
-        // Get today's transactions
-        $transactions = Transaction::with(['category', 'user'])
-            ->whereDate('transaction_date', today())
-            ->where('is_cancelled', false)
-            ->orderBy('transaction_time', 'desc')
-            ->get();
-
-        // Get today's sales
-        $sales = Sale::with(['client', 'user'])
-            ->whereDate('sale_date', today())
-            ->where('is_cancelled', false)
-            ->orderBy('sale_time', 'desc')
-            ->get();
-
-        return Inertia::render('cashRegister/today', [
-            'cashRegister' => $todayRegister,
-            'transactions' => $transactions,
-            'sales'        => $sales,
-            'canOpen'      => false,
+        return Inertia::render('cashRegister/index', [
+            'creating' => true,
         ]);
     }
 
-    /**
-     * Open a new cash register.
-     */
-    public function open(CashRegisterOpenRequest $request): RedirectResponse
+    public function store(CashRegisterOpenRequest $request): RedirectResponse
     {
-        // Verificar que no exista una caja abierta para la fecha
-        $existingRegister = CashRegister::where('register_date', $request->register_date)
-            ->first();
+        config(['app.timezone' => 'America/Bogota']);
+        date_default_timezone_set('America/Bogota');
 
+        $existingRegister = CashRegister::where('register_date', today())->first();
         if ($existingRegister) {
-            return redirect()->back()
-                ->with('error', 'Ya existe una caja registrada para esta fecha.');
+            return redirect()->back()->with('error', 'Ya existe una caja registrada para esta fecha.');
         }
 
         DB::beginTransaction();
-
         try {
             CashRegister::create([
-                'register_date'   => $request->register_date,
-                'opened_by'       => auth()->id(),
-                'opening_balance' => $request->opening_balance,
-                'opened_at'       => now(),
-                'opening_notes'   => $request->opening_notes,
+                'register_date'  => today(),
+                'opening_amount' => $request->opening_amount,
+                'closing_amount' => null,
+                'total_sales'    => 0,
+                'total_income'   => 0,
+                'total_expenses' => 0,
+                'difference'     => null,
+                'opened_by'      => auth()->id(),
+                'opened_at'      => now(),
+                'closed_by'      => null,
+                'closed_at'      => null,
+                'is_closed'      => false,
+                'notes'          => $request->notes ?? '',
             ]);
 
             DB::commit();
-
-            return redirect()->route('cash-register.today')
-                ->with('success', 'Caja abierta correctamente.');
-
+            return redirect()->route('cash-register.index')->with('success', 'Caja abierta correctamente.');
         } catch (\Exception $e) {
             DB::rollBack();
-            return redirect()->back()
-                ->withInput()
-                ->with('error', 'Error al abrir la caja: ' . $e->getMessage());
+            \Log::error('Error al abrir caja: ' . $e->getMessage());
+            return redirect()->back()->withInput()->with('error', 'Error al abrir la caja: ' . $e->getMessage());
         }
     }
 
-    /**
-     * Close a cash register.
-     */
-    public function close(CashRegisterCloseRequest $request, CashRegister $cashRegister): RedirectResponse
+    public function edit(CashRegister $cashRegister)
     {
-        // Verificar que no esté ya cerrada
+        return Inertia::render('cashRegister/index', [
+            'editingCashRegister' => $this->formatCashRegister($cashRegister),
+        ]);
+    }
+
+    public function update(CashRegisterCloseRequest $request, CashRegister $cashRegister): RedirectResponse
+    {
+        config(['app.timezone' => 'America/Bogota']);
+        date_default_timezone_set('America/Bogota');
+
         if ($cashRegister->is_closed) {
-            return redirect()->back()
-                ->with('error', 'La caja ya está cerrada.');
+            return redirect()->back()->with('error', 'La caja ya está cerrada.');
         }
 
         DB::beginTransaction();
-
         try {
-            // Calcular totales del día
             $salesTotal = Sale::whereDate('sale_date', $cashRegister->register_date)
                 ->where('is_cancelled', false)
                 ->sum('total_paid');
 
-            $incomeTotal = Transaction::whereDate('transaction_date', $cashRegister->register_date)
+            $otherIncome = Transaction::whereDate('transaction_date', $cashRegister->register_date)
                 ->where('type', 'Ingreso')
-                ->where('is_cancelled', false)
-                ->whereNull('sale_id') // Excluir ingresos de ventas
                 ->sum('amount');
+
+            $totalIncome = $otherIncome;
 
             $expensesTotal = Transaction::whereDate('transaction_date', $cashRegister->register_date)
                 ->where('type', 'Gasto')
-                ->where('is_cancelled', false)
                 ->sum('amount');
 
-            $expectedBalance = $cashRegister->opening_balance + $salesTotal + $incomeTotal - $expensesTotal;
-            $difference      = $request->actual_balance - $expectedBalance;
+            $closingAmount = $cashRegister->opening_amount + $totalIncome;
+            $difference    = $closingAmount - $expensesTotal;
+
+            Log::info('CashRegister Update', [
+                'cash_register_id' => $cashRegister->id,
+                'register_date'    => $cashRegister->register_date->toDateString(),
+                'sales_total'      => $salesTotal,
+                'other_income'     => $otherIncome,
+                'total_income'     => $totalIncome,
+                'expenses_total'   => $expensesTotal,
+                'opening_amount'   => $cashRegister->opening_amount,
+                'closing_amount'   => $closingAmount,
+                'difference'       => $difference,
+            ]);
 
             $cashRegister->update([
-                'total_sales'      => $salesTotal,
-                'total_income'     => $incomeTotal,
-                'total_expenses'   => $expensesTotal,
-                'expected_balance' => $expectedBalance,
-                'actual_balance'   => $request->actual_balance,
-                'difference'       => $difference,
-                'closed_by'        => auth()->id(),
-                'closed_at'        => now(),
-                'is_closed'        => true,
-                'closing_notes'    => $request->closing_notes,
+                'closing_amount' => $closingAmount,
+                'total_sales'    => $salesTotal,
+                'total_income'   => $totalIncome,
+                'total_expenses' => $expensesTotal,
+                'difference'     => $difference,
+                'closed_by'      => auth()->id(),
+                'closed_at'      => now(),
+                'is_closed'      => true,
+                'notes'          => $request->notes ?? $cashRegister->notes,
             ]);
 
             DB::commit();
-
-            return redirect()->route('cash-register.show', $cashRegister)
-                ->with('success', 'Caja cerrada correctamente.');
-
+            return redirect()->route('cash-register.index')->with('success', 'Caja cerrada correctamente.');
         } catch (\Exception $e) {
             DB::rollBack();
-            return redirect()->back()
-                ->withInput()
-                ->with('error', 'Error al cerrar la caja: ' . $e->getMessage());
+            \Log::error('Error al cerrar caja: ' . $e->getMessage());
+            return redirect()->back()->withInput()->with('error', 'Error al cerrar la caja: ' . $e->getMessage());
         }
     }
 
-    /**
-     * Display the specified cash register.
-     */
-    public function show(CashRegister $cashRegister)
+    protected function formatCashRegister($register)
     {
-        // Load relations
-        $cashRegister->load(['openedBy', 'closedBy']);
+        return [
+            'id'                  => $register->id,
+            'register_date'       => $register->register_date->format('Y-m-d'),
+            'opening_amount'      => $register->opening_amount,
+            'closing_amount'      => $register->closing_amount ?? 0,
+            'total_sales'         => $register->total_sales / 100,
+            'total_income'        => $register->total_income,
+            'total_expenses'      => $register->total_expenses,
+            'difference'          => $register->difference ?? 0,
+            'opened_by'           => $register->opened_by,
+            'closed_by'           => $register->closed_by,
+            'opened_at'           => $register->opened_at,
+            'closed_at'           => $register->closed_at,
+            'opened_at_formatted' => $register->opened_at
+                ? $register->opened_at->format('d/m/Y - h:i A')
+                : null,
+            'closed_at_formatted' => $register->closed_at
+                ? $register->closed_at->format('d/m/Y - h:i A')
+                : null,
+            'is_closed'           => $register->is_closed,
+            'notes'               => $register->notes ?? '',
+            'openedBy'            => $register->openedBy ? ['id' => $register->openedBy->id, 'name' => $register->openedBy->name] : ['id' => 0, 'name' => '-'],
+            'closedBy'            => $register->closedBy ? ['id' => $register->closedBy->id, 'name' => $register->closedBy->name] : ['id' => 0, 'name' => '-'],
+        ];
+    }
 
-        // Get transactions for this date
-        $transactions = Transaction::with(['category', 'user'])
-            ->whereDate('transaction_date', $cashRegister->register_date)
-            ->where('is_cancelled', false)
-            ->orderBy('transaction_time', 'desc')
-            ->get();
+    /**
+     * Export cash registers to Excel
+     * @param \Illuminate\Http\Request $request
+     * @return \Symfony\Component\HttpFoundation\StreamedResponse
+     */
+    public function export(Request $request)
+    {
+        config(['app.timezone' => 'America/Bogota']);
+        date_default_timezone_set('America/Bogota');
 
-        // Get sales for this date
-        $sales = Sale::with(['client', 'user', 'items.product'])
-            ->whereDate('sale_date', $cashRegister->register_date)
-            ->where('is_cancelled', false)
-            ->orderBy('sale_time', 'desc')
-            ->get();
+        $cashQuery = CashRegister::with(['openedBy' => function ($query) {
+            $query->select('id', 'name');
+        }, 'closedBy' => function ($query) {
+            $query->select('id', 'name');
+        }])
+            ->orderBy('register_date', 'desc');
 
-        // Calculate totals by payment method
-        $salesByMethod = Sale::whereDate('sale_date', $cashRegister->register_date)
-            ->where('is_cancelled', false)
-            ->selectRaw('payment_method, SUM(total_paid) as total')
-            ->groupBy('payment_method')
-            ->get();
+        $cashRegisters = $cashQuery->get()->map(function ($register) {
+            return $this->formatCashRegister($register);
+        });
 
-        $transactionsByMethod = Transaction::whereDate('transaction_date', $cashRegister->register_date)
-            ->where('is_cancelled', false)
-            ->selectRaw('payment_method, type, SUM(amount) as total')
-            ->groupBy('payment_method', 'type')
-            ->get();
+        $spreadsheet = new Spreadsheet();
+        $sheet       = $spreadsheet->getActiveSheet();
+        $sheet->setTitle('Cajas');
 
-        return Inertia::render('cashRegister/show', [
-            'cashRegister'         => $cashRegister,
-            'transactions'         => $transactions,
-            'sales'                => $sales,
-            'salesByMethod'        => $salesByMethod,
-            'transactionsByMethod' => $transactionsByMethod,
+        $headers = [
+            'A1' => 'ID',
+            'B1' => 'Fecha Apertura',
+            'C1' => 'Monto Apertura',
+            'D1' => 'Ventas',
+            'E1' => 'Ingresos',
+            'F1' => 'Egresos',
+            'G1' => 'Monto Cierre',
+            'H1' => 'Diferencia',
+            'I1' => 'Notas',
+            'J1' => 'Estado',
+            'K1' => 'Abierto por',
+            'L1' => 'Cerrado por',
+            'M1' => 'Fecha Cierre',
+        ];
+
+        foreach ($headers as $cell => $value) {
+            $sheet->setCellValue($cell, $value);
+        }
+
+        $headerStyle = [
+            'font'      => [
+                'bold'  => true,
+                'color' => ['rgb' => 'FFFFFF'],
+            ],
+            'fill'      => [
+                'fillType'   => Fill::FILL_SOLID,
+                'startColor' => ['rgb' => '4472C4'],
+            ],
+            'alignment' => [
+                'horizontal' => Alignment::HORIZONTAL_CENTER,
+                'vertical'   => Alignment::VERTICAL_CENTER,
+            ],
+            'borders'   => [
+                'allBorders' => [
+                    'borderStyle' => Border::BORDER_THIN,
+                    'color'       => ['rgb' => '000000'],
+                ],
+            ],
+        ];
+
+        $sheet->getStyle('A1:M1')->applyFromArray($headerStyle);
+
+        $row = 2;
+        foreach ($cashRegisters as $register) {
+            $sheet->setCellValue('A' . $row, $register['id']);
+            $sheet->setCellValue('B' . $row, $register['opened_at_formatted'] ?? '');
+            $sheet->setCellValue('C' . $row, $register['opening_amount'] ? '$' . number_format($register['opening_amount'], 0, ',', '.') : '$0');
+            $sheet->setCellValue('D' . $row, $register['total_sales'] ? '$' . number_format($register['total_sales'], 0, ',', '.') : '$0');
+            $sheet->setCellValue('E' . $row, $register['total_income'] ? '$' . number_format($register['total_income'], 0, ',', '.') : '$0');
+            $sheet->setCellValue('F' . $row, $register['total_expenses'] ? '$' . number_format($register['total_expenses'], 0, ',', '.') : '$0');
+            $sheet->setCellValue('G' . $row, $register['is_closed'] ? ($register['closing_amount'] ? '$' . number_format($register['closing_amount'], 0, ',', '.') : '$0') : '');
+            $sheet->setCellValue('H' . $row, $register['is_closed'] ? ($register['difference'] ? ($register['difference'] >= 0 ? '+' : '') . '$' . number_format(abs($register['difference']), 0, ',', '.') : '$0') : '');
+            $sheet->setCellValue('I' . $row, $register['notes'] ?? '');
+            $sheet->setCellValue('J' . $row, $register['is_closed'] ? 'Cerrada' : 'Abierta');
+            $sheet->setCellValue('K' . $row, $register['openedBy']['name'] ?? '');
+            $sheet->setCellValue('L' . $row, $register['closedBy']['name'] ?? '');
+            $sheet->setCellValue('M' . $row, $register['closed_at_formatted'] ?? '');
+            $row++;
+        }
+
+        $dataStyle = [
+            'borders'   => [
+                'allBorders' => [
+                    'borderStyle' => Border::BORDER_THIN,
+                    'color'       => ['rgb' => 'CCCCCC'],
+                ],
+            ],
+            'alignment' => [
+                'vertical' => Alignment::VERTICAL_CENTER,
+            ],
+        ];
+
+        if ($row > 2) {
+            $sheet->getStyle('A1:M' . ($row - 1))->applyFromArray($dataStyle);
+        }
+
+        $sheet->getStyle('A2:A' . ($row - 1))->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+        $sheet->getStyle('J2:J' . ($row - 1))->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+
+        foreach (range('A', 'M') as $col) {
+            $sheet->getColumnDimension($col)->setAutoSize(true);
+        }
+
+        $sheet->getRowDimension(1)->setRowHeight(25);
+
+        $filename = 'Movimientos_caja_' . now()->format('Y-m-d_H-i-s') . '.xlsx';
+
+        $writer = new Xlsx($spreadsheet);
+
+        return response()->streamDownload(function () use ($writer) {
+            $writer->save('php://output');
+        }, $filename, [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
         ]);
     }
 }

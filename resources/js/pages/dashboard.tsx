@@ -1,4 +1,4 @@
-import { Users, Package, Tags, ShoppingCart, ArrowUpRight, ArrowDownRight, Clock, Calendar, Truck, ClipboardList, TrendingUp, Download } from 'lucide-react';
+import { Users, Package, Tags, ShoppingCart, ArrowUpRight, ArrowDownRight, Calendar, Truck, ClipboardList, TrendingUp, Download } from 'lucide-react';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, router, usePage } from '@inertiajs/react';
@@ -390,30 +390,30 @@ export default function Dashboard({
                         </p>
                     </div>
                     <div className="flex gap-2 flex-wrap">
-                        <Button
+                        {/* <Button
                             size="sm"
                             className="gap-2 bg-green-500 text-white"
                         >
                             <Clock className="w-4 h-4" />
                             Abrir Caja
-                        </Button>
+                        </Button> */}
 
                         <Button
                             onClick={handleOpenSaleModal}
                             size="sm"
-                            className="gap-2 bg-blue-500 text-white"
+                            className="gap-2 bg-green-700 text-white"
                         >
                             <ShoppingCart className="w-4 h-4" />
                             Nueva Venta
                         </Button>
 
-                        <Button
+                        {/* <Button
                             size="sm"
                             className="gap-2 bg-red-500 text-white"
                         >
                             <ArrowDownRight className="w-4 h-4" />
                             Cerrar Caja
-                        </Button>
+                        </Button> */}
 
                         {userPermissions.includes('Exportar Dashboard') && (
                             <DropdownMenu>
