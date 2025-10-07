@@ -196,7 +196,7 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ transaction, categori
                     Swal.fire({
                         position: "center",
                         icon: "success",
-                        title: "Transacción creada correctamente",
+                        title: "Transacción registrada correctamente",
                         showConfirmButton: false,
                         timer: 2200
                     });
@@ -207,7 +207,7 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ transaction, categori
                     Swal.fire({
                         position: "center",
                         icon: "error",
-                        title: "Error al crear la transacción",
+                        title: "Error al registrar la transacción",
                         text: 'Verifica los datos ingresados.',
                         showConfirmButton: false,
                         timer: 2200

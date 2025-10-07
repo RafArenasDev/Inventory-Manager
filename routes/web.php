@@ -275,6 +275,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // Sales
     Route::prefix('sales')->group(function () {
+        Route::get('/export', [SaleController::class, 'export'])
+            ->name('sales.export')
+            ->middleware('permission:Exportar Ventas');
         Route::get('/', [SaleController::class, 'index'])
             ->name('sales.index')
             ->middleware('permission:Ver Ventas');

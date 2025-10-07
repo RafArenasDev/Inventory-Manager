@@ -62,7 +62,7 @@ interface CashRegisterIndexProps {
 }
 
 const initialBreadcrumbs: BreadcrumbItem[] = [
-    { title: 'Cajas', href: '/cash-register' },
+    { title: 'Caja', href: '/cash-register' },
 ];
 
 export default function CashRegisterIndex({

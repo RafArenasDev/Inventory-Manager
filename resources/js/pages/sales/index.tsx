@@ -243,6 +243,7 @@ export default function SaleIndex({ sales, products, clients, departments, citie
                         <div className="bg-white dark:bg-[oklch(0.100205_0_0)] overflow-hidden shadow-sm sm:rounded-lg p-6">
                             <SalesTable
                                 sales={sales}
+                                filters={filters}
                                 perPage={filters.per_page || '10'}
                                 onPerPageChange={() => {}}
                                 totalCount={totalCount}

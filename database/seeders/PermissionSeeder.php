@@ -186,5 +186,18 @@ class PermissionSeeder extends Seeder
                 'guard_name'  => 'web',
             ]
         );
+
+        // Permiso específico para exportar ventas
+        Permission::firstOrCreate(
+            ['name' => 'Exportar Ventas', 'guard_name' => 'web'],
+            [
+                'module'      => 'Ventas',
+                'name'        => 'Exportar Ventas',
+                'label'       => 'Exportar Ventas',
+                'description' => 'Permite exportar las ventas a Excel',
+                'guard_name'  => 'web',
+            ]
+        );
+
     }
 }

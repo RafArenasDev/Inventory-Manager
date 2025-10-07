@@ -20,6 +20,11 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Style\Alignment;
+use PhpOffice\PhpSpreadsheet\Style\Border;
+use PhpOffice\PhpSpreadsheet\Style\Fill;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 
 class SaleController extends Controller
 {
@@ -329,5 +334,137 @@ class SaleController extends Controller
         file_put_contents($localPath, $pdf->output());
 
         return Storage::url($fullPath);
+    }
+
+    /**
+     * Summary of export
+     * @param \Illuminate\Http\Request $request
+     * @return \Symfony\Component\HttpFoundation\StreamedResponse
+     */
+    public function export(Request $request)
+    {
+        $salesQuery = Sale::with('items.product', 'client', 'user')->orderBy('id', 'asc');
+
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $salesQuery->where(function ($query) use ($search) {
+                $query->whereHas('client', function ($q) use ($search) {
+                    $q->where('name', 'like', "%{$search}%")
+                        ->orWhere('document_number', 'like', "%{$search}%");
+                })->orWhere('id', 'like', "%{$search}%")
+                    ->orWhere('invoice_number', 'like', "%{$search}%");
+            });
+        }
+
+        $sales = $salesQuery->get();
+
+        $spreadsheet = new Spreadsheet();
+        $sheet       = $spreadsheet->getActiveSheet();
+        $sheet->setTitle('Ventas');
+
+        $headers = [
+            'A1' => 'ID',
+            'B1' => 'Nº Factura',
+            'C1' => 'Fecha',
+            'D1' => 'Hora',
+            'E1' => 'Cliente',
+            'F1' => 'Documento Cliente',
+            'G1' => 'Total Sin Descuento',
+            'H1' => 'Descuento',
+            'I1' => 'Total Pagado',
+            'J1' => 'Método Pago',
+            'K1' => 'Estado',
+            'L1' => 'Productos',
+            'M1' => 'Notas',
+            'N1' => 'Vendedor',
+        ];
+
+        foreach ($headers as $cell => $value) {
+            $sheet->setCellValue($cell, $value);
+        }
+
+        $headerStyle = [
+            'font'      => [
+                'bold'  => true,
+                'color' => ['rgb' => 'FFFFFF'],
+            ],
+            'fill'      => [
+                'fillType'   => Fill::FILL_SOLID,
+                'startColor' => ['rgb' => '4472C4'],
+            ],
+            'alignment' => [
+                'horizontal' => Alignment::HORIZONTAL_CENTER,
+                'vertical'   => Alignment::VERTICAL_CENTER,
+            ],
+            'borders'   => [
+                'allBorders' => [
+                    'borderStyle' => Border::BORDER_THIN,
+                    'color'       => ['rgb' => '000000'],
+                ],
+            ],
+        ];
+
+        $sheet->getStyle('A1:N1')->applyFromArray($headerStyle);
+
+        $row = 2;
+        foreach ($sales as $sale) {
+            $clientName     = $sale->client ? $sale->client->name : 'Cliente no especificado';
+            $clientDocument = $sale->client ? ($sale->client->document_number . ($sale->client->verification_digit ? '-' . $sale->client->verification_digit : '')) : '';
+            $products       = $sale->items->map(function ($item) {
+                return $item->product->name . ' (x' . $item->quantity . ')';
+            })->implode(', ');
+
+            $sheet->setCellValue('A' . $row, $sale->id);
+            $sheet->setCellValue('B' . $row, $sale->invoice_number);
+            $sheet->setCellValue('C' . $row, Carbon::parse($sale->sale_date)->format('d/m/Y'));
+            $sheet->setCellValue('D' . $row, Carbon::parse($sale->sale_time)->format('h:i:s A'));
+            $sheet->setCellValue('E' . $row, $clientName);
+            $sheet->setCellValue('F' . $row, $clientDocument);
+            $sheet->setCellValue('G' . $row, $sale->total_without_tax / 100);
+            $sheet->setCellValue('H' . $row, number_format($sale->discount / 100, 0) . '%');
+            $sheet->setCellValue('I' . $row, $sale->total_paid / 100);
+            $sheet->setCellValue('J' . $row, $sale->payment_method);
+            $sheet->setCellValue('K' . $row, $sale->is_cancelled ? 'Anulada' : 'Activa');
+            $sheet->setCellValue('L' . $row, $products);
+            $sheet->setCellValue('M' . $row, $sale->notes ?? '');
+            $sheet->setCellValue('N' . $row, $sale->user->name);
+            $row++;
+        }
+
+        $dataStyle = [
+            'borders'   => [
+                'allBorders' => [
+                    'borderStyle' => Border::BORDER_THIN,
+                    'color'       => ['rgb' => 'CCCCCC'],
+                ],
+            ],
+            'alignment' => [
+                'vertical' => Alignment::VERTICAL_CENTER,
+            ],
+        ];
+
+        if ($row > 2) {
+            $sheet->getStyle('A1:N' . ($row - 1))->applyFromArray($dataStyle);
+        }
+
+        $sheet->getStyle('A2:A' . ($row - 1))->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+        $sheet->getStyle('C2:C' . ($row - 1))->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+        $sheet->getStyle('K2:K' . ($row - 1))->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+
+        foreach (range('A', 'N') as $col) {
+            $sheet->getColumnDimension($col)->setAutoSize(true);
+        }
+
+        $sheet->getRowDimension(1)->setRowHeight(25);
+
+        $filename = 'Ventas_' . now()->format('Y-m-d_H-i-s') . '.xlsx';
+
+        $writer = new Xlsx($spreadsheet);
+
+        return response()->streamDownload(function () use ($writer) {
+            $writer->save('php://output');
+        }, $filename, [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        ]);
     }
 }

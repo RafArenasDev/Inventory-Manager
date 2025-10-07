@@ -222,8 +222,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
       post(route('products.store'), {
         onSuccess: () => {
           Swal.fire({
-            title: 'Éxito',
-            text: 'Producto creado correctamente',
+            title: 'Producto creado correctamente',
             icon: 'success',
             timer: 2200,
             showConfirmButton: false,
@@ -244,8 +243,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
       put(route('products.update', product?.id), {
         onSuccess: () => {
           Swal.fire({
-            title: 'Éxito',
-            text: 'Producto actualizado correctamente',
+            title: 'Producto actualizado correctamente',
             icon: 'success',
             timer: 2200,
             showConfirmButton: false,

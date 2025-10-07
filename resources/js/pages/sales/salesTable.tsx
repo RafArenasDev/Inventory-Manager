@@ -7,7 +7,7 @@ import {
     TableRow,
 } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
-import { Ban, FileText, Eye } from "lucide-react"
+import { Ban, FileText, Eye, Download } from "lucide-react"
 import { Pagination } from "@/components/ui/pagination"
 import { router } from "@inertiajs/react"
 import Swal from 'sweetalert2'
@@ -78,6 +78,10 @@ interface SalesTableProps {
     onSearch: (search: string) => void;
     userPermissions: string[];
     onViewInvoice: (url: string) => void;
+    filters: {
+        search?: string;
+        per_page?: string;
+    };
 }
 
 const formatCurrency = (value: number): string => {
@@ -102,6 +106,7 @@ export default function SalesTable({
     onSearch,
     userPermissions,
     onViewInvoice,
+    filters = {}, // Default to empty object to avoid undefined
 }: SalesTableProps) {
     const handleCancel = (sale: Sale) => {
         Swal.fire({
@@ -137,6 +142,13 @@ export default function SalesTable({
         });
     };
 
+    const handleExport = () => {
+        const params = new URLSearchParams();
+        if (filters?.search) params.append('search', filters.search); // Safely access filters.search
+        const exportUrl = route('sales.export') + (params.toString() ? '?' + params.toString() : '');
+        window.open(exportUrl, '_blank');
+    };
+
     const showActionsColumn = userPermissions.includes('Eliminar Ventas') || sales.data.some(sale => sale.public_invoice_url);
 
     return (
@@ -147,7 +159,25 @@ export default function SalesTable({
                     searchValue={search}
                     onSearch={onSearch}
                 />
+                {userPermissions.includes('Exportar Ventas') && (
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={handleExport}
+                        title="Exportar ventas a Excel"
+                        className="gap-2"
+                    >
+                        <Download className="h-4 w-4" />
+                        Exportar Excel
+                    </Button>
+                )}
             </div>
+
+            {filteredCount !== totalCount && (
+                <div className="text-sm text-muted-foreground">
+                    Mostrando {filteredCount} de {totalCount} ventas
+                </div>
+            )}
 
             <div className="rounded-md border overflow-hidden">
                 <Table>

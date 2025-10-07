@@ -374,7 +374,7 @@ const SaleForm: React.FC<SaleFormProps> = ({ sale, onCancel, products, clients, 
                 Swal.fire({
                     position: "center",
                     icon: "success",
-                    title: "Venta creada correctamente",
+                    title: "Venta registrada correctamente",
                     showConfirmButton: false,
                     timer: 2200,
                 });
@@ -387,7 +387,7 @@ const SaleForm: React.FC<SaleFormProps> = ({ sale, onCancel, products, clients, 
                 Swal.fire({
                     position: "center",
                     icon: "error",
-                    title: "Error al crear la venta",
+                    title: "Error al registrar la venta",
                     text: 'Verifica los datos ingresados.',
                     showConfirmButton: false,
                     timer: 2200,
