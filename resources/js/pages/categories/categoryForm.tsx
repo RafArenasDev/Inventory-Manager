@@ -33,7 +33,7 @@ const CategoryForm: React.FC<CategoryFormProps> = ({ category, onCancel, userPer
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
 
-        console.log(`Enviando datos para ${category?.id ? 'editar' : 'crear'} categoría:`, data);
+        // console.log(`Enviando datos para ${category?.id ? 'editar' : 'crear'} categoría:`, data);
 
         if (category?.id) {
             put(route('categories.update', category.id), {

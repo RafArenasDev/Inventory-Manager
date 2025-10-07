@@ -155,7 +155,7 @@ export default function SuppliersTable({
                         size="sm"
                         onClick={handleExport}
                         title="Exportar proveedores a Excel"
-                        className="gap-2 hover:bg-green-50 hover:border-green-300"
+                        className="gap-2"
                     >
                         <Download className="h-4 w-4" />
                         Exportar Excel

@@ -19,6 +19,7 @@ class DatabaseSeeder extends Seeder
             SupplierSeeder::class,
             ProductSeeder::class,
             DepartmentCitySeeder::class,
+            TransactionCategorySeeder::class,
             // InventoryMovementSeeder::class,
         ]);
     }

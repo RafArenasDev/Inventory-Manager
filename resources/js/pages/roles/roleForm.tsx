@@ -77,7 +77,7 @@ const RoleForm: React.FC<RoleFormProps> = ({ role, onCancel, permissions, userPe
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
 
-        console.log(`Enviando datos para ${role?.id ? 'editar' : 'crear'} rol:`, data);
+        // console.log(`Enviando datos para ${role?.id ? 'editar' : 'crear'} rol:`, data);
 
         if (role?.id) {
             put(route('roles.update', role.id), {

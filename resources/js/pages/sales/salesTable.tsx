@@ -175,11 +175,11 @@ export default function SalesTable({
                                 <TableCell>
                                     {sale.is_cancelled ? (
                                         <span className="px-3 py-1 bg-red-500 text-white text-xs font-semibold rounded-full">
-                                            ANULADA
+                                            Anulada
                                         </span>
                                     ) : (
                                         <span className="px-3 py-1 bg-green-500 text-white text-xs font-semibold rounded-full">
-                                            ACTIVA
+                                            Activa
                                         </span>
                                     )}
                                 </TableCell>

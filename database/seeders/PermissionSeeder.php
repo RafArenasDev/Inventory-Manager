@@ -25,6 +25,8 @@ class PermissionSeeder extends Seeder
             'productos'              => 'Productos',
             'ventas'                 => 'Ventas',
             'movimientos-inventario' => 'Movimientos Inventario',
+            'finanzas'               => 'Finanzas',
+            'caja'                   => 'Caja',
         ];
 
         // Define CRUD actions
@@ -59,6 +61,8 @@ class PermissionSeeder extends Seeder
             }
         }
 
+        // ==================== PERMISOS DE EXPORTACIÓN ====================
+
         // Permiso específico para exportar movimientos inventario
         Permission::firstOrCreate(
             ['name' => 'Exportar Movimientos Inventario', 'guard_name' => 'web'],
@@ -91,6 +95,82 @@ class PermissionSeeder extends Seeder
                 'name'        => 'Exportar Ventas',
                 'label'       => 'Exportar Ventas',
                 'description' => 'Permite exportar las ventas a Excel',
+                'guard_name'  => 'web',
+            ]
+        );
+
+        // ==================== PERMISOS ESPECÍFICOS DE FINANZAS Y CAJA ====================
+
+        // Permiso para abrir caja
+        Permission::firstOrCreate(
+            ['name' => 'Abrir Caja', 'guard_name' => 'web'],
+            [
+                'module'      => 'Caja',
+                'name'        => 'Abrir Caja',
+                'label'       => 'Abrir Caja',
+                'description' => 'Permite abrir la caja diaria',
+                'guard_name'  => 'web',
+            ]
+        );
+
+        // Permiso para cerrar caja
+        Permission::firstOrCreate(
+            ['name' => 'Cerrar Caja', 'guard_name' => 'web'],
+            [
+                'module'      => 'Caja',
+                'name'        => 'Cerrar Caja',
+                'label'       => 'Cerrar Caja',
+                'description' => 'Permite cerrar la caja diaria',
+                'guard_name'  => 'web',
+            ]
+        );
+
+        // Permiso para cancelar transacciones
+        Permission::firstOrCreate(
+            ['name' => 'Cancelar Transacciones', 'guard_name' => 'web'],
+            [
+                'module'      => 'Finanzas',
+                'name'        => 'Cancelar Transacciones',
+                'label'       => 'Cancelar Transacciones',
+                'description' => 'Permite cancelar transacciones',
+                'guard_name'  => 'web',
+            ]
+        );
+
+        // Permiso para exportar transacciones
+        Permission::firstOrCreate(
+            ['name' => 'Exportar Transacciones', 'guard_name' => 'web'],
+            [
+                'module'      => 'Finanzas',
+                'name'        => 'Exportar Transacciones',
+                'label'       => 'Exportar Transacciones',
+                'description' => 'Permite exportar transacciones a Excel',
+                'guard_name'  => 'web',
+            ]
+        );
+
+        // Permiso para gestionar categorías de transacciones
+        Permission::firstOrCreate(
+            ['name' => 'Gestionar Categorías Transacciones', 'guard_name' => 'web'],
+            [
+                'module'      => 'Finanzas',
+                'name'        => 'Gestionar Categorías Transacciones',
+                'label'       => 'Gestionar Categorías Transacciones',
+                'description' => 'Permite gestionar categorías de transacciones',
+                'guard_name'  => 'web',
+            ]
+        );
+
+        // ==================== PERMISOS DE EXPORTACIÓN DASHBOARD ====================
+
+        // Permiso específico para exportar dashboard
+        Permission::firstOrCreate(
+            ['name' => 'Exportar Dashboard', 'guard_name' => 'web'],
+            [
+                'module'      => 'Dashboard',
+                'name'        => 'Exportar Dashboard',
+                'label'       => 'Exportar Dashboard',
+                'description' => 'Permite exportar los datos del dashboard a Excel o PDF',
                 'guard_name'  => 'web',
             ]
         );

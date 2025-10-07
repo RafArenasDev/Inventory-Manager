@@ -68,10 +68,10 @@ const PermissionForm: React.FC<PermissionFormProps> = ({ permission, onCancel, u
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         if (permission?.id) {
-            console.log('Valores originales (BD):', permission);
-            console.log('Nuevos valores enviados:', data);
+            // console.log('Valores originales (BD):', permission);
+            // console.log('Nuevos valores enviados:', data);
         } else {
-            console.log('Creando nuevo permiso:', data);
+            // console.log('Creando nuevo permiso:', data);
         }
         const routeAction = permission?.id ? put : post;
         const routeName = permission?.id ? 'permissions.update' : 'permissions.store';

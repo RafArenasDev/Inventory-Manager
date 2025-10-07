@@ -1,14 +1,34 @@
 import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
-import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
+import {
+    Sidebar,
+    SidebarContent,
+    SidebarFooter,
+    SidebarHeader,
+    SidebarMenu,
+    SidebarMenuButton,
+    SidebarMenuItem
+} from '@/components/ui/sidebar';
 import { type NavItem } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
-import { ClipboardList, Key, LayoutGrid, Package, Shield, ShoppingCart, Tags, Truck, Users } from 'lucide-react';
+import {
+    ClipboardList,
+    DollarSign,
+    Key,
+    LayoutGrid,
+    Package,
+    Shield,
+    ShoppingCart,
+    Tags,
+    Truck,
+    Users,
+    Wallet
+} from 'lucide-react';
 import AppLogo from './app-logo';
 
 const mainNavItems: NavItem[] = [
     {
-        title: 'Inicio',
+        title: 'Dashboard',
         href: '/dashboard',
         icon: LayoutGrid,
     },
@@ -66,6 +86,18 @@ const mainNavItems: NavItem[] = [
         icon: ShoppingCart,
         permission: 'Ver Ventas',
     },
+    {
+        title: 'Caja',
+        href: '/cash-register',
+        icon: Wallet,
+        permission: 'Ver Caja',
+    },
+    {
+        title: 'Finanzas',
+        href: '/transactions',
+        icon: DollarSign,
+        permission: 'Ver Finanzas',
+    },
 ];
 
 export function AppSidebar() {
@@ -73,13 +105,38 @@ export function AppSidebar() {
         permissions: string[];
     };
 
-    const { auth } = (usePage().props as unknown as { auth: Auth });
+    const { auth } = usePage().props as unknown as { auth: Auth };
     const userPermissions = auth.permissions;
 
-    const filteredNavItems = mainNavItems.filter((item) => {
-        if (!item.permission) return true;
-        return userPermissions.includes(item.permission);
-    });
+    // Función recursiva para filtrar items con permisos
+    const filterNavItems = (items: NavItem[]): NavItem[] => {
+        return items
+            .map((item) => {
+                // Si el item tiene sub-items, filtrarlos recursivamente
+                if (item.items && item.items.length > 0) {
+                    const filteredSubItems = filterNavItems(item.items);
+
+                    // Si no hay sub-items después del filtro, no mostrar el item padre
+                    if (filteredSubItems.length === 0) {
+                        return null;
+                    }
+
+                    return {
+                        ...item,
+                        items: filteredSubItems,
+                    };
+                }
+
+                // Si el item no requiere permiso, mostrarlo
+                if (!item.permission) return item;
+
+                // Si el usuario tiene el permiso, mostrarlo
+                return userPermissions.includes(item.permission) ? item : null;
+            })
+            .filter((item): item is NavItem => item !== null);
+    };
+
+    const filteredNavItems = filterNavItems(mainNavItems);
 
     return (
         <Sidebar collapsible="icon" variant="inset">

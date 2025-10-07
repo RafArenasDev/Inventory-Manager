@@ -38,6 +38,12 @@ class Product extends Model
         return $this->hasMany(InventoryMovement::class);
     }
 
+    // AGREGAR ESTA RELACIÓN
+    public function saleItems()
+    {
+        return $this->hasMany(SaleItem::class);
+    }
+
     public function getShortDescriptionAttribute()
     {
         return Str::limit($this->description ?? '', 50);

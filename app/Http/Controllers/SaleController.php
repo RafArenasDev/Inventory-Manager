@@ -9,6 +9,8 @@ use App\Models\InventoryMovement;
 use App\Models\Product;
 use App\Models\Sale;
 use App\Models\SaleItem;
+use App\Models\Transaction;
+use App\Models\TransactionCategory;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
@@ -197,6 +199,27 @@ class SaleController extends Controller
                     ]);
                 }
 
+                // Crear transacción automática para la venta
+                $salesCategory = TransactionCategory::where('name', 'Ventas')->first();
+
+                if ($salesCategory) {
+                    $clientName = $validated['client_id'] ? Client::find($validated['client_id'])->name : 'Cliente varios';
+
+                    Transaction::create([
+                        'user_id'                 => auth()->id(),
+                        'type'                    => 'Ingreso',
+                        'transaction_category_id' => $salesCategory->id,
+                        'amount'                  => $validated['total_paid'] / 100,
+                        'transaction_date'        => $validated['sale_date'],
+                        'transaction_time'        => $validated['sale_time'],
+                        'payment_method'          => $validated['payment_method'],
+                        'invoice_number'          => $invoiceNumber,
+                        'description'             => 'Cliente: ' . $clientName,
+                        'notes'                   => 'Transacción automática generada por venta: ' . $invoiceNumber,
+                        'sale_id'                 => $sale->id,
+                    ]);
+                }
+
                 return $sale;
             });
 
@@ -235,6 +258,9 @@ class SaleController extends Controller
                     'supplier_id' => $product->supplier_id,
                 ]);
             }
+
+            // Eliminar la transacción asociada a la venta
+            Transaction::where('sale_id', $sale->id)->delete();
 
             $sale->is_cancelled = true;
             $sale->save();
@@ -304,5 +330,4 @@ class SaleController extends Controller
 
         return Storage::url($fullPath);
     }
-
 }

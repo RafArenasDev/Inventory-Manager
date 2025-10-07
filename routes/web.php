@@ -1,16 +1,19 @@
 <?php
 
+use App\Http\Controllers\CashRegisterController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\ClientController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\InventoryMovementController;
 use App\Http\Controllers\PermissionController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\SaleController;
 use App\Http\Controllers\SupplierController;
+use App\Http\Controllers\TransactionCategoryController;
+use App\Http\Controllers\TransactionController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
-use Inertia\Inertia;
 
 Route::get('/', function () {
     return redirect()->route('login');
@@ -18,10 +21,16 @@ Route::get('/', function () {
 
 Route::middleware(['auth', 'verified'])->group(function () {
 
-    // Dashboard
-    Route::get('dashboard', function () {
-        return Inertia::render('dashboard');
-    })->name('dashboard');
+    Route::get('/dashboard', [DashboardController::class, 'index'])
+        ->middleware(['auth', 'verified'])
+        ->name('dashboard');
+
+    Route::get('/dashboard/chart-data/{period}', [DashboardController::class, 'getChartData'])
+        ->name('dashboard.chart-data');
+
+    Route::get('/dashboard/export/{period}/{format}', [DashboardController::class, 'export'])
+        ->name('dashboard.export')
+        ->middleware('permission:Exportar Dashboard');
 
     // Roles
     Route::prefix('roles')->group(function () {
@@ -288,6 +297,94 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::get('/sales/client-by-document', [SaleController::class, 'getClientByDocument'])->name('sales.client-by-document');
     Route::get('/sales/product-by-code', [SaleController::class, 'getProductByCode'])->name('sales.product-by-code');
+
+    // ==================== FINANZAS ====================
+
+// Transaction Categories (Categorías de Transacciones)
+    Route::prefix('transaction-categories')->group(function () {
+        Route::get('/', [TransactionCategoryController::class, 'index'])
+            ->name('transaction-categories.index')
+            ->middleware('permission:Ver Finanzas');
+        Route::get('/create', [TransactionCategoryController::class, 'create'])
+            ->name('transaction-categories.create')
+            ->middleware('permission:Gestionar Categorías Transacciones');
+        Route::post('/', [TransactionCategoryController::class, 'store'])
+            ->name('transaction-categories.store')
+            ->middleware('permission:Gestionar Categorías Transacciones');
+        Route::get('/{transactionCategory}/edit', [TransactionCategoryController::class, 'edit'])
+            ->name('transaction-categories.edit')
+            ->middleware('permission:Gestionar Categorías Transacciones');
+        Route::put('/{transactionCategory}', [TransactionCategoryController::class, 'update'])
+            ->name('transaction-categories.update')
+            ->middleware('permission:Gestionar Categorías Transacciones');
+        Route::delete('/{transactionCategory}', [TransactionCategoryController::class, 'destroy'])
+            ->name('transaction-categories.destroy')
+            ->middleware('permission:Gestionar Categorías Transacciones');
+    });
+
+    // Transactions - Unificadas
+    Route::prefix('transactions')->group(function () {
+        Route::get('/', [TransactionController::class, 'index'])
+            ->name('transactions.index')
+            ->middleware('permission:Ver Finanzas');
+        Route::get('/transactions/export', [TransactionController::class, 'export'])
+            ->name('transactions.export')
+            ->middleware('permission:Exportar Transacciones');
+        Route::get('/create', [TransactionController::class, 'create'])
+            ->name('transactions.create')
+            ->middleware('permission:Crear Finanzas');
+        Route::post('/', [TransactionController::class, 'store'])
+            ->name('transactions.store')
+            ->middleware('permission:Crear Finanzas');
+        Route::get('/{transaction}', [TransactionController::class, 'show'])
+            ->name('transactions.show')
+            ->middleware('permission:Ver Finanzas');
+        Route::get('/{transaction}/edit', [TransactionController::class, 'edit'])
+            ->name('transactions.edit')
+            ->middleware('permission:Editar Finanzas');
+        Route::put('/{transaction}', [TransactionController::class, 'update'])
+            ->name('transactions.update')
+            ->middleware('permission:Editar Finanzas');
+        Route::post('/{transaction}/cancel', [TransactionController::class, 'cancel'])
+            ->name('transactions.cancel')
+            ->middleware('permission:Cancelar Finanzas');
+    });
+
+    // Cash Register (Caja)
+    Route::prefix('cash-register')->group(function () {
+        Route::get('/', [CashRegisterController::class, 'index'])
+            ->name('cash-register.index')
+            ->middleware('permission:Ver Caja');
+        Route::get('/today', [CashRegisterController::class, 'today'])
+            ->name('cash-register.today')
+            ->middleware('permission:Ver Caja');
+        Route::post('/open', [CashRegisterController::class, 'open'])
+            ->name('cash-register.open')
+            ->middleware('permission:Abrir Caja');
+        Route::post('/{cashRegister}/close', [CashRegisterController::class, 'close'])
+            ->name('cash-register.close')
+            ->middleware('permission:Cerrar Caja');
+        Route::get('/{cashRegister}', [CashRegisterController::class, 'show'])
+            ->name('cash-register.show')
+            ->middleware('permission:Ver Caja');
+    });
+
+// // Financial Reports (Reportes Financieros)
+//     Route::prefix('reports/financial')->group(function () {
+//         Route::get('/', [FinancialReportController::class, 'index'])
+//             ->name('reports.financial.index')
+//             ->middleware('permission:Ver Reportes Financieros');
+//         Route::get('/profit-loss', [FinancialReportController::class, 'profitLoss'])
+//             ->name('reports.financial.profit-loss')
+//             ->middleware('permission:Ver Reportes Financieros');
+//         Route::get('/cash-flow', [FinancialReportController::class, 'cashFlow'])
+//             ->name('reports.financial.cash-flow')
+//             ->middleware('permission:Ver Reportes Financieros');
+//         Route::get('/export', [FinancialReportController::class, 'export'])
+//             ->name('reports.financial.export')
+//             ->middleware('permission:Exportar Reportes Financieros');
+//     });
+
 });
 
 require __DIR__ . '/settings.php';

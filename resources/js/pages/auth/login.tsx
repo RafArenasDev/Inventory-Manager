@@ -60,7 +60,7 @@ export default function Login({ status, canResetPassword = true }: LoginProps) {
                     confirmButtonText: 'OK'
                 }).then((result) => {
                     if (result.isConfirmed) {
-                        console.log('Enlace enviado - listo para login');
+                        // console.log('Enlace enviado - listo para login');
                     }
                 });
             } else if (status.includes('Contraseña restablecida')) {
@@ -73,7 +73,7 @@ export default function Login({ status, canResetPassword = true }: LoginProps) {
                     confirmButtonText: 'Continuar'
                 }).then((result) => {
                     if (result.isConfirmed) {
-                        console.log('Contraseña restablecida - listo para login');
+                        // console.log('Contraseña restablecida - listo para login');
                         // Enfocar el campo de email
                         const emailInput = document.getElementById('email') as HTMLInputElement;
                         if (emailInput) {

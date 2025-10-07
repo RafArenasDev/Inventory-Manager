@@ -363,14 +363,14 @@ const SaleForm: React.FC<SaleFormProps> = ({ sale, onCancel, products, clients, 
             total_paid: totalPaid,
         };
 
-        console.log('Data sent:', JSON.stringify(dataToSend, null, 2));
+        // console.log('Data sent:', JSON.stringify(dataToSend, null, 2));
 
         const url = route('sales.store');
         router.visit(url, {
             method: 'post',
             data: dataToSend,
             onSuccess: () => {
-                console.log('Success');
+                // console.log('Success');
                 Swal.fire({
                     position: "center",
                     icon: "success",
@@ -382,7 +382,7 @@ const SaleForm: React.FC<SaleFormProps> = ({ sale, onCancel, products, clients, 
                 onCancel();
             },
             onError: (err) => {
-                console.log('Errors:', JSON.stringify(err, null, 2));
+                // console.log('Errors:', JSON.stringify(err, null, 2));
                 setErrors(err);
                 Swal.fire({
                     position: "center",
