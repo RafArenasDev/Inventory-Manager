@@ -15,7 +15,7 @@ class CategoryController extends Controller
     {
         // Construcción de la consulta con conteo de productos
         $categoriesQuery = Category::withCount('products')
-            ->orderBy('id', 'asc');
+            ->orderBy('id', 'desc');
 
         // Filtro de búsqueda
         if ($request->filled('search')) {

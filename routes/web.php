@@ -142,22 +142,22 @@ Route::middleware(['auth', 'verified'])->group(function () {
             ->middleware('permission:Ver Categorías');
         Route::get('/create', [CategoryController::class, 'create'])
             ->name('categories.create')
-            ->middleware('permission:Crear Categorias');
+            ->middleware('permission:Crear Categorías');
         Route::post('/', [CategoryController::class, 'store'])
             ->name('categories.store')
-            ->middleware('permission:Crear Categorias');
+            ->middleware('permission:Crear Categorías');
         Route::get('/{category}', [CategoryController::class, 'show'])
             ->name('categories.show')
-            ->middleware('permission:Ver Categorias');
+            ->middleware('permission:Ver Categorías');
         Route::get('/{category}/edit', [CategoryController::class, 'edit'])
             ->name('categories.edit')
-            ->middleware('permission:Editar Categorias');
+            ->middleware('permission:Editar Categorías');
         Route::put('/{category}', [CategoryController::class, 'update'])
             ->name('categories.update')
-            ->middleware('permission:Actualizar Categorias');
+            ->middleware('permission:Actualizar Categorías');
         Route::delete('/{category}', [CategoryController::class, 'destroy'])
             ->name('categories.destroy')
-            ->middleware('permission:Eliminar Categorias');
+            ->middleware('permission:Eliminar Categorías');
     });
 
     // Products

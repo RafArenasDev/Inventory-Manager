@@ -51,7 +51,7 @@ interface ProductForForm {
     iva_value: string;
     sale_price: string;
     supplier_id?: number | string;
-    stock: string;
+    stock?: number;
     movement_notes: string;
 }
 
@@ -132,7 +132,6 @@ export default function ProductIndex({
             iva_value: '',
             sale_price: '',
             supplier_id: '',
-            stock: '0',
             movement_notes: '',
         };
         setEditingProduct(newProduct);
@@ -159,7 +158,7 @@ export default function ProductIndex({
             iva_value: product.iva_value?.toString() || '',
             sale_price: product.sale_price?.toString() || '',
             supplier_id: product.supplier_id?.toString() || '',
-            stock: product.stock?.toString() || '0',
+            stock: product.stock,
             movement_notes: product.movement_notes || '',
         };
         setEditingProduct(productForForm);

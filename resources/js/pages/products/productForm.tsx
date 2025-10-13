@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useForm } from '@inertiajs/react';
+import { useForm, router } from '@inertiajs/react';
 import Swal from "sweetalert2";
 import { Button } from "@/components/ui/button";
 
@@ -25,7 +25,7 @@ interface ProductForForm {
   iva_value: string;
   sale_price: string;
   supplier_id?: number | string;
-  stock: string;
+  stock?: number;
   movement_notes: string;
   movement_type?: string;
 }
@@ -46,11 +46,6 @@ const cleanNumber = (value: string): string => {
 const formatCOP = (value: string | number): string => {
   const num = parseInt(cleanNumber(value.toString())) || 0;
   return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
-};
-
-const formatStock = (value: string | number): string => {
-  const num = parseInt(cleanNumber(value.toString())) || 0;
-  return num.toString();
 };
 
 const parseCOP = (value: string): string => {
@@ -77,19 +72,19 @@ const ProductForm: React.FC<ProductFormProps> = ({
   userPermissions,
   isCreating
 }) => {
-  const { data, setData, post, put, processing, errors, reset } = useForm({
+  const { data, setData, post, processing, errors, reset } = useForm({
     code: product?.code || '',
     category_id: isCreating ? '' : (product?.category_id?.toString() || ''),
     name: product?.name || '',
     description: product?.description || '',
     image: null as File | null,
     image_path: product?.image_path || '',
-    price_without_tax: product?.price_without_tax || '',
-    price_with_tax: product?.price_with_tax || '',
-    iva_value: product?.iva_value || '',
-    sale_price: product?.sale_price || '',
+    price_without_tax: product?.price_without_tax?.toString() || '0',
+    price_with_tax: product?.price_with_tax?.toString() || '0',
+    iva_value: product?.iva_value?.toString() || '0',
+    sale_price: product?.sale_price?.toString() || '0',
     supplier_id: isCreating ? '' : (product?.supplier_id?.toString() || ''),
-    stock: product?.stock || '',
+    stock: product?.stock,
     movement_notes: product?.movement_notes || '',
     movement_type: isCreating ? '' : (product?.movement_type || ''),
   });
@@ -154,13 +149,15 @@ const ProductForm: React.FC<ProductFormProps> = ({
   const handleInputChange = (field: keyof typeof data) => (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
   ) => {
-    let value = e.target.value;
-    if (['price_without_tax', 'price_with_tax', 'sale_price', 'stock'].includes(field)) {
+    let value: string | number = e.target.value;
+    if (['price_without_tax', 'price_with_tax', 'sale_price'].includes(field)) {
       value = parseCOP(value);
       if (field === 'price_without_tax' || field === 'price_with_tax') {
         updatePrices(field, value);
         return;
       }
+    } else if (field === 'stock') {
+      value = parseInt(cleanNumber(value) || '0', 10);
     }
     setData(field, value);
   };
@@ -189,8 +186,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
       data.price_without_tax &&
       data.price_with_tax &&
       data.sale_price &&
-      data.stock &&
-      (isCreating ? data.movement_type : true)
+      (isCreating ? data.stock !== undefined && data.movement_type : true)
     );
   };
 
@@ -198,69 +194,66 @@ const ProductForm: React.FC<ProductFormProps> = ({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+
     const formData = new FormData();
+
+    // Agregar todos los campos al FormData
     formData.append('code', data.code);
-    formData.append('category_id', data.category_id);
+    formData.append('category_id', data.category_id.toString());
     formData.append('name', data.name);
     formData.append('description', data.description || '');
+
+    // Solo agregar imagen si se seleccionó una nueva
     if (data.image) {
       formData.append('image', data.image);
     }
+
     formData.append('image_path', data.image_path || '');
     formData.append('price_without_tax', data.price_without_tax);
     formData.append('price_with_tax', data.price_with_tax);
     formData.append('iva_value', data.iva_value || '0');
     formData.append('sale_price', data.sale_price);
-    formData.append('supplier_id', data.supplier_id || '');
-    formData.append('stock', data.stock);
+    formData.append('supplier_id', data.supplier_id?.toString() || '');
+    formData.append('stock', (data.stock ?? 0).toString());
     formData.append('movement_notes', data.movement_notes || '');
+
     if (isCreating && data.movement_type) {
       formData.append('movement_type', data.movement_type);
     }
 
-    if (isCreating) {
-      post(route('products.store'), {
-        onSuccess: () => {
-          Swal.fire({
-            title: 'Producto creado correctamente',
-            icon: 'success',
-            timer: 2200,
-            showConfirmButton: false,
-          });
-          reset();
-          setImagePreview(null);
-          onCancel();
-        },
-        onError: () => {
-          Swal.fire({
-            title: 'Error',
-            text: 'No se pudo crear el producto',
-            icon: 'error',
-          });
-        },
-      });
-    } else {
-      put(route('products.update', product?.id), {
-        onSuccess: () => {
-          Swal.fire({
-            title: 'Producto actualizado correctamente',
-            icon: 'success',
-            timer: 2200,
-            showConfirmButton: false,
-          });
-          reset();
-          setImagePreview(null);
-          onCancel();
-        },
-        onError: () => {
-          Swal.fire({
-            title: 'Error',
-            text: 'No se pudo actualizar el producto',
-            icon: 'error',
-          });
-        },
-      });
+    // Para actualización, agregar _method para simular PUT
+    if (!isCreating) {
+      formData.append('_method', 'PUT');
     }
+
+    const url = isCreating
+      ? route('products.store')
+      : route('products.update', product?.id);
+
+    // Usar post() para ambos casos (crear y actualizar)
+    // FormData con _method=PUT simula el método PUT
+    router.post(url, formData, {
+      forceFormData: true,
+      onSuccess: () => {
+        Swal.fire({
+          title: isCreating ? 'Producto creado correctamente' : 'Producto actualizado correctamente',
+          icon: 'success',
+          timer: 2200,
+          showConfirmButton: false,
+        });
+        reset();
+        setImagePreview(null);
+        onCancel();
+      },
+      onError: (errors) => {
+        console.error('Errores de validación:', errors);
+        Swal.fire({
+          title: 'Error',
+          text: isCreating ? 'No se pudo crear el producto' : 'No se pudo actualizar el producto',
+          icon: 'error',
+        });
+      },
+    });
   };
 
   return (
@@ -440,7 +433,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
               onChange={handleInputChange('supplier_id')}
               className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-black text-gray-900 dark:text-gray-100"
             >
-              <option value="" disabled>Seleccionar Proveedor</option>
+              <option value="">Seleccionar Proveedor</option>
               {suppliers.map(supplier => (
                 <option key={supplier.id} value={supplier.id}>
                   {supplier.name}
@@ -455,8 +448,8 @@ const ProductForm: React.FC<ProductFormProps> = ({
               Stock {isCreating ? 'Inicial *' : ''}
             </label>
             <input
-              type="text"
-              value={formatStock(data.stock)}
+              type="number"
+              value={data.stock ?? ''}
               onChange={handleInputChange('stock')}
               onKeyPress={(e) => {
                 if (!/[0-9]/.test(e.key)) {
@@ -465,6 +458,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
               }}
               className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-black text-gray-900 dark:text-gray-100"
               required={isCreating}
+              min="0"
             />
             {errors.stock && <p className="mt-1 text-sm text-red-600">{errors.stock}</p>}
           </div>

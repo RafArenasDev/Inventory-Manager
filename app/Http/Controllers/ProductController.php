@@ -159,7 +159,7 @@ class ProductController extends Controller
             'image_path'        => 'nullable|string|max:255',
             'price_without_tax' => 'required|integer|min:0',
             'price_with_tax'    => 'required|integer|min:0',
-            'iva_value'         => 'required|integer|min:0',
+            'iva_value'         => 'nullable|integer|min:0',
             'sale_price'        => 'required|integer|min:0',
             'supplier_id'       => 'nullable|integer|exists:suppliers,id',
             'stock'             => 'required|integer|min:0',
@@ -178,8 +178,6 @@ class ProductController extends Controller
             'price_without_tax.integer'  => 'El precio sin IVA debe ser un número entero.',
             'price_with_tax.required'    => 'El precio con IVA es obligatorio.',
             'price_with_tax.integer'     => 'El precio con IVA debe ser un número entero.',
-            'iva_value.required'         => 'El valor del IVA es obligatorio.',
-            'iva_value.integer'          => 'El valor del IVA debe ser un número entero.',
             'sale_price.required'        => 'El precio de venta es obligatorio.',
             'sale_price.integer'         => 'El precio de venta debe ser un número entero.',
             'stock.required'             => 'El stock es obligatorio.',
@@ -219,13 +217,17 @@ class ProductController extends Controller
         ]);
 
         if ($validated['stock'] > 0) {
+            // Obtener el nombre del proveedor
+            $supplier     = Supplier::find($validated['supplier_id']);
+            $supplierName = $supplier->name;
+
             $movement = InventoryMovement::create([
                 'product_id' => $product->id,
                 'type'       => $this->movementTypeMap[$validated['movement_type']] ?? $validated['movement_type'],
                 'quantity'   => $validated['stock'],
                 'date'       => now()->format('Y-m-d'),
-                'notes'      => $validated['movement_notes'] ?: ($validated['supplier_id'] ? "Primer pedido del proveedor ID {$validated['supplier_id']}" : 'Primer pedido'),
-                'supplier_id' => $validated['supplier_id'] ?: null,
+                'notes'      => $validated['movement_notes'] ?: "Primer pedido del proveedor {$supplierName}",
+                'supplier_id' => $validated['supplier_id'],
             ]);
 
             $product->update(['initial_movement_id' => $movement->id]);
@@ -233,6 +235,7 @@ class ProductController extends Controller
 
         return redirect()->route('products.index')
             ->with('success', 'Producto creado correctamente.');
+
     }
 
     public function edit(Product $product)
@@ -284,35 +287,30 @@ class ProductController extends Controller
             'image_path'        => 'nullable|string|max:255',
             'price_without_tax' => 'required|integer|min:0',
             'price_with_tax'    => 'required|integer|min:0',
-            'iva_value'         => 'required|integer|min:0',
+            'iva_value'         => 'nullable|integer|min:0',
             'sale_price'        => 'required|integer|min:0',
             'supplier_id'       => 'nullable|integer|exists:suppliers,id',
-            'stock'             => 'required|integer|min:0',
+            'stock'             => 'nullable|integer|min:0',
             'movement_notes'    => 'nullable|string|max:500',
-            'movement_type'     => 'nullable|in:Entry,Exit,CustomerReturn,SupplierReturn,ConsignmentEntry,ConsignmentExit,ExchangeEntry,ExchangeExit,InventoryAdjustment',
         ], [
             'code.required'              => 'El código del producto es obligatorio.',
             'code.unique'                => 'Ya existe un producto con este código.',
             'category_id.required'       => 'Debe seleccionar una categoría.',
             'category_id.exists'         => 'La categoría seleccionada no es válida.',
             'name.required'              => 'El nombre del producto es obligatorio.',
-            'image.image'                => 'El archivo debe be una imagen.',
+            'image.image'                => 'El archivo debe ser una imagen.',
             'image.mimes'                => 'La imagen debe ser un archivo JPEG, PNG, JPG o GIF.',
             'image.max'                  => 'La imagen no puede ser mayor a 2MB.',
             'price_without_tax.required' => 'El precio sin IVA es obligatorio.',
-            'price_without_tax.integer'  => 'El precio sin IVA debe ser un número entero.',
+            'price_without_tax.numeric'  => 'El precio sin IVA debe ser un número.',
             'price_with_tax.required'    => 'El precio con IVA es obligatorio.',
-            'price_with_tax.integer'     => 'El precio con IVA debe ser un número entero.',
-            'iva_value.required'         => 'El valor del IVA es obligatorio.',
-            'iva_value.integer'          => 'El valor del IVA debe ser un número entero.',
+            'price_with_tax.numeric'     => 'El precio con IVA debe ser un número.',
             'sale_price.required'        => 'El precio de venta es obligatorio.',
-            'sale_price.integer'         => 'El precio de venta debe ser un número entero.',
-            'stock.required'             => 'El stock es obligatorio.',
-            'stock.min'                  => 'El stock no puede ser negativo.',
+            'sale_price.numeric'         => 'El precio de venta debe ser un número.',
             'supplier_id.exists'         => 'El proveedor seleccionado no es válido.',
-            'movement_type.in'           => 'El tipo de movimiento no es válido.',
         ]);
 
+        // Manejar imagen
         $imagePath = $product->image_path;
 
         if ($request->hasFile('image')) {
@@ -330,20 +328,32 @@ class ProductController extends Controller
             }
         }
 
+        // Convertir strings a integers
+        $priceWithoutTax = (int) $validated['price_without_tax'];
+        $priceWithTax    = (int) $validated['price_with_tax'];
+        $ivaValue        = $validated['iva_value'] ? (int) $validated['iva_value'] : 0;
+        $salePrice       = (int) $validated['sale_price'];
+        $stock           = $validated['stock'] !== null ? (int) $validated['stock'] : $product->stock;
+
         $product->update([
             'code'              => $validated['code'],
             'category_id'       => $validated['category_id'],
             'name'              => $validated['name'],
             'description'       => $validated['description'],
             'image_path'        => $imagePath,
-            'price_without_tax' => $validated['price_without_tax'],
-            'price_with_tax'    => $validated['price_with_tax'],
-            'iva_value'         => $validated['iva_value'],
-            'sale_price'        => $validated['sale_price'],
+            'price_without_tax' => $priceWithoutTax,
+            'price_with_tax'    => $priceWithTax,
+            'iva_value'         => $ivaValue,
+            'sale_price'        => $salePrice,
             'supplier_id'       => $validated['supplier_id'] ?: null,
-            'stock'             => $validated['stock'],
+            'stock'             => $stock,
         ]);
 
+        // Obtener el nombre del proveedor
+        $supplier     = Supplier::find($validated['supplier_id']);
+        $supplierName = $supplier->name;
+
+        // Manejar movimiento de inventario
         $initialMovementId = $product->initial_movement_id;
         if ($initialMovementId) {
             $movement = InventoryMovement::where('id', $initialMovementId)
@@ -351,27 +361,26 @@ class ProductController extends Controller
                 ->first();
             if ($movement) {
                 $movement->update([
-                    'type'        => isset($validated['movement_type']) ? $this->movementTypeMap[$validated['movement_type']] : $movement->type,
-                    'quantity'    => $validated['stock'],
-                    'date'        => now()->format('Y-m-d'),
+                    'quantity'    => $stock,
                     'notes'       => $validated['movement_notes'] ?? $movement->notes,
-                    'supplier_id' => $validated['supplier_id'] ?: null,
+                    'supplier_id' => $validated['supplier_id'],
                 ]);
             }
-        } elseif ($validated['stock'] > 0 || ! empty($validated['movement_notes'])) {
+        } elseif ($stock > 0 || ! empty($validated['movement_notes'])) {
             $movement = InventoryMovement::create([
                 'product_id' => $product->id,
-                'type'       => isset($validated['movement_type']) ? $this->movementTypeMap[$validated['movement_type']] : 'Entrada',
-                'quantity'   => $validated['stock'],
+                'type'       => 'Entrada',
+                'quantity'   => $stock,
                 'date'       => now()->format('Y-m-d'),
-                'notes'      => $validated['movement_notes'] ?: ($validated['supplier_id'] ? "Primer pedido del proveedor ID {$validated['supplier_id']}" : 'Primer pedido'),
-                'supplier_id' => $validated['supplier_id'] ?: null,
+                'notes'      => $validated['movement_notes'] ?: "Primer pedido del proveedor {$supplierName}",
+                'supplier_id' => $validated['supplier_id'],
             ]);
             $product->update(['initial_movement_id' => $movement->id]);
         }
 
         return redirect()->route('products.index')
             ->with('success', 'Producto actualizado correctamente.');
+
     }
 
     public function destroy(Product $product)
