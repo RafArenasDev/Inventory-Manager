@@ -6,7 +6,6 @@ use App\Http\Requests\CashRegisterOpenRequest;
 use App\Models\CashRegister;
 use App\Models\Sale;
 use App\Models\Transaction;
-use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -89,21 +88,25 @@ class CashRegisterController extends Controller
         ]);
     }
 
-    public function store(CashRegisterOpenRequest $request): RedirectResponse
+    public function store(CashRegisterOpenRequest $request)
     {
         config(['app.timezone' => 'America/Bogota']);
         date_default_timezone_set('America/Bogota');
 
         $existingRegister = CashRegister::where('register_date', today())->first();
         if ($existingRegister) {
-            return redirect()->back()->with('error', 'Ya existe una caja registrada para esta fecha.');
+            return back()->with('error', 'Ya existe una caja registrada para esta fecha.');
         }
+
+        $totalIncome    = Transaction::where('type', 'Ingreso')->sum('amount');
+        $totalExpenses  = Transaction::where('type', 'Gasto')->sum('amount');
+        $opening_amount = $totalIncome - $totalExpenses;
 
         DB::beginTransaction();
         try {
             CashRegister::create([
                 'register_date'  => today(),
-                'opening_amount' => $request->opening_amount,
+                'opening_amount' => max(0, $opening_amount),
                 'closing_amount' => null,
                 'total_sales'    => 0,
                 'total_income'   => 0,
@@ -118,11 +121,14 @@ class CashRegisterController extends Controller
             ]);
 
             DB::commit();
-            return redirect()->route('cash-register.index')->with('success', 'Caja abierta correctamente.');
+
+                                             // Calcular props actualizados como en index
+            $updatedRequest = new Request(); // Filtros por defecto
+            return $this->index($updatedRequest)->with('success', 'Caja abierta correctamente.');
         } catch (\Exception $e) {
             DB::rollBack();
-            \Log::error('Error al abrir caja: ' . $e->getMessage());
-            return redirect()->back()->withInput()->with('error', 'Error al abrir la caja: ' . $e->getMessage());
+            Log::error('Error al abrir caja: ' . $e->getMessage());
+            return back()->with('error', 'Error al abrir la caja: ' . $e->getMessage());
         }
     }
 
@@ -133,13 +139,13 @@ class CashRegisterController extends Controller
         ]);
     }
 
-    public function update(CashRegisterCloseRequest $request, CashRegister $cashRegister): RedirectResponse
+    public function update(CashRegisterCloseRequest $request, CashRegister $cashRegister)
     {
         config(['app.timezone' => 'America/Bogota']);
         date_default_timezone_set('America/Bogota');
 
         if ($cashRegister->is_closed) {
-            return redirect()->back()->with('error', 'La caja ya está cerrada.');
+            return back()->with('error', 'La caja ya está cerrada.');
         }
 
         DB::beginTransaction();
@@ -158,19 +164,16 @@ class CashRegisterController extends Controller
                 ->where('type', 'Gasto')
                 ->sum('amount');
 
-            $closingAmount = $cashRegister->opening_amount + $totalIncome;
-            $difference    = $closingAmount - $expensesTotal;
+            $closingAmount = $cashRegister->opening_amount + $totalIncome - $expensesTotal;
+            $difference    = $closingAmount - $cashRegister->opening_amount;
 
-            Log::info('CashRegister Update', [
-                'cash_register_id' => $cashRegister->id,
-                'register_date'    => $cashRegister->register_date->toDateString(),
-                'sales_total'      => $salesTotal,
-                'other_income'     => $otherIncome,
-                'total_income'     => $totalIncome,
-                'expenses_total'   => $expensesTotal,
-                'opening_amount'   => $cashRegister->opening_amount,
-                'closing_amount'   => $closingAmount,
-                'difference'       => $difference,
+            Log::info('Cerrando caja', [
+                'id'             => $cashRegister->id,
+                'sales_total'    => $salesTotal,
+                'total_income'   => $totalIncome,
+                'expenses_total' => $expensesTotal,
+                'closing_amount' => $closingAmount,
+                'difference'     => $difference,
             ]);
 
             $cashRegister->update([
@@ -186,15 +189,18 @@ class CashRegisterController extends Controller
             ]);
 
             DB::commit();
-            return redirect()->route('cash-register.index')->with('success', 'Caja cerrada correctamente.');
+
+                                             // Calcular props actualizados como en index
+            $updatedRequest = new Request(); // Filtros por defecto
+            return $this->index($updatedRequest)->with('success', 'Caja cerrada correctamente.');
         } catch (\Exception $e) {
             DB::rollBack();
-            \Log::error('Error al cerrar caja: ' . $e->getMessage());
-            return redirect()->back()->withInput()->with('error', 'Error al cerrar la caja: ' . $e->getMessage());
+            Log::error('Error al cerrar caja: ' . $e->getMessage());
+            return back()->with('error', 'Error al cerrar la caja: ' . $e->getMessage());
         }
     }
 
-    protected function formatCashRegister($register)
+    private function formatCashRegister($register)
     {
         return [
             'id'                  => $register->id,
@@ -222,11 +228,6 @@ class CashRegisterController extends Controller
         ];
     }
 
-    /**
-     * Export cash registers to Excel
-     * @param \Illuminate\Http\Request $request
-     * @return \Symfony\Component\HttpFoundation\StreamedResponse
-     */
     public function export(Request $request)
     {
         config(['app.timezone' => 'America/Bogota']);

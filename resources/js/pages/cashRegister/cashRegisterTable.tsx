@@ -72,8 +72,10 @@ export default function CashRegisterTable({
     };
 
     const formatDifference = (value: number) => {
-        const sign = value >= 0 ? '+' : '';
-        return sign + '$' + Math.abs(value).toLocaleString('es-CO', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+        if (value >= 0) {
+            return '+$' + value.toLocaleString('es-CO', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+        }
+        return '-$' + Math.abs(value).toLocaleString('es-CO', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
     };
 
     const handleExport = () => {

@@ -13,17 +13,14 @@ class CashRegisterOpenRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'opening_amount' => 'required|integer|min:0',
-            'notes'          => 'nullable|string',
+            'notes' => 'nullable|string',
         ];
     }
 
     public function messages(): array
     {
         return [
-            'register_date.unique'    => 'Ya existe una caja registrada para esta fecha.',
-            'opening_amount.required' => 'El monto inicial es requerido.',
-            'opening_amount.min'      => 'El monto inicial debe ser mayor o igual a 0.',
+            'register_date.unique' => 'Ya existe una caja registrada para esta fecha.',
         ];
     }
 }
