@@ -4,8 +4,9 @@ import { LinkProps, type BreadcrumbItem } from '@/types';
 import { Head, router, usePage } from '@inertiajs/react';
 import TransactionsTable from './transactionsTable';
 import { Button } from '@/components/ui/button';
-import { ChevronLeft, Plus } from 'lucide-react';
+import { ChevronLeft, DollarSign, Plus } from 'lucide-react';
 import TransactionForm from './transactionForm';
+import { PageHeader } from '@/components/page-header';
 
 interface TransactionCategory {
     id: number;
@@ -208,36 +209,38 @@ export default function TransactionsPage({
             <div className="flex h-full flex-1 flex-col gap-4 rounded-xl p-4">
                 {isCreating || editingTransaction ? (
                     <div className="bg-white dark:bg-[oklch(0.100205_0_0)] overflow-hidden shadow-sm sm:rounded-lg p-6">
-                        <div className="flex items-center justify-between mb-6">
-                            <h2 className="text-2xl font-bold tracking-tight">
-                                {isCreating ? 'Nueva Transacción' : `Editar Transacción: #${editingTransaction?.id}`}
-                            </h2>
-                            <Button
-                                onClick={handleCancelForm}
-                                className="gap-1"
-                            >
+                        <PageHeader
+                            icon={DollarSign}
+                            title={isCreating ? 'Nueva Transacción' : `Editar Transacción: #${editingTransaction?.id}`}
+                        >
+                            <Button onClick={handleCancelForm} className="gap-1">
                                 <ChevronLeft className="h-4 w-4" />
                                 Atrás
                             </Button>
+                        </PageHeader>
+                        <div className="mt-6">
+                            <TransactionForm
+                                transaction={editingTransaction ?? undefined}
+                                categories={categories}
+                                onCancel={handleCancelForm}
+                                userPermissions={userPermissions}
+                            />
                         </div>
-                        <TransactionForm
-                            transaction={editingTransaction ?? undefined}
-                            categories={categories}
-                            onCancel={handleCancelForm}
-                            userPermissions={userPermissions}
-                        />
                     </div>
                 ) : (
                     <>
-                        <div className="flex items-center justify-between">
-                            <h2 className="text-2xl font-bold tracking-tight">Transacciones</h2>
+                        <PageHeader
+                            icon={DollarSign}
+                            title="Finanzas"
+                            description="Registra los ingresos y gastos del negocio."
+                        >
                             {userPermissions.includes('Crear Finanzas') && (
                                 <Button onClick={handleCreateTransaction} className="gap-1">
                                     <Plus className="h-4 w-4" />
                                     Nueva Transacción
                                 </Button>
                             )}
-                        </div>
+                        </PageHeader>
                         <div className="bg-white dark:bg-[oklch(0.100205_0_0)] overflow-hidden shadow-sm sm:rounded-lg p-6">
                             <TransactionsTable
                                 transactions={transactions}

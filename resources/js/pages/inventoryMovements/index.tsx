@@ -3,9 +3,10 @@ import AppLayout from '@/layouts/app-layout';
 import { LinkProps, type BreadcrumbItem } from '@/types';
 import { Head, router, usePage } from '@inertiajs/react';
 import { Button } from '@/components/ui/button';
-import { ChevronLeft, Plus } from 'lucide-react';
+import { ChevronLeft, ClipboardList, Plus } from 'lucide-react';
 import InventoryMovementsTable from './inventoryMovementsTable';
 import InventoryMovementForm from './inventoryMovementForm';
+import { PageHeader } from '@/components/page-header';
 
 interface Product {
   id: number;
@@ -177,34 +178,39 @@ export default function InventoryMovementsIndex({
       <div className="flex h-full flex-1 flex-col gap-4 rounded-xl p-4">
         {isCreating || editingMovement ? (
           <div className="bg-white dark:bg-[oklch(0.100205_0_0)] overflow-hidden shadow-sm sm:rounded-lg p-6">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-bold tracking-tight">
-                {isCreating ? 'Registrar Movimiento' : `Editar Movimiento`}
-              </h2>
+            <PageHeader
+              icon={ClipboardList}
+              title={isCreating ? 'Registrar Movimiento' : `Editar Movimiento`}
+            >
               <Button onClick={handleCancelForm} variant="outline" className="gap-1">
                 <ChevronLeft className="h-4 w-4" />
                 Atrás
               </Button>
+            </PageHeader>
+            <div className="mt-6">
+              <InventoryMovementForm
+                movement={editingMovement as InventoryMovementForForm}
+                products={products}
+                suppliers={suppliers}
+                onCancel={handleCancelForm}
+                userPermissions={userPermissions}
+              />
             </div>
-            <InventoryMovementForm
-              movement={editingMovement as InventoryMovementForForm}
-              products={products}
-              suppliers={suppliers}
-              onCancel={handleCancelForm}
-              userPermissions={userPermissions}
-            />
           </div>
         ) : (
           <>
-            <div className="flex items-center justify-between">
-              <h2 className="text-2xl font-bold tracking-tight">Movimientos de Inventario</h2>
+            <PageHeader
+              icon={ClipboardList}
+              title="Movimientos de Inventario"
+              description="Historial de entradas, salidas y ajustes de inventario."
+            >
               {userPermissions.includes('Crear Movimientos Inventario') && (
                 <Button onClick={handleCreateMovement} className="gap-1">
                   <Plus className="h-4 w-4" />
                   Nuevo Movimiento
                 </Button>
               )}
-            </div>
+            </PageHeader>
             <div className="bg-white dark:bg-[oklch(0.100205_0_0)] overflow-hidden shadow-sm sm:rounded-lg p-6">
               <InventoryMovementsTable
                 movements={movements}

@@ -4,8 +4,9 @@ import { LinkProps, type BreadcrumbItem } from '@/types';
 import { Head, router, usePage } from '@inertiajs/react';
 import ProductsTable from './productsTable';
 import { Button } from '@/components/ui/button';
-import { ChevronLeft, Plus } from 'lucide-react';
+import { ChevronLeft, Package, Plus } from 'lucide-react';
 import ProductForm from './productForm';
+import { PageHeader } from '@/components/page-header';
 
 interface Category {
     id: number;
@@ -191,37 +192,40 @@ export default function ProductIndex({
             <div className="flex h-full flex-1 flex-col gap-4 rounded-xl p-4">
                 {isCreating || editingProduct ? (
                     <div className="bg-white dark:bg-[oklch(0.100205_0_0)] overflow-hidden shadow-sm sm:rounded-lg p-6">
-                        <div className="flex items-center justify-between mb-6">
-                            <h2 className="text-2xl font-bold tracking-tight">
-                                {isCreating ? 'Nuevo Producto' : `Editar Producto: ${editingProduct?.name}`}
-                            </h2>
+                        <PageHeader
+                            icon={Package}
+                            title={isCreating ? 'Nuevo Producto' : `Editar Producto: ${editingProduct?.name}`}
+                        >
                             <Button onClick={handleCancelForm} className="gap-1">
                                 <ChevronLeft className="h-4 w-4" />
                                 Atrás
                             </Button>
+                        </PageHeader>
+                        <div className="mt-6">
+                            <ProductForm
+                                product={editingProduct as ProductForForm}
+                                categories={categories}
+                                suppliers={suppliers}
+                                onCancel={handleCancelForm}
+                                userPermissions={userPermissions}
+                                isCreating={isCreating}
+                            />
                         </div>
-                        <ProductForm
-                            product={editingProduct as ProductForForm}
-                            categories={categories}
-                            suppliers={suppliers}
-                            onCancel={handleCancelForm}
-                            userPermissions={userPermissions}
-                            isCreating={isCreating}
-                        />
                     </div>
                 ) : (
                     <>
-                        <div className="flex items-center justify-between">
-                            <h2 className="text-2xl font-bold tracking-tight">Productos</h2>
-                            <div className="flex items-center gap-2">
-                                {userPermissions.includes('Crear Productos') && (
-                                    <Button onClick={handleCreateProduct} className="gap-1">
-                                        <Plus className="h-4 w-4" />
-                                        Nuevo Producto
-                                    </Button>
-                                )}
-                            </div>
-                        </div>
+                        <PageHeader
+                            icon={Package}
+                            title="Productos"
+                            description="Consulta y administra el inventario de productos."
+                        >
+                            {userPermissions.includes('Crear Productos') && (
+                                <Button onClick={handleCreateProduct} className="gap-1">
+                                    <Plus className="h-4 w-4" />
+                                    Nuevo Producto
+                                </Button>
+                            )}
+                        </PageHeader>
                         <div className="bg-white dark:bg-[oklch(0.100205_0_0)] overflow-hidden shadow-sm sm:rounded-lg p-6">
                             <ProductsTable
                                 products={products}

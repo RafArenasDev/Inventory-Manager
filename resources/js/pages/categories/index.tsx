@@ -4,8 +4,9 @@ import { LinkProps, type BreadcrumbItem } from '@/types';
 import { Head, router, usePage } from '@inertiajs/react'; // Añadido usePage
 import CategoriesTable from './categoriesTable';
 import { Button } from '@/components/ui/button';
-import { ChevronLeft, Plus } from 'lucide-react';
+import { ChevronLeft, Plus, Tags } from 'lucide-react';
 import CategoryForm from './categoryForm';
+import { PageHeader } from '@/components/page-header';
 
 interface Category {
     id: number
@@ -128,35 +129,37 @@ export default function CategoryIndex({ categories, filters, totalCount, filtere
                 {/* Mostrar formulario o lista según el estado */}
                 {isCreating || editingCategory ? (
                     <div className="bg-white dark:bg-[oklch(0.100205_0_0)] overflow-hidden shadow-sm sm:rounded-lg p-6">
-                        <div className="flex items-center justify-between mb-6">
-                            <h2 className="text-2xl font-bold tracking-tight">
-                                {isCreating ? 'Nueva Categoría' : `Editar Categoría: ${editingCategory?.name}`}
-                            </h2>
-                            <Button
-                                onClick={handleCancelForm}
-                                className="gap-1"
-                            >
+                        <PageHeader
+                            icon={Tags}
+                            title={isCreating ? 'Nueva Categoría' : `Editar Categoría: ${editingCategory?.name}`}
+                        >
+                            <Button onClick={handleCancelForm} className="gap-1">
                                 <ChevronLeft className="h-4 w-4" />
                                 Atrás
                             </Button>
+                        </PageHeader>
+                        <div className="mt-6">
+                            <CategoryForm
+                                category={editingCategory ?? undefined}
+                                onCancel={handleCancelForm}
+                                userPermissions={userPermissions}
+                            />
                         </div>
-                        <CategoryForm
-                            category={editingCategory ?? undefined}
-                            onCancel={handleCancelForm}
-                            userPermissions={userPermissions} // Añadido
-                        />
                     </div>
                 ) : (
                     <>
-                        <div className="flex items-center justify-between">
-                            <h2 className="text-2xl font-bold tracking-tight">Categorías</h2>
-                            {userPermissions.includes('Crear Categorías') && ( // Condicional
+                        <PageHeader
+                            icon={Tags}
+                            title="Categorías"
+                            description="Organiza el catálogo de productos por categorías."
+                        >
+                            {userPermissions.includes('Crear Categorías') && (
                                 <Button onClick={handleCreateCategory} className="gap-1">
                                     <Plus className="h-4 w-4" />
                                     Nueva Categoría
                                 </Button>
                             )}
-                        </div>
+                        </PageHeader>
                         <div className="bg-white dark:bg-[oklch(0.100205_0_0)] overflow-hidden shadow-sm sm:rounded-lg p-6">
                             <CategoriesTable
                                 categories={categories}

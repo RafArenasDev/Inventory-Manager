@@ -4,8 +4,9 @@ import { BreadcrumbItem } from '@/types';
 import { Head, router, usePage } from '@inertiajs/react';
 import CashRegisterTable from './cashRegisterTable';
 import { Button } from '@/components/ui/button';
-import { ChevronLeft, Clock } from 'lucide-react';
+import { ChevronLeft, Clock, Wallet } from 'lucide-react';
 import CashRegisterForm from './cashRegisterForm';
+import { PageHeader } from '@/components/page-header';
 
 interface CashRegister {
     id: number;
@@ -131,31 +132,35 @@ export default function CashRegisterIndex({
             <div className="flex h-full flex-1 flex-col gap-4 rounded-xl p-4">
                 {isCreating || currentEditingCashRegister ? (
                     <div className="bg-white dark:bg-[oklch(0.100205_0_0)] overflow-hidden shadow-sm sm:rounded-lg p-6">
-                        <div className="flex items-center justify-between mb-6">
-                            <h2 className="text-2xl font-bold tracking-tight">
-                                {isCreating ? 'Abrir Caja' : `Cerrar Caja: ${currentEditingCashRegister?.register_date}`}
-                            </h2>
+                        <PageHeader
+                            icon={Wallet}
+                            title={isCreating ? 'Abrir Caja' : `Cerrar Caja: ${currentEditingCashRegister?.register_date}`}
+                        >
                             <Button onClick={handleCancelForm} className="gap-1">
                                 <ChevronLeft className="h-4 w-4" /> Atrás
                             </Button>
+                        </PageHeader>
+                        <div className="mt-6">
+                            <CashRegisterForm
+                                cashRegister={currentEditingCashRegister}
+                                onCancel={handleCancelForm}
+                                userPermissions={userPermissions}
+                            />
                         </div>
-                        <CashRegisterForm
-                            cashRegister={currentEditingCashRegister}
-                            onCancel={handleCancelForm}
-                            userPermissions={userPermissions}
-                        />
                     </div>
                 ) : (
                     <>
-                        <div className="flex items-center justify-between">
-                            <h2 className="text-2xl font-bold tracking-tight">Cajas</h2>
+                        <PageHeader
+                            icon={Wallet}
+                            title="Cajas"
+                            description="Controla la apertura y cierre de caja de cada jornada."
+                        >
                             {userPermissions.includes('Crear Caja') && !todayRegister && (
-                                <Button onClick={handleCreateCashRegister}
-                                 className="gap-1 bg-green-500 text-white">
+                                <Button onClick={handleCreateCashRegister} className="gap-1 bg-green-500 text-white">
                                     <Clock className="h-4 w-4" /> Abrir Caja
                                 </Button>
                             )}
-                        </div>
+                        </PageHeader>
                         <div className="bg-white dark:bg-[oklch(0.100205_0_0)] overflow-hidden shadow-sm sm:rounded-lg p-6">
                             <CashRegisterTable
                                 cashRegisters={cashRegisters}

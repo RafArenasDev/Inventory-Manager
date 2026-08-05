@@ -4,8 +4,9 @@ import { LinkProps, type BreadcrumbItem } from '@/types';
 import { Head, router, usePage } from '@inertiajs/react';
 import SuppliersTable from './suppliersTable';
 import { Button } from '@/components/ui/button';
-import { ChevronLeft, Plus } from 'lucide-react';
+import { ChevronLeft, Plus, Truck } from 'lucide-react';
 import SupplierForm from './supplierForm';
+import { PageHeader } from '@/components/page-header';
 
 interface Supplier {
     id: number
@@ -153,35 +154,37 @@ export default function SupplierIndex({ suppliers, filters, totalCount, filtered
             <div className="flex h-full flex-1 flex-col gap-4 rounded-xl p-4">
                 {isCreating || editingSupplier ? (
                     <div className="bg-white dark:bg-[oklch(0.100205_0_0)] overflow-hidden shadow-sm sm:rounded-lg p-6">
-                        <div className="flex items-center justify-between mb-6">
-                            <h2 className="text-2xl font-bold tracking-tight">
-                                {isCreating ? 'Nuevo Proveedor' : `Editar Proveedor: ${editingSupplier?.name || ''}`}
-                            </h2>
-                            <Button
-                                onClick={handleCancelForm}
-                                className="gap-1"
-                            >
+                        <PageHeader
+                            icon={Truck}
+                            title={isCreating ? 'Nuevo Proveedor' : `Editar Proveedor: ${editingSupplier?.name || ''}`}
+                        >
+                            <Button onClick={handleCancelForm} className="gap-1">
                                 <ChevronLeft className="h-4 w-4" />
                                 Atrás
                             </Button>
+                        </PageHeader>
+                        <div className="mt-6">
+                            <SupplierForm
+                                supplier={editingSupplier ?? undefined}
+                                onCancel={handleCancelForm}
+                                userPermissions={userPermissions}
+                            />
                         </div>
-                        <SupplierForm
-                            supplier={editingSupplier ?? undefined}
-                            onCancel={handleCancelForm}
-                            userPermissions={userPermissions}
-                        />
                     </div>
                 ) : (
                     <>
-                        <div className="flex items-center justify-between">
-                            <h2 className="text-2xl font-bold tracking-tight">Proveedores</h2>
+                        <PageHeader
+                            icon={Truck}
+                            title="Proveedores"
+                            description="Administra los proveedores y su información de contacto."
+                        >
                             {userPermissions.includes('Crear Proveedores') && (
                                 <Button onClick={handleCreateSupplier} className="gap-1">
                                     <Plus className="h-4 w-4" />
                                     Nuevo Proveedor
                                 </Button>
                             )}
-                        </div>
+                        </PageHeader>
                         <div className="bg-white dark:bg-[oklch(0.100205_0_0)] overflow-hidden shadow-sm sm:rounded-lg p-6">
                             <SuppliersTable
                                 suppliers={suppliers}

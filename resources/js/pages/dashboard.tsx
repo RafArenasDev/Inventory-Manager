@@ -1,4 +1,4 @@
-import { Users, Package, Tags, ShoppingCart, ArrowUpRight, ArrowDownRight, Calendar, Truck, ClipboardList, TrendingUp, Download } from 'lucide-react';
+import { Users, Package, Tags, ShoppingCart, ArrowUpRight, ArrowDownRight, Calendar, Truck, ClipboardList, TrendingUp, Download, LayoutGrid } from 'lucide-react';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, router, usePage } from '@inertiajs/react';
@@ -9,6 +9,7 @@ import SaleForm from './sales/saleForm';
 import { SaleModal } from './saleModal';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { PageHeader } from '@/components/page-header';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -381,63 +382,38 @@ export default function Dashboard({
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Dashboard" />
             <div className="flex h-full flex-1 flex-col gap-4 rounded-xl p-4">
-                {/* Header */}
-                <div className="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
-                    <div>
-                        <h2 className="text-3xl font-bold text-foreground">Dashboard</h2>
-                        <p className="text-muted-foreground mt-1">
-                            Inventario • Ventas • Reportes
-                        </p>
-                    </div>
-                    <div className="flex gap-2 flex-wrap">
-                        {/* <Button
-                            size="sm"
-                            className="gap-2 bg-green-500 text-white"
-                        >
-                            <Clock className="w-4 h-4" />
-                            Abrir Caja
-                        </Button> */}
+                <PageHeader icon={LayoutGrid} title="Dashboard" description="Inventario • Ventas • Reportes">
+                    <Button
+                        onClick={handleOpenSaleModal}
+                        size="sm"
+                        className="gap-2 bg-green-700 text-white"
+                    >
+                        <ShoppingCart className="w-4 h-4" />
+                        Nueva Venta
+                    </Button>
 
-                        <Button
-                            onClick={handleOpenSaleModal}
-                            size="sm"
-                            className="gap-2 bg-green-700 text-white"
-                        >
-                            <ShoppingCart className="w-4 h-4" />
-                            Nueva Venta
-                        </Button>
-
-                        {/* <Button
-                            size="sm"
-                            className="gap-2 bg-red-500 text-white"
-                        >
-                            <ArrowDownRight className="w-4 h-4" />
-                            Cerrar Caja
-                        </Button> */}
-
-                        {userPermissions.includes('Exportar Dashboard') && (
-                            <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                    <Button
-                                        size="sm"
-                                        className="gap-2 bg-gray-500 text-white"
-                                    >
-                                        <Download className="h-4 w-4" />
-                                        Exportar
-                                    </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent>
-                                    <DropdownMenuItem onClick={() => handleExport('excel')}>
-                                        Exportar a Excel
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem onClick={() => handleExport('pdf')}>
-                                        Exportar a PDF
-                                    </DropdownMenuItem>
-                                </DropdownMenuContent>
-                            </DropdownMenu>
-                        )}
-                    </div>
-                </div>
+                    {userPermissions.includes('Exportar Dashboard') && (
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button
+                                    size="sm"
+                                    className="gap-2 bg-gray-500 text-white"
+                                >
+                                    <Download className="h-4 w-4" />
+                                    Exportar
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent>
+                                <DropdownMenuItem onClick={() => handleExport('excel')}>
+                                    Exportar a Excel
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => handleExport('pdf')}>
+                                    Exportar a PDF
+                                </DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                    )}
+                </PageHeader>
 
                 {/* Stats Cards */}
                 <div className={`grid grid-cols-2 sm:grid-cols-3 gap-3 ${statCards.length === 7 ? 'lg:grid-cols-7' : statCards.length === 6 ? 'lg:grid-cols-6' : statCards.length === 5 ? 'lg:grid-cols-5' : 'lg:grid-cols-4'}`}>

@@ -4,9 +4,10 @@ import { LinkProps, type BreadcrumbItem } from '@/types';
 import { Head, router, usePage } from '@inertiajs/react';
 import SalesTable from './salesTable';
 import { Button } from '@/components/ui/button';
-import { ChevronLeft, Plus } from 'lucide-react';
+import { ChevronLeft, Plus, ShoppingCart } from 'lucide-react';
 import SaleForm from './saleForm';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
+import { PageHeader } from '@/components/page-header';
 
 interface SaleItem {
     id: number;
@@ -210,36 +211,38 @@ export default function SaleIndex({ sales, products, clients, departments, citie
             <div className="flex h-full flex-1 flex-col gap-4 rounded-xl p-4">
                 {isCreating || editingSale ? (
                     <div className="bg-white dark:bg-[oklch(0.100205_0_0)] overflow-hidden shadow-sm sm:rounded-lg p-6">
-                        <div className="flex items-center justify-between mb-6">
-                            <h2 className="text-2xl font-bold tracking-tight">
-                                {isCreating ? 'Nueva Venta' : `Editar Venta`}
-                            </h2>
+                        <PageHeader icon={ShoppingCart} title={isCreating ? 'Nueva Venta' : `Editar Venta`}>
                             <Button onClick={handleCancelForm} className="gap-1">
                                 <ChevronLeft className="h-4 w-4" />
                                 Atrás
                             </Button>
+                        </PageHeader>
+                        <div className="mt-6">
+                            <SaleForm
+                                sale={editingSale as SaleForForm}
+                                products={products}
+                                clients={clients}
+                                departments={departments}
+                                cities={cities}
+                                onCancel={handleCancelForm}
+                                userPermissions={userPermissions}
+                            />
                         </div>
-                        <SaleForm
-                            sale={editingSale as SaleForForm}
-                            products={products}
-                            clients={clients}
-                            departments={departments}
-                            cities={cities}
-                            onCancel={handleCancelForm}
-                            userPermissions={userPermissions}
-                        />
                     </div>
                 ) : (
                     <>
-                        <div className="flex items-center justify-between">
-                            <h2 className="text-2xl font-bold tracking-tight">Ventas</h2>
+                        <PageHeader
+                            icon={ShoppingCart}
+                            title="Ventas"
+                            description="Historial y gestión de todas las ventas registradas."
+                        >
                             {userPermissions.includes('Crear Ventas') && (
                                 <Button onClick={handleCreateSale} className="gap-1">
                                     <Plus className="h-4 w-4" />
                                     Nueva Venta
                                 </Button>
                             )}
-                        </div>
+                        </PageHeader>
                         <div className="bg-white dark:bg-[oklch(0.100205_0_0)] overflow-hidden shadow-sm sm:rounded-lg p-6">
                             <SalesTable
                                 sales={sales}

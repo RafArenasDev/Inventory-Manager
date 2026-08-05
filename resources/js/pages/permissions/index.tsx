@@ -4,9 +4,10 @@ import { Head, usePage } from '@inertiajs/react';
 import PermissionsTable from './permissionsTable';
 import { router } from '@inertiajs/react';
 import { Button } from '@/components/ui/button';
-import { ChevronLeft, Plus } from 'lucide-react';
+import { ChevronLeft, Key, Plus } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import PermissionForm from './permissionForm';
+import { PageHeader } from '@/components/page-header';
 
 interface Permission {
     id: number;
@@ -116,38 +117,37 @@ export default function PermissionIndex({
             <div className="flex h-full flex-1 flex-col gap-4 rounded-xl p-4">
                 {isCreating || editingPermission ? (
                     <div className="bg-white dark:bg-[oklch(0.100205_0_0)] overflow-hidden shadow-sm sm:rounded-lg p-6">
-                        <div className="flex items-center justify-between mb-6">
-                            <h2 className="text-2xl font-bold tracking-tight">
-                                {isCreating ? 'Nuevo Permiso' : `Editar Permiso: ${editingPermission?.label}`}
-                            </h2>
-                            <Button
-                                onClick={handleCancelForm}
-                                className="gap-1"
-                            >
+                        <PageHeader
+                            icon={Key}
+                            title={isCreating ? 'Nuevo Permiso' : `Editar Permiso: ${editingPermission?.label}`}
+                        >
+                            <Button onClick={handleCancelForm} className="gap-1">
                                 <ChevronLeft className="h-4 w-4" />
                                 Atrás
                             </Button>
+                        </PageHeader>
+                        <div className="mt-6">
+                            <PermissionForm
+                                permission={editingPermission ?? undefined}
+                                onCancel={handleCancelForm}
+                                userPermissions={userPermissions}
+                            />
                         </div>
-                        <PermissionForm
-                            permission={editingPermission ?? undefined}
-                            onCancel={handleCancelForm}
-                            userPermissions={userPermissions}
-                        />
                     </div>
                 ) : (
                     <>
-                        <div className="flex items-center justify-between">
-                            <h2 className="text-2xl font-bold tracking-tight">Permisos</h2>
+                        <PageHeader
+                            icon={Key}
+                            title="Permisos"
+                            description="Administra los permisos que pueden asignarse a los roles."
+                        >
                             {userPermissions.includes('Crear Permisos') && (
-                                <Button
-                                    onClick={() => setIsCreating(true)}
-                                    className="gap-1"
-                                >
+                                <Button onClick={() => setIsCreating(true)} className="gap-1">
                                     <Plus className="h-4 w-4" />
                                     Nuevo Permiso
                                 </Button>
                             )}
-                        </div>
+                        </PageHeader>
                         <div className="bg-white dark:bg-[oklch(0.100205_0_0)] overflow-hidden shadow-sm sm:rounded-lg p-6">
                             <PermissionsTable
                                 permissions={permissions}

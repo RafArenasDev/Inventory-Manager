@@ -4,8 +4,9 @@ import { LinkProps, type BreadcrumbItem } from '@/types';
 import { Head, router, usePage } from '@inertiajs/react';
 import RolesTable from './rolesTable';
 import { Button } from '@/components/ui/button';
-import { ChevronLeft, Plus } from 'lucide-react';
+import { ChevronLeft, Plus, Shield } from 'lucide-react';
 import RoleForm from './roleForm';
+import { PageHeader } from '@/components/page-header';
 
 interface Role {
     id: number
@@ -136,36 +137,38 @@ export default function RoleIndex({ roles, permissions, filters, totalCount, fil
                 {/* Mostrar formulario o lista según el estado */}
                 {isCreating || editingRole ? (
                     <div className="bg-white dark:bg-[oklch(0.100205_0_0)] overflow-hidden shadow-sm sm:rounded-lg p-6">
-                        <div className="flex items-center justify-between mb-6">
-                            <h2 className="text-2xl font-bold tracking-tight">
-                                {isCreating ? 'Nuevo Rol' : `Editar Rol: ${editingRole?.label}`}
-                            </h2>
-                            <Button
-                                onClick={handleCancelForm}
-                                className="gap-1"
-                            >
+                        <PageHeader
+                            icon={Shield}
+                            title={isCreating ? 'Nuevo Rol' : `Editar Rol: ${editingRole?.label}`}
+                        >
+                            <Button onClick={handleCancelForm} className="gap-1">
                                 <ChevronLeft className="h-4 w-4" />
                                 Atrás
                             </Button>
+                        </PageHeader>
+                        <div className="mt-6">
+                            <RoleForm
+                                role={editingRole ?? undefined}
+                                permissions={permissions}
+                                onCancel={handleCancelForm}
+                                userPermissions={userPermissions}
+                            />
                         </div>
-                        <RoleForm
-                            role={editingRole ?? undefined}
-                            permissions={permissions}
-                            onCancel={handleCancelForm}
-                            userPermissions={userPermissions}
-                        />
                     </div>
                 ) : (
                     <>
-                        <div className="flex items-center justify-between">
-                            <h2 className="text-2xl font-bold tracking-tight">Roles</h2>
+                        <PageHeader
+                            icon={Shield}
+                            title="Roles"
+                            description="Define los roles disponibles y sus permisos asociados."
+                        >
                             {userPermissions.includes('Crear Roles') && (
                                 <Button onClick={handleCreateRole} className="gap-1">
                                     <Plus className="h-4 w-4" />
                                     Nuevo Rol
                                 </Button>
                             )}
-                        </div>
+                        </PageHeader>
                         <div className="bg-white dark:bg-[oklch(0.100205_0_0)] overflow-hidden shadow-sm sm:rounded-lg p-6">
                             <RolesTable
                                 roles={roles}
