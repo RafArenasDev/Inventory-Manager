@@ -140,18 +140,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/', [CategoryController::class, 'index'])
             ->name('categories.index')
             ->middleware('permission:Ver Categorías');
-        Route::get('/create', [CategoryController::class, 'create'])
-            ->name('categories.create')
-            ->middleware('permission:Crear Categorías');
         Route::post('/', [CategoryController::class, 'store'])
             ->name('categories.store')
             ->middleware('permission:Crear Categorías');
-        Route::get('/{category}', [CategoryController::class, 'show'])
-            ->name('categories.show')
-            ->middleware('permission:Ver Categorías');
-        Route::get('/{category}/edit', [CategoryController::class, 'edit'])
-            ->name('categories.edit')
-            ->middleware('permission:Editar Categorías');
         Route::put('/{category}', [CategoryController::class, 'update'])
             ->name('categories.update')
             ->middleware('permission:Actualizar Categorías');

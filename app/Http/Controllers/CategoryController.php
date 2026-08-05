@@ -70,14 +70,6 @@ class CategoryController extends Controller
     }
 
     /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        return Inertia::render('categories/create');
-    }
-
-    /**
      * Store a newly created resource in storage.
      */
     public function store(CategoryRequest $request)
@@ -101,34 +93,6 @@ class CategoryController extends Controller
         }
 
         return redirect()->back()->with('error', 'Error al crear la categoría.');
-    }
-
-    /**
-     * Display the specified resource.
-     */
-    public function show(Category $category)
-    {
-        return Inertia::render('categories/show', [
-            'category' => [
-                'id'          => $category->id,
-                'name'        => $category->name,
-                'description' => $category->description,
-            ],
-        ]);
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Category $category)
-    {
-        return Inertia::render('categories/edit', [
-            'category' => [
-                'id'          => $category->id,
-                'name'        => $category->name,
-                'description' => $category->description,
-            ],
-        ]);
     }
 
     /**
