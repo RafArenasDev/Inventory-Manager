@@ -7,7 +7,7 @@ import {
     TableRow,
 } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
-import { Ban, FileText, Eye, Download } from "lucide-react"
+import { Ban, FileText, Eye, Download, Receipt } from "lucide-react"
 import { Pagination } from "@/components/ui/pagination"
 import { router } from "@inertiajs/react"
 import Swal from 'sweetalert2'
@@ -204,11 +204,11 @@ export default function SalesTable({
                                 <TableCell>{sale.items.length}</TableCell>
                                 <TableCell>
                                     {sale.is_cancelled ? (
-                                        <span className="px-3 py-1 bg-red-500 text-white text-xs font-semibold rounded-full">
+                                        <span className="text-xs px-3 py-1 rounded-full bg-red-600 text-white font-bold w-fit shadow-sm dark:bg-red-700">
                                             Anulada
                                         </span>
                                     ) : (
-                                        <span className="px-3 py-1 bg-green-500 text-white text-xs font-semibold rounded-full">
+                                        <span className="text-xs px-3 py-1 rounded-full bg-green-600 text-white font-bold w-fit shadow-sm dark:bg-green-700">
                                             Activa
                                         </span>
                                     )}
@@ -220,7 +220,7 @@ export default function SalesTable({
                                                 variant="default"
                                                 size="icon"
                                                 onClick={() => router.visit(route('sales.show', sale.id))}
-                                                className="bg-green-500 hover:bg-green-600 text-white"
+                                                className="bg-blue-600 hover:bg-blue-700 text-white"
                                                 aria-label="Ver detalles"
                                             >
                                                 <Eye className="h-4 w-4 text-white" />
@@ -230,7 +230,7 @@ export default function SalesTable({
                                                     variant="default"
                                                     size="icon"
                                                     onClick={() => onViewInvoice(sale.public_invoice_url!)}
-                                                    className="bg-blue-500 hover:bg-blue-600 text-white"
+                                                    className="bg-blue-600 hover:bg-blue-700 text-white"
                                                     aria-label="Ver factura"
                                                 >
                                                     <FileText className="h-4 w-4 text-white" />
@@ -252,6 +252,16 @@ export default function SalesTable({
                                 )}
                             </TableRow>
                         ))}
+                        {sales.data.length === 0 && (
+                            <TableRow>
+                                <TableCell colSpan={showActionsColumn ? 8 : 7} className="h-24 text-center text-gray-500 dark:text-gray-400">
+                                    <div className="flex flex-col items-center justify-center gap-2">
+                                        <Receipt className="h-8 w-8 text-gray-400 dark:text-gray-500" />
+                                        <span className="text-sm font-medium">No se encontraron ventas</span>
+                                    </div>
+                                </TableCell>
+                            </TableRow>
+                        )}
                     </TableBody>
                 </Table>
             </div>

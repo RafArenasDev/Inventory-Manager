@@ -7,7 +7,7 @@ import {
     TableRow,
 } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
-import { Pencil, Download } from "lucide-react"
+import { Pencil, Download, Wallet } from "lucide-react"
 import { Pagination } from "@/components/ui/pagination"
 import SearchInput from "@/components/ui/search-input"
 // import Swal from 'sweetalert2'
@@ -136,7 +136,9 @@ export default function TransactionsTable({
     };
 
     const getTypeColor = (type: 'Ingreso' | 'Gasto') => {
-        return type === 'Ingreso' ? 'bg-green-500' : 'bg-red-500';
+        return type === 'Ingreso'
+            ? 'bg-green-600 dark:bg-green-700'
+            : 'bg-red-600 dark:bg-red-700';
     };
 
     const handleExport = () => {
@@ -186,7 +188,7 @@ export default function TransactionsTable({
                         {transactions.data.map((transaction) => (
                             <TableRow key={transaction.id}>
                                 <TableCell>
-                                    <span className={`px-3 py-1 ${getTypeColor(transaction.type)} text-white text-xs font-semibold rounded-full`}>
+                                    <span className={`text-xs px-3 py-1 rounded-full ${getTypeColor(transaction.type)} text-white font-bold w-fit shadow-sm`}>
                                         {transaction.type}
                                     </span>
                                 </TableCell>
@@ -238,6 +240,16 @@ export default function TransactionsTable({
                                 )}
                             </TableRow>
                         ))}
+                        {transactions.data.length === 0 && (
+                            <TableRow>
+                                <TableCell colSpan={showActionsColumn ? 9 : 8} className="h-24 text-center text-gray-500 dark:text-gray-400">
+                                    <div className="flex flex-col items-center justify-center gap-2">
+                                        <Wallet className="h-8 w-8 text-gray-400 dark:text-gray-500" />
+                                        <span className="text-sm font-medium">No se encontraron transacciones</span>
+                                    </div>
+                                </TableCell>
+                            </TableRow>
+                        )}
                     </TableBody>
                 </Table>
             </div>

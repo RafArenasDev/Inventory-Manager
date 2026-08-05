@@ -7,7 +7,7 @@ import {
     TableRow,
 } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import { Pencil, Trash2, Phone, Smartphone, History } from 'lucide-react';
+import { Pencil, Trash2, Phone, Smartphone, History, Users } from 'lucide-react';
 import { router } from '@inertiajs/react';
 import { Pagination } from '@/components/ui/pagination';
 import SearchInput from '@/components/ui/search-input';
@@ -176,7 +176,7 @@ export default function ClientsTable({
                                                     variant="default"
                                                     size="icon"
                                                     onClick={() => onViewHistory(client)}
-                                                    className="bg-blue-500 hover:bg-blue-600 text-white"
+                                                    className="bg-blue-600 hover:bg-blue-700 text-white"
                                                     aria-label="Ver historial"
                                                 >
                                                     <History className="h-4 w-4 text-white" />
@@ -209,6 +209,16 @@ export default function ClientsTable({
                                 )}
                             </TableRow>
                         ))}
+                        {clients.data.length === 0 && (
+                            <TableRow>
+                                <TableCell colSpan={showActionsColumn ? 6 : 5} className="h-24 text-center text-gray-500 dark:text-gray-400">
+                                    <div className="flex flex-col items-center justify-center gap-2">
+                                        <Users className="h-8 w-8 text-gray-400 dark:text-gray-500" />
+                                        <span className="text-sm font-medium">No se encontraron clientes</span>
+                                    </div>
+                                </TableCell>
+                            </TableRow>
+                        )}
                     </TableBody>
                 </Table>
             </div>
