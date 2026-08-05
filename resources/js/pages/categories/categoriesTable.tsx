@@ -6,7 +6,7 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table"
-import { Button } from "@/components/ui/button"
+import { IconActionButton } from "@/components/icon-action-button"
 import { Pencil, Tags, Trash2 } from "lucide-react"
 import { Pagination } from "@/components/ui/pagination"
 import { router } from "@inertiajs/react"
@@ -141,26 +141,24 @@ export default function CategoriesTable({
                                     <TableCell className="text-right">
                                         <div className="flex justify-end gap-2">
                                             {userPermissions.includes('Actualizar Categorías') && (
-                                                <Button
+                                                <IconActionButton
                                                     variant="ghost"
-                                                    size="icon"
                                                     onClick={() => onEditCategory(category)}
                                                     className="text-amber-600 hover:bg-amber-100 hover:text-amber-700 dark:text-amber-500 dark:hover:bg-amber-950/40 dark:hover:text-amber-400"
-                                                    aria-label="Editar categoría"
+                                                    label="Editar categoría"
                                                 >
                                                     <Pencil className="h-4 w-4" />
-                                                </Button>
+                                                </IconActionButton>
                                             )}
                                             {userPermissions.includes('Eliminar Categorías') && (
-                                                <Button
+                                                <IconActionButton
                                                     variant="ghost"
-                                                    size="icon"
                                                     onClick={() => handleDelete(category.id, category.name)}
                                                     className="text-red-600 hover:bg-red-100 hover:text-red-700 dark:text-red-500 dark:hover:bg-red-950/40 dark:hover:text-red-400"
-                                                    aria-label="Eliminar categoría"
+                                                    label="Eliminar categoría"
                                                 >
                                                     <Trash2 className="h-4 w-4" />
-                                                </Button>
+                                                </IconActionButton>
                                             )}
                                         </div>
                                     </TableCell>
