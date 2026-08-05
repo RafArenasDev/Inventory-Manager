@@ -70,14 +70,6 @@ class PermissionController extends Controller
     }
 
     /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        return Inertia::render('permissions/create');
-    }
-
-    /**
      * Store a newly created resource in storage.
      */
     public function store(PermissionRequest $request)
@@ -100,38 +92,6 @@ class PermissionController extends Controller
             return redirect()->route('permissions.index')->with('success', 'Permiso creado correctamente.');
         }
         return redirect()->back()->with('error', 'Error al crear el permiso.');
-    }
-
-    /**
-     * Display the specified resource.
-     */
-    public function show(Permission $permission)
-    {
-        return Inertia::render('permissions/show', [
-            'permission' => [
-                'id'          => $permission->id,
-                'name'        => $permission->name,
-                'label'       => $permission->label,
-                'module'      => $permission->module,
-                'description' => $permission->description,
-            ],
-        ]);
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Permission $permission)
-    {
-        return Inertia::render('permissions/edit', [
-            'permission' => [
-                'id'          => $permission->id,
-                'name'        => $permission->name,
-                'label'       => $permission->label,
-                'module'      => $permission->module,
-                'description' => $permission->description,
-            ],
-        ]);
     }
 
     /**

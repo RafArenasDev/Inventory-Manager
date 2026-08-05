@@ -6,8 +6,8 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table"
-import { Button } from "@/components/ui/button"
-import { Pencil, Trash2 } from "lucide-react"
+import { IconActionButton } from "@/components/icon-action-button"
+import { Key, Pencil, Trash2 } from "lucide-react"
 import { router } from "@inertiajs/react"
 import { Pagination } from "@/components/ui/pagination"
 import SearchInput from "@/components/ui/search-input"
@@ -93,17 +93,17 @@ export default function PermissionsTable({
         });
     };
 
-    const handleEdit = (permission: Permission, e: React.MouseEvent) => {
-        e.preventDefault();
-        if (onEditPermission) {
-            onEditPermission(permission);
-        } else {
-            router.visit(route('permissions.edit', permission.id));
-        }
-    };
+    const canEdit = userPermissions.includes('Editar Permisos');
+    const canDelete = userPermissions.includes('Eliminar Permisos');
+    const showActionsColumn = canEdit || canDelete;
 
-    // Check if the user has any permissions to show the "Acciones" column
-    const showActionsColumn = userPermissions.includes('Editar Permisos') || userPermissions.includes('Eliminar Permisos');
+    const groupedByModule = permissions.data.reduce((acc, permission) => {
+        if (!acc[permission.module]) {
+            acc[permission.module] = [];
+        }
+        acc[permission.module].push(permission);
+        return acc;
+    }, {} as Record<string, Permission[]>);
 
     return (
         <div className="space-y-4">
@@ -116,73 +116,79 @@ export default function PermissionsTable({
                 />
             </div>
 
-            {/* Tabla de permisos */}
+            {/* Tabla de permisos, agrupada por módulo */}
             <div className="rounded-md border dark:border-gray-700 overflow-hidden">
                 <Table>
                     <TableHeader className="bg-gray-400 dark:bg-gray-700">
                         <TableRow>
-                            <TableHead>Módulo</TableHead>
-                            <TableHead className="w-[200px]">Nombre</TableHead>
-                            <TableHead>Descripción</TableHead>
-                            {showActionsColumn && <TableHead className="text-right w-[120px]">Acciones</TableHead>}
+                            <TableHead className="w-[180px]">Módulo</TableHead>
+                            <TableHead>Permisos</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        {permissions.data.length > 0 ? (
-                            permissions.data.map((permission) => (
-                                <TableRow key={permission.id} className="hover:bg-gray-50 dark:hover:bg-gray-800/50">
-                                    <TableCell>
-                                        <span className="text-xs px-3 py-1 rounded-full bg-blue-600 text-white font-bold w-fit min-w-[100px] flex justify-center items-center shadow-sm dark:bg-blue-700">
-                                            {permission.module}
+                        {Object.entries(groupedByModule).length > 0 ? (
+                            Object.entries(groupedByModule).map(([module, modulePermissions]) => (
+                                <TableRow key={module} className="hover:bg-gray-50 dark:hover:bg-white/5">
+                                    <TableCell className="align-top">
+                                        <span className="text-xs px-3 py-1 rounded-full bg-blue-600 text-white font-bold w-fit shadow-sm dark:bg-blue-700">
+                                            {module}
                                         </span>
                                     </TableCell>
-                                    <TableCell className="font-medium">
-                                        <div className="flex flex-col">
-                                            <span className="font-semibold">{permission.name}</span>
+                                    <TableCell>
+                                        <div className="flex flex-wrap gap-2">
+                                            {modulePermissions.map((permission) => (
+                                                <div
+                                                    key={permission.id}
+                                                    className="inline-flex items-center gap-1 rounded-full border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-white/5 pl-3 pr-1 py-1 text-xs"
+                                                    title={permission.description || undefined}
+                                                >
+                                                    <span className="font-medium text-gray-700 dark:text-gray-200">
+                                                        {permission.label}
+                                                    </span>
+                                                    {showActionsColumn && (
+                                                        <div className="flex items-center">
+                                                            {canEdit && (
+                                                                <IconActionButton
+                                                                    variant="ghost"
+                                                                    className="h-6 w-6 text-amber-600 hover:bg-amber-100 hover:text-amber-700 dark:text-amber-500 dark:hover:bg-amber-950/40 dark:hover:text-amber-400"
+                                                                    label={`Editar permiso: ${permission.label}`}
+                                                                    onClick={() => onEditPermission?.(permission)}
+                                                                >
+                                                                    <Pencil className="h-3 w-3" />
+                                                                </IconActionButton>
+                                                            )}
+                                                            {canDelete && (
+                                                                <IconActionButton
+                                                                    variant="ghost"
+                                                                    className="h-6 w-6 text-red-600 hover:bg-red-100 hover:text-red-700 dark:text-red-500 dark:hover:bg-red-950/40 dark:hover:text-red-400"
+                                                                    label={`Eliminar permiso: ${permission.label}`}
+                                                                    onClick={() => handleDelete(permission.id, permission.label)}
+                                                                >
+                                                                    <Trash2 className="h-3 w-3" />
+                                                                </IconActionButton>
+                                                            )}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            ))}
                                         </div>
                                     </TableCell>
-                                    <TableCell className="text-gray-600 dark:text-gray-300">
-                                        {permission.description || '-'}
-                                    </TableCell>
-                                    {showActionsColumn && (
-                                        <TableCell className="text-right">
-                                            <div className="flex justify-end gap-2">
-                                                {userPermissions.includes('Editar Permisos') && (
-                                                    <Button
-                                                        variant="default"
-                                                        size="icon"
-                                                        onClick={(e) => handleEdit(permission, e)}
-                                                        className="bg-yellow-500 hover:bg-yellow-600 text-white"
-                                                        aria-label="Editar permiso"
-                                                    >
-                                                        <Pencil className="h-4 w-4 text-white" />
-                                                    </Button>
-                                                )}
-                                                {userPermissions.includes('Eliminar Permisos') && (
-                                                    <Button
-                                                        variant="default"
-                                                        size="icon"
-                                                        onClick={() => handleDelete(permission.id, permission.label)}
-                                                        className="bg-red-600 hover:bg-red-700 text-white"
-                                                        aria-label="Eliminar permiso"
-                                                    >
-                                                        <Trash2 className="h-4 w-4 text-white" />
-                                                    </Button>
-                                                )}
-                                            </div>
-                                        </TableCell>
-                                    )}
                                 </TableRow>
                             ))
                         ) : (
                             <TableRow>
-                                <TableCell colSpan={showActionsColumn ? 4 : 3} className="text-center py-8 text-gray-500 dark:text-gray-400">
-                                    No se encontraron permisos
-                                    {search && (
-                                        <span>
-                                            {' '}para "<span className="font-medium">{search}</span>"
+                                <TableCell colSpan={2} className="h-24 text-center text-gray-500 dark:text-gray-400">
+                                    <div className="flex flex-col items-center justify-center gap-2">
+                                        <Key className="h-8 w-8 text-gray-400 dark:text-gray-500" />
+                                        <span className="text-sm font-medium">
+                                            No se encontraron permisos
+                                            {search && (
+                                                <>
+                                                    {' '}para "<span className="font-medium">{search}</span>"
+                                                </>
+                                            )}
                                         </span>
-                                    )}
+                                    </div>
                                 </TableCell>
                             </TableRow>
                         )}

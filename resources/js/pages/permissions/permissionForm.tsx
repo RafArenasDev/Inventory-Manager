@@ -15,10 +15,12 @@ interface Permission {
 interface PermissionFormProps {
     permission?: Permission;
     onCancel: () => void;
+    onSaved: () => void;
+    onDirtyChange?: (isDirty: boolean) => void;
     userPermissions: string[];
 }
 
-const PermissionForm: React.FC<PermissionFormProps> = ({ permission, onCancel, userPermissions }) => {
+const PermissionForm: React.FC<PermissionFormProps> = ({ permission, onCancel, onSaved, onDirtyChange, userPermissions }) => {
     const actions = [
         { value: 'Ver', label: 'Ver' },
         { value: 'Crear', label: 'Crear' },
@@ -40,13 +42,17 @@ const PermissionForm: React.FC<PermissionFormProps> = ({ permission, onCancel, u
     const initialAction = initialPermission.name ? initialPermission.name.split(' ')[0] : '';
     const initialModule = initialPermission.module || '';
 
-    const { data, setData, post, put, processing, errors, reset } = useForm({
+    const { data, setData, post, put, processing, errors, reset, isDirty } = useForm({
         action: initialAction,
         module: initialModule,
         label: initialPermission.label || '',
         description: initialPermission.description || '',
         name: initialPermission.name || '',
     });
+
+    useEffect(() => {
+        onDirtyChange?.(isDirty);
+    }, [isDirty, onDirtyChange]);
 
     const generatePermissionNameAndLabel = (action: string, module: string) => {
         if (!action || !module) return { name: '', label: '' };
@@ -87,7 +93,7 @@ const PermissionForm: React.FC<PermissionFormProps> = ({ permission, onCancel, u
                     timer: 2200
                 });
                 reset();
-                onCancel();
+                onSaved();
             },
             onError: () => {
                 Swal.fire({
@@ -160,7 +166,7 @@ const PermissionForm: React.FC<PermissionFormProps> = ({ permission, onCancel, u
                         id="name"
                         value={data.name}
                         readOnly
-                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-gray-300 cursor-not-allowed"
+                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm bg-gray-50 dark:bg-white/5 text-gray-700 dark:text-gray-300 cursor-not-allowed"
                         required
                     />
                     <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
@@ -178,7 +184,7 @@ const PermissionForm: React.FC<PermissionFormProps> = ({ permission, onCancel, u
                         id="label"
                         value={data.label}
                         readOnly
-                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-gray-300 cursor-not-allowed"
+                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm bg-gray-50 dark:bg-white/5 text-gray-700 dark:text-gray-300 cursor-not-allowed"
                         required
                     />
                     {errors.label && <p className="mt-1 text-sm text-red-600">{errors.label}</p>}
@@ -192,7 +198,7 @@ const PermissionForm: React.FC<PermissionFormProps> = ({ permission, onCancel, u
                         id="description"
                         value={data.description}
                         readOnly
-                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-gray-300 cursor-not-allowed"
+                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm bg-gray-50 dark:bg-white/5 text-gray-700 dark:text-gray-300 cursor-not-allowed"
                         rows={3}
                         placeholder="Descripción generada automáticamente"
                     />

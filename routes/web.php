@@ -53,18 +53,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/', [PermissionController::class, 'index'])
             ->name('permissions.index')
             ->middleware('permission:Ver Permisos');
-        Route::get('/create', [PermissionController::class, 'create'])
-            ->name('permissions.create')
-            ->middleware('permission:Crear Permisos');
         Route::post('/', [PermissionController::class, 'store'])
             ->name('permissions.store')
             ->middleware('permission:Crear Permisos');
-        Route::get('/{permission}', [PermissionController::class, 'show'])
-            ->name('permissions.show')
-            ->middleware('permission:Ver Permisos');
-        Route::get('/{permission}/edit', [PermissionController::class, 'edit'])
-            ->name('permissions.edit')
-            ->middleware('permission:Editar Permisos');
         Route::put('/{permission}', [PermissionController::class, 'update'])
             ->name('permissions.update')
             ->middleware('permission:Actualizar Permisos');
