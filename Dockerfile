@@ -9,7 +9,7 @@ COPY . .
 RUN npm run build
 
 # ---- Stage 2: PHP application ----
-FROM php:8.2-apache AS app
+FROM php:8.4-apache AS app
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
         git unzip libzip-dev libpng-dev libonig-dev libxml2-dev \
