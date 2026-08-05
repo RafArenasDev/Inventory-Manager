@@ -91,14 +91,6 @@ class RoleController extends Controller
     }
 
     /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
      * Store a newly created resource in storage.
      */
     public function store(RoleRequest $request): RedirectResponse
@@ -116,22 +108,6 @@ class RoleController extends Controller
         }
 
         return redirect()->route('roles.index')->with('success', 'Rol creado correctamente.');
-    }
-
-    /**
-     * Display the specified resource.
-     */
-    public function show(Role $role)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Role $role)
-    {
-        //
     }
 
     /**

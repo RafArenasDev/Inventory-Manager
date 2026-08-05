@@ -29,12 +29,14 @@ interface Permission {
 interface RoleFormProps {
     role?: Role;
     onCancel: () => void;
+    onSaved: () => void;
+    onDirtyChange?: (isDirty: boolean) => void;
     permissions: Record<string, Permission[]>;
     userPermissions: string[];
 }
 
-const RoleForm: React.FC<RoleFormProps> = ({ role, onCancel, permissions, userPermissions }) => {
-    const { data, setData, post, put, processing, errors, reset } = useForm({
+const RoleForm: React.FC<RoleFormProps> = ({ role, onCancel, onSaved, onDirtyChange, permissions, userPermissions }) => {
+    const { data, setData, post, put, processing, errors, reset, isDirty } = useForm({
         name: role?.name || '',
         label: role?.label || '',
         description: role?.description || '',
@@ -57,6 +59,10 @@ const RoleForm: React.FC<RoleFormProps> = ({ role, onCancel, permissions, userPe
     useEffect(() => {
         setData('permissions', selectedPermissions);
     }, [selectedPermissions, setData]);
+
+    useEffect(() => {
+        onDirtyChange?.(isDirty);
+    }, [isDirty, onDirtyChange]);
 
     const handlePermissionToggle = (permissionId: number) => {
         setSelectedPermissions(prev =>
@@ -90,7 +96,7 @@ const RoleForm: React.FC<RoleFormProps> = ({ role, onCancel, permissions, userPe
                         timer: 2200
                     });
                     reset();
-                    onCancel();
+                    onSaved();
                 },
                 onError: () => {
                     Swal.fire({
@@ -114,7 +120,7 @@ const RoleForm: React.FC<RoleFormProps> = ({ role, onCancel, permissions, userPe
                         timer: 2200
                     });
                     reset();
-                    onCancel();
+                    onSaved();
                 },
                 onError: () => {
                     Swal.fire({
@@ -137,10 +143,9 @@ const RoleForm: React.FC<RoleFormProps> = ({ role, onCancel, permissions, userPe
         : userPermissions.includes('Crear Roles');
 
     return (
-        <div className="bg-white dark:bg-[oklch(0.100205_0_0)] overflow-hidden shadow-sm sm:rounded-lg p-6">
-            <form onSubmit={handleSubmit} className="space-y-6">
-                {/* Información básica */}
-                <div className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Información básica */}
+            <div className="space-y-4">
                     <div>
                         <label htmlFor="label" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                             Nombre del Rol *
@@ -296,8 +301,7 @@ const RoleForm: React.FC<RoleFormProps> = ({ role, onCancel, permissions, userPe
                         </Button>
                     )}
                 </div>
-            </form>
-        </div>
+        </form>
     );
 };
 

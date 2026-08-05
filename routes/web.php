@@ -37,18 +37,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/', [RoleController::class, 'index'])
             ->name('roles.index')
             ->middleware('permission:Ver Roles');
-        Route::get('/create', [RoleController::class, 'create'])
-            ->name('roles.create')
-            ->middleware('permission:Crear Roles');
         Route::post('/', [RoleController::class, 'store'])
             ->name('roles.store')
             ->middleware('permission:Crear Roles');
-        Route::get('/{role}', [RoleController::class, 'show'])
-            ->name('roles.show')
-            ->middleware('permission:Ver Roles');
-        Route::get('/{role}/edit', [RoleController::class, 'edit'])
-            ->name('roles.edit')
-            ->middleware('permission:Editar Roles');
         Route::put('/{role}', [RoleController::class, 'update'])
             ->name('roles.update')
             ->middleware('permission:Actualizar Roles');
