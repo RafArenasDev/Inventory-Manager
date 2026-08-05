@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { useForm } from '@inertiajs/react';
-import Swal from 'sweetalert2';
+import Swal from '@/lib/swal';
 import { Button } from '@/components/ui/button';
 
 interface Category {
@@ -12,11 +12,13 @@ interface Category {
 interface CategoryFormProps {
     category?: Category;
     onCancel: () => void;
+    onSaved: () => void;
+    onDirtyChange?: (isDirty: boolean) => void;
     userPermissions: string[]; // Añadido
 }
 
-const CategoryForm: React.FC<CategoryFormProps> = ({ category, onCancel, userPermissions }) => {
-    const { data, setData, post, put, processing, errors, reset } = useForm({
+const CategoryForm: React.FC<CategoryFormProps> = ({ category, onCancel, onSaved, onDirtyChange, userPermissions }) => {
+    const { data, setData, post, put, processing, errors, reset, isDirty } = useForm({
         name: category?.name || '',
         description: category?.description || '',
     });
@@ -29,6 +31,10 @@ const CategoryForm: React.FC<CategoryFormProps> = ({ category, onCancel, userPer
             });
         }
     }, [category, setData]);
+
+    useEffect(() => {
+        onDirtyChange?.(isDirty);
+    }, [isDirty, onDirtyChange]);
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -46,7 +52,7 @@ const CategoryForm: React.FC<CategoryFormProps> = ({ category, onCancel, userPer
                         timer: 2200
                     });
                     reset();
-                    onCancel();
+                    onSaved();
                 },
                 onError: () => {
                     Swal.fire({
@@ -70,7 +76,7 @@ const CategoryForm: React.FC<CategoryFormProps> = ({ category, onCancel, userPer
                         timer: 2200
                     });
                     reset();
-                    onCancel();
+                    onSaved();
                 },
                 onError: () => {
                     Swal.fire({
@@ -92,10 +98,9 @@ const CategoryForm: React.FC<CategoryFormProps> = ({ category, onCancel, userPer
         : userPermissions.includes('Crear Categorías');
 
     return (
-        <div className="bg-white dark:bg-[oklch(0.100205_0_0)] overflow-hidden shadow-sm sm:rounded-lg p-6">
-            <form onSubmit={handleSubmit} className="space-y-6">
-                {/* Información básica */}
-                <div className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Información básica */}
+            <div className="space-y-4">
                     <div>
                         <label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                             Nombre de la Categoría *
@@ -147,8 +152,7 @@ const CategoryForm: React.FC<CategoryFormProps> = ({ category, onCancel, userPer
                         </Button>
                     )}
                 </div>
-            </form>
-        </div>
+        </form>
     );
 };
 

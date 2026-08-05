@@ -1,12 +1,14 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import AppLayout from '@/layouts/app-layout';
 import { LinkProps, type BreadcrumbItem } from '@/types';
-import { Head, router, usePage } from '@inertiajs/react'; // Añadido usePage
+import { Head, router, usePage } from '@inertiajs/react';
 import CategoriesTable from './categoriesTable';
 import { Button } from '@/components/ui/button';
-import { ChevronLeft, Plus, Tags } from 'lucide-react';
+import { Plus, Tags } from 'lucide-react';
 import CategoryForm from './categoryForm';
 import { PageHeader } from '@/components/page-header';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { ConfirmDialog } from '@/components/confirm-dialog';
 
 interface Category {
     id: number
@@ -39,7 +41,7 @@ interface CategoryIndexProps {
     filteredCount: number
 }
 
-const initialBreadcrumbs: BreadcrumbItem[] = [
+const breadcrumbs: BreadcrumbItem[] = [
     {
         title: 'Categorías',
         href: '/categories',
@@ -49,73 +51,54 @@ const initialBreadcrumbs: BreadcrumbItem[] = [
 export default function CategoryIndex({ categories, filters, totalCount, filteredCount }: CategoryIndexProps) {
     const [isCreating, setIsCreating] = useState(false);
     const [editingCategory, setEditingCategory] = useState<CategoryForForm | null>(null);
-    const [breadcrumbs, setBreadcrumbs] = useState<BreadcrumbItem[]>(initialBreadcrumbs);
+    const [isFormDirty, setIsFormDirty] = useState(false);
+    const [showDiscardConfirm, setShowDiscardConfirm] = useState(false);
 
-    // Añadido: Obtener permisos del usuario
     const { auth } = usePage().props as unknown as { auth: { permissions: string[] } };
     const userPermissions = auth.permissions;
 
-    useEffect(() => {
-        if (isCreating) {
-            setBreadcrumbs([
-                ...initialBreadcrumbs,
-                {
-                    title: 'Crear Categoría',
-                    href: '/categories/create',
-                },
-            ]);
-            // Usamos replace: true para evitar agregar una nueva entrada al historial
-            window.history.replaceState({}, '', route('categories.create'));
-        } else if (editingCategory) {
-            setBreadcrumbs([
-                ...initialBreadcrumbs,
-                {
-                    title: `Editar Categoría`,
-                    href: `/categories/${editingCategory.id}/edit`,
-                },
-            ]);
-            window.history.replaceState({}, '', route('categories.edit', editingCategory.id));
-        } else {
-            setBreadcrumbs(initialBreadcrumbs);
-            window.history.replaceState({}, '', route('categories.index'));
-        }
-    }, [isCreating, editingCategory]);
+    const isModalOpen = isCreating || !!editingCategory;
 
     const handleCreateCategory = () => {
         if (!userPermissions.includes('Crear Categorías')) {
-            return; // No hacer nada si no tiene permisos
+            return;
         }
-        const newCategory: CategoryForForm = {
-            name: '',
-            description: '',
-        };
-        setEditingCategory(newCategory);
+        setEditingCategory({ name: '', description: '' });
         setIsCreating(true);
     };
 
     const handleEditCategory = (category: Category) => {
         if (!userPermissions.includes('Actualizar Categorías')) {
-            return; // No hacer nada si no tiene permisos
+            return;
         }
-        const categoryForForm: CategoryForForm = {
+        setEditingCategory({
             id: category.id,
             name: category.name,
             description: category.description,
-        };
-        setEditingCategory(categoryForForm);
+        });
         setIsCreating(false);
     };
 
-    const handleCancelForm = () => {
+    const closeForm = () => {
         setEditingCategory(null);
         setIsCreating(false);
+        setIsFormDirty(false);
+    };
+
+    const attemptCloseForm = () => {
+        if (!isFormDirty) {
+            closeForm();
+            return;
+        }
+
+        setShowDiscardConfirm(true);
     };
 
     const handleSearch = (search: string) => {
         router.get(route('categories.index'), {
             ...filters,
             search,
-            page: 1 // Reset to first page when searching
+            page: 1
         }, {
             preserveState: true,
             replace: true
@@ -126,56 +109,67 @@ export default function CategoryIndex({ categories, filters, totalCount, filtere
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Categorías" />
             <div className="flex h-full flex-1 flex-col gap-4 rounded-xl p-4">
-                {/* Mostrar formulario o lista según el estado */}
-                {isCreating || editingCategory ? (
-                    <div className="bg-white dark:bg-[oklch(0.100205_0_0)] overflow-hidden shadow-sm sm:rounded-lg p-6">
-                        <PageHeader
-                            icon={Tags}
-                            title={isCreating ? 'Nueva Categoría' : `Editar Categoría: ${editingCategory?.name}`}
-                        >
-                            <Button onClick={handleCancelForm} className="gap-1">
-                                <ChevronLeft className="h-4 w-4" />
-                                Atrás
-                            </Button>
-                        </PageHeader>
-                        <div className="mt-6">
-                            <CategoryForm
-                                category={editingCategory ?? undefined}
-                                onCancel={handleCancelForm}
-                                userPermissions={userPermissions}
-                            />
-                        </div>
-                    </div>
-                ) : (
-                    <>
-                        <PageHeader
-                            icon={Tags}
-                            title="Categorías"
-                            description="Organiza el catálogo de productos por categorías."
-                        >
-                            {userPermissions.includes('Crear Categorías') && (
-                                <Button onClick={handleCreateCategory} className="gap-1">
-                                    <Plus className="h-4 w-4" />
-                                    Nueva Categoría
-                                </Button>
-                            )}
-                        </PageHeader>
-                        <div className="bg-white dark:bg-[oklch(0.100205_0_0)] overflow-hidden shadow-sm sm:rounded-lg p-6">
-                            <CategoriesTable
-                                categories={categories}
-                                perPage={filters.per_page || "10"}
-                                onPerPageChange={() => { }}
-                                onEditCategory={handleEditCategory}
-                                totalCount={totalCount}
-                                filteredCount={filteredCount}
-                                search={filters.search || ""}
-                                onSearch={handleSearch}
-                                userPermissions={userPermissions} // Añadido
-                            />
-                        </div>
-                    </>
-                )}
+                <PageHeader
+                    icon={Tags}
+                    title="Categorías"
+                    description="Organiza el catálogo de productos por categorías."
+                >
+                    {userPermissions.includes('Crear Categorías') && (
+                        <Button onClick={handleCreateCategory} className="gap-1">
+                            <Plus className="h-4 w-4" />
+                            Nueva Categoría
+                        </Button>
+                    )}
+                </PageHeader>
+                <div className="bg-white dark:bg-[oklch(0.100205_0_0)] overflow-hidden shadow-sm sm:rounded-lg p-6">
+                    <CategoriesTable
+                        categories={categories}
+                        perPage={filters.per_page || "10"}
+                        onPerPageChange={() => { }}
+                        onEditCategory={handleEditCategory}
+                        totalCount={totalCount}
+                        filteredCount={filteredCount}
+                        search={filters.search || ""}
+                        onSearch={handleSearch}
+                        userPermissions={userPermissions}
+                    />
+                </div>
             </div>
+
+            <Dialog open={isModalOpen} onOpenChange={(open) => { if (!open) attemptCloseForm(); }}>
+                <DialogContent
+                    className="max-h-[90vh] overflow-y-auto sm:max-w-lg"
+                    onInteractOutside={(e) => e.preventDefault()}
+                >
+                    <DialogHeader>
+                        <DialogTitle>{isCreating ? 'Nueva Categoría' : `Editar Categoría: ${editingCategory?.name}`}</DialogTitle>
+                        <DialogDescription>
+                            {isCreating
+                                ? 'Completa los datos para crear una nueva categoría.'
+                                : 'Actualiza los datos de la categoría.'}
+                        </DialogDescription>
+                    </DialogHeader>
+                    {editingCategory && (
+                        <CategoryForm
+                            category={editingCategory}
+                            onCancel={attemptCloseForm}
+                            onSaved={closeForm}
+                            onDirtyChange={setIsFormDirty}
+                            userPermissions={userPermissions}
+                        />
+                    )}
+                </DialogContent>
+            </Dialog>
+
+            <ConfirmDialog
+                open={showDiscardConfirm}
+                onOpenChange={setShowDiscardConfirm}
+                title="¿Descartar cambios?"
+                description="Tienes cambios sin guardar que se perderán."
+                confirmText="Sí, descartar"
+                cancelText="Seguir editando"
+                onConfirm={closeForm}
+            />
         </AppLayout>
     );
 }

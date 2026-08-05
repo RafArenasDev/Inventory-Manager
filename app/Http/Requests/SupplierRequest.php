@@ -2,6 +2,7 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class SupplierRequest extends FormRequest
 {
@@ -15,9 +16,14 @@ class SupplierRequest extends FormRequest
         $supplierId = $this->route('supplier');
 
         return [
-            'name'           => 'required|string|max:255|unique:suppliers,name,' . $supplierId,
+            'name'           => ['required', 'string', 'max:255', Rule::unique('suppliers', 'name')->ignore($supplierId)],
             'representative' => 'nullable|string|max:255',
-            'nit_number'     => 'required|integer|min:1|unique:suppliers,nit_number,' . $supplierId . ',id,nit_digit,' . $this->nit_digit,
+            'nit_number'     => [
+                'required',
+                'integer',
+                'min:1',
+                Rule::unique('suppliers', 'nit_number')->ignore($supplierId)->where('nit_digit', $this->nit_digit),
+            ],
             'nit_digit'      => 'required|integer|between:0,9',
             'phone'          => 'nullable|string|max:20',
             'cellphone'      => 'nullable|string|max:20',
