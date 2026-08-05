@@ -7,7 +7,7 @@ import {
     TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { X, Download } from "lucide-react";
+import { X, Download, Landmark } from "lucide-react";
 import { Pagination } from "@/components/ui/pagination";
 import SearchInput from "@/components/ui/search-input";
 
@@ -163,7 +163,7 @@ export default function CashRegisterTable({
                                             variant="default"
                                             size="icon"
                                             onClick={() => onEditCashRegister(cashRegister)}
-                                            className="bg-red-500  text-white"
+                                            className="bg-red-600 hover:bg-red-700 text-white"
                                             aria-label="Cerrar caja"
                                         >
                                             <X className="h-4 w-4 text-white" />
@@ -172,6 +172,16 @@ export default function CashRegisterTable({
                                 )}
                             </TableRow>
                         ))}
+                        {cashRegisters.data.length === 0 && (
+                            <TableRow>
+                                <TableCell colSpan={showActionsColumn ? 12 : 11} className="h-24 text-center text-gray-500 dark:text-gray-400">
+                                    <div className="flex flex-col items-center justify-center gap-2">
+                                        <Landmark className="h-8 w-8 text-gray-400 dark:text-gray-500" />
+                                        <span className="text-sm font-medium">No se encontraron registros de caja</span>
+                                    </div>
+                                </TableCell>
+                            </TableRow>
+                        )}
                     </TableBody>
                 </Table>
             </div>

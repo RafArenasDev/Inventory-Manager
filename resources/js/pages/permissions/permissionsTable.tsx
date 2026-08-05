@@ -113,7 +113,6 @@ export default function PermissionsTable({
                     placeholder="Buscar permisos por nombre o módulo..."
                     searchValue={search}
                     onSearch={onSearch}
-                    className="w-full sm:w-96"
                 />
             </div>
 

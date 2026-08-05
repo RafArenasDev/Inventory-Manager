@@ -155,7 +155,7 @@ export default function TransactionsTable({
                     placeholder="Buscar por descripción o referencia..."
                     searchValue={search}
                     onSearch={onSearch}
-                    className="w-full sm:w-auto"
+                    className="w-full sm:w-auto sm:max-w-md"
                 />
                 {userPermissions.includes('Exportar Transacciones') && (
                     <Button

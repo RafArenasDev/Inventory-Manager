@@ -112,7 +112,6 @@ export default function UsersTable({
                     placeholder="Buscar usuarios por Nombre o Email..."
                     searchValue={search}
                     onSearch={onSearch}
-                    className="w-full sm:w-96"
                 />
             </div>
 

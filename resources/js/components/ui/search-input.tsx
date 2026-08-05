@@ -1,6 +1,6 @@
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
-import { X } from "lucide-react"
+import { Search, X } from "lucide-react"
 import { debounce } from "lodash"
 import { useEffect, useMemo, useState } from "react"
 import { router } from "@inertiajs/react"
@@ -78,13 +78,14 @@ export default function SearchInput({
     }
 
     return (
-        <div className="relative">
+        <div className={`relative ${className || "w-full max-w-md"}`}>
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
                 type="text"
                 placeholder={placeholder}
                 value={localValue}
                 onChange={handleChange}
-                className={`max-w-sm pr-8 ${className}`}
+                className="pl-9 pr-8"
             />
             {localValue && (
                 <Button

@@ -134,7 +134,6 @@ export default function ClientsTable({
                     placeholder="Buscar clientes por Nombre o Documento..."
                     searchValue={search}
                     onSearch={onSearch}
-                    className="w-full sm:w-96"
                 />
             </div>
 
