@@ -197,7 +197,7 @@ const RoleForm: React.FC<RoleFormProps> = ({ role, onCancel, onSaved, onDirtyCha
                                     <div key={module} className="border-b border-gray-100 dark:border-gray-700 last:border-b-0">
                                         {/* Header del módulo */}
                                         <div
-                                            className="flex items-center justify-between p-3 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800/30 transition-colors"
+                                            className="flex items-center justify-between p-3 cursor-pointer hover:bg-gray-50 dark:hover:bg-white/5 transition-colors"
                                             onClick={() => toggleModule(module)}
                                         >
                                             <div className="flex items-center gap-2">
@@ -217,14 +217,14 @@ const RoleForm: React.FC<RoleFormProps> = ({ role, onCancel, onSaved, onDirtyCha
 
                                         {/* Contenido colapsable */}
                                         {isExpanded && (
-                                            <div className="p-3 bg-gray-50/50 dark:bg-gray-800/20 animate-in slide-in-from-top-2 duration-200">
+                                            <div className="p-3 bg-gray-50/50 dark:bg-white/[0.03] animate-in slide-in-from-top-2 duration-200">
                                                 <div className="space-y-2">
                                                     {modulePermissions.map((permission) => {
                                                         const isSelected = selectedPermissions.includes(permission.id);
                                                         return (
                                                             <div
                                                                 key={permission.id}
-                                                                className="flex items-center space-x-2 p-2 hover:bg-gray-100 dark:hover:bg-gray-700/50 rounded-md transition-colors"
+                                                                className="flex items-center space-x-2 p-2 hover:bg-gray-100 dark:hover:bg-white/5 rounded-md transition-colors"
                                                             >
                                                                 <Checkbox
                                                                     id={`permission-${permission.id}`}
@@ -256,21 +256,21 @@ const RoleForm: React.FC<RoleFormProps> = ({ role, onCancel, onSaved, onDirtyCha
                             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                                 Permisos Seleccionados ({selectedPermissions.length})
                             </label>
-                            <div className="flex flex-wrap gap-2 max-h-20 overflow-y-auto p-3 border border-gray-200 dark:border-gray-600 rounded-md bg-gray-50 dark:bg-gray-800/50">
+                            <div className="flex flex-wrap gap-2 max-h-20 overflow-y-auto p-3 border border-gray-200 dark:border-gray-600 rounded-md bg-gray-50 dark:bg-white/5">
                                 {allPermissions
                                     .filter(p => selectedPermissions.includes(p.id))
                                     .map((permission) => (
                                         <Badge
                                             key={permission.id}
                                             variant="secondary"
-                                            className="flex items-center gap-1 bg-blue-100 hover:bg-blue-200 text-blue-800 border-blue-200 text-xs px-3 py-1"
+                                            className="flex items-center gap-1 bg-blue-600 hover:bg-blue-700 text-white border-transparent text-xs px-3 py-1 dark:bg-blue-700 dark:hover:bg-blue-600"
                                         >
                                             <span className="truncate max-w-[120px]">{permission.label}</span>
                                             <Button
                                                 type="button"
                                                 variant="ghost"
                                                 size="sm"
-                                                className="h-4 w-4 p-0 -mr-1 hover:bg-blue-200"
+                                                className="h-4 w-4 p-0 -mr-1 text-white hover:bg-blue-800 hover:text-white dark:hover:bg-blue-900"
                                                 onClick={() => handlePermissionToggle(permission.id)}
                                             >
                                                 <X className="h-3 w-3" />
