@@ -8,7 +8,7 @@ import ClientsTable from './clientsTable';
 import ClientHistoryModal from './clientHistoryModal';
 import ClientForm from './clientForm';
 import axios from 'axios';
-import Swal from 'sweetalert2';
+import Swal from '@/lib/swal';
 import { PageHeader } from '@/components/page-header';
 
 interface SaleItem {

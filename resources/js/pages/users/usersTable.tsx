@@ -11,7 +11,7 @@ import { Pencil, Trash2 } from 'lucide-react';
 import { router } from '@inertiajs/react';
 import { Pagination } from '@/components/ui/pagination';
 import SearchInput from '@/components/ui/search-input';
-import Swal from 'sweetalert2';
+import Swal from '@/lib/swal';
 
 interface User {
     id: number;

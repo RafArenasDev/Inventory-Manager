@@ -2,7 +2,7 @@ import { Head, useForm } from '@inertiajs/react';
 import { LoaderCircle } from 'lucide-react';
 import { FormEventHandler } from 'react';
 import { useEffect } from 'react';
-import Swal from 'sweetalert2';
+import Swal from '@/lib/swal';
 
 import TextLink from '@/components/text-link';
 import { Button } from '@/components/ui/button';

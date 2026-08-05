@@ -4,7 +4,7 @@ import { Head, router } from '@inertiajs/react';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { ChevronLeft, MessageCircle } from "lucide-react";
-import Swal from 'sweetalert2';
+import Swal from '@/lib/swal';
 
 interface SaleItem {
     id: number;

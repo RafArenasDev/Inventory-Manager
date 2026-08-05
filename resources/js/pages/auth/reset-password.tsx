@@ -1,7 +1,7 @@
 import { Head, useForm } from '@inertiajs/react';
 import { LoaderCircle } from 'lucide-react';
 import { FormEventHandler } from 'react';
-import Swal from 'sweetalert2';
+import Swal from '@/lib/swal';
 
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';

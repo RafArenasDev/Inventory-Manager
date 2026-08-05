@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button"
 import { Pencil, Trash2, Phone, Smartphone, Download } from "lucide-react"
 import { Pagination } from "@/components/ui/pagination"
 import { router } from "@inertiajs/react"
-import Swal from 'sweetalert2'
+import Swal from '@/lib/swal';
 import SearchInput from "@/components/ui/search-input"
 
 interface Supplier {

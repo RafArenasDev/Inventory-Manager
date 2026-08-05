@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { useForm } from '@inertiajs/react';
-import Swal from 'sweetalert2';
+import Swal from '@/lib/swal';
 import { Button } from '@/components/ui/button';
 
 interface Permission {

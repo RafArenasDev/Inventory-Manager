@@ -1,7 +1,7 @@
 // Modified roleForm.tsx
 import React, { useEffect, useState } from 'react';
 import { useForm } from '@inertiajs/react';
-import Swal from 'sweetalert2';
+import Swal from '@/lib/swal';
 import { Button } from '@/components/ui/button';
 import { Badge } from "@/components/ui/badge"
 import { X, ChevronDown } from "lucide-react";
