@@ -14,6 +14,13 @@ fi
 php artisan config:clear
 php artisan storage:link || true
 php artisan migrate --force
+
+# Solo permisos, roles y usuarios (idempotente). El resto de tablas
+# (categorías, proveedores, productos, etc.) quedan limpias a propósito.
+php artisan db:seed --class=PermissionSeeder --force
+php artisan db:seed --class=RoleSeeder --force
+php artisan db:seed --class=UserSeeder --force
+
 php artisan config:cache
 php artisan route:cache
 
