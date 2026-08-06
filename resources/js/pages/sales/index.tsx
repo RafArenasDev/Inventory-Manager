@@ -6,7 +6,8 @@ import SalesTable from './salesTable';
 import { Button } from '@/components/ui/button';
 import { Plus, ShoppingCart } from 'lucide-react';
 import SaleForm from './saleForm';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
+import { SaleModal } from '../saleModal';
 import { ConfirmDialog } from '@/components/confirm-dialog';
 import { PageHeader } from '@/components/page-header';
 
@@ -217,31 +218,23 @@ export default function SaleIndex({ sales, products, clients, departments, citie
                 </div>
             </div>
 
-            <Dialog open={isCreating} onOpenChange={(open) => { if (!open) attemptCloseForm(); }}>
-                <DialogContent
-                    className="max-h-[90vh] w-[95vw] overflow-y-auto sm:max-w-3xl lg:max-w-5xl xl:max-w-6xl"
-                    onInteractOutside={(e) => e.preventDefault()}
-                >
-                    <DialogHeader>
-                        <DialogTitle>Nueva Venta</DialogTitle>
-                        <DialogDescription>
-                            Completa los datos para registrar una nueva venta.
-                        </DialogDescription>
-                    </DialogHeader>
-                    {isCreating && (
-                        <SaleForm
-                            products={products}
-                            clients={clients}
-                            departments={departments}
-                            cities={cities}
-                            onCancel={attemptCloseForm}
-                            onSaved={closeForm}
-                            onDirtyChange={setIsFormDirty}
-                            userPermissions={userPermissions}
-                        />
-                    )}
-                </DialogContent>
-            </Dialog>
+            <SaleModal
+                open={isCreating}
+                onOpenChange={(open) => { if (!open) attemptCloseForm(); }}
+            >
+                {isCreating && (
+                    <SaleForm
+                        products={products}
+                        clients={clients}
+                        departments={departments}
+                        cities={cities}
+                        onCancel={attemptCloseForm}
+                        onSaved={closeForm}
+                        onDirtyChange={setIsFormDirty}
+                        userPermissions={userPermissions}
+                    />
+                )}
+            </SaleModal>
 
             <ConfirmDialog
                 open={showDiscardConfirm}

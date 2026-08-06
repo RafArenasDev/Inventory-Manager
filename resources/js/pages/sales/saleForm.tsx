@@ -4,7 +4,9 @@ import { router, usePage } from '@inertiajs/react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Plus, Minus, Trash2 } from "lucide-react";
 import ClientForm from '../clients/clientForm';
 
@@ -102,6 +104,18 @@ const formatCurrency = (value: number): string => {
     return `$ ${Math.round(value).toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.')}`;
 };
 
+const InfoField: React.FC<{ label: string; value?: string | number | null; className?: string }> = ({ label, value, className }) => (
+    <div className={`min-w-0 ${className || ''}`}>
+        <p className="text-[10px] font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">{label}</p>
+        <p
+            className="truncate text-sm text-gray-900 dark:text-gray-100"
+            title={value !== undefined && value !== null && value !== '' ? String(value) : undefined}
+        >
+            {value !== undefined && value !== null && value !== '' ? value : 'No especificado'}
+        </p>
+    </div>
+);
+
 const SaleForm: React.FC<SaleFormProps> = ({ sale, onCancel, onSaved, onDirtyChange, products, clients, departments, cities, userPermissions }) => {
     const { auth } = usePage().props as unknown as { auth: { user: { id: number } } };
     // Usar hora de Bogotá explícitamente: `toISOString()` da la fecha en UTC,
@@ -140,7 +154,7 @@ const SaleForm: React.FC<SaleFormProps> = ({ sale, onCancel, onSaved, onDirtyCha
 
     useEffect(() => {
         onDirtyChange?.(selectedItems.length > 0 || formData.client_id !== null);
-         
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [selectedItems, formData.client_id, onDirtyChange]);
 
     const handleClientInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -374,14 +388,11 @@ const SaleForm: React.FC<SaleFormProps> = ({ sale, onCancel, onSaved, onDirtyCha
             total_paid: totalPaid,
         };
 
-        // console.log('Data sent:', JSON.stringify(dataToSend, null, 2));
-
         const url = route('sales.store');
         router.visit(url, {
             method: 'post',
             data: dataToSend,
             onSuccess: () => {
-                // console.log('Success');
                 Swal.fire({
                     position: "center",
                     icon: "success",
@@ -393,7 +404,6 @@ const SaleForm: React.FC<SaleFormProps> = ({ sale, onCancel, onSaved, onDirtyCha
                 if (onSaved) { onSaved(); } else { onCancel(); }
             },
             onError: (err) => {
-                // console.log('Errors:', JSON.stringify(err, null, 2));
                 setErrors(err);
                 Swal.fire({
                     position: "center",
@@ -411,12 +421,14 @@ const SaleForm: React.FC<SaleFormProps> = ({ sale, onCancel, onSaved, onDirtyCha
     const canSubmit = userPermissions.includes('Crear Ventas');
 
     const selectedClient = formData.client_id ? clients.find(c => c.id === formData.client_id) : null;
+    const isNequi = formData.payment_method === 'Nequi';
 
     return (
-        <div className="bg-white dark:bg-[oklch(0.100205_0_0)] overflow-hidden shadow-sm sm:rounded-lg p-6 max-w-full mx-auto">
-            <form onSubmit={handleSubmit} className="space-y-8">
-                <div className="space-y-6">
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Información del Cliente</h3>
+        <>
+            <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0 gap-4">
+                {/* Información del Cliente */}
+                <div className="space-y-2 shrink-0">
+                    <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">Información del Cliente</h3>
                     <div className="relative max-w-md">
                         <div className="flex space-x-2">
                             <Input
@@ -431,18 +443,18 @@ const SaleForm: React.FC<SaleFormProps> = ({ sale, onCancel, onSaved, onDirtyCha
                                     }
                                 }}
                                 placeholder="Documento (CC, TI, CE, NIT)"
-                                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-black text-gray-900 dark:text-gray-100"
+                                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-black text-gray-900 dark:text-gray-100"
                             />
                             <Button type="button" onClick={handleClientSearch} disabled={!formData.client_document_number}>
                                 Buscar
                             </Button>
                         </div>
                         {filteredClients.length > 0 && (
-                            <ul className="absolute z-10 w-full bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 max-h-60 overflow-auto rounded-md shadow-lg mt-1">
+                            <ul className="absolute z-10 w-full bg-white dark:bg-black border border-gray-300 dark:border-gray-700 max-h-60 overflow-auto rounded-md shadow-lg mt-1">
                                 {filteredClients.map((c) => (
                                     <li
                                         key={c.id}
-                                        className="px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer text-gray-900 dark:text-gray-100"
+                                        className="px-3 py-2 hover:bg-gray-100 dark:hover:bg-white/5 cursor-pointer text-gray-900 dark:text-gray-100"
                                         onClick={() => handleSelectClient(c)}
                                     >
                                         {c.document_number} - {c.name}
@@ -451,105 +463,77 @@ const SaleForm: React.FC<SaleFormProps> = ({ sale, onCancel, onSaved, onDirtyCha
                             </ul>
                         )}
                         {clientNotFound && (
-                            <div className="mt-2 p-2 bg-blue-50 border border-blue-200 rounded-md">
-                                <p className="text-sm text-blue-800">
+                            <div className="mt-2 p-2 bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-900 rounded-md">
+                                <p className="text-sm text-blue-800 dark:text-blue-300">
                                     Cliente no encontrado. Se abrirá el formulario para crear uno nuevo.
                                 </p>
                             </div>
                         )}
                     </div>
                     {selectedClient && (
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-                            <div>
-                                <Label htmlFor="client_document_type">Tipo de Documento</Label>
-                                <Input id="client_document_type" value={selectedClient.document_type || ''} readOnly className="bg-gray-100 dark:bg-gray-700" />
-                            </div>
-                            <div>
-                                <Label htmlFor="client_document_number_display">Número de Documento</Label>
-                                <Input id="client_document_number_display" value={selectedClient.document_number || ''} readOnly className="bg-gray-100 dark:bg-gray-700" />
-                            </div>
+                        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-x-4 gap-y-2 rounded-md border border-gray-200 dark:border-gray-800 p-2.5">
+                            <InfoField label="Tipo Doc." value={selectedClient.document_type} />
+                            <InfoField label="N° Documento" value={selectedClient.document_number} />
+                            <InfoField label="Nombre" value={selectedClient.name} />
+                            <InfoField label="Email" value={selectedClient.email} />
+                            <InfoField label="Teléfono" value={selectedClient.phone} />
+                            <InfoField label="Celular" value={selectedClient.cellphone} />
+                            <InfoField label="Dirección" value={selectedClient.address} />
+                            <InfoField
+                                label="Ciudad / Depto."
+                                value={`${selectedClient.city || 'Ciudad no especificada'}, ${selectedClient.department || 'Depto. no especificado'}`}
+                            />
                             {selectedClient.document_type === 'NIT' && (
-                                <div>
-                                    <Label htmlFor="client_verification_digit">Dígito de Verificación</Label>
-                                    <Input id="client_verification_digit" value={selectedClient.verification_digit || ''} readOnly className="bg-gray-100 dark:bg-gray-700" />
-                                </div>
+                                <InfoField label="Dígito Verif." value={selectedClient.verification_digit} />
                             )}
-                            <div>
-                                <Label htmlFor="client_name">Nombre</Label>
-                                <Input id="client_name" value={selectedClient.name || ''} readOnly className="bg-gray-100 dark:bg-gray-700" />
-                            </div>
-                            <div>
-                                <Label htmlFor="client_email">Email</Label>
-                                <Input id="client_email" value={selectedClient.email || ''} readOnly className="bg-gray-100 dark:bg-gray-700" />
-                            </div>
-                            <div>
-                                <Label htmlFor="client_phone">Teléfono</Label>
-                                <Input id="client_phone" value={selectedClient.phone || ''} readOnly className="bg-gray-100 dark:bg-gray-700" />
-                            </div>
-                            <div>
-                                <Label htmlFor="client_cellphone">Celular</Label>
-                                <Input id="client_cellphone" value={selectedClient.cellphone || ''} readOnly className="bg-gray-100 dark:bg-gray-700" />
-                            </div>
-                            <div className="md:col-span-2">
-                                <Label htmlFor="client_address">Dirección</Label>
-                                <Input id="client_address" value={selectedClient.address || ''} readOnly className="bg-gray-100 dark:bg-gray-700" />
-                            </div>
-                            <div>
-                                <Label htmlFor="client_department">Departamento</Label>
-                                <Input id="client_department" value={selectedClient.department || ''} readOnly className="bg-gray-100 dark:bg-gray-700" />
-                            </div>
-                            <div>
-                                <Label htmlFor="client_city">Ciudad</Label>
-                                <Input id="client_city" value={selectedClient.city || ''} readOnly className="bg-gray-100 dark:bg-gray-700" />
-                            </div>
                         </div>
                     )}
-                    {errors.client_id && <p className="mt-1 text-sm text-red-600">{errors.client_id}</p>}
+                    {errors.client_id && <p className="text-sm text-red-600">{errors.client_id}</p>}
                 </div>
 
-                <div className="space-y-6">
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Detalles de la Venta</h3>
-                    <div>
-                        <Label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                            Método de Pago *
-                        </Label>
-                        <div className="flex space-x-2">
-                            <Button
-                                type="button"
-                                variant={formData.payment_method === 'Efectivo' ? 'default' : 'outline'}
-                                onClick={() => setFormData(prev => ({ ...prev, payment_method: 'Efectivo' }))}
-                            >
-                                Efectivo
-                            </Button>
-                            <Button
-                                type="button"
-                                variant={formData.payment_method === 'Nequi' ? 'default' : 'outline'}
-                                onClick={() => setFormData(prev => ({ ...prev, payment_method: 'Nequi' }))}
-                            >
-                                Nequi
-                            </Button>
+                {/* Detalles de la Venta */}
+                <div className="space-y-2 shrink-0">
+                    <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">Detalles de la Venta</h3>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <Label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                Método de Pago *
+                            </Label>
+                            <div className="flex items-center gap-2.5 h-[34px]">
+                                <span className={`text-sm ${!isNequi ? 'font-semibold text-gray-900 dark:text-gray-100' : 'text-gray-400 dark:text-gray-500'}`}>
+                                    Efectivo
+                                </span>
+                                <Switch
+                                    id="payment_method"
+                                    checked={isNequi}
+                                    onCheckedChange={(checked) => setFormData(prev => ({ ...prev, payment_method: checked ? 'Nequi' : 'Efectivo' }))}
+                                />
+                                <span className={`text-sm ${isNequi ? 'font-semibold text-gray-900 dark:text-gray-100' : 'text-gray-400 dark:text-gray-500'}`}>
+                                    Nequi
+                                </span>
+                            </div>
+                            {errors.payment_method && <p className="mt-1 text-sm text-red-600">{errors.payment_method}</p>}
                         </div>
-                        {errors.payment_method && <p className="mt-1 text-sm text-red-600">{errors.payment_method}</p>}
-                    </div>
 
-                    <div>
-                        <Label htmlFor="discount" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                            Descuento Total (%)
-                        </Label>
-                        <input
-                            type="text"
-                            id="discount"
-                            value={formData.discount === 0 ? '' : formData.discount}
-                            onChange={handleDiscountChange}
-                            onKeyPress={(e) => {
-                                if (!/[0-9.]/.test(e.key)) {
-                                    e.preventDefault();
-                                }
-                            }}
-                            className="w-full max-w-xs px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-black text-gray-900 dark:text-gray-100"
-                            placeholder="0"
-                        />
-                        {errors.discount && <p className="mt-1 text-sm text-red-600">{errors.discount}</p>}
+                        <div>
+                            <Label htmlFor="discount" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                Descuento Total (%)
+                            </Label>
+                            <input
+                                type="text"
+                                id="discount"
+                                value={formData.discount === 0 ? '' : formData.discount}
+                                onChange={handleDiscountChange}
+                                onKeyPress={(e) => {
+                                    if (!/[0-9.]/.test(e.key)) {
+                                        e.preventDefault();
+                                    }
+                                }}
+                                className="w-24 px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-black text-gray-900 dark:text-gray-100"
+                                placeholder="0"
+                            />
+                            {errors.discount && <p className="mt-1 text-sm text-red-600">{errors.discount}</p>}
+                        </div>
                     </div>
 
                     <div>
@@ -560,117 +544,123 @@ const SaleForm: React.FC<SaleFormProps> = ({ sale, onCancel, onSaved, onDirtyCha
                             id="notes"
                             value={formData.notes || ''}
                             onChange={(e) => setFormData(prev => ({ ...prev, notes: e.target.value }))}
-                            rows={3}
-                            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-black text-gray-900 dark:text-gray-100"
+                            rows={1}
+                            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-black text-gray-900 dark:text-gray-100"
                             placeholder="Notas adicionales (opcional)"
                         />
                         {errors.notes && <p className="mt-1 text-sm text-red-600">{errors.notes}</p>}
                     </div>
                 </div>
 
-                <div className="space-y-6">
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Items de la Venta</h3>
-                    <div className="relative max-w-md">
-                        <div className="flex space-x-2">
-                            <Input
-                                type="text"
-                                value={productSearch}
-                                onChange={handleProductInputChange}
-                                onKeyPress={(e) => {
-                                    if (e.key === 'Enter') {
-                                        e.preventDefault();
-                                        handleProductSearch();
-                                    }
-                                }}
-                                placeholder="Código del producto (ej. JL161200)"
-                                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-black text-gray-900 dark:text-gray-100"
-                            />
-                            <Button type="button" onClick={handleProductSearch} disabled={!productSearch}>
-                                Añadir Item
-                            </Button>
+                {/* Items de la Venta — única zona con scroll */}
+                <div className="flex flex-col flex-1 min-h-[150px] gap-2">
+                    <div className="shrink-0 space-y-2">
+                        <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">Items de la Venta</h3>
+                        <div className="relative max-w-md">
+                            <div className="flex space-x-2">
+                                <Input
+                                    type="text"
+                                    value={productSearch}
+                                    onChange={handleProductInputChange}
+                                    onKeyPress={(e) => {
+                                        if (e.key === 'Enter') {
+                                            e.preventDefault();
+                                            handleProductSearch();
+                                        }
+                                    }}
+                                    placeholder="Código del producto (ej. JL161200)"
+                                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-black text-gray-900 dark:text-gray-100"
+                                />
+                                <Button type="button" onClick={handleProductSearch} disabled={!productSearch}>
+                                    Añadir Item
+                                </Button>
+                            </div>
+                            {filteredProducts.length > 0 && (
+                                <ul className="absolute z-10 w-full bg-white dark:bg-black border border-gray-300 dark:border-gray-700 max-h-60 overflow-auto rounded-md shadow-lg mt-1">
+                                    {filteredProducts.map((p) => (
+                                        <li
+                                            key={p.id}
+                                            className="px-3 py-2 hover:bg-gray-100 dark:hover:bg-white/5 cursor-pointer text-gray-900 dark:text-gray-100"
+                                            onClick={() => handleSelectProduct(p)}
+                                        >
+                                            {p.code} - {p.name}
+                                        </li>
+                                    ))}
+                                </ul>
+                            )}
                         </div>
-                        {filteredProducts.length > 0 && (
-                            <ul className="absolute z-10 w-full bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 max-h-60 overflow-auto rounded-md shadow-lg mt-1">
-                                {filteredProducts.map((p) => (
-                                    <li
-                                        key={p.id}
-                                        className="px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer text-gray-900 dark:text-gray-100"
-                                        onClick={() => handleSelectProduct(p)}
-                                    >
-                                        {p.code} - {p.name}
-                                    </li>
-                                ))}
-                            </ul>
-                        )}
                     </div>
-                    <div className="rounded-md border overflow-hidden">
-                        <Table>
-                            <TableHeader className="bg-gray-400 dark:bg-gray-700">
-                                <TableRow>
-                                    <TableHead>Código</TableHead>
-                                    <TableHead>Producto</TableHead>
-                                    <TableHead>Precio Unitario</TableHead>
-                                    <TableHead>Precio Total</TableHead>
-                                    <TableHead>Cantidad</TableHead>
-                                    <TableHead className="text-right">Acciones</TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {selectedItems.map((item, index) => (
-                                    <TableRow key={index}>
-                                        <TableCell>{item.product_code}</TableCell>
-                                        <TableCell>{item.product_name}</TableCell>
-                                        <TableCell>{formatCurrency(item.price_at_sale || 0)}</TableCell>
-                                        <TableCell>{formatCurrency(calculateItemTotal(item))}</TableCell>
-                                        <TableCell>
-                                            <div className="flex items-center space-x-2">
-                                                <Button
-                                                    type="button"
-                                                    variant="outline"
-                                                    size="icon"
-                                                    onClick={() => handleUpdateQuantity(index, -1)}
-                                                    disabled={item.quantity <= 1}
-                                                >
-                                                    <Minus className="h-4 w-4" />
-                                                </Button>
-                                                <span className="min-w-[2rem] text-center">{item.quantity}</span>
-                                                <Button
-                                                    type="button"
-                                                    variant="outline"
-                                                    size="icon"
-                                                    onClick={() => handleUpdateQuantity(index, 1)}
-                                                    disabled={item.quantity >= (products.find(p => p.id === item.product_id)?.stock || 0)}
-                                                >
-                                                    <Plus className="h-4 w-4" />
-                                                </Button>
-                                            </div>
-                                        </TableCell>
-                                        <TableCell className="text-right">
-                                            <Button
-                                                type="button"
-                                                variant="destructive"
-                                                size="icon"
-                                                onClick={() => handleRemoveItem(index)}
-                                            >
-                                                <Trash2 className="h-4 w-4" />
-                                            </Button>
-                                        </TableCell>
-                                    </TableRow>
-                                ))}
-                                {selectedItems.length === 0 && (
+                    <div className="flex flex-col flex-1 min-h-0 rounded-md border border-gray-200 dark:border-gray-800 overflow-hidden">
+                        <div className="flex-1 min-h-0 overflow-y-auto">
+                            <Table>
+                                <TableHeader className="bg-gray-100 dark:bg-white/[0.04] sticky top-0">
                                     <TableRow>
-                                        <TableCell colSpan={6} className="text-center py-4">
-                                            No hay items agregados. Ingrese un código de producto arriba.
-                                        </TableCell>
+                                        <TableHead>Código</TableHead>
+                                        <TableHead>Producto</TableHead>
+                                        <TableHead>Precio Unitario</TableHead>
+                                        <TableHead>Precio Total</TableHead>
+                                        <TableHead>Cantidad</TableHead>
+                                        <TableHead className="text-right">Acciones</TableHead>
                                     </TableRow>
-                                )}
-                            </TableBody>
-                        </Table>
+                                </TableHeader>
+                                <TableBody>
+                                    {selectedItems.map((item, index) => (
+                                        <TableRow key={index}>
+                                            <TableCell>{item.product_code}</TableCell>
+                                            <TableCell>{item.product_name}</TableCell>
+                                            <TableCell>{formatCurrency(item.price_at_sale || 0)}</TableCell>
+                                            <TableCell>{formatCurrency(calculateItemTotal(item))}</TableCell>
+                                            <TableCell>
+                                                <div className="flex items-center space-x-2">
+                                                    <Button
+                                                        type="button"
+                                                        variant="outline"
+                                                        size="icon"
+                                                        onClick={() => handleUpdateQuantity(index, -1)}
+                                                        disabled={item.quantity <= 1}
+                                                    >
+                                                        <Minus className="h-4 w-4" />
+                                                    </Button>
+                                                    <span className="min-w-[2rem] text-center">{item.quantity}</span>
+                                                    <Button
+                                                        type="button"
+                                                        variant="outline"
+                                                        size="icon"
+                                                        onClick={() => handleUpdateQuantity(index, 1)}
+                                                        disabled={item.quantity >= (products.find(p => p.id === item.product_id)?.stock || 0)}
+                                                    >
+                                                        <Plus className="h-4 w-4" />
+                                                    </Button>
+                                                </div>
+                                            </TableCell>
+                                            <TableCell className="text-right">
+                                                <Button
+                                                    type="button"
+                                                    variant="destructive"
+                                                    size="icon"
+                                                    onClick={() => handleRemoveItem(index)}
+                                                >
+                                                    <Trash2 className="h-4 w-4" />
+                                                </Button>
+                                            </TableCell>
+                                        </TableRow>
+                                    ))}
+                                    {selectedItems.length === 0 && (
+                                        <TableRow>
+                                            <TableCell colSpan={6} className="text-center py-4 text-gray-500 dark:text-gray-400">
+                                                No hay items agregados. Ingrese un código de producto arriba.
+                                            </TableCell>
+                                        </TableRow>
+                                    )}
+                                </TableBody>
+                            </Table>
+                        </div>
                     </div>
-                    {errors.items && <p className="mt-1 text-sm text-red-600">{errors.items}</p>}
+                    {errors.items && <p className="text-sm text-red-600">{errors.items}</p>}
                 </div>
 
-                <div className="space-y-2 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                {/* Totales */}
+                <div className="space-y-0.5 p-2.5 bg-gray-50 dark:bg-white/[0.03] rounded-lg shrink-0">
                     <div className="flex justify-between text-sm">
                         <span className="font-medium">Subtotal:</span>
                         <span>{formatCurrency(totalWithoutTax)}</span>
@@ -679,17 +669,14 @@ const SaleForm: React.FC<SaleFormProps> = ({ sale, onCancel, onSaved, onDirtyCha
                         <span className="font-medium">Descuento ({formData.discount}%):</span>
                         <span className="text-red-600">-{formatCurrency(discountAmount)}</span>
                     </div>
-                    <div className="flex justify-between text-sm">
-                        <span className="font-medium">Total con Descuento:</span>
-                        <span>{formatCurrency(totalWithDiscount)}</span>
-                    </div>
-                    <div className="flex justify-between text-lg font-bold border-t pt-2">
+                    <div className="flex justify-between text-lg font-bold border-t border-gray-200 dark:border-gray-800 pt-1.5">
                         <span>Total a Pagar:</span>
-                        <span className="text-green-600">{formatCurrency(totalPaid)}</span>
+                        <span className="text-green-600 dark:text-green-500">{formatCurrency(totalPaid)}</span>
                     </div>
                 </div>
 
-                <div className="flex justify-end space-x-3 pt-4 border-t border-gray-200 dark:border-gray-700">
+                {/* Botones de acción */}
+                <div className="flex justify-end space-x-3 pt-3 border-t border-gray-200 dark:border-gray-800 shrink-0">
                     <Button
                         type="button"
                         onClick={onCancel}
@@ -710,44 +697,41 @@ const SaleForm: React.FC<SaleFormProps> = ({ sale, onCancel, onSaved, onDirtyCha
             </form>
 
             {/* Modal para crear cliente */}
-            {showClientModal && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-                    <div className="bg-white dark:bg-[oklch(0.100205_0_0)] rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-                        <div className="p-6">
-                            <div className="flex justify-between items-center mb-6">
-                                <h3 className="text-xl font-bold">Crear Nuevo Cliente</h3>
-                                <Button
-                                    type="button"
-                                    variant="outline"
-                                    onClick={handleCancelClientModal}
-                                >
-                                    Cerrar
-                                </Button>
-                            </div>
-                            <ClientForm
-                                client={{
-                                    document_type: '',
-                                    document_number: formData.client_document_number || '',
-                                    name: '',
-                                    department_id: undefined,
-                                    city_id: undefined,
-                                    phone: '',
-                                    cellphone: '',
-                                    address: '',
-                                    email: '',
-                                    is_active: true,
-                                }}
-                                onCancel={handleCancelClientModal}
-                                userPermissions={userPermissions}
-                                departments={departments}
-                                cities={cities}
-                                onSuccess={handleClientCreated}
-                            />
-                        </div>
-                    </div>
-                </div>
-            )}
-        </div>
+            <Dialog open={showClientModal} onOpenChange={(open) => { if (!open) handleCancelClientModal(); }}>
+                <DialogContent
+                    className="max-h-[90vh] overflow-y-auto sm:max-w-lg"
+                    onInteractOutside={(e) => e.preventDefault()}
+                >
+                    <DialogHeader>
+                        <DialogTitle>Nuevo Cliente</DialogTitle>
+                        <DialogDescription>
+                            Completa los datos para registrar el cliente y continuar con la venta.
+                        </DialogDescription>
+                    </DialogHeader>
+                    {showClientModal && (
+                        <ClientForm
+                            client={{
+                                document_type: '',
+                                document_number: formData.client_document_number || '',
+                                name: '',
+                                department_id: undefined,
+                                city_id: undefined,
+                                phone: '',
+                                cellphone: '',
+                                address: '',
+                                email: '',
+                                is_active: true,
+                            }}
+                            onCancel={handleCancelClientModal}
+                            userPermissions={userPermissions}
+                            departments={departments}
+                            cities={cities}
+                            onSuccess={handleClientCreated}
+                        />
+                    )}
+                </DialogContent>
+            </Dialog>
+        </>
     );
 };
 
