@@ -31,38 +31,18 @@ class UserController extends Controller
         $totalCount    = $userQuery->count();
         $filteredCount = $userQuery->count();
 
-        // Paginación
-        $perPage = (int) ($request->per_page ?? 10);
+        // Paginación (topada a 200 para evitar cargas desmedidas)
+        $perPage = max(1, min((int) ($request->per_page ?? 10), 100));
 
-        if ($perPage === -1) {
-            $allUsers = $userQuery->get()->map(function ($user) {
-                return [
-                    'id'    => $user->id,
-                    'name'  => $user->name,
-                    'email' => $user->email,
-                    'roles' => $user->roles->pluck('name')->toArray(), // Devolver roles como array de nombres
-                ];
-            });
-
-            $users = [
-                'data'     => $allUsers,
-                'total'    => $filteredCount,
-                'per_page' => $perPage,
-                'from'     => 1,
-                'to'       => $filteredCount,
-                'links'    => [],
+        $users = $userQuery->paginate($perPage)->withQueryString();
+        $users->getCollection()->transform(function ($user) {
+            return [
+                'id'    => $user->id,
+                'name'  => $user->name,
+                'email' => $user->email,
+                'roles' => $user->roles->pluck('name')->toArray(), // Devolver roles como array de nombres
             ];
-        } else {
-            $users = $userQuery->paginate($perPage)->withQueryString();
-            $users->getCollection()->transform(function ($user) {
-                return [
-                    'id'    => $user->id,
-                    'name'  => $user->name,
-                    'email' => $user->email,
-                    'roles' => $user->roles->pluck('name')->toArray(), // Devolver roles como array de nombres
-                ];
-            });
-        }
+        });
 
         // Obtener todos los roles disponibles
         $roles = Role::get()->map(function ($role) {

@@ -57,83 +57,40 @@ class TransactionController extends Controller
         $totalCount    = $transactionsQuery->count();
         $filteredCount = $transactionsQuery->count();
 
-        $perPage = (int) ($request->per_page ?? 10);
+        $perPage = max(1, min((int) ($request->per_page ?? 10), 100));
 
-        if ($perPage === -1) {
-            $allTransactions = $transactionsQuery->get()->map(function ($transaction) {
-                return [
-                    'id'                      => $transaction->id,
-                    'type'                    => $transaction->type,
-                    'transaction_category_id' => $transaction->transaction_category_id,
-                    'category'                => [
-                        'id'   => $transaction->category->id,
-                        'name' => $transaction->category->name,
-                        'type' => $transaction->category->type,
-                    ],
-                    'amount'                  => $transaction->amount,
-                    'transaction_date'        => $transaction->transaction_date,
-                    'transaction_time'        => $transaction->transaction_time,
-                    'payment_method'          => $transaction->payment_method,
-                    'invoice_number'          => $transaction->invoice_number,
-                    'description'             => $transaction->description,
-                    'notes'                   => $transaction->notes,
-                    'sale_id'                 => $transaction->sale_id,
-                    'sale'                    => $transaction->sale ? [
-                        'id'             => $transaction->sale->id,
-                        'invoice_number' => $transaction->sale->invoice_number,
-                        'items'          => $transaction->sale->items->map(function ($item) {
-                            return [
-                                'name'     => $item->product->name ?? 'Producto no encontrado',
-                                'quantity' => $item->quantity,
-                                'price'    => $item->price_at_sale,
-                            ];
-                        })->toArray(),
-                    ] : null,
-                ];
-            });
-
-            $transactions = [
-                'data'     => $allTransactions,
-                'total'    => $filteredCount,
-                'per_page' => $perPage,
-                'from'     => 1,
-                'to'       => $filteredCount,
-                'links'    => [],
+        $transactions = $transactionsQuery->paginate($perPage)->withQueryString();
+        $transactions->getCollection()->transform(function ($transaction) {
+            return [
+                'id'                      => $transaction->id,
+                'type'                    => $transaction->type,
+                'transaction_category_id' => $transaction->transaction_category_id,
+                'category'                => [
+                    'id'   => $transaction->category->id,
+                    'name' => $transaction->category->name,
+                    'type' => $transaction->category->type,
+                ],
+                'amount'                  => $transaction->amount,
+                'transaction_date'        => $transaction->transaction_date,
+                'transaction_time'        => $transaction->transaction_time,
+                'payment_method'          => $transaction->payment_method,
+                'invoice_number'          => $transaction->invoice_number,
+                'description'             => $transaction->description,
+                'notes'                   => $transaction->notes,
+                'sale_id'                 => $transaction->sale_id,
+                'sale'                    => $transaction->sale ? [
+                    'id'             => $transaction->sale->id,
+                    'invoice_number' => $transaction->sale->invoice_number,
+                    'items'          => $transaction->sale->items->map(function ($item) {
+                        return [
+                            'name'     => $item->product->name ?? 'Producto no encontrado',
+                            'quantity' => $item->quantity,
+                            'price'    => $item->price_at_sale,
+                        ];
+                    })->toArray(),
+                ] : null,
             ];
-        } else {
-            $transactions = $transactionsQuery->paginate($perPage)->withQueryString();
-            $transactions->getCollection()->transform(function ($transaction) {
-                return [
-                    'id'                      => $transaction->id,
-                    'type'                    => $transaction->type,
-                    'transaction_category_id' => $transaction->transaction_category_id,
-                    'category'                => [
-                        'id'   => $transaction->category->id,
-                        'name' => $transaction->category->name,
-                        'type' => $transaction->category->type,
-                    ],
-                    'amount'                  => $transaction->amount,
-                    'transaction_date'        => $transaction->transaction_date,
-                    'transaction_time'        => $transaction->transaction_time,
-                    'payment_method'          => $transaction->payment_method,
-                    'invoice_number'          => $transaction->invoice_number,
-                    'description'             => $transaction->description,
-                    'notes'                   => $transaction->notes,
-                    'sale_id'                 => $transaction->sale_id,
-                    'sale'                    => $transaction->sale ? [
-                        'id'             => $transaction->sale->id,
-                        'invoice_number' => $transaction->sale->invoice_number,
-                        'items'          => $transaction->sale->items->map(function ($item) {
-                            return [
-                                'name'     => $item->product->name ?? 'Producto no encontrado',
-                                'quantity' => $item->quantity,
-                                'price'    => $item->price_at_sale,
-                            ];
-                        })->toArray(),
-                    ] : null,
-                ];
-            });
-        }
+        });
 
         $totals = Transaction::selectRaw('
             SUM(amount) as total_amount,
@@ -342,21 +299,6 @@ class TransactionController extends Controller
     }
 
     /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        $categories = TransactionCategory::where('is_active', true)
-            ->orderBy('name')
-            ->get(['id', 'name', 'type']);
-
-        return Inertia::render('transactions/index', [
-            'showForm'   => true,
-            'categories' => $categories,
-        ]);
-    }
-
-    /**
      * Store a newly created resource in storage.
      */
     public function store(TransactionRequest $request)
@@ -376,33 +318,6 @@ class TransactionController extends Controller
 
         return redirect()->route('transactions.index')
             ->with('success', 'Transacción creada correctamente');
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Transaction $transaction)
-    {
-        $categories = TransactionCategory::where('is_active', true)
-            ->orderBy('name')
-            ->get(['id', 'name', 'type']);
-
-        return Inertia::render('transactions/index', [
-            'showForm'           => true,
-            'editingTransaction' => $transaction->load('category'),
-            'categories'         => $categories,
-        ]);
-    }
-
-    /**
-     * Display the specified resource.
-     */
-    public function show(Transaction $transaction)
-    {
-        return Inertia::render('transactions/index', [
-            'showModal'          => true,
-            'transactionDetails' => $transaction->load('category', 'sale.items.product'),
-        ]);
     }
 
     /**

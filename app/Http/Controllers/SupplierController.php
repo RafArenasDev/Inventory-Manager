@@ -35,59 +35,28 @@ class SupplierController extends Controller
         $totalCount    = $suppliersQuery->count();
         $filteredCount = $suppliersQuery->count();
 
-        $perPage = (int) ($request->per_page ?? 10);
+        $perPage = max(1, min((int) ($request->per_page ?? 10), 100));
 
-        if ($perPage === -1) {
-            $allSuppliers = $suppliersQuery->get()->map(function ($supplier) {
-                return [
-                    'id'             => $supplier->id,
-                    'name'           => $supplier->name,
-                    'representative' => $supplier->representative,
-                    'nit'            => $supplier->nit,
-                    'nit_number'     => $supplier->nit_number,
-                    'nit_digit'      => $supplier->nit_digit,
-                    'phone'          => $supplier->phone,
-                    'cellphone'      => $supplier->cellphone,
-                    'address'        => $supplier->address,
-                    'email'          => $supplier->email,
-                    'description'    => $supplier->description,
-                    'products_count' => $supplier->products()->count(),
-                    'main_contact'   => $supplier->main_contact,
-                    'main_phone'     => $supplier->main_phone,
-                    'is_active'      => $supplier->is_active,
-                ];
-            });
-
-            $suppliers = [
-                'data'     => $allSuppliers,
-                'total'    => $filteredCount,
-                'per_page' => $perPage,
-                'from'     => 1,
-                'to'       => $filteredCount,
-                'links'    => [],
+        $suppliers = $suppliersQuery->paginate($perPage)->withQueryString();
+        $suppliers->getCollection()->transform(function ($supplier) {
+            return [
+                'id'             => $supplier->id,
+                'name'           => $supplier->name,
+                'representative' => $supplier->representative,
+                'nit'            => $supplier->nit,
+                'nit_number'     => $supplier->nit_number,
+                'nit_digit'      => $supplier->nit_digit,
+                'phone'          => $supplier->phone,
+                'cellphone'      => $supplier->cellphone,
+                'address'        => $supplier->address,
+                'email'          => $supplier->email,
+                'description'    => $supplier->description,
+                'products_count' => $supplier->products()->count(),
+                'main_contact'   => $supplier->main_contact,
+                'main_phone'     => $supplier->main_phone,
+                'is_active'      => $supplier->is_active,
             ];
-        } else {
-            $suppliers = $suppliersQuery->paginate($perPage)->withQueryString();
-            $suppliers->getCollection()->transform(function ($supplier) {
-                return [
-                    'id'             => $supplier->id,
-                    'name'           => $supplier->name,
-                    'representative' => $supplier->representative,
-                    'nit'            => $supplier->nit,
-                    'nit_number'     => $supplier->nit_number,
-                    'nit_digit'      => $supplier->nit_digit,
-                    'phone'          => $supplier->phone,
-                    'cellphone'      => $supplier->cellphone,
-                    'address'        => $supplier->address,
-                    'email'          => $supplier->email,
-                    'description'    => $supplier->description,
-                    'products_count' => $supplier->products()->count(),
-                    'main_contact'   => $supplier->main_contact,
-                    'main_phone'     => $supplier->main_phone,
-                    'is_active'      => $supplier->is_active,
-                ];
-            });
-        }
+        });
 
         return Inertia::render('suppliers/index', [
             'suppliers'     => $suppliers,
@@ -95,15 +64,6 @@ class SupplierController extends Controller
             'totalCount'    => $totalCount,
             'filteredCount' => $filteredCount,
         ]);
-    }
-
-    /**
-     * Summary of create
-     * @return void
-     */
-    public function create()
-    {
-        //
     }
 
     /**
@@ -127,26 +87,6 @@ class SupplierController extends Controller
         ]);
 
         return redirect()->route('suppliers.index')->with('success', 'Proveedor creado correctamente.');
-    }
-
-    /**
-     * Summary of show
-     * @param \App\Models\Supplier $supplier
-     * @return void
-     */
-    public function show(Supplier $supplier)
-    {
-        //
-    }
-
-    /**
-     * Summary of edit
-     * @param \App\Models\Supplier $supplier
-     * @return void
-     */
-    public function edit(Supplier $supplier)
-    {
-        //
     }
 
     /**

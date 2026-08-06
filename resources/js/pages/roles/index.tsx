@@ -10,6 +10,13 @@ import { PageHeader } from '@/components/page-header';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { ConfirmDialog } from '@/components/confirm-dialog';
 
+interface Permission {
+    id: number
+    name: string
+    label: string
+    module: string
+}
+
 interface Role {
     id: number
     name: string
@@ -20,11 +27,10 @@ interface Role {
     updated_at: string
 }
 
-interface Permission {
+interface CatalogModule {
     id: number
-    name: string
+    key: string
     label: string
-    module: string
 }
 
 interface RoleForForm {
@@ -32,7 +38,7 @@ interface RoleForForm {
     name: string;
     label: string;
     description?: string;
-    permissions: number[];
+    permissions: Permission[];
 }
 
 interface RoleIndexProps {
@@ -43,7 +49,8 @@ interface RoleIndexProps {
         to: number
         total: number
     }
-    permissions: Record<string, Permission[]>
+    permissions: Permission[]
+    catalogModules: CatalogModule[]
     filters: {
         search?: string
         per_page?: string
@@ -54,12 +61,12 @@ interface RoleIndexProps {
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
-        title: 'Roles',
+        title: 'Roles y Permisos',
         href: '/roles',
     },
 ];
 
-export default function RoleIndex({ roles, permissions, filters, totalCount, filteredCount }: RoleIndexProps) {
+export default function RoleIndex({ roles, permissions, catalogModules, filters, totalCount, filteredCount }: RoleIndexProps) {
     const [isCreating, setIsCreating] = useState(false);
     const [editingRole, setEditingRole] = useState<RoleForForm | null>(null);
     const [isFormDirty, setIsFormDirty] = useState(false);
@@ -81,7 +88,7 @@ export default function RoleIndex({ roles, permissions, filters, totalCount, fil
             name: role.name,
             label: role.label,
             description: role.description,
-            permissions: role.permissions.map((p) => p.id),
+            permissions: role.permissions,
         });
         setIsCreating(false);
     };
@@ -114,14 +121,14 @@ export default function RoleIndex({ roles, permissions, filters, totalCount, fil
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Roles" />
+            <Head title="Roles y Permisos" />
             <div className="flex h-full flex-1 flex-col gap-4 rounded-xl p-4">
                 <PageHeader
                     icon={Shield}
-                    title="Roles"
-                    description="Define los roles disponibles y sus permisos asociados."
+                    title="Roles y Permisos"
+                    description="Define los roles disponibles y los permisos asociados a cada módulo."
                 >
-                    {userPermissions.includes('Crear Roles') && (
+                    {userPermissions.includes('Crear Roles y Permisos') && (
                         <Button onClick={handleCreateRole} className="gap-1">
                             <Plus className="h-4 w-4" />
                             Nuevo Rol
@@ -131,7 +138,6 @@ export default function RoleIndex({ roles, permissions, filters, totalCount, fil
                 <div className="bg-white dark:bg-[oklch(0.100205_0_0)] overflow-hidden shadow-sm sm:rounded-lg p-6">
                     <RolesTable
                         roles={roles}
-                        permissions={permissions}
                         perPage={filters.per_page || "10"}
                         onPerPageChange={() => { }}
                         onEditRole={handleEditRole}
@@ -146,10 +152,10 @@ export default function RoleIndex({ roles, permissions, filters, totalCount, fil
 
             <Dialog open={isModalOpen} onOpenChange={(open) => { if (!open) attemptCloseForm(); }}>
                 <DialogContent
-                    className="max-h-[90vh] overflow-y-auto sm:max-w-xl"
+                    className="max-h-[90vh] w-[95vw] flex flex-col overflow-hidden sm:max-w-3xl lg:max-w-5xl xl:max-w-6xl"
                     onInteractOutside={(e) => e.preventDefault()}
                 >
-                    <DialogHeader>
+                    <DialogHeader className="shrink-0">
                         <DialogTitle>{isCreating ? 'Nuevo Rol' : `Editar Rol: ${editingRole?.label}`}</DialogTitle>
                         <DialogDescription>
                             {isCreating
@@ -161,6 +167,7 @@ export default function RoleIndex({ roles, permissions, filters, totalCount, fil
                         <RoleForm
                             role={editingRole}
                             permissions={permissions}
+                            catalogModules={catalogModules}
                             onCancel={attemptCloseForm}
                             onSaved={closeForm}
                             onDirtyChange={setIsFormDirty}

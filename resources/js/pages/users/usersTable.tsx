@@ -6,8 +6,8 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table';
-import { Button } from '@/components/ui/button';
-import { Pencil, Trash2 } from 'lucide-react';
+import { IconActionButton } from '@/components/icon-action-button';
+import { Pencil, Trash2, Users as UsersIcon } from 'lucide-react';
 import { router } from '@inertiajs/react';
 import { Pagination } from '@/components/ui/pagination';
 import SearchInput from '@/components/ui/search-input';
@@ -155,32 +155,40 @@ export default function UsersTable({
                                     <TableCell className="text-right">
                                         <div className="flex justify-end gap-2">
                                             {userPermissions.includes('Editar Usuarios') && (
-                                                <Button
-                                                    variant="default"
-                                                    size="icon"
+                                                <IconActionButton
+                                                    variant="ghost"
                                                     onClick={() => onEditUser(user)}
-                                                    className="bg-yellow-500 hover:bg-yellow-600 text-white"
-                                                    aria-label="Editar usuario"
+                                                    className="text-amber-600 hover:bg-amber-100 hover:text-amber-700 dark:text-amber-500 dark:hover:bg-amber-950/40 dark:hover:text-amber-400"
+                                                    label="Editar usuario"
                                                 >
-                                                    <Pencil className="h-4 w-4 text-white" />
-                                                </Button>
+                                                    <Pencil className="h-4 w-4" />
+                                                </IconActionButton>
                                             )}
                                             {userPermissions.includes('Eliminar Usuarios') && (
-                                                <Button
-                                                    variant="default"
-                                                    size="icon"
+                                                <IconActionButton
+                                                    variant="ghost"
                                                     onClick={() => handleDelete(user.id, user.name)}
-                                                    className="bg-red-600 hover:bg-red-700 text-white"
-                                                    aria-label="Eliminar usuario"
+                                                    className="text-red-600 hover:bg-red-100 hover:text-red-700 dark:text-red-500 dark:hover:bg-red-950/40 dark:hover:text-red-400"
+                                                    label="Eliminar usuario"
                                                 >
-                                                    <Trash2 className="h-4 w-4 text-white" />
-                                                </Button>
+                                                    <Trash2 className="h-4 w-4" />
+                                                </IconActionButton>
                                             )}
                                         </div>
                                     </TableCell>
                                 )}
                             </TableRow>
                         ))}
+                        {users.data.length === 0 && (
+                            <TableRow>
+                                <TableCell colSpan={showActionsColumn ? 4 : 3} className="h-24 text-center text-gray-500 dark:text-gray-400">
+                                    <div className="flex flex-col items-center justify-center gap-2">
+                                        <UsersIcon className="h-8 w-8 text-gray-400 dark:text-gray-500" />
+                                        <span className="text-sm font-medium">No se encontraron usuarios</span>
+                                    </div>
+                                </TableCell>
+                            </TableRow>
+                        )}
                     </TableBody>
                 </Table>
             </div>

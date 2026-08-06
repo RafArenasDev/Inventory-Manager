@@ -1,6 +1,6 @@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Link } from "@inertiajs/react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { Link, router } from "@inertiajs/react";
+import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from "lucide-react";
 
 interface PaginationProps {
     data: {
@@ -13,6 +13,8 @@ interface PaginationProps {
         from: number;
         to: number;
         total: number;
+        current_page?: number;
+        last_page?: number;
     };
     perPage: string;
     onPerPageChange: (value: string) => void;
@@ -20,6 +22,8 @@ interface PaginationProps {
     filteredCount: number;
     search: string;
 }
+
+const edgeButtonClass = "px-1.5 py-0.5 border rounded flex items-center justify-center min-w-[24px] text-xs sm:px-2 sm:py-1 sm:min-w-[28px]";
 
 export const Pagination = ({
     data,
@@ -33,8 +37,22 @@ export const Pagination = ({
         onPerPageChange(value);
         const url = new URL(window.location.href);
         url.searchParams.set('per_page', value);
-        window.location.href = url.toString();
+        // La página actual puede quedar fuera de rango con el nuevo tamaño; volver a la 1.
+        url.searchParams.set('page', '1');
+        router.get(url.pathname + url.search, {}, { preserveState: true, replace: true });
     };
+
+    const buildPageUrl = (page: number) => {
+        const url = new URL(window.location.href);
+        url.searchParams.set('page', String(page));
+        url.searchParams.set('per_page', perPage);
+        return url.pathname + url.search;
+    };
+
+    const currentPage = data.current_page ?? 1;
+    const lastPage = data.last_page ?? 1;
+    const isFirstPage = currentPage <= 1;
+    const isLastPage = currentPage >= lastPage;
 
     return (
         <div className="flex flex-col sm:flex-row items-center justify-between gap-2 mt-4 p-2 sm:p-4 max-w-full overflow-hidden">
@@ -51,6 +69,19 @@ export const Pagination = ({
             </div>
 
             <div className="flex gap-1 overflow-x-auto py-2 w-full justify-center sm:w-auto sm:overflow-visible">
+                {isFirstPage ? (
+                    <span className={`${edgeButtonClass} opacity-50 cursor-not-allowed`}>
+                        <ChevronsLeft size={10} />
+                    </span>
+                ) : (
+                    <Link
+                        href={buildPageUrl(1)}
+                        preserveState
+                        className={`${edgeButtonClass} bg-background hover:bg-accent hover:text-accent-foreground`}
+                    >
+                        <ChevronsLeft size={10} />
+                    </Link>
+                )}
                 {data.links.map((link, index) => {
                     const isPrevious = link.label.includes('previous') || link.label.includes('«');
                     const isNext = link.label.includes('next') || link.label.includes('»');
@@ -93,21 +124,32 @@ export const Pagination = ({
                         </Link>
                     );
                 })}
+                {isLastPage ? (
+                    <span className={`${edgeButtonClass} opacity-50 cursor-not-allowed`}>
+                        <ChevronsRight size={10} />
+                    </span>
+                ) : (
+                    <Link
+                        href={buildPageUrl(lastPage)}
+                        preserveState
+                        className={`${edgeButtonClass} bg-background hover:bg-accent hover:text-accent-foreground`}
+                    >
+                        <ChevronsRight size={10} />
+                    </Link>
+                )}
             </div>
 
             <div className="flex items-center gap-2 text-xs sm:text-sm">
                 <span className="whitespace-nowrap">Registros por página:</span>
                 <Select onValueChange={handlePerPageChange} value={perPage}>
                     <SelectTrigger className="w-[70px] text-xs sm:w-[90px] sm:text-sm">
-                        <SelectValue placeholder={perPage === "-1" ? "Todos" : perPage} />
+                        <SelectValue placeholder={perPage} />
                     </SelectTrigger>
                     <SelectContent>
-                        <SelectItem value="5">5</SelectItem>
                         <SelectItem value="10">10</SelectItem>
                         <SelectItem value="25">25</SelectItem>
                         <SelectItem value="50">50</SelectItem>
                         <SelectItem value="100">100</SelectItem>
-                        <SelectItem value="-1">Todos</SelectItem>
                     </SelectContent>
                 </Select>
             </div>

@@ -7,6 +7,7 @@ import {
     TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
+import { IconActionButton } from "@/components/icon-action-button";
 import { X, Download, Landmark } from "lucide-react";
 import { Pagination } from "@/components/ui/pagination";
 import SearchInput from "@/components/ui/search-input";
@@ -47,7 +48,7 @@ interface CashRegisterTableProps {
         total: number;
     };
     perPage: string;
-    onPerPageChange: () => void;
+    onPerPageChange: (value: string) => void;
     onEditCashRegister: (cashRegister: CashRegister) => void;
     totalCount: number;
     filteredCount: number;
@@ -159,15 +160,14 @@ export default function CashRegisterTable({
                                 <TableCell>{cashRegister.closedBy?.name || '-'}</TableCell>
                                 {showActionsColumn && !cashRegister.is_closed && (
                                     <TableCell className="text-right">
-                                        <Button
-                                            variant="default"
-                                            size="icon"
+                                        <IconActionButton
+                                            variant="ghost"
                                             onClick={() => onEditCashRegister(cashRegister)}
-                                            className="bg-red-600 hover:bg-red-700 text-white"
-                                            aria-label="Cerrar caja"
+                                            className="text-red-600 hover:bg-red-100 hover:text-red-700 dark:text-red-500 dark:hover:bg-red-950/40 dark:hover:text-red-400"
+                                            label="Cerrar caja"
                                         >
-                                            <X className="h-4 w-4 text-white" />
-                                        </Button>
+                                            <X className="h-4 w-4" />
+                                        </IconActionButton>
                                     </TableCell>
                                 )}
                             </TableRow>

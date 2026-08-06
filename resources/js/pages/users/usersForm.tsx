@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useForm } from '@inertiajs/react';
 import Swal from '@/lib/swal';
 import { Button } from '@/components/ui/button';
@@ -23,19 +23,25 @@ interface User {
 
 interface UserFormProps {
     user?: User;
-    roles: Role[];
     onCancel: () => void;
+    onSaved: () => void;
+    onDirtyChange?: (isDirty: boolean) => void;
+    roles: Role[];
     userPermissions: string[];
 }
 
-const UserForm: React.FC<UserFormProps> = ({ user, roles, onCancel, userPermissions }) => {
-    const { data, setData, post, put, processing, errors, reset } = useForm({
+const UserForm: React.FC<UserFormProps> = ({ user, roles, onCancel, onSaved, onDirtyChange, userPermissions }) => {
+    const { data, setData, post, put, processing, errors, reset, isDirty } = useForm({
         name: user?.name || '',
         email: user?.email || '',
         password: user?.password || '',
         confirm_password: user?.confirm_password || '',
         roles: user?.roles || [],
     });
+
+    useEffect(() => {
+        onDirtyChange?.(isDirty);
+    }, [isDirty, onDirtyChange]);
 
     const currentRoleName = data.roles?.[0] || '';
 
@@ -53,7 +59,7 @@ const UserForm: React.FC<UserFormProps> = ({ user, roles, onCancel, userPermissi
                         timer: 2200,
                     });
                     reset();
-                    onCancel();
+                    onSaved();
                 },
                 onError: () => {
                     Swal.fire({
@@ -77,7 +83,7 @@ const UserForm: React.FC<UserFormProps> = ({ user, roles, onCancel, userPermissi
                         timer: 2200,
                     });
                     reset();
-                    onCancel();
+                    onSaved();
                 },
                 onError: () => {
                     Swal.fire({

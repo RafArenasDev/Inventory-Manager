@@ -2,6 +2,7 @@ import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
+import { IconActionButton } from "@/components/icon-action-button";
 import { Pencil, Download, ArrowLeftRight } from "lucide-react";
 import { Pagination } from "@/components/ui/pagination";
 import SearchInput from "@/components/ui/search-input";
@@ -191,17 +192,14 @@ export default function InventoryMovementsTable({
                       <div className="flex justify-end gap-2">
                         {(userPermissions.includes('Editar Movimientos Inventario') ||
                           userPermissions.includes('Actualizar Movimientos Inventario')) && (
-                          <Button
-                            variant="default"
-                            size="icon"
-                            onClick={() => {
-                              onEditMovement(m);
-                            }}
-                            className="bg-yellow-500 hover:bg-yellow-600 text-white"
-                            aria-label="Editar movimiento"
+                          <IconActionButton
+                            variant="ghost"
+                            onClick={() => onEditMovement(m)}
+                            className="text-amber-600 hover:bg-amber-100 hover:text-amber-700 dark:text-amber-500 dark:hover:bg-amber-950/40 dark:hover:text-amber-400"
+                            label="Editar movimiento"
                           >
-                            <Pencil className="h-4 w-4 text-white" />
-                          </Button>
+                            <Pencil className="h-4 w-4" />
+                          </IconActionButton>
                         )}
                       </div>
                     </TableCell>

@@ -8,196 +8,112 @@ class PermissionSeeder extends Seeder
 {
     /**
      * Run the database seeds.
+     *
+     * Cada módulo solo recibe los permisos que realmente verifica algún
+     * middleware de ruta o gating de UI (ver routes/web.php y los
+     * userPermissions.includes(...) del frontend) — no todos los módulos
+     * necesitan el CRUD completo (ej. Ventas no se edita, Caja no se elimina).
      */
     public function run(): void
     {
         // Reset cached roles and permissions
         app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
 
-        // Define modules
-        $modules = [
-            'usuarios'               => 'Usuarios',
-            'roles'                  => 'Roles',
-            'permisos'               => 'Permisos',
-            'proveedores'            => 'Proveedores',
-            'clientes'               => 'Clientes',
-            'categorias'             => 'Categorías',
-            'productos'              => 'Productos',
-            'ventas'                 => 'Ventas',
-            'movimientos-inventario' => 'Movimientos Inventario',
-            'finanzas'               => 'Finanzas',
-            'caja'                   => 'Caja',
+        $permissionsByModule = [
+            'Dashboard' => [
+                'Exportar Dashboard' => 'Permite exportar los datos del dashboard a Excel o PDF',
+            ],
+            'Roles y Permisos' => [
+                'Ver Roles y Permisos'        => 'Permite ver el módulo de Roles y Permisos',
+                'Crear Roles y Permisos'      => 'Permite crear roles y sus permisos',
+                'Editar Roles y Permisos'     => 'Permite abrir la edición de un rol',
+                'Actualizar Roles y Permisos' => 'Permite guardar cambios en un rol y sus permisos',
+                'Eliminar Roles y Permisos'   => 'Permite eliminar roles',
+            ],
+            'Usuarios' => [
+                'Ver Usuarios'        => 'Permite ver el módulo de Usuarios',
+                'Crear Usuarios'      => 'Permite crear usuarios',
+                'Editar Usuarios'     => 'Permite abrir la edición de un usuario',
+                'Actualizar Usuarios' => 'Permite guardar cambios en un usuario',
+                'Eliminar Usuarios'   => 'Permite eliminar usuarios',
+            ],
+            'Proveedores' => [
+                'Ver Proveedores'        => 'Permite ver el módulo de Proveedores',
+                'Crear Proveedores'      => 'Permite crear proveedores',
+                'Editar Proveedores'     => 'Permite abrir la edición de un proveedor',
+                'Actualizar Proveedores' => 'Permite guardar cambios en un proveedor',
+                'Eliminar Proveedores'   => 'Permite eliminar proveedores',
+                'Exportar Proveedores'   => 'Permite exportar los proveedores a Excel',
+            ],
+            'Categorías' => [
+                'Ver Categorías'        => 'Permite ver el módulo de Categorías',
+                'Crear Categorías'      => 'Permite crear categorías',
+                'Actualizar Categorías' => 'Permite editar categorías',
+                'Eliminar Categorías'   => 'Permite eliminar categorías',
+            ],
+            'Productos' => [
+                'Ver Productos'        => 'Permite ver el módulo de Productos',
+                'Crear Productos'      => 'Permite crear productos',
+                'Editar Productos'     => 'Permite abrir la edición de un producto',
+                'Actualizar Productos' => 'Permite guardar cambios en un producto',
+                'Eliminar Productos'   => 'Permite eliminar productos',
+                'Exportar Productos'   => 'Permite exportar los productos a Excel',
+            ],
+            'Movimientos Inventario' => [
+                'Ver Movimientos Inventario'        => 'Permite ver el módulo de Movimientos de Inventario',
+                'Crear Movimientos Inventario'      => 'Permite registrar movimientos de inventario',
+                'Editar Movimientos Inventario'     => 'Permite abrir la edición de un movimiento',
+                'Actualizar Movimientos Inventario' => 'Permite guardar cambios en un movimiento',
+                'Exportar Movimientos Inventario'   => 'Permite exportar los movimientos de inventario a Excel',
+            ],
+            'Clientes' => [
+                'Ver Clientes'      => 'Permite ver el módulo de Clientes',
+                'Crear Clientes'    => 'Permite crear clientes',
+                'Editar Clientes'   => 'Permite editar clientes',
+                'Eliminar Clientes' => 'Permite eliminar clientes',
+            ],
+            'Ventas' => [
+                'Ver Ventas'      => 'Permite ver el módulo de Ventas',
+                'Crear Ventas'    => 'Permite registrar ventas',
+                'Eliminar Ventas' => 'Permite anular ventas',
+                'Exportar Ventas' => 'Permite exportar las ventas a Excel',
+            ],
+            'Finanzas' => [
+                'Ver Finanzas'                        => 'Permite ver el módulo de Finanzas',
+                'Crear Finanzas'                       => 'Permite registrar transacciones',
+                'Editar Finanzas'                      => 'Permite editar transacciones',
+                'Cancelar Finanzas'                    => 'Permite cancelar transacciones',
+                'Exportar Transacciones'               => 'Permite exportar las transacciones a Excel',
+                'Gestionar Categorías Transacciones'   => 'Permite crear, editar y eliminar categorías de transacciones',
+            ],
+            'Caja' => [
+                'Ver Caja'        => 'Permite ver el módulo de Caja',
+                'Crear Caja'      => 'Permite abrir la caja diaria',
+                'Actualizar Caja' => 'Permite cerrar la caja diaria',
+                'Exportar Caja'   => 'Permite exportar los registros de caja a Excel',
+            ],
         ];
 
-        // Define CRUD actions
-        $crudActions = [
-            'ver'        => 'Ver',
-            'crear'      => 'Crear',
-            'editar'     => 'Editar',
-            'actualizar' => 'Actualizar',
-            'eliminar'   => 'Eliminar',
+        // El `name` es el identificador técnico que valida el middleware de
+        // rutas y no puede cambiar; el `label` es el texto que ve el usuario.
+        // Aquí se ajustan los labels que no calzan con el nombre técnico
+        // genérico (ej. "Crear/Actualizar Caja" son en realidad Abrir/Cerrar).
+        $customLabels = [
+            'Crear Caja'      => 'Abrir Caja',
+            'Actualizar Caja' => 'Cerrar Caja',
         ];
 
-        foreach ($modules as $module => $moduleName) {
-            foreach ($crudActions as $action => $actionLabel) {
-                $label = ($action === 'ver') ?
-                "Ver {$moduleName}" :
-                "{$actionLabel} {$moduleName}";
-
-                $descriptionText = ($action === 'ver') ?
-                "Permite ver el módulo de {$moduleName}" :
-                "Permite " . strtolower($actionLabel) . " " . $moduleName;
-
-                Permission::firstOrCreate(
-                    ['name' => $label, 'guard_name' => 'web'],
+        foreach ($permissionsByModule as $module => $perms) {
+            foreach ($perms as $name => $description) {
+                Permission::updateOrCreate(
+                    ['name' => $name, 'guard_name' => 'web'],
                     [
-                        'module'      => $moduleName,
-                        'name'        => $label,
-                        'label'       => $label,
-                        'description' => $descriptionText,
-                        'guard_name'  => 'web',
+                        'module'      => $module,
+                        'label'       => $customLabels[$name] ?? $name,
+                        'description' => $description,
                     ]
                 );
             }
         }
-
-        // ==================== PERMISOS DE EXPORTACIÓN ====================
-
-        // Permiso específico para exportar movimientos inventario
-        Permission::firstOrCreate(
-            ['name' => 'Exportar Movimientos Inventario', 'guard_name' => 'web'],
-            [
-                'module'      => 'Movimientos Inventario',
-                'name'        => 'Exportar Movimientos Inventario',
-                'label'       => 'Exportar Movimientos Inventario',
-                'description' => 'Permite exportar los movimientos de inventario a Excel',
-                'guard_name'  => 'web',
-            ]
-        );
-
-        // Permiso específico para exportar proveedores
-        Permission::firstOrCreate(
-            ['name' => 'Exportar Proveedores', 'guard_name' => 'web'],
-            [
-                'module'      => 'Proveedores',
-                'name'        => 'Exportar Proveedores',
-                'label'       => 'Exportar Proveedores',
-                'description' => 'Permite exportar los proveedores a Excel',
-                'guard_name'  => 'web',
-            ]
-        );
-
-        // Permiso específico para exportar ventas
-        Permission::firstOrCreate(
-            ['name' => 'Exportar Ventas', 'guard_name' => 'web'],
-            [
-                'module'      => 'Ventas',
-                'name'        => 'Exportar Ventas',
-                'label'       => 'Exportar Ventas',
-                'description' => 'Permite exportar las ventas a Excel',
-                'guard_name'  => 'web',
-            ]
-        );
-
-        // Permiso específico para exportar caja
-        Permission::firstOrCreate(
-            ['name' => 'Exportar Caja', 'guard_name' => 'web'],
-            [
-                'module'      => 'Caja',
-                'name'        => 'Exportar Caja',
-                'label'       => 'Exportar Caja',
-                'description' => 'Permite exportar los registros de caja a Excel',
-                'guard_name'  => 'web',
-            ]
-        );
-
-        // ==================== PERMISOS ESPECÍFICOS DE FINANZAS Y CAJA ====================
-
-        // Permiso para abrir caja
-        Permission::firstOrCreate(
-            ['name' => 'Abrir Caja', 'guard_name' => 'web'],
-            [
-                'module'      => 'Caja',
-                'name'        => 'Abrir Caja',
-                'label'       => 'Abrir Caja',
-                'description' => 'Permite abrir la caja diaria',
-                'guard_name'  => 'web',
-            ]
-        );
-
-        // Permiso para cerrar caja
-        Permission::firstOrCreate(
-            ['name' => 'Cerrar Caja', 'guard_name' => 'web'],
-            [
-                'module'      => 'Caja',
-                'name'        => 'Cerrar Caja',
-                'label'       => 'Cerrar Caja',
-                'description' => 'Permite cerrar la caja diaria',
-                'guard_name'  => 'web',
-            ]
-        );
-
-        // Permiso para cancelar transacciones
-        Permission::firstOrCreate(
-            ['name' => 'Cancelar Transacciones', 'guard_name' => 'web'],
-            [
-                'module'      => 'Finanzas',
-                'name'        => 'Cancelar Transacciones',
-                'label'       => 'Cancelar Transacciones',
-                'description' => 'Permite cancelar transacciones',
-                'guard_name'  => 'web',
-            ]
-        );
-
-        // Permiso para exportar transacciones
-        Permission::firstOrCreate(
-            ['name' => 'Exportar Transacciones', 'guard_name' => 'web'],
-            [
-                'module'      => 'Finanzas',
-                'name'        => 'Exportar Transacciones',
-                'label'       => 'Exportar Transacciones',
-                'description' => 'Permite exportar transacciones a Excel',
-                'guard_name'  => 'web',
-            ]
-        );
-
-        // Permiso para gestionar categorías de transacciones
-        Permission::firstOrCreate(
-            ['name' => 'Gestionar Categorías Transacciones', 'guard_name' => 'web'],
-            [
-                'module'      => 'Finanzas',
-                'name'        => 'Gestionar Categorías Transacciones',
-                'label'       => 'Gestionar Categorías Transacciones',
-                'description' => 'Permite gestionar categorías de transacciones',
-                'guard_name'  => 'web',
-            ]
-        );
-
-        // ==================== PERMISOS DE EXPORTACIÓN DASHBOARD ====================
-
-        // Permiso específico para exportar dashboard
-        Permission::firstOrCreate(
-            ['name' => 'Exportar Dashboard', 'guard_name' => 'web'],
-            [
-                'module'      => 'Dashboard',
-                'name'        => 'Exportar Dashboard',
-                'label'       => 'Exportar Dashboard',
-                'description' => 'Permite exportar los datos del dashboard a Excel o PDF',
-                'guard_name'  => 'web',
-            ]
-        );
-
-        // Permiso específico para exportar ventas
-        Permission::firstOrCreate(
-            ['name' => 'Exportar Ventas', 'guard_name' => 'web'],
-            [
-                'module'      => 'Ventas',
-                'name'        => 'Exportar Ventas',
-                'label'       => 'Exportar Ventas',
-                'description' => 'Permite exportar las ventas a Excel',
-                'guard_name'  => 'web',
-            ]
-        );
-
     }
 }

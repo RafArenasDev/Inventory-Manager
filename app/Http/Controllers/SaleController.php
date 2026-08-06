@@ -45,30 +45,16 @@ class SaleController extends Controller
         }
 
         $filteredCount = $salesQuery->count();
-        $perPage       = (int) ($request->per_page ?? 10);
+        $perPage       = max(1, min((int) ($request->per_page ?? 10), 100));
 
         // Obtener departamentos y ciudades para el formulario
         $departments = Department::all()->map(fn($dept) => ['id' => $dept->id, 'name' => $dept->name]);
         $cities      = City::all()->map(fn($city) => ['id' => $city->id, 'name' => $city->name, 'department_id' => $city->department_id]);
 
-        if ($perPage === -1) {
-            $allSales = $salesQuery->get()->map(function ($sale) {
-                return $this->transformSale($sale);
-            });
-            $sales = [
-                'data'     => $allSales,
-                'total'    => $filteredCount,
-                'per_page' => $perPage,
-                'from'     => 1,
-                'to'       => $filteredCount,
-                'links'    => [],
-            ];
-        } else {
-            $sales = $salesQuery->paginate($perPage)->withQueryString();
-            $sales->getCollection()->transform(function ($sale) {
-                return $this->transformSale($sale);
-            });
-        }
+        $sales = $salesQuery->paginate($perPage)->withQueryString();
+        $sales->getCollection()->transform(function ($sale) {
+            return $this->transformSale($sale);
+        });
 
         return Inertia::render('sales/index', [
             'sales'         => $sales,
@@ -99,11 +85,6 @@ class SaleController extends Controller
             'departments'   => $departments,
             'cities'        => $cities,
         ]);
-    }
-
-    public function create()
-    {
-        return Inertia::render('sales/create');
     }
 
     protected function transformSale($sale)

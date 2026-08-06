@@ -7,7 +7,8 @@ import {
     TableRow,
 } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
-import { Pencil, Trash2, Phone, Smartphone, Download } from "lucide-react"
+import { IconActionButton } from "@/components/icon-action-button"
+import { Pencil, Trash2, Phone, Smartphone, Download, Truck } from "lucide-react"
 import { Pagination } from "@/components/ui/pagination"
 import { router } from "@inertiajs/react"
 import Swal from '@/lib/swal';
@@ -47,7 +48,7 @@ interface SuppliersTableProps {
         total: number
     }
     perPage: string
-    onPerPageChange: () => void
+    onPerPageChange: (value: string) => void
     onEditSupplier: (supplier: Supplier) => void
     totalCount: number
     filteredCount: number
@@ -208,26 +209,24 @@ export default function SuppliersTable({
                                         <TableCell className="text-right">
                                             <div className="flex justify-end gap-2">
                                                 {userPermissions.includes('Editar Proveedores') && (
-                                                    <Button
-                                                        variant="default"
-                                                        size="icon"
+                                                    <IconActionButton
+                                                        variant="ghost"
                                                         onClick={() => onEditSupplier(supplier)}
-                                                        className="bg-yellow-500 hover:bg-yellow-600 text-white"
-                                                        aria-label="Editar proveedor"
+                                                        className="text-amber-600 hover:bg-amber-100 hover:text-amber-700 dark:text-amber-500 dark:hover:bg-amber-950/40 dark:hover:text-amber-400"
+                                                        label="Editar proveedor"
                                                     >
-                                                        <Pencil className="h-4 w-4 text-white" />
-                                                    </Button>
+                                                        <Pencil className="h-4 w-4" />
+                                                    </IconActionButton>
                                                 )}
                                                 {userPermissions.includes('Eliminar Proveedores') && (
-                                                    <Button
-                                                        variant="default"
-                                                        size="icon"
+                                                    <IconActionButton
+                                                        variant="ghost"
                                                         onClick={() => handleDelete(supplier.id, supplier.name)}
-                                                        className="bg-red-600 hover:bg-red-700 text-white"
-                                                        aria-label="Eliminar proveedor"
+                                                        className="text-red-600 hover:bg-red-100 hover:text-red-700 dark:text-red-500 dark:hover:bg-red-950/40 dark:hover:text-red-400"
+                                                        label="Eliminar proveedor"
                                                     >
-                                                        <Trash2 className="h-4 w-4 text-white" />
-                                                    </Button>
+                                                        <Trash2 className="h-4 w-4" />
+                                                    </IconActionButton>
                                                 )}
                                             </div>
                                         </TableCell>
@@ -236,8 +235,11 @@ export default function SuppliersTable({
                             ))
                         ) : (
                             <TableRow>
-                                <TableCell colSpan={showActionsColumn ? 7 : 6} className="h-24 text-center">
-                                    No se encontraron proveedores.
+                                <TableCell colSpan={showActionsColumn ? 7 : 6} className="h-24 text-center text-gray-500 dark:text-gray-400">
+                                    <div className="flex flex-col items-center justify-center gap-2">
+                                        <Truck className="h-8 w-8 text-gray-400 dark:text-gray-500" />
+                                        <span className="text-sm font-medium">No se encontraron proveedores</span>
+                                    </div>
                                 </TableCell>
                             </TableRow>
                         )}

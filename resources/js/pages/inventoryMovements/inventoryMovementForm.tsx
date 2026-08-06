@@ -35,6 +35,8 @@ interface Supplier {
 interface InventoryMovementFormProps {
   movement?: InventoryMovementForForm;
   onCancel: () => void;
+  onSaved: () => void;
+  onDirtyChange?: (isDirty: boolean) => void;
   products: Product[];
   suppliers: Supplier[];
   userPermissions: string[];
@@ -43,6 +45,8 @@ interface InventoryMovementFormProps {
 const InventoryMovementForm: React.FC<InventoryMovementFormProps> = ({
   movement,
   onCancel,
+  onSaved,
+  onDirtyChange,
   products,
   userPermissions,
 }) => {
@@ -54,7 +58,7 @@ const InventoryMovementForm: React.FC<InventoryMovementFormProps> = ({
   const day = String(bogotaTime.getDate()).padStart(2, '0');
   const formattedToday = `${year}-${month}-${day}`;
 
-  const { data, setData, post, put, processing, errors, reset } = useForm({
+  const { data, setData, post, put, processing, errors, reset, isDirty } = useForm({
     type: movement?.type || "",
     product_id: movement?.product_id || "",
     supplier_id: movement?.supplier_id || "",
@@ -62,6 +66,10 @@ const InventoryMovementForm: React.FC<InventoryMovementFormProps> = ({
     date: movement?.date || formattedToday,
     notes: movement?.notes || "",
   });
+
+  useEffect(() => {
+    onDirtyChange?.(isDirty);
+  }, [isDirty, onDirtyChange]);
 
   useEffect(() => {
     if (movement) {
@@ -101,7 +109,7 @@ const InventoryMovementForm: React.FC<InventoryMovementFormProps> = ({
             timer: 2200,
           });
           reset();
-          onCancel();
+          onSaved();
         },
         onError: (errors) => {
           if (Object.keys(errors).length > 0) {
@@ -127,7 +135,7 @@ const InventoryMovementForm: React.FC<InventoryMovementFormProps> = ({
             timer: 2200,
           });
           reset();
-          onCancel();
+          onSaved();
         },
         onError: (errors) => {
           if (Object.keys(errors).length > 0) {
@@ -153,7 +161,6 @@ const InventoryMovementForm: React.FC<InventoryMovementFormProps> = ({
   const quantityMin = data.type === 'Ajuste Inventario' ? undefined : 1;
 
   return (
-    <div className="bg-white dark:bg-[oklch(0.100205_0_0)] overflow-hidden shadow-sm sm:rounded-lg p-6">
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Tipo */}
         <div>
@@ -296,7 +303,6 @@ const InventoryMovementForm: React.FC<InventoryMovementFormProps> = ({
           )}
         </div>
       </form>
-    </div>
   );
 };
 

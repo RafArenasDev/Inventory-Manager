@@ -29,40 +29,9 @@ class ClientController extends Controller
 
         $totalCount = $clientsQuery->count();
         $filteredCount = $clientsQuery->count();
-        $perPage = (int) ($request->per_page ?? 10);
+        $perPage = max(1, min((int) ($request->per_page ?? 10), 100));
 
-        if ($perPage === -1) {
-            $allClients = $clientsQuery->get()->map(function ($client) {
-                return [
-                    'id' => $client->id,
-                    'document_type' => $client->document_type,
-                    'document_number' => $client->document_number,
-                    'verification_digit' => $client->verification_digit,
-                    'name' => $client->name,
-                    'phone' => $client->phone,
-                    'cellphone' => $client->cellphone,
-                    'address' => $client->address,
-                    'email' => $client->email,
-                    'is_active' => $client->is_active,
-                    'department_id' => $client->department_id,
-                    'city_id' => $client->city_id,
-                ];
-            });
-
-            Log::info('Clients Fetched (All)', ['clients' => $allClients]);
-
-            $clients = [
-                'data' => $allClients,
-                'total' => $filteredCount,
-                'per_page' => $perPage,
-                'from' => 1,
-                'to' => $filteredCount,
-                'links' => [],
-            ];
-        } else {
-            $clients = $clientsQuery->paginate($perPage)->withQueryString()->toArray();
-            Log::info('Clients Fetched (Paginated)', ['clients' => $clients]);
-        }
+        $clients = $clientsQuery->paginate($perPage)->withQueryString()->toArray();
 
         $departments = Department::all()->map(fn ($dept) => ['id' => $dept->id, 'name' => $dept->name]);
         $cities = City::all()->map(fn ($city) => ['id' => $city->id, 'name' => $city->name, 'department_id' => $city->department_id]);
@@ -72,18 +41,6 @@ class ClientController extends Controller
             'filters' => $request->only(['search', 'per_page']),
             'totalCount' => $totalCount,
             'filteredCount' => $filteredCount,
-            'departments' => $departments,
-            'cities' => $cities,
-        ]);
-    }
-
-    public function create()
-    {
-        $departments = Department::all()->map(fn ($dept) => ['id' => $dept->id, 'name' => $dept->name]);
-        $cities = City::all()->map(fn ($city) => ['id' => $city->id, 'name' => $city->name, 'department_id' => $city->department_id]);
-
-        return Inertia::render('clients/index', [
-            'showCreateForm' => true,
             'departments' => $departments,
             'cities' => $cities,
         ]);
@@ -141,25 +98,6 @@ class ClientController extends Controller
 
         return response()->json($response);
 
-    }
-
-    public function show(Client $client)
-    {
-        return Inertia::render('clients/show', [
-            'client' => $client,
-        ]);
-    }
-
-    public function edit(Client $client)
-    {
-        $departments = Department::all()->map(fn ($dept) => ['id' => $dept->id, 'name' => $dept->name]);
-        $cities = City::all()->map(fn ($city) => ['id' => $city->id, 'name' => $city->name, 'department_id' => $city->department_id]);
-
-        return Inertia::render('clients/index', [
-            'editingClient' => $client,
-            'departments' => $departments,
-            'cities' => $cities,
-        ]);
     }
 
     public function update(ClientRequest $request, Client $client): RedirectResponse

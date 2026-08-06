@@ -6,7 +6,7 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table';
-import { Button } from '@/components/ui/button';
+import { IconActionButton } from '@/components/icon-action-button';
 import { Pencil, Trash2, Phone, Smartphone, History, Users } from 'lucide-react';
 import { router } from '@inertiajs/react';
 import { Pagination } from '@/components/ui/pagination';
@@ -171,37 +171,34 @@ export default function ClientsTable({
                                     <TableCell className="text-right">
                                         <div className="flex justify-end gap-2">
                                             {userPermissions.includes('Ver Clientes') && (
-                                                <Button
-                                                    variant="default"
-                                                    size="icon"
+                                                <IconActionButton
+                                                    variant="ghost"
                                                     onClick={() => onViewHistory(client)}
-                                                    className="bg-blue-600 hover:bg-blue-700 text-white"
-                                                    aria-label="Ver historial"
+                                                    className="text-blue-600 hover:bg-blue-100 hover:text-blue-700 dark:text-blue-500 dark:hover:bg-blue-950/40 dark:hover:text-blue-400"
+                                                    label="Ver historial"
                                                 >
-                                                    <History className="h-4 w-4 text-white" />
-                                                </Button>
+                                                    <History className="h-4 w-4" />
+                                                </IconActionButton>
                                             )}
                                             {userPermissions.includes('Editar Clientes') && (
-                                                <Button
-                                                    variant="default"
-                                                    size="icon"
+                                                <IconActionButton
+                                                    variant="ghost"
                                                     onClick={() => onEditClient(client)}
-                                                    className="bg-yellow-500 hover:bg-yellow-600 text-white"
-                                                    aria-label="Editar cliente"
+                                                    className="text-amber-600 hover:bg-amber-100 hover:text-amber-700 dark:text-amber-500 dark:hover:bg-amber-950/40 dark:hover:text-amber-400"
+                                                    label="Editar cliente"
                                                 >
-                                                    <Pencil className="h-4 w-4 text-white" />
-                                                </Button>
+                                                    <Pencil className="h-4 w-4" />
+                                                </IconActionButton>
                                             )}
                                             {userPermissions.includes('Eliminar Clientes') && (
-                                                <Button
-                                                    variant="default"
-                                                    size="icon"
+                                                <IconActionButton
+                                                    variant="ghost"
                                                     onClick={() => handleDelete(client.id, client.name)}
-                                                    className="bg-red-600 hover:bg-red-700 text-white"
-                                                    aria-label="Eliminar cliente"
+                                                    className="text-red-600 hover:bg-red-100 hover:text-red-700 dark:text-red-500 dark:hover:bg-red-950/40 dark:hover:text-red-400"
+                                                    label="Eliminar cliente"
                                                 >
-                                                    <Trash2 className="h-4 w-4 text-white" />
-                                                </Button>
+                                                    <Trash2 className="h-4 w-4" />
+                                                </IconActionButton>
                                             )}
                                         </div>
                                     </TableCell>

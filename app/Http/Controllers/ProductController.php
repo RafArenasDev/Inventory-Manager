@@ -56,73 +56,37 @@ class ProductController extends Controller
 
         $totalCount    = $productsQuery->count();
         $filteredCount = $productsQuery->count();
-        $perPage       = (int) ($request->per_page ?? 10);
+        $perPage       = max(1, min((int) ($request->per_page ?? 10), 100));
 
         $categories = Category::select('id', 'name')->orderBy('name')->get()->toArray();
         $suppliers  = Supplier::select('id', 'name')->orderBy('name')->get()->toArray();
 
-        if ($perPage === -1) {
-            $allProducts = $productsQuery->get()->map(function ($product) {
-                $initialMovement = InventoryMovement::where('id', $product->initial_movement_id)
-                    ->where('product_id', $product->id)
-                    ->first();
+        $productsQuery = $productsQuery->paginate($perPage)->withQueryString();
+        $productsQuery->getCollection()->transform(function ($product) {
+            $initialMovement = InventoryMovement::where('id', $product->initial_movement_id)
+                ->where('product_id', $product->id)
+                ->first();
 
-                return [
-                    'id'                  => $product->id,
-                    'code'                => $product->code,
-                    'name'                => $product->name,
-                    'category'            => $product->category?->name,
-                    'category_id'         => $product->category_id,
-                    'stock'               => $product->stock,
-                    'price_without_tax'   => $product->price_without_tax,
-                    'price_with_tax'      => $product->price_with_tax,
-                    'iva_value'           => $product->iva_value,
-                    'sale_price'          => $product->sale_price,
-                    'supplier'            => $product->supplier?->name,
-                    'supplier_id'         => $product->supplier_id,
-                    'description'         => Str::limit($product->description ?? '', 50),
-                    'image_path'          => $product->image_path ? Storage::url($product->image_path) : null,
-                    'movement_date'       => $initialMovement?->date,
-                    'movement_notes'      => $initialMovement?->notes,
-                    'initial_movement_id' => $initialMovement?->id,
-                ];
-            });
-
-            $productsQuery = [
-                'data'     => $allProducts,
-                'total'    => $filteredCount,
-                'per_page' => $perPage,
-                'from'     => 1,
-                'to'       => $filteredCount,
+            return [
+                'id'                  => $product->id,
+                'code'                => $product->code,
+                'name'                => $product->name,
+                'category'            => $product->category?->name,
+                'category_id'         => $product->category_id,
+                'stock'               => $product->stock,
+                'price_without_tax'   => $product->price_without_tax,
+                'price_with_tax'      => $product->price_with_tax,
+                'iva_value'           => $product->iva_value,
+                'sale_price'          => $product->sale_price,
+                'supplier'            => $product->supplier?->name,
+                'supplier_id'         => $product->supplier_id,
+                'description'         => Str::limit($product->description ?? '', 50),
+                'image_path'          => $product->image_path ? Storage::url($product->image_path) : null,
+                'movement_date'       => $initialMovement?->date,
+                'movement_notes'      => $initialMovement?->notes,
+                'initial_movement_id' => $initialMovement?->id,
             ];
-        } else {
-            $productsQuery = $productsQuery->paginate($perPage)->withQueryString();
-            $productsQuery->getCollection()->transform(function ($product) {
-                $initialMovement = InventoryMovement::where('id', $product->initial_movement_id)
-                    ->where('product_id', $product->id)
-                    ->first();
-
-                return [
-                    'id'                  => $product->id,
-                    'code'                => $product->code,
-                    'name'                => $product->name,
-                    'category'            => $product->category?->name,
-                    'category_id'         => $product->category_id,
-                    'stock'               => $product->stock,
-                    'price_without_tax'   => $product->price_without_tax,
-                    'price_with_tax'      => $product->price_with_tax,
-                    'iva_value'           => $product->iva_value,
-                    'sale_price'          => $product->sale_price,
-                    'supplier'            => $product->supplier?->name,
-                    'supplier_id'         => $product->supplier_id,
-                    'description'         => Str::limit($product->description ?? '', 50),
-                    'image_path'          => $product->image_path ? Storage::url($product->image_path) : null,
-                    'movement_date'       => $initialMovement?->date,
-                    'movement_notes'      => $initialMovement?->notes,
-                    'initial_movement_id' => $initialMovement?->id,
-                ];
-            });
-        }
+        });
 
         return Inertia::render('products/index', [
             'products'      => $productsQuery,

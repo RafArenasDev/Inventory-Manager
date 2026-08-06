@@ -2,6 +2,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\RoleRequest;
+use App\Models\Module;
 use App\Models\Permission;
 use App\Models\Role;
 use Illuminate\Http\RedirectResponse;
@@ -15,8 +16,6 @@ class RoleController extends Controller
      */
     public function index(Request $request)
     {
-        $permissions = Permission::get()->groupBy('module');
-
         // Construct the base query
         $rolesQuery = Role::with('permissions')->orderBy('id', 'desc');
 
@@ -32,61 +31,34 @@ class RoleController extends Controller
         $totalCount    = $rolesQuery->count();
         $filteredCount = $rolesQuery->count();
 
-        // Pagination
-        $perPage = (int) ($request->per_page ?? 10);
+        // Pagination (topada a 200 para evitar cargas desmedidas)
+        $perPage = max(1, min((int) ($request->per_page ?? 10), 100));
 
-        if ($perPage === -1) {
-            $allRoles = $rolesQuery->get()->map(function ($role) {
-                return [
-                    'id'          => $role->id,
-                    'name'        => $role->name,
-                    'label'       => $role->label,
-                    'description' => $role->description,
-                    'permissions' => $role->permissions->map(function ($permission) {
-                        return [
-                            'id'     => $permission->id,
-                            'name'   => $permission->name,
-                            'label'  => $permission->label,
-                            'module' => $permission->module,
-                        ];
-                    })->toArray(),
-                ];
-            });
-
-            $roles = [
-                'data'     => $allRoles,
-                'total'    => $filteredCount,
-                'per_page' => $perPage,
-                'from'     => 1,
-                'to'       => $filteredCount,
-                'links'    => [],
+        $roles = $rolesQuery->paginate($perPage)->withQueryString();
+        $roles->getCollection()->transform(function ($role) {
+            return [
+                'id'          => $role->id,
+                'name'        => $role->name,
+                'label'       => $role->label,
+                'description' => $role->description,
+                'permissions' => $role->permissions->map(function ($permission) {
+                    return [
+                        'id'     => $permission->id,
+                        'name'   => $permission->name,
+                        'label'  => $permission->label,
+                        'module' => $permission->module,
+                    ];
+                })->toArray(),
             ];
-        } else {
-            $roles = $rolesQuery->paginate($perPage)->withQueryString();
-            $roles->getCollection()->transform(function ($role) {
-                return [
-                    'id'          => $role->id,
-                    'name'        => $role->name,
-                    'label'       => $role->label,
-                    'description' => $role->description,
-                    'permissions' => $role->permissions->map(function ($permission) {
-                        return [
-                            'id'     => $permission->id,
-                            'name'   => $permission->name,
-                            'label'  => $permission->label,
-                            'module' => $permission->module,
-                        ];
-                    })->toArray(),
-                ];
-            });
-        }
+        });
 
         return Inertia::render('roles/index', [
-            'roles'         => $roles,
-            'permissions'   => $permissions,
-            'filters'       => $request->only(['search', 'per_page']),
-            'totalCount'    => $totalCount,
-            'filteredCount' => $filteredCount,
+            'roles'          => $roles,
+            'permissions'    => Permission::get(['id', 'name', 'label', 'module']),
+            'catalogModules' => Module::where('is_active', true)->orderBy('order')->get(['id', 'key', 'label']),
+            'filters'        => $request->only(['search', 'per_page']),
+            'totalCount'     => $totalCount,
+            'filteredCount'  => $filteredCount,
         ]);
     }
 
@@ -103,9 +75,7 @@ class RoleController extends Controller
             'guard_name'  => 'web', // Siempre web
         ]);
 
-        if ($role && $request->has('permissions')) {
-            $role->syncPermissions($request->permissions);
-        }
+        $role->syncPermissions($request->input('permissions', []));
 
         return redirect()->route('roles.index')->with('success', 'Rol creado correctamente.');
     }
@@ -124,9 +94,7 @@ class RoleController extends Controller
             'guard_name'  => 'web', // Siempre web
         ]);
 
-        if ($request->has('permissions')) {
-            $role->syncPermissions($request->permissions);
-        }
+        $role->syncPermissions($request->input('permissions', []));
 
         return redirect()->route('roles.index')->with('success', 'Rol actualizado correctamente.');
     }

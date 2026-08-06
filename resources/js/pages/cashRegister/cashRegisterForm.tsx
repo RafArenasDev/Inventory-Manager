@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useForm } from '@inertiajs/react';
 import Swal from '@/lib/swal';
 import { Button } from '@/components/ui/button';
@@ -15,17 +15,25 @@ interface CashRegisterForForm {
 interface CashRegisterFormProps {
     cashRegister?: CashRegisterForForm;
     onCancel: () => void;
+    onSaved: () => void;
+    onDirtyChange?: (isDirty: boolean) => void;
     userPermissions: string[];
 }
 
 const CashRegisterForm: React.FC<CashRegisterFormProps> = ({
     cashRegister,
     onCancel,
+    onSaved,
+    onDirtyChange,
     userPermissions,
 }) => {
-    const { data, setData, post, put, processing, errors, reset } = useForm({
+    const { data, setData, post, put, processing, errors, reset, isDirty } = useForm({
         notes: '',
     });
+
+    useEffect(() => {
+        onDirtyChange?.(isDirty);
+    }, [isDirty, onDirtyChange]);
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -43,7 +51,7 @@ const CashRegisterForm: React.FC<CashRegisterFormProps> = ({
                         timer: 2200
                     });
                     reset();
-                    onCancel();
+                    onSaved();
                 },
                 onError: (errors) => {
                     console.log('Errores al cerrar caja:', errors);
@@ -69,7 +77,7 @@ const CashRegisterForm: React.FC<CashRegisterFormProps> = ({
                         timer: 2200
                     });
                     reset();
-                    onCancel();
+                    onSaved();
                 },
                 onError: (errors) => {
                     console.log('Errores al abrir caja:', errors);
@@ -92,7 +100,6 @@ const CashRegisterForm: React.FC<CashRegisterFormProps> = ({
         : userPermissions.includes('Actualizar Caja');
 
     return (
-        <div className="bg-white dark:bg-[oklch(0.100205_0_0)] overflow-hidden shadow-sm sm:rounded-lg p-6">
             <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="space-y-4">
                     <div>
@@ -120,7 +127,6 @@ const CashRegisterForm: React.FC<CashRegisterFormProps> = ({
                     )}
                 </div>
             </form>
-        </div>
     );
 };
 

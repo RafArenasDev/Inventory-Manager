@@ -2,7 +2,6 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\InventoryMovementRequest;
-use App\Models\Category;
 use App\Models\InventoryMovement;
 use App\Models\Product;
 use App\Models\Supplier;
@@ -60,63 +59,31 @@ class InventoryMovementController extends Controller
         $totalCount    = InventoryMovement::count();
         $filteredCount = $movementsQuery->count();
 
-        // Pagination
-        $perPage = (int) ($request->per_page ?? 10);
+        // Pagination (topada a 100 para evitar cargas desmedidas)
+        $perPage = max(1, min((int) ($request->per_page ?? 10), 100));
 
-        if ($perPage === -1) {
-            $allMovements = $movementsQuery->get()->map(function ($movement) {
-                return [
-                    'id'         => $movement->id,
-                    'type'       => $movement->type,
-                    'quantity'   => $movement->quantity,
-                    'date'       => $movement->date->format('Y-m-d'),
-                    'notes'      => $movement->notes,
-                    'created_at' => $movement->created_at->format('Y-m-d H:i:s'),
-                    'product'    => [
-                        'id'    => $movement->product->id,
-                        'code'  => $movement->product->code,
-                        'name'  => $movement->product->name,
-                        'stock' => $movement->product->stock,
-                    ],
-                    'supplier'   => $movement->supplier ? [
-                        'id'   => $movement->supplier->id,
-                        'name' => $movement->supplier->name,
-                    ] : null,
-                    'category'   => $movement->product->category->name,
-                ];
-            });
-
-            $movementsQuery = [
-                'data'     => $allMovements,
-                'total'    => $filteredCount,
-                'per_page' => $perPage,
-                'from'     => 1,
-                'to'       => $filteredCount,
+        $movementsQuery = $movementsQuery->paginate($perPage)->withQueryString();
+        $movementsQuery->getCollection()->transform(function ($movement) {
+            return [
+                'id'         => $movement->id,
+                'type'       => $movement->type,
+                'quantity'   => $movement->quantity,
+                'date'       => $movement->date->format('Y-m-d'),
+                'notes'      => $movement->notes,
+                'created_at' => $movement->created_at->format('Y-m-d H:i:s'),
+                'product'    => [
+                    'id'    => $movement->product->id,
+                    'code'  => $movement->product->code,
+                    'name'  => $movement->product->name,
+                    'stock' => $movement->product->stock,
+                ],
+                'supplier'   => $movement->supplier ? [
+                    'id'   => $movement->supplier->id,
+                    'name' => $movement->supplier->name,
+                ] : null,
+                'category'   => $movement->product->category->name,
             ];
-        } else {
-            $movementsQuery = $movementsQuery->paginate($perPage)->withQueryString();
-            $movementsQuery->getCollection()->transform(function ($movement) {
-                return [
-                    'id'         => $movement->id,
-                    'type'       => $movement->type,
-                    'quantity'   => $movement->quantity,
-                    'date'       => $movement->date->format('Y-m-d'),
-                    'notes'      => $movement->notes,
-                    'created_at' => $movement->created_at->format('Y-m-d H:i:s'),
-                    'product'    => [
-                        'id'    => $movement->product->id,
-                        'code'  => $movement->product->code,
-                        'name'  => $movement->product->name,
-                        'stock' => $movement->product->stock,
-                    ],
-                    'supplier'   => $movement->supplier ? [
-                        'id'   => $movement->supplier->id,
-                        'name' => $movement->supplier->name,
-                    ] : null,
-                    'category'   => $movement->product->category->name,
-                ];
-            });
-        }
+        });
 
         return Inertia::render('inventoryMovements/index', [
             'movements'     => $movementsQuery,
@@ -133,20 +100,6 @@ class InventoryMovementController extends Controller
             ]),
             'totalCount'    => $totalCount,
             'filteredCount' => $filteredCount,
-        ]);
-    }
-
-    public function create()
-    {
-        return Inertia::render('inventoryMovements/index', [
-            'products'  => Product::with(['category', 'supplier'])
-                ->select('id', 'code', 'name', 'supplier_id')
-                ->orderBy('name')
-                ->get(),
-            'suppliers' => Supplier::select('id', 'name')
-                ->where('is_active', true)
-                ->orderBy('name')
-                ->get(),
         ]);
     }
 
@@ -180,60 +133,6 @@ class InventoryMovementController extends Controller
 
         return redirect()->route('inventory-movements.index')
             ->with('success', 'Movimiento de inventario registrado correctamente.');
-    }
-
-    public function show(InventoryMovement $inventoryMovement)
-    {
-        $inventoryMovement->load(['product.category', 'supplier']);
-
-        return Inertia::render('inventoryMovements/show', [
-            'movement' => [
-                'id'         => $inventoryMovement->id,
-                'type'       => $inventoryMovement->type,
-                'quantity'   => $inventoryMovement->quantity,
-                'date'       => $inventoryMovement->date->format('Y-m-d'),
-                'notes'      => $inventoryMovement->notes,
-                'created_at' => $inventoryMovement->created_at->format('Y-m-d H:i:s'),
-                'updated_at' => $inventoryMovement->updated_at->format('Y-m-d H:i:s'),
-                'product'    => [
-                    'id'         => $inventoryMovement->product->id,
-                    'code'       => $inventoryMovement->product->code,
-                    'name'       => $inventoryMovement->product->name,
-                    'stock'      => $inventoryMovement->product->stock,
-                    'unit_price' => $inventoryMovement->product->unit_price,
-                    'category'   => $inventoryMovement->product->category->name,
-                ],
-                'supplier'   => $inventoryMovement->supplier ? [
-                    'id'   => $inventoryMovement->supplier->id,
-                    'name' => $inventoryMovement->supplier->name,
-                ] : null,
-            ],
-        ]);
-    }
-
-    public function edit(InventoryMovement $inventoryMovement)
-    {
-        $inventoryMovement->load(['product.category', 'supplier']);
-
-        return Inertia::render('inventoryMovements/index', [
-            'movement'  => [
-                'id'          => $inventoryMovement->id,
-                'type'        => $inventoryMovement->type,
-                'product_id'  => $inventoryMovement->product->id,
-                'supplier_id' => $inventoryMovement->supplier->id ?? null,
-                'quantity'    => $inventoryMovement->quantity,
-                'date'        => $inventoryMovement->date->format('Y-m-d'),
-                'notes'       => $inventoryMovement->notes,
-            ],
-            'products'  => Product::with(['category', 'supplier'])
-                ->select('id', 'code', 'name', 'supplier_id')
-                ->orderBy('name')
-                ->get(),
-            'suppliers' => Supplier::select('id', 'name')
-                ->where('is_active', true)
-                ->orderBy('name')
-                ->get(),
-        ]);
     }
 
     public function update(InventoryMovementRequest $request, InventoryMovement $inventoryMovement)
@@ -302,79 +201,6 @@ class InventoryMovementController extends Controller
 
         return redirect()->route('inventory-movements.index')
             ->with('success', 'Movimiento de inventario eliminado correctamente.');
-    }
-
-    public function report(Request $request)
-    {
-        $query = InventoryMovement::query()
-            ->selectRaw('
-                inventory_movements.*,
-                categories.name as category_name,
-                products.name as product_name,
-                products.code as product_code
-            ')
-            ->join('products', 'inventory_movements.product_id', '=', 'products.id')
-            ->join('categories', 'products.category_id', '=', 'categories.id')
-            ->leftJoin('suppliers', 'inventory_movements.supplier_id', '=', 'suppliers.id');
-
-        if ($request->filled('date_from')) {
-            $query->whereDate('inventory_movements.date', '>=', $request->date_from);
-        }
-
-        if ($request->filled('date_to')) {
-            $query->whereDate('inventory_movements.date', '<=', $request->date_to);
-        }
-
-        if ($request->filled('type')) {
-            $query->where('inventory_movements.type', $request->type);
-        }
-
-        if ($request->filled('category_id')) {
-            $query->where('categories.id', $request->category_id);
-        }
-
-        $movements = $query->orderBy('inventory_movements.date', 'desc')->get();
-
-        $totalEntries     = $movements->whereIn('type', ['Entrada', 'Devolucion Cliente', 'Consignacion Entrada', 'Cambio Entrada'])->sum('quantity');
-        $totalExits       = $movements->whereIn('type', ['Salida', 'Devolucion Proveedor', 'Consignacion Salida', 'Cambio Salida'])->sum('quantity');
-        $totalAdjustments = $movements->where('type', 'Ajuste Inventario')->sum('quantity');
-        $netMovement      = $totalEntries - $totalExits + $totalAdjustments;
-        $totalMovements   = $movements->count();
-
-        return Inertia::render('inventoryMovements/movements-report', [
-            'movements'  => $movements->map(function ($movement) {
-                return [
-                    'id'            => $movement->id,
-                    'type'          => $movement->type,
-                    'quantity'      => $movement->quantity,
-                    'date'          => $movement->date->format('Y-m-d'),
-                    'notes'         => $movement->notes,
-                    'product'       => [
-                        'id'   => $movement->product_id,
-                        'code' => $movement->product_code,
-                        'name' => $movement->product_name,
-                    ],
-                    'supplier'      => $movement->supplier ? [
-                        'id'   => $movement->supplier->id,
-                        'name' => $movement->supplier->name,
-                    ] : null,
-                    'category_name' => $movement->category_name,
-                ];
-            }),
-            'summary'    => [
-                'total_movements'   => $totalMovements,
-                'total_entries'     => $totalEntries,
-                'total_exits'       => $totalExits,
-                'total_adjustments' => $totalAdjustments,
-                'net_movement'      => $netMovement,
-                'period'            => [
-                    'from' => $request->date_from ?? 'Inicio',
-                    'to'   => $request->date_to ?? 'Actual',
-                ],
-            ],
-            'filters'    => $request->only(['date_from', 'date_to', 'type', 'category_id']),
-            'categories' => Category::select('id', 'name')->orderBy('name')->get(),
-        ]);
     }
 
     public function export(Request $request)

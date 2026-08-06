@@ -89,6 +89,8 @@ interface City {
 interface SaleFormProps {
     sale?: SaleFormData;
     onCancel: () => void;
+    onSaved?: () => void;
+    onDirtyChange?: (isDirty: boolean) => void;
     products: Product[];
     clients: Client[];
     departments: Department[];
@@ -100,13 +102,17 @@ const formatCurrency = (value: number): string => {
     return `$ ${Math.round(value).toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.')}`;
 };
 
-const SaleForm: React.FC<SaleFormProps> = ({ sale, onCancel, products, clients, departments, cities, userPermissions }) => {
+const SaleForm: React.FC<SaleFormProps> = ({ sale, onCancel, onSaved, onDirtyChange, products, clients, departments, cities, userPermissions }) => {
     const { auth } = usePage().props as unknown as { auth: { user: { id: number } } };
-    const now = new Date();
+    // Usar hora de Bogotá explícitamente: `toISOString()` da la fecha en UTC,
+    // lo que desalinea sale_date respecto a sale_time (que sí usaba hora local)
+    // cerca de la medianoche UTC (7pm-12am hora Bogotá), registrando ventas
+    // con la fecha del día siguiente.
+    const now = new Date(new Date().toLocaleString("en-US", { timeZone: "America/Bogota" }));
     const initialData: SaleFormData = {
         client_id: sale?.client_id ?? null,
         client_document_number: sale?.client_document_number ?? '',
-        sale_date: now.toISOString().split('T')[0],
+        sale_date: `${now.getFullYear()}-${(now.getMonth() + 1).toString().padStart(2, '0')}-${now.getDate().toString().padStart(2, '0')}`,
         sale_time: `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}:${now.getSeconds().toString().padStart(2, '0')}`,
         discount: sale?.discount || 0,
         payment_method: sale?.payment_method || 'Efectivo',
@@ -131,6 +137,11 @@ const SaleForm: React.FC<SaleFormProps> = ({ sale, onCancel, products, clients, 
     useEffect(() => {
         setFormData(prev => ({ ...prev, items: selectedItems }));
     }, [selectedItems]);
+
+    useEffect(() => {
+        onDirtyChange?.(selectedItems.length > 0 || formData.client_id !== null);
+         
+    }, [selectedItems, formData.client_id, onDirtyChange]);
 
     const handleClientInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value;
@@ -379,7 +390,7 @@ const SaleForm: React.FC<SaleFormProps> = ({ sale, onCancel, products, clients, 
                     timer: 2200,
                 });
                 setFormData(initialData);
-                onCancel();
+                if (onSaved) { onSaved(); } else { onCancel(); }
             },
             onError: (err) => {
                 // console.log('Errors:', JSON.stringify(err, null, 2));

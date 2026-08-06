@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useForm } from '@inertiajs/react';
 import Swal from '@/lib/swal';
 import { Button } from '@/components/ui/button';
@@ -20,11 +20,13 @@ interface SupplierForForm {
 interface SupplierFormProps {
     supplier?: SupplierForForm;
     onCancel: () => void;
+    onSaved: () => void;
+    onDirtyChange?: (isDirty: boolean) => void;
     userPermissions: string[];
 }
 
-const SupplierForm: React.FC<SupplierFormProps> = ({ supplier, onCancel, userPermissions }) => {
-    const { data, setData, post, put, processing, errors, reset } = useForm({
+const SupplierForm: React.FC<SupplierFormProps> = ({ supplier, onCancel, onSaved, onDirtyChange, userPermissions }) => {
+    const { data, setData, post, put, processing, errors, reset, isDirty } = useForm({
         name: supplier?.name || '',
         representative: supplier?.representative || '',
         nit_number: supplier?.nit_number?.toString() || '',
@@ -39,6 +41,10 @@ const SupplierForm: React.FC<SupplierFormProps> = ({ supplier, onCancel, userPer
 
     const [nitNumberError, setNitNumberError] = useState<string>('');
     const [nitDigitError, setNitDigitError] = useState<string>('');
+
+    useEffect(() => {
+        onDirtyChange?.(isDirty);
+    }, [isDirty, onDirtyChange]);
 
     const validateNitNumber = (value: string) => {
         if (!/^\d+$/.test(value)) {
@@ -88,7 +94,7 @@ const SupplierForm: React.FC<SupplierFormProps> = ({ supplier, onCancel, userPer
                         timer: 2200
                     });
                     reset();
-                    onCancel();
+                    onSaved();
                 },
                 onError: () => {
                     Swal.fire({
@@ -112,7 +118,7 @@ const SupplierForm: React.FC<SupplierFormProps> = ({ supplier, onCancel, userPer
                         timer: 2200
                     });
                     reset();
-                    onCancel();
+                    onSaved();
                 },
                 onError: () => {
                     Swal.fire({

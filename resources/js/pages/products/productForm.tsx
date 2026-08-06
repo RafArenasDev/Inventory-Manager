@@ -72,7 +72,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
   userPermissions,
   isCreating
 }) => {
-  const { data, setData, post, processing, errors, reset } = useForm({
+  const { data, setData, processing, errors, reset } = useForm({
     code: product?.code || '',
     category_id: isCreating ? '' : (product?.category_id?.toString() || ''),
     name: product?.name || '',

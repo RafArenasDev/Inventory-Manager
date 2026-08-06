@@ -37,14 +37,16 @@ interface City {
 interface ClientFormProps {
     client?: Omit<Client, 'id'> & { id?: number }; // id opcional para creación
     onCancel: () => void;
+    onSaved?: () => void;
+    onDirtyChange?: (isDirty: boolean) => void;
     userPermissions: string[];
     departments?: Department[];
     cities?: City[];
     onSuccess?: (client: Client) => void;
 }
 
-const ClientForm: React.FC<ClientFormProps> = ({ client, onCancel, userPermissions, departments = [], onSuccess }) => {
-    const { data, setData, put, processing, reset, errors } = useForm({
+const ClientForm: React.FC<ClientFormProps> = ({ client, onCancel, onSaved, onDirtyChange, userPermissions, departments = [], onSuccess }) => {
+    const { data, setData, put, processing, reset, errors, isDirty } = useForm({
         document_type: client?.document_type || '',
         document_number: client?.document_number || '',
         verification_digit: client?.verification_digit || '',
@@ -59,6 +61,10 @@ const ClientForm: React.FC<ClientFormProps> = ({ client, onCancel, userPermissio
     });
 
     const [availableCities, setAvailableCities] = useState<City[]>([]);
+
+    useEffect(() => {
+        onDirtyChange?.(isDirty);
+    }, [isDirty, onDirtyChange]);
 
     useEffect(() => {
         if (client?.department_id) {
@@ -117,7 +123,7 @@ const ClientForm: React.FC<ClientFormProps> = ({ client, onCancel, userPermissio
                         timer: 2200,
                     });
                     reset();
-                    onCancel();
+                    if (onSaved) { onSaved(); } else { onCancel(); }
                 },
                 onError: () => {
                     Swal.fire({
@@ -144,6 +150,8 @@ const ClientForm: React.FC<ClientFormProps> = ({ client, onCancel, userPermissio
                     reset();
                     if (onSuccess) {
                         onSuccess(response.data);
+                    } else if (onSaved) {
+                        onSaved();
                     } else {
                         onCancel();
                     }

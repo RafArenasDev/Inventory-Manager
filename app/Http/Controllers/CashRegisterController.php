@@ -42,27 +42,12 @@ class CashRegisterController extends Controller
 
         $totalCount    = CashRegister::count();
         $filteredCount = $cashQuery->count();
-        $perPage       = (int) ($request->per_page ?? 10);
+        $perPage       = max(1, min((int) ($request->per_page ?? 10), 100));
 
-        if ($perPage === -1) {
-            $allCash = $cashQuery->get()->map(function ($register) {
-                return $this->formatCashRegister($register);
-            });
-
-            $cashRegisters = [
-                'data'     => $allCash,
-                'total'    => $filteredCount,
-                'per_page' => $perPage,
-                'from'     => 1,
-                'to'       => $filteredCount,
-                'links'    => [],
-            ];
-        } else {
-            $cashRegisters = $cashQuery->paginate($perPage)->withQueryString();
-            $cashRegisters->getCollection()->transform(function ($register) {
-                return $this->formatCashRegister($register);
-            });
-        }
+        $cashRegisters = $cashQuery->paginate($perPage)->withQueryString();
+        $cashRegisters->getCollection()->transform(function ($register) {
+            return $this->formatCashRegister($register);
+        });
 
         $todayRegister = CashRegister::where('register_date', today())
             ->where('is_closed', false)
@@ -78,13 +63,6 @@ class CashRegisterController extends Controller
             'totalCount'    => $totalCount,
             'filteredCount' => $filteredCount,
             'todayRegister' => $todayRegister,
-        ]);
-    }
-
-    public function create()
-    {
-        return Inertia::render('cashRegister/index', [
-            'creating' => true,
         ]);
     }
 
@@ -130,13 +108,6 @@ class CashRegisterController extends Controller
             Log::error('Error al abrir caja: ' . $e->getMessage());
             return back()->with('error', 'Error al abrir la caja: ' . $e->getMessage());
         }
-    }
-
-    public function edit(CashRegister $cashRegister)
-    {
-        return Inertia::render('cashRegister/index', [
-            'editingCashRegister' => $this->formatCashRegister($cashRegister),
-        ]);
     }
 
     public function update(CashRegisterCloseRequest $request, CashRegister $cashRegister)

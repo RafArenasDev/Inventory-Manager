@@ -1,12 +1,14 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import AppLayout from '@/layouts/app-layout';
 import { LinkProps, type BreadcrumbItem } from '@/types';
 import { Head, router, usePage } from '@inertiajs/react';
 import TransactionsTable from './transactionsTable';
 import { Button } from '@/components/ui/button';
-import { ChevronLeft, DollarSign, Plus } from 'lucide-react';
+import { DollarSign, Plus } from 'lucide-react';
 import TransactionForm from './transactionForm';
 import { PageHeader } from '@/components/page-header';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { ConfirmDialog } from '@/components/confirm-dialog';
 
 interface TransactionCategory {
     id: number;
@@ -68,15 +70,11 @@ interface TransactionsPageProps {
     };
     totalCount: number;
     filteredCount: number;
-    showForm?: boolean;
-    editingTransaction?: Transaction;
-    showModal?: boolean;
-    transactionDetails: Transaction | null;
 }
 
-const initialBreadcrumbs: BreadcrumbItem[] = [
+const breadcrumbs: BreadcrumbItem[] = [
     {
-        title: 'Transacciones',
+        title: 'Finanzas',
         href: '/transactions',
     },
 ];
@@ -88,78 +86,38 @@ export default function TransactionsPage({
     totals,
     totalCount,
     filteredCount,
-    showForm: initialShowForm = false,
-    editingTransaction: initialEditingTransaction,
 }: TransactionsPageProps) {
-    const [isCreating, setIsCreating] = useState(initialShowForm && !initialEditingTransaction);
+    const [isCreating, setIsCreating] = useState(false);
     const [editingTransaction, setEditingTransaction] = useState<TransactionForForm | null>(null);
-    const [breadcrumbs, setBreadcrumbs] = useState<BreadcrumbItem[]>(initialBreadcrumbs);
+    const [isFormDirty, setIsFormDirty] = useState(false);
+    const [showDiscardConfirm, setShowDiscardConfirm] = useState(false);
 
     const { auth } = usePage().props as unknown as { auth: { permissions: string[] } };
     const userPermissions = auth.permissions;
 
-    useEffect(() => {
-        if (initialEditingTransaction) {
-            const transactionForForm: TransactionForForm = {
-                id: initialEditingTransaction.id,
-                type: initialEditingTransaction.type,
-                transaction_category_id: initialEditingTransaction.transaction_category_id,
-                amount: initialEditingTransaction.amount,
-                transaction_date: initialEditingTransaction.transaction_date,
-                transaction_time: initialEditingTransaction.transaction_time,
-                payment_method: initialEditingTransaction.payment_method,
-                description: initialEditingTransaction.description,
-                notes: initialEditingTransaction.notes,
-                invoice_number: initialEditingTransaction.invoice_number
-            };
-            setEditingTransaction(transactionForForm);
-            setIsCreating(false);
-        }
-    }, [initialEditingTransaction]);
-
-    useEffect(() => {
-        if (isCreating) {
-            setBreadcrumbs([
-                ...initialBreadcrumbs,
-                {
-                    title: 'Crear Transacción',
-                    href: '/transactions/create',
-                },
-            ]);
-            window.history.replaceState({}, '', route('transactions.create'));
-        } else if (editingTransaction) {
-            setBreadcrumbs([
-                ...initialBreadcrumbs,
-                {
-                    title: `Editar Transacción`,
-                    href: `/transactions/${editingTransaction.id}/edit`,
-                },
-            ]);
-            window.history.replaceState({}, '', route('transactions.edit', editingTransaction.id));
-        } else {
-            setBreadcrumbs(initialBreadcrumbs);
-            window.history.replaceState({}, '', route('transactions.index'));
-        }
-    }, [isCreating, editingTransaction]);
+    const isModalOpen = isCreating || !!editingTransaction;
 
     const handleCreateTransaction = () => {
-        const newTransaction: TransactionForForm = {
-            type: '',
+        // Hora de Bogotá explícita: `toISOString()` da la fecha en UTC, lo que
+        // desalinea transaction_date respecto a la hora local cerca de la
+        // medianoche UTC (7pm-12am hora Bogotá).
+        const now = new Date(new Date().toLocaleString("en-US", { timeZone: "America/Bogota" }));
+        setEditingTransaction({
+            type: '' as 'Ingreso' | 'Gasto',
             transaction_category_id: 0,
             amount: 0,
-            transaction_date: new Date().toISOString().split('T')[0],
-            transaction_time: new Date().toTimeString().slice(0, 5),
+            transaction_date: `${now.getFullYear()}-${(now.getMonth() + 1).toString().padStart(2, '0')}-${now.getDate().toString().padStart(2, '0')}`,
+            transaction_time: `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`,
             payment_method: '',
             description: null,
             notes: null,
             invoice_number: null,
-        };
-        setEditingTransaction(newTransaction);
+        });
         setIsCreating(true);
     };
 
     const handleEditTransaction = (transaction: Transaction) => {
-        const transactionForForm: TransactionForForm = {
+        setEditingTransaction({
             id: transaction.id,
             type: transaction.type,
             transaction_category_id: transaction.transaction_category_id,
@@ -170,14 +128,23 @@ export default function TransactionsPage({
             description: transaction.description,
             notes: transaction.notes,
             invoice_number: transaction.invoice_number
-        };
-        setEditingTransaction(transactionForForm);
+        });
         setIsCreating(false);
     };
 
-    const handleCancelForm = () => {
+    const closeForm = () => {
         setEditingTransaction(null);
         setIsCreating(false);
+        setIsFormDirty(false);
+    };
+
+    const attemptCloseForm = () => {
+        if (!isFormDirty) {
+            closeForm();
+            return;
+        }
+
+        setShowDiscardConfirm(true);
     };
 
     const handleSearch = (search: string) => {
@@ -204,62 +171,74 @@ export default function TransactionsPage({
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Transacciones" />
+            <Head title="Finanzas" />
 
             <div className="flex h-full flex-1 flex-col gap-4 rounded-xl p-4">
-                {isCreating || editingTransaction ? (
-                    <div className="bg-white dark:bg-[oklch(0.100205_0_0)] overflow-hidden shadow-sm sm:rounded-lg p-6">
-                        <PageHeader
-                            icon={DollarSign}
-                            title={isCreating ? 'Nueva Transacción' : `Editar Transacción: #${editingTransaction?.id}`}
-                        >
-                            <Button onClick={handleCancelForm} className="gap-1">
-                                <ChevronLeft className="h-4 w-4" />
-                                Atrás
-                            </Button>
-                        </PageHeader>
-                        <div className="mt-6">
-                            <TransactionForm
-                                transaction={editingTransaction ?? undefined}
-                                categories={categories}
-                                onCancel={handleCancelForm}
-                                userPermissions={userPermissions}
-                            />
-                        </div>
-                    </div>
-                ) : (
-                    <>
-                        <PageHeader
-                            icon={DollarSign}
-                            title="Finanzas"
-                            description="Registra los ingresos y gastos del negocio."
-                        >
-                            {userPermissions.includes('Crear Finanzas') && (
-                                <Button onClick={handleCreateTransaction} className="gap-1">
-                                    <Plus className="h-4 w-4" />
-                                    Nueva Transacción
-                                </Button>
-                            )}
-                        </PageHeader>
-                        <div className="bg-white dark:bg-[oklch(0.100205_0_0)] overflow-hidden shadow-sm sm:rounded-lg p-6">
-                            <TransactionsTable
-                                transactions={transactions}
-                                categories={categories}
-                                perPage={filters.per_page || "10"}
-                                onPerPageChange={handlePerPageChange}
-                                onEditTransaction={handleEditTransaction}
-                                totalCount={totalCount}
-                                filteredCount={filteredCount}
-                                search={filters.search || ""}
-                                onSearch={handleSearch}
-                                totals={totals}
-                                userPermissions={userPermissions}
-                                filters={filters}
-                            />
-                        </div>
-                    </>
-                )}
+                <PageHeader
+                    icon={DollarSign}
+                    title="Finanzas"
+                    description="Registra los ingresos y gastos del negocio."
+                >
+                    {userPermissions.includes('Crear Finanzas') && (
+                        <Button onClick={handleCreateTransaction} className="gap-1">
+                            <Plus className="h-4 w-4" />
+                            Nueva Transacción
+                        </Button>
+                    )}
+                </PageHeader>
+                <div className="bg-white dark:bg-[oklch(0.100205_0_0)] overflow-hidden shadow-sm sm:rounded-lg p-6">
+                    <TransactionsTable
+                        transactions={transactions}
+                        categories={categories}
+                        perPage={filters.per_page || "10"}
+                        onPerPageChange={handlePerPageChange}
+                        onEditTransaction={handleEditTransaction}
+                        totalCount={totalCount}
+                        filteredCount={filteredCount}
+                        search={filters.search || ""}
+                        onSearch={handleSearch}
+                        totals={totals}
+                        userPermissions={userPermissions}
+                        filters={filters}
+                    />
+                </div>
             </div>
+
+            <Dialog open={isModalOpen} onOpenChange={(open) => { if (!open) attemptCloseForm(); }}>
+                <DialogContent
+                    className="max-h-[90vh] overflow-y-auto sm:max-w-2xl"
+                    onInteractOutside={(e) => e.preventDefault()}
+                >
+                    <DialogHeader>
+                        <DialogTitle>{isCreating ? 'Nueva Transacción' : `Editar Transacción: #${editingTransaction?.id}`}</DialogTitle>
+                        <DialogDescription>
+                            {isCreating
+                                ? 'Completa los datos para registrar una nueva transacción.'
+                                : 'Actualiza los datos de la transacción.'}
+                        </DialogDescription>
+                    </DialogHeader>
+                    {editingTransaction && (
+                        <TransactionForm
+                            transaction={editingTransaction}
+                            categories={categories}
+                            onCancel={attemptCloseForm}
+                            onSaved={closeForm}
+                            onDirtyChange={setIsFormDirty}
+                            userPermissions={userPermissions}
+                        />
+                    )}
+                </DialogContent>
+            </Dialog>
+
+            <ConfirmDialog
+                open={showDiscardConfirm}
+                onOpenChange={setShowDiscardConfirm}
+                title="¿Descartar cambios?"
+                description="Tienes cambios sin guardar que se perderán."
+                confirmText="Sí, descartar"
+                cancelText="Seguir editando"
+                onConfirm={closeForm}
+            />
         </AppLayout>
     );
 }

@@ -36,10 +36,12 @@ interface TransactionFormProps {
     transaction?: Transaction;
     categories: TransactionCategory[];
     onCancel: () => void;
+    onSaved: () => void;
+    onDirtyChange?: (isDirty: boolean) => void;
     userPermissions?: string[];
 }
 
-const TransactionForm: React.FC<TransactionFormProps> = ({ transaction, categories, onCancel, userPermissions = [] }) => {
+const TransactionForm: React.FC<TransactionFormProps> = ({ transaction, categories, onCancel, onSaved, onDirtyChange, userPermissions = [] }) => {
     const [selectedType, setSelectedType] = useState<'Ingreso' | 'Gasto' | ''>(transaction?.type || '');
     const [filteredCategories, setFilteredCategories] = useState<TransactionCategory[]>([]);
     const [amountInput, setAmountInput] = useState(transaction?.amount ? transaction.amount.toString() : '');
@@ -53,7 +55,10 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ transaction, categori
         const colombiaTime = new Date(now.toLocaleString("en-US", { timeZone: "America/Bogota" }));
 
         return {
-            date: colombiaTime.toISOString().split('T')[0],
+            // Getters locales, no toISOString(): ese convertiría usando el
+            // offset del sistema operativo, no el de Bogotá, reintroduciendo
+            // el desfase de un día cerca de la medianoche UTC.
+            date: `${colombiaTime.getFullYear()}-${(colombiaTime.getMonth() + 1).toString().padStart(2, '0')}-${colombiaTime.getDate().toString().padStart(2, '0')}`,
             time: colombiaTime.toTimeString().slice(0, 5), // HH:MM formato 24h
         };
     };
@@ -104,7 +109,7 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ transaction, categori
         initialTime = formatTimeForColombia(transaction.transaction_time, transaction.transaction_date);
     }
 
-    const { data, setData, post, put, processing, errors, reset } = useForm({
+    const { data, setData, post, put, processing, errors, reset, isDirty } = useForm({
         type: transaction?.type || '',
         transaction_category_id: transaction?.transaction_category_id || '',
         amount: transaction?.amount || '',
@@ -115,6 +120,10 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ transaction, categori
         notes: transaction?.notes || '',
         invoice_number: transaction?.invoice_number || '',
     });
+
+    useEffect(() => {
+        onDirtyChange?.(isDirty);
+    }, [isDirty, onDirtyChange]);
 
     // Asegurarse de que la hora se establezca correctamente después de la inicialización
     useEffect(() => {
@@ -177,7 +186,7 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ transaction, categori
                         timer: 2200
                     });
                     reset();
-                    onCancel();
+                    onSaved();
                 },
                 onError: () => {
                     Swal.fire({
@@ -201,7 +210,7 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ transaction, categori
                         timer: 2200
                     });
                     reset();
-                    onCancel();
+                    onSaved();
                 },
                 onError: () => {
                     Swal.fire({

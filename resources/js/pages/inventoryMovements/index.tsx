@@ -1,12 +1,14 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import AppLayout from '@/layouts/app-layout';
 import { LinkProps, type BreadcrumbItem } from '@/types';
 import { Head, router, usePage } from '@inertiajs/react';
 import { Button } from '@/components/ui/button';
-import { ChevronLeft, ClipboardList, Plus } from 'lucide-react';
+import { ClipboardList, Plus } from 'lucide-react';
 import InventoryMovementsTable from './inventoryMovementsTable';
 import InventoryMovementForm from './inventoryMovementForm';
 import { PageHeader } from '@/components/page-header';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { ConfirmDialog } from '@/components/confirm-dialog';
 
 interface Product {
   id: number;
@@ -72,7 +74,7 @@ interface InventoryMovementIndexProps {
   filteredCount: number;
 }
 
-const initialBreadcrumbs: BreadcrumbItem[] = [
+const breadcrumbs: BreadcrumbItem[] = [
   {
     title: 'Movimientos de Inventario',
     href: '/inventory-movements',
@@ -89,52 +91,35 @@ export default function InventoryMovementsIndex({
 }: InventoryMovementIndexProps) {
   const [isCreating, setIsCreating] = useState(false);
   const [editingMovement, setEditingMovement] = useState<InventoryMovementForForm | null>(null);
-  const [breadcrumbs, setBreadcrumbs] = useState<BreadcrumbItem[]>(initialBreadcrumbs);
+  const [isFormDirty, setIsFormDirty] = useState(false);
+  const [showDiscardConfirm, setShowDiscardConfirm] = useState(false);
 
   const { auth } = usePage().props as unknown as { auth: { permissions: string[] } };
   const userPermissions = auth.permissions;
 
-  useEffect(() => {
-    if (isCreating) {
-      setBreadcrumbs([
-        ...initialBreadcrumbs,
-        { title: 'Registrar Movimiento', href: '/inventory-movements/create' },
-      ]);
-      window.history.replaceState({}, '', route('inventory-movements.create'));
-    } else if (editingMovement?.id) {
-      setBreadcrumbs([
-        ...initialBreadcrumbs,
-        { title: `Editar Movimiento`, href: `/inventory-movements/${editingMovement.id}/edit` },
-      ]);
-      window.history.replaceState({}, '', route('inventory-movements.edit', editingMovement.id));
-    } else {
-      setBreadcrumbs(initialBreadcrumbs);
-      window.history.replaceState({}, '', route('inventory-movements.index'));
-    }
-  }, [isCreating, editingMovement]);
+  const isModalOpen = isCreating || !!editingMovement;
 
   const handleCreateMovement = () => {
     const now = new Date();
-    const bogotaTime = new Date(now.toLocaleString("en-US", {timeZone: "America/Bogota"}));
+    const bogotaTime = new Date(now.toLocaleString("en-US", { timeZone: "America/Bogota" }));
     const year = bogotaTime.getFullYear();
     const month = String(bogotaTime.getMonth() + 1).padStart(2, '0');
     const day = String(bogotaTime.getDate()).padStart(2, '0');
     const formattedToday = `${year}-${month}-${day}`;
 
-    const newMovement: InventoryMovementForForm = {
+    setEditingMovement({
       product_id: "",
       supplier_id: "",
       type: "",
       quantity: 0,
       date: formattedToday,
       notes: '',
-    };
-    setEditingMovement(newMovement);
+    });
     setIsCreating(true);
   };
 
   const handleEditMovement = (movement: InventoryMovement) => {
-    const movementForForm: InventoryMovementForForm = {
+    setEditingMovement({
       id: movement.id,
       product_id: movement.product.id,
       supplier_id: movement.supplier?.id ?? "",
@@ -142,14 +127,23 @@ export default function InventoryMovementsIndex({
       quantity: movement.quantity,
       date: movement.date || movement.created_at.split('T')[0],
       notes: movement.notes,
-    };
-    setEditingMovement(movementForForm);
+    });
     setIsCreating(false);
   };
 
-  const handleCancelForm = () => {
+  const closeForm = () => {
     setEditingMovement(null);
     setIsCreating(false);
+    setIsFormDirty(false);
+  };
+
+  const attemptCloseForm = () => {
+    if (!isFormDirty) {
+      closeForm();
+      return;
+    }
+
+    setShowDiscardConfirm(true);
   };
 
   const handleSearch = (search: string) => {
@@ -176,60 +170,72 @@ export default function InventoryMovementsIndex({
     <AppLayout breadcrumbs={breadcrumbs}>
       <Head title="Movimientos de Inventario" />
       <div className="flex h-full flex-1 flex-col gap-4 rounded-xl p-4">
-        {isCreating || editingMovement ? (
-          <div className="bg-white dark:bg-[oklch(0.100205_0_0)] overflow-hidden shadow-sm sm:rounded-lg p-6">
-            <PageHeader
-              icon={ClipboardList}
-              title={isCreating ? 'Registrar Movimiento' : `Editar Movimiento`}
-            >
-              <Button onClick={handleCancelForm} variant="outline" className="gap-1">
-                <ChevronLeft className="h-4 w-4" />
-                Atrás
-              </Button>
-            </PageHeader>
-            <div className="mt-6">
-              <InventoryMovementForm
-                movement={editingMovement as InventoryMovementForForm}
-                products={products}
-                suppliers={suppliers}
-                onCancel={handleCancelForm}
-                userPermissions={userPermissions}
-              />
-            </div>
-          </div>
-        ) : (
-          <>
-            <PageHeader
-              icon={ClipboardList}
-              title="Movimientos de Inventario"
-              description="Historial de entradas, salidas y ajustes de inventario."
-            >
-              {userPermissions.includes('Crear Movimientos Inventario') && (
-                <Button onClick={handleCreateMovement} className="gap-1">
-                  <Plus className="h-4 w-4" />
-                  Nuevo Movimiento
-                </Button>
-              )}
-            </PageHeader>
-            <div className="bg-white dark:bg-[oklch(0.100205_0_0)] overflow-hidden shadow-sm sm:rounded-lg p-6">
-              <InventoryMovementsTable
-                movements={movements}
-                products={products}
-                perPage={filters.per_page || '10'}
-                onPerPageChange={handlePerPageChange}
-                onEditMovement={handleEditMovement}
-                totalCount={totalCount}
-                filteredCount={filteredCount}
-                search={filters.search || ''}
-                onSearch={handleSearch}
-                filters={filters}
-                userPermissions={userPermissions}
-                showActionsColumn={showActionsColumn}
-              />
-            </div>
-          </>
-        )}
+        <PageHeader
+          icon={ClipboardList}
+          title="Movimientos de Inventario"
+          description="Historial de entradas, salidas y ajustes de inventario."
+        >
+          {userPermissions.includes('Crear Movimientos Inventario') && (
+            <Button onClick={handleCreateMovement} className="gap-1">
+              <Plus className="h-4 w-4" />
+              Nuevo Movimiento
+            </Button>
+          )}
+        </PageHeader>
+        <div className="bg-white dark:bg-[oklch(0.100205_0_0)] overflow-hidden shadow-sm sm:rounded-lg p-6">
+          <InventoryMovementsTable
+            movements={movements}
+            products={products}
+            perPage={filters.per_page || '10'}
+            onPerPageChange={handlePerPageChange}
+            onEditMovement={handleEditMovement}
+            totalCount={totalCount}
+            filteredCount={filteredCount}
+            search={filters.search || ''}
+            onSearch={handleSearch}
+            filters={filters}
+            userPermissions={userPermissions}
+            showActionsColumn={showActionsColumn}
+          />
+        </div>
       </div>
+
+      <Dialog open={isModalOpen} onOpenChange={(open) => { if (!open) attemptCloseForm(); }}>
+        <DialogContent
+          className="max-h-[90vh] overflow-y-auto sm:max-w-lg"
+          onInteractOutside={(e) => e.preventDefault()}
+        >
+          <DialogHeader>
+            <DialogTitle>{isCreating ? 'Registrar Movimiento' : 'Editar Movimiento'}</DialogTitle>
+            <DialogDescription>
+              {isCreating
+                ? 'Completa los datos para registrar un nuevo movimiento de inventario.'
+                : 'Actualiza los datos del movimiento.'}
+            </DialogDescription>
+          </DialogHeader>
+          {editingMovement && (
+            <InventoryMovementForm
+              movement={editingMovement}
+              products={products}
+              suppliers={suppliers}
+              onCancel={attemptCloseForm}
+              onSaved={closeForm}
+              onDirtyChange={setIsFormDirty}
+              userPermissions={userPermissions}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
+
+      <ConfirmDialog
+        open={showDiscardConfirm}
+        onOpenChange={setShowDiscardConfirm}
+        title="¿Descartar cambios?"
+        description="Tienes cambios sin guardar que se perderán."
+        confirmText="Sí, descartar"
+        cancelText="Seguir editando"
+        onConfirm={closeForm}
+      />
     </AppLayout>
   );
 }

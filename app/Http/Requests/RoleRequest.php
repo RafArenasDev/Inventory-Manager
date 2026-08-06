@@ -22,11 +22,11 @@ class RoleRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name'          => ['required', 'string', 'max:255', Rule::unique('roles', 'name')->ignore($this->route('role'))],
-            'label'         => 'required|string|max:255',
-            'description'   => 'nullable|string',
-            'permissions'   => 'nullable|array',
-            'permissions.*' => 'exists:permissions,id',
+            'name'            => ['required', 'string', 'max:255', Rule::unique('roles', 'name')->ignore($this->route('role'))],
+            'label'           => 'required|string|max:255',
+            'description'     => 'nullable|string',
+            'permissions'     => 'nullable|array',
+            'permissions.*'   => 'exists:permissions,id',
         ];
     }
 }

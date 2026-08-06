@@ -4,9 +4,10 @@ import { LinkProps, type BreadcrumbItem } from '@/types';
 import { Head, router, usePage } from '@inertiajs/react';
 import SalesTable from './salesTable';
 import { Button } from '@/components/ui/button';
-import { ChevronLeft, Plus, ShoppingCart } from 'lucide-react';
+import { Plus, ShoppingCart } from 'lucide-react';
 import SaleForm from './saleForm';
-import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { ConfirmDialog } from '@/components/confirm-dialog';
 import { PageHeader } from '@/components/page-header';
 
 interface SaleItem {
@@ -89,22 +90,6 @@ interface City {
     department_id: number;
 }
 
-interface SaleForForm {
-    id?: number;
-    client_id?: number | null;
-    client_document_number?: string;
-    sale_date: string;
-    sale_time: string;
-    discount: number;
-    payment_method: string;
-    notes?: string;
-    items: SaleItem[];
-    total_without_tax: number;
-    total_with_discount: number;
-    total_paid: number;
-    user_id?: number;
-}
-
 interface SaleIndexProps {
     sales: {
         data: Sale[];
@@ -129,7 +114,7 @@ interface SaleIndexProps {
     };
 }
 
-const initialBreadcrumbs: BreadcrumbItem[] = [
+const breadcrumbs: BreadcrumbItem[] = [
     {
         title: 'Ventas',
         href: '/sales',
@@ -138,8 +123,8 @@ const initialBreadcrumbs: BreadcrumbItem[] = [
 
 export default function SaleIndex({ sales, products, clients, departments, cities, filters, totalCount, filteredCount }: SaleIndexProps) {
     const [isCreating, setIsCreating] = useState(false);
-    const [editingSale, setEditingSale] = useState<SaleForForm | null>(null);
-    const [breadcrumbs, setBreadcrumbs] = useState<BreadcrumbItem[]>(initialBreadcrumbs);
+    const [isFormDirty, setIsFormDirty] = useState(false);
+    const [showDiscardConfirm, setShowDiscardConfirm] = useState(false);
     const [isInvoiceModalOpen, setIsInvoiceModalOpen] = useState(false);
     const [currentInvoiceUrl, setCurrentInvoiceUrl] = useState('');
 
@@ -153,39 +138,22 @@ export default function SaleIndex({ sales, products, clients, departments, citie
         }
     }, [flash]);
 
-    useEffect(() => {
-        if (isCreating) {
-            setBreadcrumbs([
-                ...initialBreadcrumbs,
-                {
-                    title: 'Crear Venta',
-                    href: '/sales/create',
-                },
-            ]);
-            window.history.replaceState({}, '', route('sales.create'));
-        } else if (editingSale) {
-            setBreadcrumbs([
-                ...initialBreadcrumbs,
-                {
-                    title: `Editar Venta`,
-                    href: `/sales/${editingSale.id}/edit`,
-                },
-            ]);
-            window.history.replaceState({}, '', route('sales.edit', editingSale.id));
-        } else {
-            setBreadcrumbs(initialBreadcrumbs);
-            window.history.replaceState({}, '', route('sales.index'));
-        }
-    }, [isCreating, editingSale]);
-
     const handleCreateSale = () => {
         setIsCreating(true);
-        setEditingSale(null);
     };
 
-    const handleCancelForm = () => {
+    const closeForm = () => {
         setIsCreating(false);
-        setEditingSale(null);
+        setIsFormDirty(false);
+    };
+
+    const attemptCloseForm = () => {
+        if (!isFormDirty) {
+            closeForm();
+            return;
+        }
+
+        setShowDiscardConfirm(true);
     };
 
     const handleSearch = (search: string) => {
@@ -193,6 +161,18 @@ export default function SaleIndex({ sales, products, clients, departments, citie
             data: {
                 ...filters,
                 search,
+                page: '1',
+            },
+            preserveState: true,
+            replace: true,
+        });
+    };
+
+    const handlePerPageChange = (value: string) => {
+        router.visit(route('sales.index'), {
+            data: {
+                ...filters,
+                per_page: value,
                 page: '1',
             },
             preserveState: true,
@@ -209,57 +189,70 @@ export default function SaleIndex({ sales, products, clients, departments, citie
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Ventas" />
             <div className="flex h-full flex-1 flex-col gap-4 rounded-xl p-4">
-                {isCreating || editingSale ? (
-                    <div className="bg-white dark:bg-[oklch(0.100205_0_0)] overflow-hidden shadow-sm sm:rounded-lg p-6">
-                        <PageHeader icon={ShoppingCart} title={isCreating ? 'Nueva Venta' : `Editar Venta`}>
-                            <Button onClick={handleCancelForm} className="gap-1">
-                                <ChevronLeft className="h-4 w-4" />
-                                Atrás
-                            </Button>
-                        </PageHeader>
-                        <div className="mt-6">
-                            <SaleForm
-                                sale={editingSale as SaleForForm}
-                                products={products}
-                                clients={clients}
-                                departments={departments}
-                                cities={cities}
-                                onCancel={handleCancelForm}
-                                userPermissions={userPermissions}
-                            />
-                        </div>
-                    </div>
-                ) : (
-                    <>
-                        <PageHeader
-                            icon={ShoppingCart}
-                            title="Ventas"
-                            description="Historial y gestión de todas las ventas registradas."
-                        >
-                            {userPermissions.includes('Crear Ventas') && (
-                                <Button onClick={handleCreateSale} className="gap-1">
-                                    <Plus className="h-4 w-4" />
-                                    Nueva Venta
-                                </Button>
-                            )}
-                        </PageHeader>
-                        <div className="bg-white dark:bg-[oklch(0.100205_0_0)] overflow-hidden shadow-sm sm:rounded-lg p-6">
-                            <SalesTable
-                                sales={sales}
-                                filters={filters}
-                                perPage={filters.per_page || '10'}
-                                onPerPageChange={() => {}}
-                                totalCount={totalCount}
-                                filteredCount={filteredCount}
-                                search={filters.search || ''}
-                                onSearch={handleSearch}
-                                userPermissions={userPermissions}
-                                onViewInvoice={handleViewInvoice}
-                            />
-                        </div>
-                    </>
-                )}
+                <PageHeader
+                    icon={ShoppingCart}
+                    title="Ventas"
+                    description="Historial y gestión de todas las ventas registradas."
+                >
+                    {userPermissions.includes('Crear Ventas') && (
+                        <Button onClick={handleCreateSale} className="gap-1">
+                            <Plus className="h-4 w-4" />
+                            Nueva Venta
+                        </Button>
+                    )}
+                </PageHeader>
+                <div className="bg-white dark:bg-[oklch(0.100205_0_0)] overflow-hidden shadow-sm sm:rounded-lg p-6">
+                    <SalesTable
+                        sales={sales}
+                        filters={filters}
+                        perPage={filters.per_page || '10'}
+                        onPerPageChange={handlePerPageChange}
+                        totalCount={totalCount}
+                        filteredCount={filteredCount}
+                        search={filters.search || ''}
+                        onSearch={handleSearch}
+                        userPermissions={userPermissions}
+                        onViewInvoice={handleViewInvoice}
+                    />
+                </div>
             </div>
+
+            <Dialog open={isCreating} onOpenChange={(open) => { if (!open) attemptCloseForm(); }}>
+                <DialogContent
+                    className="max-h-[90vh] w-[95vw] overflow-y-auto sm:max-w-3xl lg:max-w-5xl xl:max-w-6xl"
+                    onInteractOutside={(e) => e.preventDefault()}
+                >
+                    <DialogHeader>
+                        <DialogTitle>Nueva Venta</DialogTitle>
+                        <DialogDescription>
+                            Completa los datos para registrar una nueva venta.
+                        </DialogDescription>
+                    </DialogHeader>
+                    {isCreating && (
+                        <SaleForm
+                            products={products}
+                            clients={clients}
+                            departments={departments}
+                            cities={cities}
+                            onCancel={attemptCloseForm}
+                            onSaved={closeForm}
+                            onDirtyChange={setIsFormDirty}
+                            userPermissions={userPermissions}
+                        />
+                    )}
+                </DialogContent>
+            </Dialog>
+
+            <ConfirmDialog
+                open={showDiscardConfirm}
+                onOpenChange={setShowDiscardConfirm}
+                title="¿Descartar venta?"
+                description="Tienes una venta en progreso que se perderá."
+                confirmText="Sí, descartar"
+                cancelText="Seguir editando"
+                onConfirm={closeForm}
+            />
+
             <Dialog open={isInvoiceModalOpen} onOpenChange={setIsInvoiceModalOpen}>
                 <DialogContent
                     className="sm:max-w-[550px] max-w-[95vw] max-h-[95vh] bg-white dark:bg-[oklch(0.100205_0_0)] rounded-2xl p-0 shadow-2xl [&>button]:absolute [&>button]:top-4 [&>button]:right-4 [&>button]:z-10 [&>button]:p-2 [&>button]:rounded-full [&>button]:bg-white/90 [&>button]:dark:bg-gray-800/90 [&>button]:hover:bg-white [&>button]:dark:hover:bg-gray-700 [&>button]:transition-colors [&>button]:shadow-md [&>button]:border-0"

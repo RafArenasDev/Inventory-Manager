@@ -1,12 +1,14 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import AppLayout from '@/layouts/app-layout';
 import { LinkProps, type BreadcrumbItem } from '@/types';
 import { Head, router, usePage } from '@inertiajs/react';
 import SuppliersTable from './suppliersTable';
 import { Button } from '@/components/ui/button';
-import { ChevronLeft, Plus, Truck } from 'lucide-react';
+import { Plus, Truck } from 'lucide-react';
 import SupplierForm from './supplierForm';
 import { PageHeader } from '@/components/page-header';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { ConfirmDialog } from '@/components/confirm-dialog';
 
 interface Supplier {
     id: number
@@ -57,7 +59,7 @@ interface SupplierIndexProps {
     filteredCount: number
 }
 
-const initialBreadcrumbs: BreadcrumbItem[] = [
+const breadcrumbs: BreadcrumbItem[] = [
     {
         title: 'Proveedores',
         href: '/suppliers',
@@ -67,38 +69,16 @@ const initialBreadcrumbs: BreadcrumbItem[] = [
 export default function SupplierIndex({ suppliers, filters, totalCount, filteredCount }: SupplierIndexProps) {
     const [isCreating, setIsCreating] = useState(false);
     const [editingSupplier, setEditingSupplier] = useState<SupplierForForm | null>(null);
-    const [breadcrumbs, setBreadcrumbs] = useState<BreadcrumbItem[]>(initialBreadcrumbs);
+    const [isFormDirty, setIsFormDirty] = useState(false);
+    const [showDiscardConfirm, setShowDiscardConfirm] = useState(false);
 
     const { auth } = usePage().props as unknown as { auth: { permissions: string[] } };
     const userPermissions = auth.permissions;
 
-    useEffect(() => {
-        if (isCreating) {
-            setBreadcrumbs([
-                ...initialBreadcrumbs,
-                {
-                    title: 'Crear Proveedor',
-                    href: '/suppliers/create',
-                },
-            ]);
-            window.history.replaceState({}, '', route('suppliers.create'));
-        } else if (editingSupplier?.id) {
-            setBreadcrumbs([
-                ...initialBreadcrumbs,
-                {
-                    title: `Editar Proveedor`,
-                    href: `/suppliers/${editingSupplier.id}/edit`,
-                },
-            ]);
-            window.history.replaceState({}, '', route('suppliers.edit', editingSupplier.id));
-        } else {
-            setBreadcrumbs(initialBreadcrumbs);
-            window.history.replaceState({}, '', route('suppliers.index'));
-        }
-    }, [isCreating, editingSupplier]);
+    const isModalOpen = isCreating || !!editingSupplier;
 
     const handleCreateSupplier = () => {
-        const newSupplier: SupplierForForm = {
+        setEditingSupplier({
             name: '',
             representative: '',
             nit_number: '',
@@ -109,13 +89,12 @@ export default function SupplierIndex({ suppliers, filters, totalCount, filtered
             email: '',
             description: '',
             is_active: true
-        };
-        setEditingSupplier(newSupplier);
+        });
         setIsCreating(true);
     };
 
     const handleEditSupplier = (supplier: Supplier) => {
-        const supplierForForm: SupplierForForm = {
+        setEditingSupplier({
             id: supplier.id,
             name: supplier.name,
             representative: supplier.representative,
@@ -127,81 +106,99 @@ export default function SupplierIndex({ suppliers, filters, totalCount, filtered
             email: supplier.email,
             description: supplier.description,
             is_active: supplier.is_active
-        };
-        setEditingSupplier(supplierForForm);
+        });
         setIsCreating(false);
     };
 
-    const handleCancelForm = () => {
+    const closeForm = () => {
         setEditingSupplier(null);
         setIsCreating(false);
+        setIsFormDirty(false);
+    };
+
+    const attemptCloseForm = () => {
+        if (!isFormDirty) {
+            closeForm();
+            return;
+        }
+
+        setShowDiscardConfirm(true);
+    };
+
+    const handlePerPageChange = (value: string) => {
+        router.get(route('suppliers.index'), { ...filters, per_page: value }, { preserveState: true, replace: true });
     };
 
     const handleSearch = (search: string) => {
-        router.get(route('suppliers.index'), {
-            ...filters,
-            search,
-            page: 1
-        }, {
-            preserveState: true,
-            replace: true
-        });
+        router.get(route('suppliers.index'), { ...filters, search, page: 1 }, { preserveState: true, replace: true });
     };
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Proveedores" />
             <div className="flex h-full flex-1 flex-col gap-4 rounded-xl p-4">
-                {isCreating || editingSupplier ? (
-                    <div className="bg-white dark:bg-[oklch(0.100205_0_0)] overflow-hidden shadow-sm sm:rounded-lg p-6">
-                        <PageHeader
-                            icon={Truck}
-                            title={isCreating ? 'Nuevo Proveedor' : `Editar Proveedor: ${editingSupplier?.name || ''}`}
-                        >
-                            <Button onClick={handleCancelForm} className="gap-1">
-                                <ChevronLeft className="h-4 w-4" />
-                                Atrás
-                            </Button>
-                        </PageHeader>
-                        <div className="mt-6">
-                            <SupplierForm
-                                supplier={editingSupplier ?? undefined}
-                                onCancel={handleCancelForm}
-                                userPermissions={userPermissions}
-                            />
-                        </div>
-                    </div>
-                ) : (
-                    <>
-                        <PageHeader
-                            icon={Truck}
-                            title="Proveedores"
-                            description="Administra los proveedores y su información de contacto."
-                        >
-                            {userPermissions.includes('Crear Proveedores') && (
-                                <Button onClick={handleCreateSupplier} className="gap-1">
-                                    <Plus className="h-4 w-4" />
-                                    Nuevo Proveedor
-                                </Button>
-                            )}
-                        </PageHeader>
-                        <div className="bg-white dark:bg-[oklch(0.100205_0_0)] overflow-hidden shadow-sm sm:rounded-lg p-6">
-                            <SuppliersTable
-                                suppliers={suppliers}
-                                filters={filters}
-                                perPage={filters.per_page || "10"}
-                                onPerPageChange={() => { }}
-                                onEditSupplier={handleEditSupplier}
-                                totalCount={totalCount}
-                                filteredCount={filteredCount}
-                                search={filters.search || ""}
-                                onSearch={handleSearch}
-                                userPermissions={userPermissions}
-                            />
-                        </div>
-                    </>
-                )}
+                <PageHeader
+                    icon={Truck}
+                    title="Proveedores"
+                    description="Administra los proveedores y su información de contacto."
+                >
+                    {userPermissions.includes('Crear Proveedores') && (
+                        <Button onClick={handleCreateSupplier} className="gap-1">
+                            <Plus className="h-4 w-4" />
+                            Nuevo Proveedor
+                        </Button>
+                    )}
+                </PageHeader>
+                <div className="bg-white dark:bg-[oklch(0.100205_0_0)] overflow-hidden shadow-sm sm:rounded-lg p-6">
+                    <SuppliersTable
+                        suppliers={suppliers}
+                        filters={filters}
+                        perPage={filters.per_page || "10"}
+                        onPerPageChange={handlePerPageChange}
+                        onEditSupplier={handleEditSupplier}
+                        totalCount={totalCount}
+                        filteredCount={filteredCount}
+                        search={filters.search || ""}
+                        onSearch={handleSearch}
+                        userPermissions={userPermissions}
+                    />
+                </div>
             </div>
+
+            <Dialog open={isModalOpen} onOpenChange={(open) => { if (!open) attemptCloseForm(); }}>
+                <DialogContent
+                    className="max-h-[90vh] overflow-y-auto sm:max-w-2xl"
+                    onInteractOutside={(e) => e.preventDefault()}
+                >
+                    <DialogHeader>
+                        <DialogTitle>{isCreating ? 'Nuevo Proveedor' : `Editar Proveedor: ${editingSupplier?.name || ''}`}</DialogTitle>
+                        <DialogDescription>
+                            {isCreating
+                                ? 'Completa los datos para registrar un nuevo proveedor.'
+                                : 'Actualiza los datos del proveedor.'}
+                        </DialogDescription>
+                    </DialogHeader>
+                    {editingSupplier && (
+                        <SupplierForm
+                            supplier={editingSupplier}
+                            onCancel={attemptCloseForm}
+                            onSaved={closeForm}
+                            onDirtyChange={setIsFormDirty}
+                            userPermissions={userPermissions}
+                        />
+                    )}
+                </DialogContent>
+            </Dialog>
+
+            <ConfirmDialog
+                open={showDiscardConfirm}
+                onOpenChange={setShowDiscardConfirm}
+                title="¿Descartar cambios?"
+                description="Tienes cambios sin guardar que se perderán."
+                confirmText="Sí, descartar"
+                cancelText="Seguir editando"
+                onConfirm={closeForm}
+            />
         </AppLayout>
     );
 }

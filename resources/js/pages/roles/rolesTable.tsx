@@ -44,7 +44,6 @@ interface RolesTableProps {
         to: number
         total: number
     }
-    permissions: Record<string, Permission[]>
     perPage: string
     onPerPageChange: () => void
     onEditRole: (role: Role) => void
@@ -102,7 +101,7 @@ export default function RolesTable({
     };
 
     // Check if the user has any permissions to show the "Acciones" column
-    const showActionsColumn = userPermissions.includes('Editar Roles') || userPermissions.includes('Eliminar Roles');
+    const showActionsColumn = userPermissions.includes('Editar Roles y Permisos') || userPermissions.includes('Eliminar Roles y Permisos');
 
     return (
         <div className="space-y-4">
@@ -121,7 +120,7 @@ export default function RolesTable({
                         <TableRow>
                             <TableHead>Nombre</TableHead>
                             <TableHead>Descripción</TableHead>
-                            <TableHead>Permisos</TableHead>
+                            <TableHead>Roles y Permisos</TableHead>
                             {showActionsColumn && <TableHead className="text-right">Acciones</TableHead>}
                         </TableRow>
                     </TableHeader>
@@ -131,38 +130,29 @@ export default function RolesTable({
                                 <TableCell>{role.label}</TableCell>
                                 <TableCell>{role.description}</TableCell>
                                 <TableCell>
-                                    <div className="flex flex-col gap-3">
+                                    <div className="flex flex-wrap gap-2">
                                         {Object.entries(
                                             role.permissions.reduce((acc, permission) => {
-                                                if (!acc[permission.module]) {
-                                                    acc[permission.module] = [];
-                                                }
-                                                acc[permission.module].push(permission);
+                                                acc[permission.module] = (acc[permission.module] ?? 0) + 1;
                                                 return acc;
-                                            }, {} as Record<string, Permission[]>)
-                                        ).map(([module, modulePermissions]) => (
-                                            <div key={module} className="flex flex-col gap-1.5">
-                                                <span className="text-xs px-3 py-1 rounded-full bg-blue-600 text-white font-bold w-fit shadow-sm dark:bg-blue-700">
-                                                    {module}
+                                            }, {} as Record<string, number>)
+                                        ).map(([module, count]) => (
+                                            <span
+                                                key={module}
+                                                className="inline-flex items-center gap-1.5 text-xs pl-3 pr-1.5 py-1 rounded-full bg-blue-600 text-white font-medium shadow-sm dark:bg-blue-700"
+                                            >
+                                                {module}
+                                                <span className="inline-flex items-center justify-center min-w-[1.25rem] h-5 px-1 rounded-full bg-white/20 text-[11px] font-bold">
+                                                    {count}
                                                 </span>
-                                                <div className="flex flex-wrap gap-2 pl-3">
-                                                    {modulePermissions.map((permission) => (
-                                                        <span
-                                                            key={permission.id}
-                                                            className="text-xs px-2.5 py-1 rounded-full bg-gray-200 text-gray-800 font-medium border border-gray-300 shadow-sm dark:bg-gray-600 dark:text-gray-200 dark:border-gray-500"
-                                                        >
-                                                            {permission.label}
-                                                        </span>
-                                                    ))}
-                                                </div>
-                                            </div>
+                                            </span>
                                         ))}
                                     </div>
                                 </TableCell>
                                 {showActionsColumn && (
                                     <TableCell className="text-right">
                                         <div className="flex justify-end gap-2">
-                                            {userPermissions.includes('Editar Roles') && (
+                                            {userPermissions.includes('Editar Roles y Permisos') && (
                                                 <IconActionButton
                                                     variant="ghost"
                                                     onClick={() => onEditRole(role)}
@@ -172,7 +162,7 @@ export default function RolesTable({
                                                     <Pencil className="h-4 w-4" />
                                                 </IconActionButton>
                                             )}
-                                            {userPermissions.includes('Eliminar Roles') && (
+                                            {userPermissions.includes('Eliminar Roles y Permisos') && (
                                                 <IconActionButton
                                                     variant="ghost"
                                                     onClick={() => handleDelete(role.id, role.label)}
