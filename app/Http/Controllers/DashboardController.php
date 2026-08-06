@@ -41,17 +41,6 @@ class DashboardController extends Controller
             ];
         }
 
-        $products = Product::select('id', 'name', 'stock')
-            ->get()
-            ->map(function ($product) {
-                return [
-                    'id' => $product->id,
-                    'name' => $product->name,
-                    'stock' => $product->stock,
-                ];
-            })
-            ->toArray();
-
         $salesProducts = Product::select(
             'id',
             'code',
@@ -97,16 +86,58 @@ class DashboardController extends Controller
                 'categorias' => Category::count(),
                 'productos' => Product::count(),
             ],
-            'products' => $products,
             'financials' => $financials,
             'charts' => [
                 'sales_data' => $this->getSalesChartData('diario'),
-                'category_data' => $this->getCategoryChartData(),
+                'category_data' => $this->getCategoryChartData('diario'),
             ],
             'salesProducts' => $salesProducts,
             'salesClients' => $salesClients,
             'salesDepartments' => $salesDepartments,
             'salesCities' => $salesCities,
+        ]);
+    }
+
+    /**
+     * Umbral de alerta de stock: coincide con las franjas "Bajo" (crítico) y
+     * "Medio" (advertencia) del semáforo ya usado en el módulo de Productos
+     * (ver productsTable.tsx). Las franjas "Bueno"/"Óptimo" no son alertables.
+     */
+    private const ALERT_STOCK_THRESHOLD = 7;
+
+    private function stockTier(int $stock): string
+    {
+        if ($stock === 0) {
+            return 'agotado';
+        }
+
+        if ($stock <= 3) {
+            return 'critico';
+        }
+
+        return 'advertencia';
+    }
+
+    public function lowStockNotifications()
+    {
+        $products = Product::where('stock', '<=', self::ALERT_STOCK_THRESHOLD)
+            ->select('id', 'code', 'name', 'stock')
+            ->orderBy('stock')
+            ->limit(200)
+            ->get()
+            ->map(function ($product) {
+                return [
+                    'id' => $product->id,
+                    'code' => $product->code,
+                    'name' => $product->name,
+                    'stock' => $product->stock,
+                    'tier' => $this->stockTier($product->stock),
+                ];
+            });
+
+        return response()->json([
+            'products' => $products,
+            'total' => Product::where('stock', '<=', self::ALERT_STOCK_THRESHOLD)->count(),
         ]);
     }
 
@@ -131,7 +162,7 @@ class DashboardController extends Controller
         $allPeriods = ['diario', 'semanal', 'mensual', 'trimestral', 'semestral', 'anual'];
         $allFinancials = [];
         $allSalesData = [];
-        $categoryData = $this->getCategoryChartData();
+        $categoryData = $this->getCategoryChartData($period);
 
         foreach ($allPeriods as $p) {
             $allFinancials[$p] = [
@@ -763,17 +794,15 @@ class DashboardController extends Controller
         }
     }
 
-    private function getCategoryChartData()
+    private function getCategoryChartData($period)
     {
-        $currentMonth = Carbon::now()->month;
-        $currentYear = Carbon::now()->year;
+        [$start, $end] = $this->getPeriodDateRange($period);
 
         $categorySales = Category::leftJoin('products', 'categories.id', '=', 'products.category_id')
             ->leftJoin('sale_items', 'products.id', '=', 'sale_items.product_id')
             ->leftJoin('sales', 'sale_items.sale_id', '=', 'sales.id')
             ->where('sales.is_cancelled', false)
-            ->whereMonth('sales.sale_date', $currentMonth)
-            ->whereYear('sales.sale_date', $currentYear)
+            ->whereBetween('sales.sale_date', [$start, $end])
             ->select(
                 'categories.id',
                 'categories.name',
@@ -819,7 +848,13 @@ class DashboardController extends Controller
         return $baseColors[$index][$shadeIndex];
     }
 
-    private function getSalesData($period)
+    /**
+     * Rango [inicio, fin, inicio_periodo_anterior, fin_periodo_anterior] para
+     * un período del dashboard. Compartido por las secciones de ventas,
+     * transacciones y categorías para que todas midan exactamente el mismo
+     * rango al cambiar de período.
+     */
+    private function getPeriodDateRange(string $period): array
     {
         $today = Carbon::today();
         $currentMonth = Carbon::now()->month;
@@ -868,6 +903,13 @@ class DashboardController extends Controller
                 $previousStart = Carbon::yesterday();
                 $previousEnd = Carbon::yesterday();
         }
+
+        return [$start, $end, $previousStart, $previousEnd];
+    }
+
+    private function getSalesData($period)
+    {
+        [$start, $end, $previousStart, $previousEnd] = $this->getPeriodDateRange($period);
 
         $current = Sale::where('is_cancelled', false)
             ->whereBetween('sale_date', [$start, $end])
@@ -896,53 +938,7 @@ class DashboardController extends Controller
 
     private function getTransactionData($type, $period)
     {
-        $today = Carbon::today();
-        $currentMonth = Carbon::now()->month;
-        $currentYear = Carbon::now()->year;
-
-        switch ($period) {
-            case 'diario':
-                $start = $today;
-                $end = $today;
-                $previousStart = Carbon::yesterday();
-                $previousEnd = Carbon::yesterday();
-                break;
-            case 'semanal':
-                $start = $today->copy()->startOfWeek();
-                $end = $today->copy()->endOfWeek();
-                $previousStart = $today->copy()->subWeek()->startOfWeek();
-                $previousEnd = $today->copy()->subWeek()->endOfWeek();
-                break;
-            case 'mensual':
-                $start = Carbon::now()->startOfMonth();
-                $end = Carbon::now()->endOfMonth();
-                $previousStart = Carbon::now()->subMonth()->startOfMonth();
-                $previousEnd = Carbon::now()->subMonth()->endOfMonth();
-                break;
-            case 'trimestral':
-                $start = Carbon::now()->firstOfQuarter();
-                $end = Carbon::now()->lastOfQuarter();
-                $previousStart = Carbon::now()->subQuarter()->firstOfQuarter();
-                $previousEnd = Carbon::now()->subQuarter()->lastOfQuarter();
-                break;
-            case 'semestral':
-                $start = ($currentMonth <= 6) ? Carbon::create($currentYear, 1, 1) : Carbon::create($currentYear, 7, 1);
-                $end = ($currentMonth <= 6) ? Carbon::create($currentYear, 6, 30) : Carbon::create($currentYear, 12, 31);
-                $previousStart = ($currentMonth <= 6) ? Carbon::create($currentYear - 1, 7, 1) : Carbon::create($currentYear - 1, 1, 1);
-                $previousEnd = ($currentMonth <= 6) ? Carbon::create($currentYear - 1, 12, 31) : Carbon::create($currentYear - 1, 6, 30);
-                break;
-            case 'anual':
-                $start = Carbon::create($currentYear, 1, 1);
-                $end = Carbon::create($currentYear, 12, 31);
-                $previousStart = Carbon::create($currentYear - 1, 1, 1);
-                $previousEnd = Carbon::create($currentYear - 1, 12, 31);
-                break;
-            default:
-                $start = $today;
-                $end = $today;
-                $previousStart = Carbon::yesterday();
-                $previousEnd = Carbon::yesterday();
-        }
+        [$start, $end, $previousStart, $previousEnd] = $this->getPeriodDateRange($period);
 
         $current = Transaction::where('type', $type)
             ->whereBetween('transaction_date', [$start, $end])
@@ -963,7 +959,7 @@ class DashboardController extends Controller
     public function getChartData($period)
     {
         $salesData = $this->getSalesChartData($period);
-        $categoryData = $this->getCategoryChartData();
+        $categoryData = $this->getCategoryChartData($period);
         $financials = [
             'sales' => $this->getSalesData($period),
             'incomes' => $this->getTransactionData('Ingreso', $period),

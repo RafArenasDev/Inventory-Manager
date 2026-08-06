@@ -31,6 +31,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('dashboard.export')
         ->middleware('permission:Exportar Dashboard');
 
+    Route::get('/notifications/low-stock', [DashboardController::class, 'lowStockNotifications'])
+        ->name('notifications.low-stock');
+
     // Roles y Permisos
     Route::prefix('roles')->group(function () {
         Route::get('/', [RoleController::class, 'index'])

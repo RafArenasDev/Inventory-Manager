@@ -1,15 +1,15 @@
-import { Users, Package, Tags, ShoppingCart, ArrowUpRight, ArrowDownRight, Calendar, Truck, ClipboardList, TrendingUp, Download, LayoutGrid } from 'lucide-react';
+import { Users, Package, Tags, ShoppingCart, ArrowUpRight, ArrowDownRight, Truck, ClipboardList, TrendingUp, Download, LayoutGrid } from 'lucide-react';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, router, usePage } from '@inertiajs/react';
 import { useState, useEffect, useRef } from 'react';
 import * as Chart from 'chart.js';
-import LowStockModal from './lowStockModal';
 import SaleForm from './sales/saleForm';
 import { SaleModal } from './saleModal';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { PageHeader } from '@/components/page-header';
+import { ConfirmDialog } from '@/components/confirm-dialog';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -89,11 +89,6 @@ interface DashboardProps {
         categorias: number;
         productos: number;
     };
-    products: {
-        id: number;
-        name: string;
-        stock: number;
-    }[];
     financials: Record<Period, {
         sales: { amount: number; count: number; growth: number };
         incomes: { amount: number; growth: number };
@@ -120,7 +115,6 @@ interface DashboardProps {
 
 export default function Dashboard({
     stats,
-    products,
     financials,
     charts,
     salesProducts,
@@ -138,8 +132,9 @@ export default function Dashboard({
     const [salesData, setSalesData] = useState(charts.sales_data);
     const [categoryData, setCategoryData] = useState(charts.category_data);
     const [noDataMessage, setNoDataMessage] = useState('');
-    const [showLowStockModal, setShowLowStockModal] = useState(false);
     const [showSaleModal, setShowSaleModal] = useState(false);
+    const [isSaleFormDirty, setIsSaleFormDirty] = useState(false);
+    const [showSaleDiscardConfirm, setShowSaleDiscardConfirm] = useState(false);
     const barChartRef = useRef<HTMLCanvasElement>(null);
     const pieChartRef = useRef<HTMLCanvasElement>(null);
     const chartInstanceRef = useRef<Chart.Chart | null>(null);
@@ -158,8 +153,6 @@ export default function Dashboard({
     const statCards = allStatCards.filter(card =>
         !card.permission || userPermissions.includes(card.permission)
     );
-
-    const lowStockProducts = products.filter(p => p.stock <= 3);
 
     const calculateFinancialTotals = () => {
         let totalIngresos = 0;
@@ -322,8 +315,18 @@ export default function Dashboard({
         setShowSaleModal(true);
     };
 
-    const handleCloseSaleModal = () => {
+    const closeSaleModal = () => {
         setShowSaleModal(false);
+        setIsSaleFormDirty(false);
+    };
+
+    const handleCloseSaleModal = () => {
+        if (!isSaleFormDirty) {
+            closeSaleModal();
+            return;
+        }
+
+        setShowSaleDiscardConfirm(true);
     };
 
     const handleExport = (format: 'excel' | 'pdf') => {
@@ -340,43 +343,11 @@ export default function Dashboard({
         anual: 'Anual',
     };
 
-    const salesCards = [
-        { period: 'diario' as const, title: 'Ventas Hoy', data: financials.diario.sales, icon: Calendar, color: 'from-blue-500 to-blue-600', subtext: `${financials.diario.sales.count} ventas` },
-        { period: 'semanal' as const, title: 'Ventas Semana', data: financials.semanal.sales, icon: Calendar, color: 'from-blue-500 to-blue-600', subtext: `${financials.semanal.sales.count} ventas` },
-        { period: 'mensual' as const, title: 'Ventas Mes', data: financials.mensual.sales, icon: Calendar, color: 'from-blue-500 to-blue-600', subtext: `${financials.mensual.sales.count} ventas` },
-        { period: 'trimestral' as const, title: 'Ventas Trimestre', data: financials.trimestral.sales, icon: Calendar, color: 'from-blue-500 to-blue-600', subtext: `${financials.trimestral.sales.count} ventas` },
-        { period: 'semestral' as const, title: 'Ventas Semestre', data: financials.semestral.sales, icon: Calendar, color: 'from-blue-500 to-blue-600', subtext: `${financials.semestral.sales.count} ventas` },
-        { period: 'anual' as const, title: 'Ventas Año', data: financials.anual.sales, icon: Calendar, color: 'from-blue-500 to-blue-600', subtext: `${financials.anual.sales.count} ventas` },
+    const financialSummaryCards = [
+        { title: 'Ventas', data: financials[period].sales, icon: ShoppingCart, color: 'from-blue-500 to-blue-600', subtext: `${financials[period].sales.count} ventas` },
+        { title: 'Ingresos', data: financials[period].incomes, icon: ArrowUpRight, color: 'from-green-600 to-green-700', subtext: periodLabels[period] },
+        { title: 'Egresos', data: financials[period].expenses, icon: ArrowDownRight, color: 'from-red-600 to-red-700', subtext: periodLabels[period] },
     ];
-
-    const incomesCards = [
-        { period: 'diario' as const, title: 'Ingresos Hoy', data: financials.diario.incomes, icon: ArrowUpRight, color: 'from-green-600 to-green-700', subtext: 'Hoy' },
-        { period: 'semanal' as const, title: 'Ingresos Semana', data: financials.semanal.incomes, icon: ArrowUpRight, color: 'from-green-600 to-green-700', subtext: 'Semana actual' },
-        { period: 'mensual' as const, title: 'Ingresos Mes', data: financials.mensual.incomes, icon: ArrowUpRight, color: 'from-green-600 to-green-700', subtext: 'Mes actual' },
-        { period: 'trimestral' as const, title: 'Ingresos Trimestre', data: financials.trimestral.incomes, icon: ArrowUpRight, color: 'from-green-600 to-green-700', subtext: 'Trimestre actual' },
-        { period: 'semestral' as const, title: 'Ingresos Semestre', data: financials.semestral.incomes, icon: ArrowUpRight, color: 'from-green-600 to-green-700', subtext: 'Semestre actual' },
-        { period: 'anual' as const, title: 'Ingresos Año', data: financials.anual.incomes, icon: ArrowUpRight, color: 'from-green-600 to-green-700', subtext: 'Año actual' },
-    ];
-
-    const expensesCards = [
-        { period: 'diario' as const, title: 'Egresos Hoy', data: financials.diario.expenses, icon: ArrowDownRight, color: 'from-red-600 to-red-700', subtext: 'Hoy' },
-        { period: 'semanal' as const, title: 'Egresos Semana', data: financials.semanal.expenses, icon: ArrowDownRight, color: 'from-red-600 to-red-700', subtext: 'Semana actual' },
-        { period: 'mensual' as const, title: 'Egresos Mes', data: financials.mensual.expenses, icon: ArrowDownRight, color: 'from-red-600 to-red-700', subtext: 'Mes actual' },
-        { period: 'trimestral' as const, title: 'Egresos Trimestre', data: financials.trimestral.expenses, icon: ArrowDownRight, color: 'from-red-600 to-red-700', subtext: 'Trimestre actual' },
-        { period: 'semestral' as const, title: 'Egresos Semestre', data: financials.semestral.expenses, icon: ArrowDownRight, color: 'from-red-600 to-red-700', subtext: 'Semestre actual' },
-        { period: 'anual' as const, title: 'Egresos Año', data: financials.anual.expenses, icon: ArrowDownRight, color: 'from-red-600 to-red-700', subtext: 'Año actual' },
-    ];
-
-    const [salesSlide, setSalesSlide] = useState(salesCards.findIndex(card => card.period === period));
-    const [incomesSlide, setIncomesSlide] = useState(incomesCards.findIndex(card => card.period === period));
-    const [expensesSlide, setExpensesSlide] = useState(expensesCards.findIndex(card => card.period === period));
-
-    useEffect(() => {
-        const index = salesCards.findIndex(card => card.period === period);
-        setSalesSlide(index);
-        setIncomesSlide(index);
-        setExpensesSlide(index);
-    }, [period]);
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
@@ -386,7 +357,7 @@ export default function Dashboard({
                     <Button
                         onClick={handleOpenSaleModal}
                         size="sm"
-                        className="gap-2 bg-green-700 text-white"
+                        className="gap-2 bg-green-700 text-white hover:bg-green-800"
                     >
                         <ShoppingCart className="w-4 h-4" />
                         Nueva Venta
@@ -397,17 +368,23 @@ export default function Dashboard({
                             <DropdownMenuTrigger asChild>
                                 <Button
                                     size="sm"
-                                    className="gap-2 bg-gray-500 text-white"
+                                    className="gap-2 bg-gray-500 text-white hover:bg-gray-600"
                                 >
                                     <Download className="h-4 w-4" />
                                     Exportar
                                 </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent>
-                                <DropdownMenuItem onClick={() => handleExport('excel')}>
+                                <DropdownMenuItem
+                                    onClick={() => handleExport('excel')}
+                                    className="focus:bg-green-100 focus:text-green-900 dark:focus:bg-green-900/30 dark:focus:text-green-200"
+                                >
                                     Exportar a Excel
                                 </DropdownMenuItem>
-                                <DropdownMenuItem onClick={() => handleExport('pdf')}>
+                                <DropdownMenuItem
+                                    onClick={() => handleExport('pdf')}
+                                    className="focus:bg-red-100 focus:text-red-900 dark:focus:bg-red-900/30 dark:focus:text-red-200"
+                                >
                                     Exportar a PDF
                                 </DropdownMenuItem>
                             </DropdownMenuContent>
@@ -416,22 +393,22 @@ export default function Dashboard({
                 </PageHeader>
 
                 {/* Stats Cards */}
-                <div className={`grid grid-cols-2 sm:grid-cols-3 gap-3 ${statCards.length === 7 ? 'lg:grid-cols-7' : statCards.length === 6 ? 'lg:grid-cols-6' : statCards.length === 5 ? 'lg:grid-cols-5' : 'lg:grid-cols-4'}`}>
+                <div className={`grid grid-cols-2 sm:grid-cols-3 gap-2 ${statCards.length === 7 ? 'lg:grid-cols-7' : statCards.length === 6 ? 'lg:grid-cols-6' : statCards.length === 5 ? 'lg:grid-cols-5' : 'lg:grid-cols-4'}`}>
                     {statCards.map((stat, index) => {
                         const Icon = stat.icon;
                         return (
                             <button
                                 key={index}
                                 onClick={() => handleNavigate(stat.route)}
-                                className={`relative rounded-lg overflow-hidden transition-all duration-300 hover:scale-105 hover:shadow-xl cursor-pointer bg-gradient-to-br ${stat.color} p-4 flex flex-col items-center text-center`}
+                                className={`relative rounded-lg overflow-hidden transition-all duration-300 hover:scale-105 hover:shadow-xl cursor-pointer bg-gradient-to-br ${stat.color} px-3 py-2 flex items-center justify-between gap-2 text-left`}
                             >
-                                <div className="mb-2">
-                                    <Icon className="w-6 h-6 text-white" />
+                                <div className="flex items-center gap-2 min-w-0">
+                                    <Icon className="w-4 h-4 text-white shrink-0" />
+                                    <p className="text-xs font-medium text-white/90 truncate">
+                                        {stat.title}
+                                    </p>
                                 </div>
-                                <p className="text-xs font-medium text-white/90 mb-1">
-                                    {stat.title}
-                                </p>
-                                <p className="text-2xl font-bold text-white">
+                                <p className="text-base font-bold text-white shrink-0">
                                     {stat.value.toLocaleString()}
                                 </p>
                             </button>
@@ -439,280 +416,127 @@ export default function Dashboard({
                     })}
                 </div>
 
-                {/* Stock Status Overview */}
-                <div className="bg-card rounded-xl p-5 border border-sidebar-border/70 dark:border-sidebar-border">
-                    <div className="flex items-center justify-between mb-4">
-                        <div>
-                            <h3 className="text-lg font-bold text-foreground flex items-center gap-2">
-                                <Package className="w-5 h-5 text-blue-600" />
-                                Alertas de Inventario
-                            </h3>
-                            <p className="text-xs text-muted-foreground mt-1">Productos con stock bajo</p>
-                        </div>
-                        <button
-                            onClick={() => setShowLowStockModal(true)}
-                            className="text-xs text-blue-500 hover:text-blue-600 font-medium"
-                        >
-                            Ver todos →
-                        </button>
-                    </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
-                        {lowStockProducts.slice(0, 5).map((product, index) => {
-                            const getStockStatus = (stock: number) => {
-                                if (stock === 0) {
-                                    return { label: 'Sin Stock', color: 'bg-red-600 text-white font-bold dark:bg-red-700' };
-                                } else if (stock <= 3) {
-                                    return { label: 'Bajo', color: 'bg-red-600 text-white font-bold dark:bg-red-700' };
-                                }
-                            };
-
-                            const stockStatus = getStockStatus(product.stock);
-
-                            return (
-                                <div
-                                    key={index}
-                                    className="bg-muted/30 rounded-lg p-4 border border-border hover:border-blue-600/50 transition-colors"
-                                >
-                                    <div className="mb-3">
-                                        <p className="text-sm font-medium text-foreground leading-tight line-clamp-2">{product.name}</p>
-                                    </div>
-                                    <div className="flex items-center justify-between">
-                                        <span className="text-sm font-bold text-foreground">
-                                            Stock: {product.stock}
-                                        </span>
-                                        <span className={`px-2 py-1 rounded-full text-xs font-semibold ${stockStatus?.color}`}>
-                                            {stockStatus?.label}
-                                        </span>
-                                    </div>
-                                </div>
-                            );
-                        })}
-                    </div>
-                </div>
-
                 {/* Financials Section */}
                 <div className="border-sidebar-border/70 dark:border-sidebar-border relative flex-1 rounded-xl border bg-card">
                     <div className="p-6 h-full flex flex-col gap-6">
-                        {/* Sliders */}
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            {/* Sales Slider */}
-                            <div className="relative bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl p-5 shadow-lg text-white overflow-hidden">
-                                <div className="flex justify-center mb-4">
-                                    <h4 className="text-lg font-bold text-white text-center">Ventas</h4>
-                                </div>
-                                <div className="relative">
-                                    <button
-                                        onClick={() => setSalesSlide(salesSlide === 0 ? salesCards.length - 1 : salesSlide - 1)}
-                                        className="absolute left-0 top-1/2 transform -translate-y-1/2 bg-white/20 p-2 rounded-full hover:bg-white/30 z-10"
-                                    >
-                                        ←
-                                    </button>
-                                    <div className="mx-10 overflow-hidden">
-                                        <div
-                                            className="flex transition-transform duration-300 ease-in-out"
-                                            style={{ transform: `translateX(-${salesSlide * 100}%)` }}
-                                        >
-                                            {salesCards.map((card, index) => (
-                                                <div key={index} className="w-full flex-shrink-0 min-w-full px-2">
-                                                    <div className="flex items-center justify-between">
-                                                        <div className="flex items-center gap-3">
-                                                            <div className="p-2 bg-white/20 rounded-lg">
-                                                                <card.icon className="w-5 h-5" />
-                                                            </div>
-                                                            <div>
-                                                                <p className="text-sm font-medium text-white/80">{card.title}</p>
-                                                                <p className="text-xl font-bold">{formatCOP(card.data.amount)}</p>
-                                                            </div>
-                                                        </div>
-                                                        <div className="text-right">
-                                                            <p className="text-xs text-white/80">{card.subtext}</p>
-                                                            <span className={`px-3 py-1 bg-white text-xs font-semibold rounded-full ${card.data.growth >= 0 ? 'text-green-500' : 'text-red-500'}`}>
-                                                                {card.data.growth >= 0 ? '+' : ''}{card.data.growth}%
-                                                            </span>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </div>
-                                    <button
-                                        onClick={() => setSalesSlide(salesSlide === salesCards.length - 1 ? 0 : salesSlide + 1)}
-                                        className="absolute right-0 top-1/2 transform -translate-y-1/2 bg-white/20 p-2 rounded-full hover:bg-white/30 z-10"
-                                    >
-                                        →
-                                    </button>
-                                </div>
+                        {/* Header + selector de período (controla las tarjetas y el gráfico) */}
+                        <div className="flex items-center justify-between flex-wrap gap-3">
+                            <div>
+                                <h2 className="text-xl font-bold text-foreground flex items-center gap-2">
+                                    <TrendingUp className="w-5 h-5" />
+                                    Resumen Financiero
+                                </h2>
+                                <p className="text-sm text-muted-foreground mt-1">Análisis de rendimiento</p>
                             </div>
+                            <div className="flex gap-2 flex-wrap">
+                                {(['diario', 'semanal', 'mensual', 'trimestral', 'semestral', 'anual'] as const).map((p) => (
+                                    <button
+                                        key={p}
+                                        onClick={() => setPeriod(p)}
+                                        className={`px-3 py-1.5 text-xs rounded-lg transition-colors font-medium ${
+                                            period === p
+                                                ? 'bg-blue-500 text-white'
+                                                : 'bg-muted hover:bg-muted/80 text-muted-foreground'
+                                        }`}
+                                    >
+                                        {periodLabels[p]}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
 
-                            {/* Incomes Slider */}
-                            <div className="relative bg-gradient-to-br from-green-600 to-green-700 rounded-xl p-5 shadow-lg text-white overflow-hidden">
-                                <div className="flex justify-center mb-4">
-                                    <h4 className="text-lg font-bold text-white text-center">Ingresos</h4>
-                                </div>
-                                <div className="relative">
-                                    <button
-                                        onClick={() => setIncomesSlide(incomesSlide === 0 ? incomesCards.length - 1 : incomesSlide - 1)}
-                                        className="absolute left-0 top-1/2 transform -translate-y-1/2 bg-white/20 p-2 rounded-full hover:bg-white/30 z-10"
-                                    >
-                                        ←
-                                    </button>
-                                    <div className="mx-10 overflow-hidden">
-                                        <div
-                                            className="flex transition-transform duration-300 ease-in-out"
-                                            style={{ transform: `translateX(-${incomesSlide * 100}%)` }}
-                                        >
-                                            {incomesCards.map((card, index) => (
-                                                <div key={index} className="w-full flex-shrink-0 min-w-full px-2">
-                                                    <div className="flex items-center justify-between">
-                                                        <div className="flex items-center gap-3">
-                                                            <div className="p-2 bg-white/20 rounded-lg">
-                                                                <card.icon className="w-5 h-5" />
-                                                            </div>
-                                                            <div>
-                                                                <p className="text-sm font-medium text-white/80">{card.title}</p>
-                                                                <p className="text-xl font-bold">{formatCOP(card.data.amount)}</p>
-                                                            </div>
-                                                        </div>
-                                                        <div className="text-right">
-                                                            <p className="text-xs text-white/80">{card.subtext}</p>
-                                                            <span className={`px-3 py-1 bg-white text-xs font-semibold rounded-full ${card.data.growth >= 0 ? 'text-green-500' : 'text-red-500'}`}>
-                                                                {card.data.growth >= 0 ? '+' : ''}{card.data.growth}%
-                                                            </span>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            ))}
+                        {/* Tarjetas de resumen para el período seleccionado */}
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                            {financialSummaryCards.map((card) => (
+                                <div
+                                    key={card.title}
+                                    className={`bg-gradient-to-br ${card.color} rounded-xl p-5 shadow-lg text-white`}
+                                >
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex items-center gap-3 min-w-0">
+                                            <div className="p-2 bg-white/20 rounded-lg shrink-0">
+                                                <card.icon className="w-5 h-5" />
+                                            </div>
+                                            <div className="min-w-0">
+                                                <p className="text-sm font-medium text-white/80">{card.title}</p>
+                                                <p className="text-xl font-bold truncate">{formatCOP(card.data.amount)}</p>
+                                            </div>
+                                        </div>
+                                        <div className="text-right shrink-0">
+                                            <p className="text-xs text-white/80">{card.subtext}</p>
+                                            <span className={`px-3 py-1 bg-white text-xs font-semibold rounded-full ${card.data.growth >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+                                                {card.data.growth >= 0 ? '+' : ''}{card.data.growth}%
+                                            </span>
                                         </div>
                                     </div>
-                                    <button
-                                        onClick={() => setIncomesSlide(incomesSlide === incomesCards.length - 1 ? 0 : incomesSlide + 1)}
-                                        className="absolute right-0 top-1/2 transform -translate-y-1/2 bg-white/20 p-2 rounded-full hover:bg-white/30 z-10"
-                                    >
-                                        →
-                                    </button>
                                 </div>
-                            </div>
-
-                            {/* Expenses Slider */}
-                            <div className="relative bg-gradient-to-br from-red-600 to-red-700 rounded-xl p-5 shadow-lg text-white overflow-hidden">
-                                <div className="flex justify-center mb-4">
-                                    <h4 className="text-lg font-bold text-white text-center">Egresos</h4>
-                                </div>
-                                <div className="relative">
-                                    <button
-                                        onClick={() => setExpensesSlide(expensesSlide === 0 ? expensesCards.length - 1 : expensesSlide - 1)}
-                                        className="absolute left-0 top-1/2 transform -translate-y-1/2 bg-white/20 p-2 rounded-full hover:bg-white/30 z-10"
-                                    >
-                                        ←
-                                    </button>
-                                    <div className="mx-10 overflow-hidden">
-                                        <div
-                                            className="flex transition-transform duration-300 ease-in-out"
-                                            style={{ transform: `translateX(-${expensesSlide * 100}%)` }}
-                                        >
-                                            {expensesCards.map((card, index) => (
-                                                <div key={index} className="w-full flex-shrink-0 min-w-full px-2">
-                                                    <div className="flex items-center justify-between">
-                                                        <div className="flex items-center gap-3">
-                                                            <div className="p-2 bg-white/20 rounded-lg">
-                                                                <card.icon className="w-5 h-5" />
-                                                            </div>
-                                                            <div>
-                                                                <p className="text-sm font-medium text-white/80">{card.title}</p>
-                                                                <p className="text-xl font-bold">{formatCOP(card.data.amount)}</p>
-                                                            </div>
-                                                        </div>
-                                                        <div className="text-right">
-                                                            <p className="text-xs text-white/80">{card.subtext}</p>
-                                                            <span className={`px-3 py-1 bg-white text-xs font-semibold rounded-full ${card.data.growth >= 0 ? 'text-green-500' : 'text-red-500'}`}>
-                                                                {card.data.growth >= 0 ? '+' : ''}{card.data.growth}%
-                                                            </span>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </div>
-                                    <button
-                                        onClick={() => setExpensesSlide(expensesSlide === expensesCards.length - 1 ? 0 : expensesSlide + 1)}
-                                        className="absolute right-0 top-1/2 transform -translate-y-1/2 bg-white/20 p-2 rounded-full hover:bg-white/30 z-10"
-                                    >
-                                        →
-                                    </button>
-                                </div>
-                            </div>
+                            ))}
                         </div>
 
                         {/* Charts */}
                         <div className="flex-1 grid grid-cols-1 lg:grid-cols-3 gap-6">
                             {/* Bar Chart */}
                             <div className="lg:col-span-2 bg-muted/30 rounded-xl p-5 border border-border">
-                                <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
-                                    <div>
-                                        <h2 className="text-xl font-bold text-foreground flex items-center gap-2">
-                                            <TrendingUp className="w-5 h-5" />
-                                            Tendencia de Ventas
-                                        </h2>
-                                        <p className="text-sm text-muted-foreground mt-1">Análisis de rendimiento</p>
-                                    </div>
-                                    <div className="flex gap-2 flex-wrap">
-                                        {(['diario', 'semanal', 'mensual', 'trimestral', 'semestral', 'anual'] as const).map((p) => (
-                                            <button
-                                                key={p}
-                                                onClick={() => setPeriod(p)}
-                                                className={`px-3 py-1.5 text-xs rounded-lg transition-colors font-medium ${
-                                                    period === p
-                                                        ? 'bg-blue-500 text-white'
-                                                        : 'bg-muted hover:bg-muted/80 text-muted-foreground'
-                                                }`}
-                                            >
-                                                {periodLabels[p]}
-                                            </button>
-                                        ))}
-                                    </div>
+                                <div className="mb-4">
+                                    <h3 className="text-lg font-bold text-foreground">Tendencia de Ventas</h3>
+                                    <p className="text-xs text-muted-foreground mt-1">{periodLabels[period]}</p>
                                 </div>
-                                {noDataMessage && (
-                                    <div className="text-center text-muted-foreground py-4">
+                                {noDataMessage ? (
+                                    <div className="h-80 flex items-center justify-center text-center text-muted-foreground text-sm">
                                         {noDataMessage}
                                     </div>
+                                ) : (
+                                    <div className="h-80">
+                                        <canvas ref={barChartRef}></canvas>
+                                    </div>
                                 )}
-                                <div className="h-80">
-                                    <canvas ref={barChartRef}></canvas>
-                                </div>
                             </div>
 
                             {/* Doughnut Chart */}
                             <div className="bg-muted/30 rounded-xl p-5 border border-border flex flex-col">
                                 <div className="mb-4">
                                     <h3 className="text-lg font-bold text-foreground">Ventas por Categoría</h3>
-                                    <p className="text-xs text-muted-foreground mt-1">Distribución del año</p>
+                                    <p className="text-xs text-muted-foreground mt-1">{periodLabels[period]}</p>
                                 </div>
-                                <div className="flex-1 flex items-center justify-center">
-                                    <canvas ref={pieChartRef} className="max-h-96"></canvas>
-                                </div>
+                                {categoryData.length === 0 ? (
+                                    <div className="flex-1 flex items-center justify-center text-center text-muted-foreground text-sm py-4">
+                                        Sin ventas por categoría en este período
+                                    </div>
+                                ) : (
+                                    <div className="flex-1 flex items-center justify-center">
+                                        <canvas ref={pieChartRef} className="max-h-96"></canvas>
+                                    </div>
+                                )}
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-            <LowStockModal
-                isOpen={showLowStockModal}
-                onClose={() => {
-                    setShowLowStockModal(false);
-                }}
-                products={lowStockProducts}
-            />
-            <SaleModal open={showSaleModal} onOpenChange={setShowSaleModal}>
-                <SaleForm
-                    sale={undefined}
-                    products={salesProducts}
-                    clients={salesClients}
-                    departments={salesDepartments}
-                    cities={salesCities}
-                    onCancel={handleCloseSaleModal}
-                    userPermissions={userPermissions}
-                />
+            <SaleModal open={showSaleModal} onOpenChange={(open) => { if (!open) handleCloseSaleModal(); }}>
+                {showSaleModal && (
+                    <SaleForm
+                        sale={undefined}
+                        products={salesProducts}
+                        clients={salesClients}
+                        departments={salesDepartments}
+                        cities={salesCities}
+                        onCancel={handleCloseSaleModal}
+                        onSaved={closeSaleModal}
+                        onDirtyChange={setIsSaleFormDirty}
+                        userPermissions={userPermissions}
+                    />
+                )}
             </SaleModal>
+
+            <ConfirmDialog
+                open={showSaleDiscardConfirm}
+                onOpenChange={setShowSaleDiscardConfirm}
+                title="¿Descartar venta?"
+                description="Tienes una venta en progreso que se perderá."
+                confirmText="Sí, descartar"
+                cancelText="Seguir editando"
+                onConfirm={closeSaleModal}
+            />
         </AppLayout>
     );
 }
