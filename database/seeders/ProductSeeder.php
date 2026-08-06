@@ -2429,10 +2429,31 @@ class ProductSeeder extends Seeder
 
         $distriandinaCount = 0;
 
+        // Los `category_name` de arriba están abreviados/en mayúsculas y no
+        // calzan literalmente con los nombres de CategorySeeder; se resuelven
+        // por comparación insensible a mayúsculas/tildes, con alias explícitos
+        // para los que además están abreviados o con errores de tipeo.
+        $categoryAliases = [
+            'CALAPIE DEL/TRAS'     => 'Calapies delantero/trasero',
+            'KITS ARRASTRE COMP'   => 'Kits arrastre completos',
+            'PARTES PLASTICAS EXT' => 'Partes plásticas externas',
+            'PATAS LAT+GATO CTRL'  => 'Patas laterales y gato central',
+            'RODAMTOS INTERNOS'    => 'Rodamientos internos',
+            'TCAS Y TORNILLOS'     => 'Tuercas y tornillos',
+            'TRASMISIONSCOTER'     => 'Transmisión scooter',
+        ];
+
+        $normalize = fn (string $value): string => mb_strtolower(
+            strtr($value, ['á' => 'a', 'é' => 'e', 'í' => 'i', 'ó' => 'o', 'ú' => 'u'])
+        );
+
+        $categoriesByNormalizedName = Category::all()->keyBy(fn ($category) => $normalize($category->name));
+
         // En tu seeder donde creas los productos
         foreach ($products as $productData) {
             // Buscar la categoría del producto
-            $category = Category::where('name', $productData['category_name'])->first();
+            $resolvedName = $categoryAliases[$productData['category_name']] ?? $productData['category_name'];
+            $category     = $categoriesByNormalizedName->get($normalize($resolvedName));
 
             if (! $category) {
                 \Log::warning("Categoría {$productData['category_name']} no encontrada para el producto {$productData['code']}. Saltando producto y movimiento.");
