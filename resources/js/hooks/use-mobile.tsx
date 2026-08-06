@@ -1,6 +1,9 @@
 import { useEffect, useState } from 'react';
 
-const MOBILE_BREAKPOINT = 768;
+// 1024 en vez de 768: un iPad mide 768-1024px de ancho CSS y con 768 nunca
+// entraba en modo "mobile", dejando la sidebar fija expandida sin colapsar
+// en tablet.
+const MOBILE_BREAKPOINT = 1024;
 
 export function useIsMobile() {
     const [isMobile, setIsMobile] = useState<boolean>();
