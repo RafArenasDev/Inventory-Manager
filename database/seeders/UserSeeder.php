@@ -12,41 +12,30 @@ class UserSeeder extends Seeder
      */
     public function run(): void
     {
-        // Obtener todos los roles disponibles
-        $roles = Role::all();
-
         // Verificar que hay roles disponibles
-        if ($roles->isEmpty()) {
+        if (Role::count() === 0) {
             throw new \Exception('No hay roles disponibles en la base de datos. Por favor, ejecuta primero el RoleSeeder.');
         }
 
-        // Create user Admin
-        $admin = User::firstOrCreate(
-            ['email' => 'admin@admin.com'],
-            [
-                'name'              => 'Administrador',
-                'password'          => bcrypt('Admin-123*'),
-                'email_verified_at' => now(),
-            ]
-        );
-        $admin->assignRole('admin');
+        $users = [
+            ['email' => 'admin@admin.com', 'name' => 'Administrador', 'password' => 'Admin-123*', 'role' => 'admin'],
+            ['email' => 'seller@seller.com', 'name' => 'Camila Torres', 'password' => 'seller-123*', 'role' => 'seller'],
+            ['email' => 'vendedor2@demo.com', 'name' => 'Andrés Felipe Ríos', 'password' => 'Vendedor-123*', 'role' => 'seller'],
+            ['email' => 'cajero@demo.com', 'name' => 'Valentina Suárez', 'password' => 'Cajero-123*', 'role' => 'cashier'],
+            ['email' => 'bodega@demo.com', 'name' => 'Julián Castaño', 'password' => 'Bodega-123*', 'role' => 'warehouse'],
+            ['email' => 'auditor@demo.com', 'name' => 'Marcela Duque', 'password' => 'Auditor-123*', 'role' => 'auditor'],
+        ];
 
-        // Create user Seller
-        $seller = User::firstOrCreate(
-            ['email' => 'seller@seller.com'],
-            [
-                'name'              => 'Vendedor',
-                'password'          => bcrypt('seller-123*'),
-                'email_verified_at' => now(),
-            ]
-        );
-        $seller->assignRole('seller');
-
-        // // Create 30 additional users with factory and assign random roles
-        // User::factory(100)->create()->each(function ($user) use ($roles) {
-        //     // Asignar un rol aleatorio
-        //     $randomRole = $roles->random();
-        //     $user->assignRole($randomRole->name);
-        // });
+        foreach ($users as $userData) {
+            $user = User::firstOrCreate(
+                ['email' => $userData['email']],
+                [
+                    'name'              => $userData['name'],
+                    'password'          => bcrypt($userData['password']),
+                    'email_verified_at' => now(),
+                ]
+            );
+            $user->syncRoles([$userData['role']]);
+        }
     }
 }

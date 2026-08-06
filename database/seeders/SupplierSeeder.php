@@ -7,59 +7,60 @@ use Illuminate\Database\Seeder;
 class SupplierSeeder extends Seeder
 {
     /**
-     * Run the database seeds.
+     * Datos ficticios (nombres, NITs y direcciones inventados) para la demo
+     * de una tienda de tecnología — no representan proveedores reales.
      */
     public function run(): void
     {
         Supplier::create([
-            'name'           => 'Distriandina H',
-            'representative' => 'Ospina Vallejo Jorge Hernando',
-            'nit_number'     => 10196977,
-            'nit_digit'      => '8',
-            'phone'          => '3541063',
-            'cellphone'      => '',
-            'address'        => 'CL 32 10-134 Guadalupe - Dosquebradas',
-            'email'          => 'distriandina@hotmail.com',
-            'description'    => 'Proveedor de distribución y servicios comerciales.',
+            'name'           => 'TecnoMayorista S.A.S',
+            'representative' => 'Laura Ximena Rojas',
+            'nit_number'     => 901234567,
+            'nit_digit'      => '3',
+            'phone'          => '6017891234',
+            'cellphone'      => '3101234567',
+            'address'        => 'Cra 15 #93-60, Bogotá',
+            'email'          => 'ventas@tecnomayorista.com.co',
+            'description'    => 'Distribuidor mayorista de computadores, componentes y periféricos.',
             'is_active'      => true,
         ]);
 
         Supplier::create([
-            'name'           => 'Importadora OKLA S.A.S',
-            'representative' => 'Jhon Mario',
-            'nit_number'     => 900153867,
-            'nit_digit'      => '1',
-            'phone'          => '60634001612',
-            'cellphone'      => '3148301248',
-            'address'        => 'Cl 9 N° 1-140 Bod. 1B Dosquebradas - la Badea. Variante Turín La popa',
-            'email'          => 'info@importadoraokla.com',
-            'description'    => 'Importadora y distribuidora de productos.',
+            'name'           => 'GlobalTech Distribuciones S.A.S',
+            'representative' => 'Camilo Andrés Peña',
+            'nit_number'     => 900876543,
+            'nit_digit'      => '5',
+            'phone'          => '6042561234',
+            'cellphone'      => '3159876543',
+            'address'        => 'Cl 50 #65-20, Medellín',
+            'email'          => 'contacto@globaltechdist.com',
+            'description'    => 'Importador de tarjetas gráficas, componentes y almacenamiento.',
             'is_active'      => true,
         ]);
 
         Supplier::create([
-            'name'           => 'Lubriter R & Q S.A.S',
-            'representative' => 'Cristian',
-            'nit_number'     => 900007124,
+            'name'           => 'Andina Componentes S.A.S',
+            'representative' => 'Diana Marcela Gómez',
+            'nit_number'     => 900345678,
             'nit_digit'      => '1',
-            'phone'          => '6063132699',
-            'cellphone'      => '',
-            'address'        => 'Carrera 15 N° 138-25 Bodega 4 Centro Logístico Eje Cafetero Cerritos',
-            'email'          => 'info@lubriter.com',
-            'description'    => 'Proveedor de lubricantes y productos químicos.',
+            'phone'          => '6023451234',
+            'cellphone'      => '3187654321',
+            'address'        => 'Av 6N #28N-10, Cali',
+            'email'          => 'pedidos@andinacomponentes.co',
+            'description'    => 'Proveedor de periféricos, audio y accesorios gamer.',
             'is_active'      => true,
         ]);
 
         Supplier::create([
-            'name'           => 'DIFELB',
-            'representative' => 'Karen Botia',
-            'nit_number'     => 900690999,
-            'nit_digit'      => '1',
-            'phone'          => '',
-            'cellphone'      => '3174964409',
-            'address'        => 'Soacha',
-            'email'          => '',
-            'description'    => 'Proveedor de servicios y productos.',
+            'name'           => 'Conectividad y Redes del Eje S.A.S',
+            'representative' => 'Julián Esteban Marín',
+            'nit_number'     => 901567890,
+            'nit_digit'      => '9',
+            'phone'          => '6063214567',
+            'cellphone'      => '3123456789',
+            'address'        => 'Cra 8 #21-30, Pereira',
+            'email'          => 'info@redeseje.com.co',
+            'description'    => 'Proveedor de redes, cámaras de seguridad e impresión.',
             'is_active'      => true,
         ]);
     }

@@ -20,8 +20,12 @@ class DatabaseSeeder extends Seeder
             SupplierSeeder::class,
             ProductSeeder::class,
             DepartmentCitySeeder::class,
+            ClientSeeder::class,
             TransactionCategorySeeder::class,
-            // InventoryMovementSeeder::class,
+            SaleSeeder::class,
+            TransactionSeeder::class,
+            InventoryMovementSeeder::class,
+            CashRegisterSeeder::class,
         ]);
     }
 }

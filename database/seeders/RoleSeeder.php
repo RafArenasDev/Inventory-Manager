@@ -26,36 +26,93 @@ class RoleSeeder extends Seeder
             ['name' => 'seller', 'guard_name' => 'web'],
             [
                 'label'       => 'Vendedor',
-                'description' => 'Rol de vendedor con acceso a funcionalidades de ventas y gestión de clientes.',
+                'description' => 'Rol de vendedor: registra ventas y gestiona clientes.',
                 'is_active'   => true,
             ]
         );
 
-        // Asignar TODOS los permisos al rol admin
+        $cashierRole = Role::firstOrCreate(
+            ['name' => 'cashier', 'guard_name' => 'web'],
+            [
+                'label'       => 'Cajero',
+                'description' => 'Rol de cajero: abre/cierra caja y registra ventas.',
+                'is_active'   => true,
+            ]
+        );
+
+        $warehouseRole = Role::firstOrCreate(
+            ['name' => 'warehouse', 'guard_name' => 'web'],
+            [
+                'label'       => 'Bodega',
+                'description' => 'Rol de bodega: gestiona productos, stock y movimientos de inventario.',
+                'is_active'   => true,
+            ]
+        );
+
+        $auditorRole = Role::firstOrCreate(
+            ['name' => 'auditor', 'guard_name' => 'web'],
+            [
+                'label'       => 'Auditor',
+                'description' => 'Rol de auditor: acceso de solo lectura y exportación a todos los módulos.',
+                'is_active'   => true,
+            ]
+        );
+
+        // Admin: todos los permisos
         $adminRole->syncPermissions(Permission::all());
 
-        // Asignar permisos específicos al rol seller
-        $sellerPermissions = Permission::whereIn('name', [
+        // Vendedor: catálogo + clientes + ventas
+        $sellerRole->syncPermissions(Permission::whereIn('name', [
             'Ver Categorías',
             'Ver Productos',
             'Ver Movimientos Inventario',
-        ])->get();
+            'Ver Clientes',
+            'Crear Clientes',
+            'Editar Clientes',
+            'Ver Ventas',
+            'Crear Ventas',
+            'Exportar Ventas',
+        ])->get());
 
-        $sellerRole->syncPermissions($sellerPermissions);
+        // Cajero: caja + ventas + clientes
+        $cashierRole->syncPermissions(Permission::whereIn('name', [
+            'Ver Caja',
+            'Crear Caja',
+            'Actualizar Caja',
+            'Exportar Caja',
+            'Ver Ventas',
+            'Crear Ventas',
+            'Exportar Ventas',
+            'Ver Clientes',
+            'Crear Clientes',
+            'Ver Productos',
+        ])->get());
 
-        // // Create 50 roles with random names (commented out)
-        // $faker = \Faker\Factory::create();
-        //
-        // for ($i = 0; $i < 50; $i++) {
-        //     $roleName = $faker->unique()->word;
-        //
-        //     Role::create([
-        //         'name'        => $roleName,
-        //         'label'       => ucfirst($roleName),
-        //         'description' => $faker->sentence,
-        //         'is_active'   => $faker->boolean(90), // 90% probability of being active
-        //         'guard_name'  => 'web',
-        //     ]);
-        // }
+        // Bodega: productos, categorías, proveedores y movimientos de inventario
+        $warehouseRole->syncPermissions(Permission::whereIn('name', [
+            'Ver Productos',
+            'Crear Productos',
+            'Editar Productos',
+            'Actualizar Productos',
+            'Exportar Productos',
+            'Ver Categorías',
+            'Crear Categorías',
+            'Actualizar Categorías',
+            'Ver Proveedores',
+            'Crear Proveedores',
+            'Editar Proveedores',
+            'Actualizar Proveedores',
+            'Ver Movimientos Inventario',
+            'Crear Movimientos Inventario',
+            'Editar Movimientos Inventario',
+            'Actualizar Movimientos Inventario',
+            'Exportar Movimientos Inventario',
+        ])->get());
+
+        // Auditor: solo lectura y exportación en todos los módulos
+        $auditorRole->syncPermissions(Permission::where(function ($query) {
+            $query->where('name', 'like', 'Ver %')
+                ->orWhere('name', 'like', 'Exportar %');
+        })->get());
     }
 }
