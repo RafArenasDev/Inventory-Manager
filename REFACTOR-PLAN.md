@@ -281,32 +281,28 @@ explícitamente fuera hasta que esa fase termine.
   frontend. ❌ No migrado a tablas — diseño pendiente de proponer antes de
   crear modelos/migraciones nuevas (regla del proyecto: proponer antes de
   construir).
-- **Envío de factura por WhatsApp con el PDF adjunto (retomado 2026-08-07):**
-  ✅ implementado con `whatsapp-web.js` (automatización no oficial de WhatsApp
-  Web) en `whatsapp-service/` (Node.js standalone, no forma parte del build
-  de Laravel/Vite). Corre **local**, en la máquina del negocio (no en
-  Render — el free tier tiene disco efímero y spin-down, que rompería la
-  sesión guardada; era justo el punto que había quedado sin resolver). Se
-  vincula una vez escaneando un QR (`cd whatsapp-service && npm install &&
-  npm start`, ver `whatsapp-service/README.md`), la sesión persiste en
-  `.wwebjs_auth/` (gitignored).
-  - El botón "Enviar a WhatsApp" (`saleDetailModal.tsx`) primero pregunta
-    `GET /status` al servicio (timeout 1.5s); si está listo, hace
-    `POST /send-invoice` con `{phone, pdfUrl, message}` y el servicio
-    descarga el PDF y lo envía adjunto con caption en un solo mensaje real
-    — sin intervención manual. Si el servicio no responde o no está
-    vinculado, cae automáticamente al comportamiento anterior (`wa.me` +
-    descarga manual del PDF), así que no rompe el portfolio público ni
-    producción en Render, donde este servicio no corre.
-  - Se evaluó CallMeBot (no sirve: solo texto, requiere registro previo del
-    destinatario) y la API oficial de WhatsApp Cloud (Meta) — descartada,
-    exige verificación de negocio y plantillas aprobadas, el usuario prefiere
-    evitarlo.
-  - **Riesgo real y aceptado explícitamente por el usuario:** cualquier
-    automatización no oficial de WhatsApp puede derivar en baneo del número
-    vinculado. Bajo riesgo reportado por la comunidad para uso legítimo/bajo
-    volumen (facturas post-venta), pero no es cero. Documentado en el README
-    del servicio.
+- **Envío de factura por WhatsApp gratis:** se investigó a fondo y quedó
+  **pausado a pedido explícito del usuario**, no descartado. Resumen de lo que
+  se descubrió para no repetir la investigación:
+  - CallMeBot (la opción que el usuario había visto en un video) **no sirve**:
+    su plan gratis solo envía texto (no PDFs) y requiere que cada destinatario
+    se registre manualmente con el bot antes — inviable para clientes que
+    compran una sola vez.
+  - La única opción realmente gratis que envía el PDF a cualquier número sin
+    registro previo es **Baileys** (librería no oficial de Node.js que replica
+    el protocolo de WhatsApp Web). Requiere un servicio Node.js aparte y
+    escanear un QR una vez con el WhatsApp del negocio; zona gris de ToS de
+    WhatsApp (no ilegal, pero no oficial).
+  - La alternativa "segura" es la API oficial de WhatsApp Cloud (Meta), que
+    exige verificación de negocio y plantillas de mensaje aprobadas — el
+    usuario prefiere evitar ese trámite.
+  - **Quedó sin resolver:** si Baileys es viable en el Render free tier actual
+    (disco efímero + spin-down a los 15 min de inactividad rompen la sesión de
+    WhatsApp guardada en disco). La investigación se interrumpió justo antes
+    de confirmar esto — la salida sugiere que habría que persistir el estado
+    de sesión de Baileys en la base de datos (Aiven MySQL) en vez de en
+    archivos locales, para sobrevivir redeploys/spin-downs. Confirmar esto
+    antes de empezar a implementar.
   - **Fix puntual 2026-08-07:** el link `wa.me/${cellphone}` daba 404 porque
     el celular ficticio se generaba con guion (`ClientSeeder`, formato
     `3##-#######`) y sin código de país — wa.me exige solo dígitos con
@@ -395,8 +391,9 @@ y pegarla en `MAIL_PASSWORD`. El código de envío en sí está verificado
    mientras dure el MVP.
 8. Catálogos en BD + Combobox (punto 8) — antes de esto, proponer el diseño de
    las tablas nuevas para aprobación.
-9. ~~WhatsApp~~ — ✅ hecho 2026-08-07 (servicio local `whatsapp-service/`
-   con `whatsapp-web.js`, ver detalle en el punto 8 de arriba).
+9. WhatsApp (punto 8) — pausado a propósito; retomar cuando el usuario lo pida
+   de nuevo, confirmando primero viabilidad de Baileys en Render free tier
+   (persistencia de sesión) o decidiendo ir por la API oficial de Meta.
 
 ## Próxima sesión — por dónde seguir
 
@@ -414,7 +411,8 @@ Lo más práctico para retomar, en orden de impacto:
    movimiento y métodos de pago antes de construir, luego el Combobox.
 4. **PWA (punto 4):** no depende de nada de lo anterior, se puede hacer en
    paralelo si se prefiere.
-5. ~~**WhatsApp**~~ — ✅ hecho 2026-08-07.
+5. **WhatsApp:** retomar la investigación de Baileys + Render solo cuando el
+   usuario lo pida explícitamente otra vez (quedó pausado a propósito).
 
 ## Criterios de aceptación
 

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
     Dialog,
     DialogContent,
@@ -9,7 +9,6 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Button } from '@/components/ui/button';
 import { MessageCircle } from 'lucide-react';
 import Swal from '@/lib/swal';
-import BaseSwal from 'sweetalert2';
 
 export interface SaleItem {
     id: number;
@@ -81,106 +80,45 @@ const formatWhatsAppNumber = (rawNumber: string): string => {
     return digits;
 };
 
-const buildGreetingMessage = (businessName: string): string => {
-    const bogotaTime = new Date().toLocaleString('en-US', { timeZone: 'America/Bogota', hour: 'numeric', hour12: false });
-    const hour = parseInt(bogotaTime) % 24;
-    let greeting = 'Buenas noches';
-    if (hour < 12) {
-        greeting = 'Buenos días';
-    } else if (hour < 18) {
-        greeting = 'Buenas tardes';
-    }
-    return `${greeting}, de parte de ${businessName}. ¡Aquí está su recibo de pago adjunto!`;
-};
-
-const WHATSAPP_SERVICE_URL = 'http://localhost:3001';
-
-const openWhatsAppFallback = (sale: Sale, message: string) => {
-    const pdfUrl = `${window.location.origin}${sale.public_invoice_url}`;
-    const link = `https://wa.me/${formatWhatsAppNumber(sale.client!.cellphone!)}?text=${encodeURIComponent(message)}`;
-    window.open(link, '_blank');
-
-    fetch(pdfUrl)
-        .then(response => response.blob())
-        .then(blob => {
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `recibo_${sale.invoice_number}.pdf`;
-            document.body.appendChild(a);
-            a.click();
-            a.remove();
-            window.URL.revokeObjectURL(url);
-        })
-        .catch(error => {
-            console.error('Error downloading PDF:', error);
-            Swal.fire({
-                icon: 'error',
-                title: 'Error',
-                text: 'No se pudo descargar el archivo PDF.',
-                timer: 2200,
-            });
-        });
-};
-
 export default function SaleDetailModal({ isOpen, onClose, sale, businessName }: SaleDetailModalProps) {
-    const [isSending, setIsSending] = useState(false);
-
     if (!sale) return null;
 
-    const handleSendToWhatsApp = async () => {
+    const handleSendToWhatsApp = () => {
         if (sale.client?.cellphone && sale.public_invoice_url) {
-            const message = buildGreetingMessage(businessName);
-            const pdfUrl = `${window.location.origin}${sale.public_invoice_url}`;
-
-            setIsSending(true);
-            Swal.fire({
-                title: 'Enviando factura por WhatsApp...',
-                allowOutsideClick: false,
-                allowEscapeKey: false,
-                didOpen: () => BaseSwal.showLoading(),
-            });
-
-            try {
-                const statusResponse = await fetch(`${WHATSAPP_SERVICE_URL}/status`, {
-                    signal: AbortSignal.timeout(1500),
-                });
-                const status = await statusResponse.json();
-
-                if (status.ready) {
-                    const sendResponse = await fetch(`${WHATSAPP_SERVICE_URL}/send-invoice`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            phone: sale.client.cellphone,
-                            pdfUrl,
-                            message,
-                        }),
-                    });
-                    const result = await sendResponse.json();
-
-                    if (result.success) {
-                        Swal.fire({
-                            icon: 'success',
-                            title: 'Factura enviada por WhatsApp',
-                            timer: 2200,
-                            showConfirmButton: false,
-                        });
-                    } else {
-                        throw new Error(result.error || 'El servicio de WhatsApp no pudo enviar el mensaje.');
-                    }
-                } else {
-                    BaseSwal.close();
-                    setIsSending(false);
-                    openWhatsAppFallback(sale, message);
-                    return;
-                }
-            } catch {
-                BaseSwal.close();
-                openWhatsAppFallback(sale, message);
-            } finally {
-                setIsSending(false);
+            const bogotaTime = new Date().toLocaleString('en-US', { timeZone: 'America/Bogota', hour: 'numeric', hour12: false });
+            const hour = parseInt(bogotaTime);
+            let greeting = 'Buenas noches';
+            if (hour < 12) {
+                greeting = 'Buenos días';
+            } else if (hour < 18) {
+                greeting = 'Buenas tardes';
             }
+            const pdfUrl = `${window.location.origin}${sale.public_invoice_url}`;
+            const message = encodeURIComponent(`${greeting}, de parte de ${businessName}. ¡Aquí está su recibo de pago adjunto!`);
+            const link = `https://wa.me/${formatWhatsAppNumber(sale.client.cellphone)}?text=${message}`;
+            window.open(link, '_blank');
+
+            fetch(pdfUrl)
+                .then(response => response.blob())
+                .then(blob => {
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `recibo_${sale.invoice_number}.pdf`;
+                    document.body.appendChild(a);
+                    a.click();
+                    a.remove();
+                    window.URL.revokeObjectURL(url);
+                })
+                .catch(error => {
+                    console.error('Error downloading PDF:', error);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'No se pudo descargar el archivo PDF.',
+                        timer: 2200,
+                    });
+                });
         } else {
             Swal.fire({
                 icon: 'error',
@@ -328,9 +266,9 @@ export default function SaleDetailModal({ isOpen, onClose, sale, businessName }:
 
                     {sale.public_invoice_url && sale.client?.cellphone && (
                         <div className="flex justify-end">
-                            <Button onClick={handleSendToWhatsApp} disabled={isSending} className="gap-2">
+                            <Button onClick={handleSendToWhatsApp} className="gap-2">
                                 <MessageCircle className="h-4 w-4" />
-                                {isSending ? 'Enviando...' : 'Enviar a WhatsApp'}
+                                Enviar a WhatsApp
                             </Button>
                         </div>
                     )}
