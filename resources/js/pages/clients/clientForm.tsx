@@ -4,7 +4,7 @@ import Swal from '@/lib/swal';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Combobox, ComboboxContent, ComboboxEmpty, ComboboxInput, ComboboxItem, ComboboxList } from '@/components/ui/combobox';
 import { Checkbox } from "@/components/ui/checkbox"
 import axios from 'axios';
 
@@ -23,6 +23,8 @@ interface Client {
     email?: string;
     is_active: boolean;
 }
+
+const DOCUMENT_TYPES = ['CC', 'TI', 'CE', 'Pasaporte', 'NIT'];
 
 interface Department {
     id: number;
@@ -183,21 +185,23 @@ const ClientForm: React.FC<ClientFormProps> = ({ client, onCancel, onSaved, onDi
                 <Label htmlFor="document_type" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                     Tipo de Documento *
                 </Label>
-                <Select
-                    value={data.document_type || ''}
-                    onValueChange={(value: string) => setData('document_type', value)}
+                <Combobox
+                    items={DOCUMENT_TYPES}
+                    value={data.document_type || null}
+                    onValueChange={(value: string | null) => setData('document_type', value ?? '')}
                 >
-                    <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Seleccione tipo de documento" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        <SelectItem value="CC">CC</SelectItem>
-                        <SelectItem value="TI">TI</SelectItem>
-                        <SelectItem value="CE">CE</SelectItem>
-                        <SelectItem value="Pasaporte">Pasaporte</SelectItem>
-                        <SelectItem value="NIT">NIT</SelectItem>
-                    </SelectContent>
-                </Select>
+                    <ComboboxInput placeholder="Seleccione tipo de documento" className="w-full" />
+                    <ComboboxContent>
+                        <ComboboxEmpty>No se encontraron resultados.</ComboboxEmpty>
+                        <ComboboxList>
+                            {(type: string) => (
+                                <ComboboxItem key={type} value={type}>
+                                    {type}
+                                </ComboboxItem>
+                            )}
+                        </ComboboxList>
+                    </ComboboxContent>
+                </Combobox>
                 {errors.document_type && <p className="mt-1 text-sm text-red-600">{errors.document_type}</p>}
             </div>
 
@@ -253,29 +257,25 @@ const ClientForm: React.FC<ClientFormProps> = ({ client, onCancel, onSaved, onDi
                     <Label htmlFor="department_id" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                         Departamento
                     </Label>
-                    <Select
-                        value={data.department_id?.toString() || ''}
-                        onValueChange={(value: string) => {
-                            setData('department_id', value ? parseInt(value) : '');
-                        }}
+                    <Combobox
+                        items={departments}
+                        itemToStringLabel={(d: Department) => d.name}
+                        itemToStringValue={(d: Department) => d.id.toString()}
+                        value={departments.find(d => d.id === data.department_id) ?? null}
+                        onValueChange={(d: Department | null) => setData('department_id', d ? d.id : '')}
                     >
-                        <SelectTrigger className="w-full">
-                            <SelectValue placeholder="Seleccione un departamento" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            {departments.length ? (
-                                departments.map((department) => (
-                                    <SelectItem key={department.id} value={department.id.toString()}>
+                        <ComboboxInput placeholder="Seleccione un departamento" className="w-full" />
+                        <ComboboxContent>
+                            <ComboboxEmpty>No hay departamentos disponibles.</ComboboxEmpty>
+                            <ComboboxList>
+                                {(department: Department) => (
+                                    <ComboboxItem key={department.id} value={department}>
                                         {department.name}
-                                    </SelectItem>
-                                ))
-                            ) : (
-                                <SelectItem value="none" disabled>
-                                    No hay departamentos disponibles
-                                </SelectItem>
-                            )}
-                        </SelectContent>
-                    </Select>
+                                    </ComboboxItem>
+                                )}
+                            </ComboboxList>
+                        </ComboboxContent>
+                    </Combobox>
                     {errors.department_id && <p className="mt-1 text-sm text-red-600">{errors.department_id}</p>}
                 </div>
 
@@ -283,28 +283,26 @@ const ClientForm: React.FC<ClientFormProps> = ({ client, onCancel, onSaved, onDi
                     <Label htmlFor="city_id" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                         Ciudad
                     </Label>
-                    <Select
-                        value={data.city_id?.toString() || ''}
-                        onValueChange={(value: string) => setData('city_id', value ? parseInt(value) : '')}
+                    <Combobox
+                        items={availableCities}
+                        itemToStringLabel={(c: City) => c.name}
+                        itemToStringValue={(c: City) => c.id.toString()}
+                        value={availableCities.find(c => c.id === data.city_id) ?? null}
+                        onValueChange={(c: City | null) => setData('city_id', c ? c.id : '')}
                         disabled={!availableCities.length}
                     >
-                        <SelectTrigger className="w-full">
-                            <SelectValue placeholder="Seleccione una ciudad" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            {availableCities.length ? (
-                                availableCities.map((city) => (
-                                    <SelectItem key={city.id} value={city.id.toString()}>
+                        <ComboboxInput placeholder="Seleccione una ciudad" className="w-full" />
+                        <ComboboxContent>
+                            <ComboboxEmpty>No hay ciudades disponibles.</ComboboxEmpty>
+                            <ComboboxList>
+                                {(city: City) => (
+                                    <ComboboxItem key={city.id} value={city}>
                                         {city.name}
-                                    </SelectItem>
-                                ))
-                            ) : (
-                                <SelectItem value="none" disabled>
-                                    No hay ciudades disponibles
-                                </SelectItem>
-                            )}
-                        </SelectContent>
-                    </Select>
+                                    </ComboboxItem>
+                                )}
+                            </ComboboxList>
+                        </ComboboxContent>
+                    </Combobox>
                     {errors.city_id && <p className="mt-1 text-sm text-red-600">{errors.city_id}</p>}
                 </div>
 

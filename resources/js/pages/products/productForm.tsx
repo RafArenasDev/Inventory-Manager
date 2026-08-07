@@ -2,17 +2,13 @@ import React, { useEffect, useRef, useState } from "react";
 import { useForm, router } from '@inertiajs/react';
 import Swal from '@/lib/swal';
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Image as ImageIcon, Loader2 } from "lucide-react";
 import { Combobox, ComboboxContent, ComboboxEmpty, ComboboxInput, ComboboxItem, ComboboxList } from "@/components/ui/combobox";
 
 const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/gif'];
 const MAX_IMAGE_SIZE = 2048 * 1024; // 2MB, igual al límite del backend
-
-// Este form usa inputs "planos" (no <Input> de shadcn) de 42px/16px en vez
-// del h-9/text-sm estándar de shadcn — se iguala el Combobox a ESE tamaño
-// para que no desentone dentro de este form en particular.
-const COMBOBOX_CLASSNAME = 'h-auto rounded-md border-gray-300 bg-white shadow-sm dark:border-gray-600 dark:bg-black has-[[data-slot=input-group-control]:focus-visible]:border-blue-500 has-[[data-slot=input-group-control]:focus-visible]:ring-blue-500';
-const COMBOBOX_INPUT_CLASSNAME = 'h-auto py-2 text-base text-gray-900 md:text-base dark:text-gray-100';
 
 // Colombia no fija por ley un margen de utilidad para retail (a diferencia
 // del IVA, que sí es legalmente 0% o 19%). 30% es un punto de partida común
@@ -381,11 +377,11 @@ const ProductForm: React.FC<ProductFormProps> = ({
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Código *
             </label>
-            <input
+            <Input
               type="text"
               value={data.code}
               onChange={handleInputChange('code')}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-black text-gray-900 dark:text-gray-100"
+              className="w-full"
               required
             />
             {errors.code && <p className="mt-1 text-sm text-red-600">{errors.code}</p>}
@@ -402,7 +398,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
               value={categories.find(c => c.id.toString() === data.category_id?.toString()) ?? null}
               onValueChange={(c: Category | null) => setData('category_id', c ? c.id.toString() : '')}
             >
-              <ComboboxInput placeholder="Seleccionar Categoría" className={COMBOBOX_CLASSNAME} inputClassName={COMBOBOX_INPUT_CLASSNAME} />
+              <ComboboxInput placeholder="Seleccionar Categoría" className="w-full" />
               <ComboboxContent>
                 <ComboboxEmpty>No se encontraron categorías.</ComboboxEmpty>
                 <ComboboxList>
@@ -421,11 +417,11 @@ const ProductForm: React.FC<ProductFormProps> = ({
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Nombre *
             </label>
-            <input
+            <Input
               type="text"
               value={data.name}
               onChange={handleInputChange('name')}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-black text-gray-900 dark:text-gray-100"
+              className="w-full"
               required
             />
             {errors.name && <p className="mt-1 text-sm text-red-600">{errors.name}</p>}
@@ -435,11 +431,11 @@ const ProductForm: React.FC<ProductFormProps> = ({
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Descripción
             </label>
-            <textarea
+            <Textarea
               value={data.description}
               onChange={handleInputChange('description')}
               rows={3}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-black text-gray-900 dark:text-gray-100"
+              className="w-full"
             />
             {errors.description && <p className="mt-1 text-sm text-red-600">{errors.description}</p>}
           </div>
@@ -522,11 +518,11 @@ const ProductForm: React.FC<ProductFormProps> = ({
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Precio sin IVA *
             </label>
-            <input
+            <Input
               type="text"
               value={formatCOP(data.price_without_tax)}
               onChange={handleInputChange('price_without_tax')}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-black text-gray-900 dark:text-gray-100"
+              className="w-full"
               required
             />
             {errors.price_without_tax && <p className="mt-1 text-sm text-red-600">{errors.price_without_tax}</p>}
@@ -536,11 +532,11 @@ const ProductForm: React.FC<ProductFormProps> = ({
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Precio con IVA *
             </label>
-            <input
+            <Input
               type="text"
               value={formatCOP(data.price_with_tax)}
               onChange={handleInputChange('price_with_tax')}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-black text-gray-900 dark:text-gray-100"
+              className="w-full"
               required
             />
             {errors.price_with_tax && <p className="mt-1 text-sm text-red-600">{errors.price_with_tax}</p>}
@@ -574,14 +570,14 @@ const ProductForm: React.FC<ProductFormProps> = ({
               </Button>
             </div>
             {ivaType === 'custom' && (
-              <input
+              <Input
                 type="number"
                 value={customIva}
                 onChange={(e) => {
                   setCustomIva(e.target.value);
                   updatePrices('price_without_tax', data.price_without_tax);
                 }}
-                className="mt-2 w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-black text-gray-900 dark:text-gray-100"
+                className="mt-2 w-full"
                 placeholder="Porcentaje IVA"
                 min="0"
               />
@@ -620,11 +616,11 @@ const ProductForm: React.FC<ProductFormProps> = ({
                   <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">
                     Utilidad deseada (%)
                   </label>
-                  <input
+                  <Input
                     type="number"
                     value={profitPercent}
                     onChange={(e) => handleProfitPercentChange(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-black text-gray-900 dark:text-gray-100"
+                    className="w-full"
                     min="0"
                     step="0.1"
                   />
@@ -639,12 +635,12 @@ const ProductForm: React.FC<ProductFormProps> = ({
                     Precio de venta calculado
                   </label>
                 )}
-                <input
+                <Input
                   type="text"
                   value={formatCOP(data.sale_price)}
                   onChange={handleInputChange('sale_price')}
                   readOnly={priceMode === 'profit'}
-                  className={`w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-black text-gray-900 dark:text-gray-100 ${priceMode === 'profit' ? 'cursor-not-allowed opacity-80' : ''}`}
+                  className={`w-full ${priceMode === 'profit' ? 'cursor-not-allowed opacity-80' : ''}`}
                   required
                 />
               </div>
@@ -669,7 +665,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
               value={suppliers.find(s => s.id.toString() === data.supplier_id?.toString()) ?? null}
               onValueChange={(s: Supplier | null) => setData('supplier_id', s ? s.id.toString() : '')}
             >
-              <ComboboxInput placeholder="Seleccionar Proveedor" showClear className={COMBOBOX_CLASSNAME} inputClassName={COMBOBOX_INPUT_CLASSNAME} />
+              <ComboboxInput placeholder="Seleccionar Proveedor" showClear className="w-full" />
               <ComboboxContent>
                 <ComboboxEmpty>No se encontraron proveedores.</ComboboxEmpty>
                 <ComboboxList>
@@ -688,7 +684,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Stock {isCreating ? 'Inicial *' : ''}
             </label>
-            <input
+            <Input
               type="number"
               value={data.stock ?? ''}
               onChange={handleInputChange('stock')}
@@ -697,7 +693,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
                   e.preventDefault();
                 }
               }}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-black text-gray-900 dark:text-gray-100"
+              className="w-full"
               required={isCreating}
               min="0"
             />
@@ -714,7 +710,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
                 value={movementTypes.find(t => t.value === data.movement_type) ?? null}
                 onValueChange={(t: { value: string; label: string } | null) => setData('movement_type', t ? t.value : '')}
               >
-                <ComboboxInput placeholder="Seleccionar Tipo de Movimiento" className={COMBOBOX_CLASSNAME} inputClassName={COMBOBOX_INPUT_CLASSNAME} />
+                <ComboboxInput placeholder="Seleccionar Tipo de Movimiento" className="w-full" />
                 <ComboboxContent>
                   <ComboboxEmpty>No se encontraron tipos de movimiento.</ComboboxEmpty>
                   <ComboboxList>
@@ -735,11 +731,11 @@ const ProductForm: React.FC<ProductFormProps> = ({
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Notas de Movimiento
               </label>
-              <textarea
+              <Textarea
                 value={data.movement_notes}
                 onChange={handleInputChange('movement_notes')}
                 rows={3}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-black text-gray-900 dark:text-gray-100"
+                className="w-full"
                 placeholder="Ej: Primer pedido del proveedor"
               />
               {errors.movement_notes && <p className="mt-1 text-sm text-red-600">{errors.movement_notes}</p>}
