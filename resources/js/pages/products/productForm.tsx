@@ -3,6 +3,7 @@ import { useForm, router } from '@inertiajs/react';
 import Swal from '@/lib/swal';
 import { Button } from "@/components/ui/button";
 import { Image as ImageIcon, Loader2 } from "lucide-react";
+import { Combobox, ComboboxContent, ComboboxEmpty, ComboboxInput, ComboboxItem, ComboboxList } from "@/components/ui/combobox";
 
 const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/gif'];
 const MAX_IMAGE_SIZE = 2048 * 1024; // 2MB, igual al límite del backend
@@ -388,19 +389,25 @@ const ProductForm: React.FC<ProductFormProps> = ({
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Categoría *
             </label>
-            <select
-              value={data.category_id}
-              onChange={handleInputChange('category_id')}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-black text-gray-900 dark:text-gray-100"
-              required
+            <Combobox
+              items={categories}
+              itemToStringLabel={(c: Category) => c.name}
+              itemToStringValue={(c: Category) => c.id.toString()}
+              value={categories.find(c => c.id.toString() === data.category_id?.toString()) ?? null}
+              onValueChange={(c: Category | null) => setData('category_id', c ? c.id.toString() : '')}
             >
-              <option value="" disabled>Seleccionar Categoría</option>
-              {categories.map(category => (
-                <option key={category.id} value={category.id}>
-                  {category.name}
-                </option>
-              ))}
-            </select>
+              <ComboboxInput placeholder="Seleccionar Categoría" />
+              <ComboboxContent>
+                <ComboboxEmpty>No se encontraron categorías.</ComboboxEmpty>
+                <ComboboxList>
+                  {(category: Category) => (
+                    <ComboboxItem key={category.id} value={category}>
+                      {category.name}
+                    </ComboboxItem>
+                  )}
+                </ComboboxList>
+              </ComboboxContent>
+            </Combobox>
             {errors.category_id && <p className="mt-1 text-sm text-red-600">{errors.category_id}</p>}
           </div>
 
@@ -649,18 +656,25 @@ const ProductForm: React.FC<ProductFormProps> = ({
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Proveedor
             </label>
-            <select
-              value={data.supplier_id}
-              onChange={handleInputChange('supplier_id')}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-black text-gray-900 dark:text-gray-100"
+            <Combobox
+              items={suppliers}
+              itemToStringLabel={(s: Supplier) => s.name}
+              itemToStringValue={(s: Supplier) => s.id.toString()}
+              value={suppliers.find(s => s.id.toString() === data.supplier_id?.toString()) ?? null}
+              onValueChange={(s: Supplier | null) => setData('supplier_id', s ? s.id.toString() : '')}
             >
-              <option value="">Seleccionar Proveedor</option>
-              {suppliers.map(supplier => (
-                <option key={supplier.id} value={supplier.id}>
-                  {supplier.name}
-                </option>
-              ))}
-            </select>
+              <ComboboxInput placeholder="Seleccionar Proveedor" showClear />
+              <ComboboxContent>
+                <ComboboxEmpty>No se encontraron proveedores.</ComboboxEmpty>
+                <ComboboxList>
+                  {(supplier: Supplier) => (
+                    <ComboboxItem key={supplier.id} value={supplier}>
+                      {supplier.name}
+                    </ComboboxItem>
+                  )}
+                </ComboboxList>
+              </ComboboxContent>
+            </Combobox>
             {errors.supplier_id && <p className="mt-1 text-sm text-red-600">{errors.supplier_id}</p>}
           </div>
 
@@ -689,19 +703,23 @@ const ProductForm: React.FC<ProductFormProps> = ({
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Tipo de Movimiento *
               </label>
-              <select
-                value={data.movement_type}
-                onChange={handleInputChange('movement_type')}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-black text-gray-900 dark:text-gray-100"
-                required
+              <Combobox
+                items={movementTypes}
+                value={movementTypes.find(t => t.value === data.movement_type) ?? null}
+                onValueChange={(t: { value: string; label: string } | null) => setData('movement_type', t ? t.value : '')}
               >
-                <option value="" disabled>Seleccionar Tipo de Movimiento</option>
-                {movementTypes.map(type => (
-                  <option key={type.value} value={type.value}>
-                    {type.label}
-                  </option>
-                ))}
-              </select>
+                <ComboboxInput placeholder="Seleccionar Tipo de Movimiento" />
+                <ComboboxContent>
+                  <ComboboxEmpty>No se encontraron tipos de movimiento.</ComboboxEmpty>
+                  <ComboboxList>
+                    {(type: { value: string; label: string }) => (
+                      <ComboboxItem key={type.value} value={type}>
+                        {type.label}
+                      </ComboboxItem>
+                    )}
+                  </ComboboxList>
+                </ComboboxContent>
+              </Combobox>
               {errors.movement_type && <p className="mt-1 text-sm text-red-600">{errors.movement_type}</p>}
             </div>
           )}
