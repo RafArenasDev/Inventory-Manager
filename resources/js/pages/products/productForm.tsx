@@ -35,6 +35,8 @@ interface ProductFormProps {
   categories: Category[];
   suppliers: Supplier[];
   onCancel: () => void;
+  onSaved: () => void;
+  onDirtyChange?: (isDirty: boolean) => void;
   userPermissions: string[];
   isCreating: boolean;
 }
@@ -69,10 +71,12 @@ const ProductForm: React.FC<ProductFormProps> = ({
   categories,
   suppliers,
   onCancel,
+  onSaved,
+  onDirtyChange,
   userPermissions,
   isCreating
 }) => {
-  const { data, setData, processing, errors, reset } = useForm({
+  const { data, setData, processing, errors, reset, isDirty } = useForm({
     code: product?.code || '',
     category_id: isCreating ? '' : (product?.category_id?.toString() || ''),
     name: product?.name || '',
@@ -104,6 +108,10 @@ const ProductForm: React.FC<ProductFormProps> = ({
       ? (Math.round((parseInt(product.iva_value) / parseInt(product?.price_without_tax || '1')) * 100)).toString()
       : ''
   );
+
+  useEffect(() => {
+    onDirtyChange?.(isDirty);
+  }, [isDirty, onDirtyChange]);
 
   useEffect(() => {
     if (product) {
@@ -282,7 +290,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
         });
         reset();
         setImagePreview(null);
-        onCancel();
+        onSaved();
       },
       onError: (errors) => {
         console.error('Errores de validación:', errors);

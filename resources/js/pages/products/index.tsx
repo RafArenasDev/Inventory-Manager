@@ -1,12 +1,14 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import AppLayout from '@/layouts/app-layout';
 import { LinkProps, type BreadcrumbItem } from '@/types';
 import { Head, router, usePage } from '@inertiajs/react';
 import ProductsTable from './productsTable';
 import { Button } from '@/components/ui/button';
-import { ChevronLeft, Package, Plus } from 'lucide-react';
+import { Package, Plus } from 'lucide-react';
 import ProductForm from './productForm';
 import { PageHeader } from '@/components/page-header';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { ConfirmDialog } from '@/components/confirm-dialog';
 
 interface Category {
     id: number;
@@ -74,7 +76,7 @@ interface ProductIndexProps {
     filteredCount: number;
 }
 
-const initialBreadcrumbs: BreadcrumbItem[] = [
+const breadcrumbs: BreadcrumbItem[] = [
     {
         title: 'Productos',
         href: '/products',
@@ -91,40 +93,21 @@ export default function ProductIndex({
 }: ProductIndexProps) {
     const [isCreating, setIsCreating] = useState(false);
     const [editingProduct, setEditingProduct] = useState<ProductForForm | null>(null);
-    const [breadcrumbs, setBreadcrumbs] = useState<BreadcrumbItem[]>(initialBreadcrumbs);
+    const [isFormDirty, setIsFormDirty] = useState(false);
+    const [showDiscardConfirm, setShowDiscardConfirm] = useState(false);
 
     const { auth } = usePage().props as unknown as { auth: { permissions: string[] } };
     const userPermissions = auth.permissions;
 
-    useEffect(() => {
-        if (isCreating) {
-            setBreadcrumbs([
-                ...initialBreadcrumbs,
-                {
-                    title: 'Crear Producto',
-                    href: '/products/create',
-                },
-            ]);
-            window.history.replaceState({}, '', route('products.create'));
-        } else if (editingProduct?.id) {
-            setBreadcrumbs([
-                ...initialBreadcrumbs,
-                {
-                    title: `Editar Producto: ${editingProduct.name}`,
-                    href: `/products/${editingProduct.id}/edit`,
-                },
-            ]);
-            window.history.replaceState({}, '', route('products.edit', editingProduct.id));
-        } else {
-            setBreadcrumbs(initialBreadcrumbs);
-            window.history.replaceState({}, '', route('products.index'));
-        }
-    }, [isCreating, editingProduct]);
+    const isModalOpen = isCreating || !!editingProduct;
 
     const handleCreateProduct = () => {
-        const newProduct: ProductForForm = {
+        if (!userPermissions.includes('Crear Productos')) {
+            return;
+        }
+        setEditingProduct({
             code: '',
-            category_id: (categories[0]?.id ?? 0),
+            category_id: categories[0]?.id ?? 0,
             name: '',
             description: '',
             image_path: '',
@@ -134,12 +117,14 @@ export default function ProductIndex({
             sale_price: '',
             supplier_id: '',
             movement_notes: '',
-        };
-        setEditingProduct(newProduct);
+        });
         setIsCreating(true);
     };
 
     const handleEditProduct = (product: Product) => {
+        if (!userPermissions.includes('Editar Productos')) {
+            return;
+        }
         const categoryIdRaw =
             categories.find((cat) => cat.name === product.category)?.id ??
             product.category_id ??
@@ -147,7 +132,7 @@ export default function ProductIndex({
             0;
         const categoryId = typeof categoryIdRaw === 'string' ? parseInt(categoryIdRaw, 10) : categoryIdRaw;
 
-        const productForForm: ProductForForm = {
+        setEditingProduct({
             id: product.id,
             code: product.code || '',
             category_id: categoryId,
@@ -161,14 +146,23 @@ export default function ProductIndex({
             supplier_id: product.supplier_id?.toString() || '',
             stock: product.stock,
             movement_notes: product.movement_notes || '',
-        };
-        setEditingProduct(productForForm);
+        });
         setIsCreating(false);
     };
 
-    const handleCancelForm = () => {
+    const closeForm = () => {
         setEditingProduct(null);
         setIsCreating(false);
+        setIsFormDirty(false);
+    };
+
+    const attemptCloseForm = () => {
+        if (!isFormDirty) {
+            closeForm();
+            return;
+        }
+
+        setShowDiscardConfirm(true);
     };
 
     const handleSearch = (search: string) => {
@@ -190,58 +184,70 @@ export default function ProductIndex({
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Productos" />
             <div className="flex h-full flex-1 flex-col gap-4 rounded-xl p-4">
-                {isCreating || editingProduct ? (
-                    <div className="bg-white dark:bg-[oklch(0.100205_0_0)] overflow-hidden shadow-sm sm:rounded-lg p-6">
-                        <PageHeader
-                            icon={Package}
-                            title={isCreating ? 'Nuevo Producto' : `Editar Producto: ${editingProduct?.name}`}
-                        >
-                            <Button onClick={handleCancelForm} className="gap-1">
-                                <ChevronLeft className="h-4 w-4" />
-                                Atrás
-                            </Button>
-                        </PageHeader>
-                        <div className="mt-6">
-                            <ProductForm
-                                product={editingProduct as ProductForForm}
-                                categories={categories}
-                                suppliers={suppliers}
-                                onCancel={handleCancelForm}
-                                userPermissions={userPermissions}
-                                isCreating={isCreating}
-                            />
-                        </div>
-                    </div>
-                ) : (
-                    <>
-                        <PageHeader
-                            icon={Package}
-                            title="Productos"
-                            description="Consulta y administra el inventario de productos."
-                        >
-                            {userPermissions.includes('Crear Productos') && (
-                                <Button onClick={handleCreateProduct} className="gap-1">
-                                    <Plus className="h-4 w-4" />
-                                    Nuevo Producto
-                                </Button>
-                            )}
-                        </PageHeader>
-                        <div className="bg-white dark:bg-[oklch(0.100205_0_0)] overflow-hidden shadow-sm sm:rounded-lg p-6">
-                            <ProductsTable
-                                products={products}
-                                perPage={filters.per_page || '10'}
-                                onPerPageChange={() => {}}
-                                onEditProduct={handleEditProduct}
-                                totalCount={totalCount}
-                                filteredCount={filteredCount}
-                                search={filters.search || ''}
-                                onSearch={handleSearch}
-                                userPermissions={userPermissions}
-                            />
-                        </div>
-                    </>
-                )}
+                <PageHeader
+                    icon={Package}
+                    title="Productos"
+                    description="Consulta y administra el inventario de productos."
+                >
+                    {userPermissions.includes('Crear Productos') && (
+                        <Button onClick={handleCreateProduct} className="gap-1">
+                            <Plus className="h-4 w-4" />
+                            Nuevo Producto
+                        </Button>
+                    )}
+                </PageHeader>
+                <div className="bg-white dark:bg-[oklch(0.100205_0_0)] overflow-hidden shadow-sm sm:rounded-lg p-6">
+                    <ProductsTable
+                        products={products}
+                        perPage={filters.per_page || '10'}
+                        onPerPageChange={() => {}}
+                        onEditProduct={handleEditProduct}
+                        totalCount={totalCount}
+                        filteredCount={filteredCount}
+                        search={filters.search || ''}
+                        onSearch={handleSearch}
+                        userPermissions={userPermissions}
+                    />
+                </div>
             </div>
+
+            <Dialog open={isModalOpen} onOpenChange={(open) => { if (!open) attemptCloseForm(); }}>
+                <DialogContent
+                    className="max-h-[90vh] overflow-y-auto sm:max-w-2xl"
+                    onInteractOutside={(e) => e.preventDefault()}
+                >
+                    <DialogHeader>
+                        <DialogTitle>{isCreating ? 'Nuevo Producto' : `Editar Producto: ${editingProduct?.name}`}</DialogTitle>
+                        <DialogDescription>
+                            {isCreating
+                                ? 'Completa los datos para registrar un nuevo producto.'
+                                : 'Actualiza los datos del producto.'}
+                        </DialogDescription>
+                    </DialogHeader>
+                    {editingProduct && (
+                        <ProductForm
+                            product={editingProduct}
+                            categories={categories}
+                            suppliers={suppliers}
+                            onCancel={attemptCloseForm}
+                            onSaved={closeForm}
+                            onDirtyChange={setIsFormDirty}
+                            userPermissions={userPermissions}
+                            isCreating={isCreating}
+                        />
+                    )}
+                </DialogContent>
+            </Dialog>
+
+            <ConfirmDialog
+                open={showDiscardConfirm}
+                onOpenChange={setShowDiscardConfirm}
+                title="¿Descartar cambios?"
+                description="Tienes cambios sin guardar que se perderán."
+                confirmText="Sí, descartar"
+                cancelText="Seguir editando"
+                onConfirm={closeForm}
+            />
         </AppLayout>
     );
 }
