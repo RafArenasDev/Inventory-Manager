@@ -6,7 +6,7 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table"
-import { Button } from "@/components/ui/button"
+import { IconActionButton } from "@/components/icon-action-button"
 import { Pencil, Trash2, Package, Eye } from "lucide-react"
 import { Pagination } from "@/components/ui/pagination"
 import { router } from "@inertiajs/react"
@@ -208,37 +208,34 @@ export default function ProductsTable({
                                         <TableCell className="text-right">
                                             <div className="flex justify-end gap-2">
                                                 {userPermissions.includes('Ver Productos') && (
-                                                    <Button
-                                                        variant="default"
-                                                        size="icon"
+                                                    <IconActionButton
+                                                        variant="ghost"
                                                         onClick={() => handleViewProduct(product)}
-                                                        className="bg-blue-600 hover:bg-blue-700 text-white"
-                                                        aria-label="Ver producto"
+                                                        className="text-blue-600 hover:bg-blue-100 hover:text-blue-700 dark:text-blue-500 dark:hover:bg-blue-950/40 dark:hover:text-blue-400"
+                                                        label="Ver producto"
                                                     >
-                                                        <Eye className="h-4 w-4 text-white" />
-                                                    </Button>
+                                                        <Eye className="h-4 w-4" />
+                                                    </IconActionButton>
                                                 )}
                                                 {userPermissions.includes('Editar Productos') && (
-                                                    <Button
-                                                        variant="default"
-                                                        size="icon"
+                                                    <IconActionButton
+                                                        variant="ghost"
                                                         onClick={() => onEditProduct(product)}
-                                                        className="bg-yellow-500 hover:bg-yellow-600 text-white"
-                                                        aria-label="Editar producto"
+                                                        className="text-amber-600 hover:bg-amber-100 hover:text-amber-700 dark:text-amber-500 dark:hover:bg-amber-950/40 dark:hover:text-amber-400"
+                                                        label="Editar producto"
                                                     >
-                                                        <Pencil className="h-4 w-4 text-white" />
-                                                    </Button>
+                                                        <Pencil className="h-4 w-4" />
+                                                    </IconActionButton>
                                                 )}
                                                 {userPermissions.includes('Eliminar Productos') && (
-                                                    <Button
-                                                        variant="default"
-                                                        size="icon"
+                                                    <IconActionButton
+                                                        variant="ghost"
                                                         onClick={() => handleDelete(product.id, product.name)}
-                                                        className="bg-red-600 hover:bg-red-700 text-white"
-                                                        aria-label="Eliminar producto"
+                                                        className="text-red-600 hover:bg-red-100 hover:text-red-700 dark:text-red-500 dark:hover:bg-red-950/40 dark:hover:text-red-400"
+                                                        label="Eliminar producto"
                                                     >
-                                                        <Trash2 className="h-4 w-4 text-white" />
-                                                    </Button>
+                                                        <Trash2 className="h-4 w-4" />
+                                                    </IconActionButton>
                                                 )}
                                             </div>
                                         </TableCell>

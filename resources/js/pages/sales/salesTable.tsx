@@ -11,6 +11,7 @@ import { IconActionButton } from "@/components/icon-action-button"
 import { Ban, FileText, Eye, Download, Receipt } from "lucide-react"
 import { Pagination } from "@/components/ui/pagination"
 import { router } from "@inertiajs/react"
+import axios from "axios"
 import Swal from '@/lib/swal';
 import SearchInput from "@/components/ui/search-input"
 
@@ -79,6 +80,7 @@ interface SalesTableProps {
     onSearch: (search: string) => void;
     userPermissions: string[];
     onViewInvoice: (url: string) => void;
+    onViewDetails: (saleId: number) => void;
     filters: {
         search?: string;
         per_page?: string;
@@ -107,6 +109,7 @@ export default function SalesTable({
     onSearch,
     userPermissions,
     onViewInvoice,
+    onViewDetails,
     filters = {}, // Default to empty object to avoid undefined
 }: SalesTableProps) {
     const handleCancel = (sale: Sale) => {
@@ -219,7 +222,7 @@ export default function SalesTable({
                                         <div className="flex justify-end gap-2">
                                             <IconActionButton
                                                 variant="ghost"
-                                                onClick={() => router.visit(route('sales.show', sale.id))}
+                                                onClick={() => onViewDetails(sale.id)}
                                                 className="text-blue-600 hover:bg-blue-100 hover:text-blue-700 dark:text-blue-500 dark:hover:bg-blue-950/40 dark:hover:text-blue-400"
                                                 label="Ver detalles"
                                             >

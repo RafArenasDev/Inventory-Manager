@@ -8,8 +8,10 @@ import { Plus, ShoppingCart } from 'lucide-react';
 import SaleForm from './saleForm';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { SaleModal } from '../saleModal';
+import SaleDetailModal, { type Sale as SaleDetail } from './saleDetailModal';
 import { ConfirmDialog } from '@/components/confirm-dialog';
 import { PageHeader } from '@/components/page-header';
+import Swal from '@/lib/swal';
 
 interface SaleItem {
     id: number;
@@ -128,6 +130,9 @@ export default function SaleIndex({ sales, products, clients, departments, citie
     const [showDiscardConfirm, setShowDiscardConfirm] = useState(false);
     const [isInvoiceModalOpen, setIsInvoiceModalOpen] = useState(false);
     const [currentInvoiceUrl, setCurrentInvoiceUrl] = useState('');
+    const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+    const [detailSale, setDetailSale] = useState<SaleDetail | null>(null);
+    const [businessName, setBusinessName] = useState('');
 
     const { auth, flash } = usePage().props as unknown as { auth: { permissions: string[] }; flash: SaleIndexProps['flash'] };
     const userPermissions = auth.permissions;
@@ -186,6 +191,27 @@ export default function SaleIndex({ sales, products, clients, departments, citie
         setIsInvoiceModalOpen(true);
     };
 
+    const handleViewDetails = async (saleId: number) => {
+        try {
+            const response = await fetch(route('sales.show', saleId), {
+                headers: { Accept: 'application/json' },
+            });
+            if (!response.ok) throw new Error('Request failed');
+            const data = await response.json();
+            setDetailSale(data.sale);
+            setBusinessName(data.businessName);
+            setIsDetailModalOpen(true);
+        } catch (error) {
+            console.error('Error fetching sale details:', error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'No se pudo cargar el detalle de la venta.',
+                timer: 2200,
+            });
+        }
+    };
+
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Ventas" />
@@ -214,6 +240,7 @@ export default function SaleIndex({ sales, products, clients, departments, citie
                         onSearch={handleSearch}
                         userPermissions={userPermissions}
                         onViewInvoice={handleViewInvoice}
+                        onViewDetails={handleViewDetails}
                     />
                 </div>
             </div>
@@ -235,6 +262,13 @@ export default function SaleIndex({ sales, products, clients, departments, citie
                     />
                 )}
             </SaleModal>
+
+            <SaleDetailModal
+                isOpen={isDetailModalOpen}
+                onClose={() => setIsDetailModalOpen(false)}
+                sale={detailSale}
+                businessName={businessName}
+            />
 
             <ConfirmDialog
                 open={showDiscardConfirm}
