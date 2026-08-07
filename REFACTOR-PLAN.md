@@ -64,10 +64,20 @@ Sesión larga, mucho avance real. Resumen rápido — detalle en cada punto abaj
   centavos, Transaction en pesos), transacciones operativas (arriendo, nómina,
   servicios), 17 cajas diarias cerradas y movimientos extra de ajuste/devolución.
 
+**Continuación tarde del mismo 2026-08-06** (ver sección 10 para el detalle
+completo): rediseño total del campo de imagen de producto (dropzone,
+drag&drop, validación de solo-imágenes, animación de carga, botón eliminar
+con soporte backend nuevo), default sugerido de utilidad al activar "Por
+utilidad" en productos nuevos, y el reemplazo completo de **todos** los
+`<select>`/`<Select>` de la app por el Combobox real de shadcn — con tres
+bugs no triviales encontrados y corregidos en el camino (pointer-events
+heredado del Dialog bloqueaba clics, scroll-lock del Dialog bloqueaba la
+rueda del mouse, fondo oscuro no coincidía con el resto de inputs).
+
 **Pendiente / no iniciado:** ver "❌ Pendiente" en cada punto de la lista
-numerada de abajo, y la sección nueva "8. Pendientes que salieron durante la
-sesión" con lo que no estaba en el plan original (Combobox, catálogos en BD,
-WhatsApp).
+numerada de abajo, la sección "8. Pendientes que salieron durante la sesión"
+(catálogos en BD, WhatsApp — Combobox ya se hizo, ver sección 10), y
+"Próxima sesión" al final del documento.
 
 ---
 
@@ -269,11 +279,8 @@ explícitamente fuera hasta que esa fase termine.
 
 ## 8. Pendientes que salieron durante la sesión (no estaban en el plan original)
 
-- **Combobox de shadcn:** el usuario pasó el snippet exacto
-  (`Combobox`/`ComboboxContent`/`ComboboxEmpty`/`ComboboxInput`/`ComboboxItem`/
-  `ComboboxList` en `@/components/ui/combobox`) para reemplazar selects simples
-  por uno con filtro de texto. ❌ No creado — el proyecto solo tiene
-  `ui/select.tsx` hoy.
+- **Combobox de shadcn:** ✅ hecho 2026-08-06, ver sección 10 para el detalle
+  completo (API real usada, bugs encontrados, archivos convertidos).
 - **Catálogos en BD en vez de hardcodeados:** los tipos de movimiento de
   inventario (`productForm.tsx` ~línea 55, duplicados en
   `inventoryMovementForm.tsx`) y los métodos de pago (`transactionForm.tsx`,
@@ -445,6 +452,15 @@ es el de **ventas** (`saleForm.tsx`, por venta/factura). Si se quiere un
 descuento a nivel de producto, hay que proponer el diseño del campo antes
 de crear la migración (regla del proyecto).
 
+✅ **Addendum 2026-08-06:** se agregó un % de utilidad sugerido por defecto
+(`DEFAULT_PROFIT_PERCENT = 30`) al activar modo "Por utilidad" cuando no hay
+todavía un precio de venta real por encima del costo (producto nuevo, o
+`sale_price` sin editar) — antes el cálculo implícito daba un % negativo sin
+sentido (`((0 - costo) / costo) * 100`) en vez de dejar un punto de partida
+razonable. Nota explícita en el propio form: Colombia no fija por ley un
+margen de utilidad para retail (a diferencia del IVA, que sí es 0%/19% por
+ley), así que el 30% es solo una sugerencia editable, no un valor "correcto".
+
 ## 9. Seguridad de usuarios (pedido 2026-08-07)
 
 **Estado: ✅ hecho.**
@@ -482,6 +498,140 @@ password nueva para esa cuenta en https://myaccount.google.com/apppasswords
 y pegarla en `MAIL_PASSWORD`. El código de envío en sí está verificado
 (el error es 100% de autenticación SMTP, no de lógica de la app).
 
+## 10. Imagen de producto + Combobox en toda la app (pedido 2026-08-06, sesión tarde)
+
+**Estado: ✅ hecho.**
+
+### Campo de imagen de producto (`productForm.tsx`)
+
+Rediseño completo pedido explícitamente: ancho completo, dropzone grande con
+drag & drop, validación estricta de solo-imágenes, preview, animación de
+carga y botón de eliminar.
+
+- Validación **cliente** (defensa en profundidad, no la real): allowlist de
+  MIME (`image/jpeg`, `image/png`, `image/gif`) + tamaño máx. 2MB antes de
+  aceptar el archivo, tanto en `<input type="file">` como en `onDrop`.
+- La validación **real** (servidor) ya existía y no se tocó:
+  `'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'` en
+  `ProductController::store()`/`update()` — Laravel valida el contenido real
+  del archivo, no solo la extensión.
+- Preview con `<Loader2>` mientras el navegador decodifica la imagen
+  (`onLoad`/`onError` del `<img>`, no un spinner falso), botón "Cambiar" y
+  "Eliminar" superpuestos.
+- **Bug de backend real encontrado y corregido en el camino:** `update()` no
+  tenía forma de *borrar* una imagen existente — enviar `image_path` vacío no
+  hacía nada (`elseif ($validated['image_path'])` nunca entra con string
+  vacío, así que la imagen vieja se quedaba). Se agregó un flag
+  `remove_image` (validado como boolean) que si viene en `true`, borra el
+  archivo de `Storage::disk('public')` y deja `image_path` en `null`.
+
+### Selects → Combobox en toda la app
+
+Pedido repetido varias veces en la sesión ("los selects te pedi que todos
+siempre sean tipo combobox... hay selects que traen demasiados valores y
+hacer scroll siempre es molesto"). Se intentó primero un Combobox armado a
+mano (Radix Popover + `cmdk`), pero tenía un bug de foco real dentro de un
+Dialog (el input de búsqueda nunca quedaba enfocado al abrir) que no se pudo
+resolver de forma confiable. Se descartó esa implementación y se usó la
+oficial de shadcn en su lugar:
+
+- **Instalación:** `@base-ui/react` (el Combobox de shadcn está construido
+  sobre Base UI, no sobre Radix — el proyecto ya usa Radix para
+  Dialog/DropdownMenu/etc., pero no había una versión Radix real de este
+  componente en el registry pese a que la doc muestra tabs "Base UI / React
+  Aria / Radix UI" — las tres tabs devuelven el mismo código Base UI).
+  Descargado directo de `ui.shadcn.com/r/styles/new-york-v4/combobox.json` y
+  `.../input-group.json` (el `components.json` del proyecto tiene
+  `"style": "default"`, un nombre de estilo viejo que ya no resuelve en el
+  registry actual — de ahí que `npx shadcn add combobox` fallara con 404).
+  Archivos nuevos: `resources/js/components/ui/combobox.tsx`,
+  `resources/js/components/ui/input-group.tsx`. `button.tsx` ganó los
+  tamaños `icon-xs`/`icon-sm` que el registry de Combobox espera.
+- **API real usada** (la que el usuario pidió, con `items` + render prop, no
+  la que se había armado a mano primero):
+  ```tsx
+  <Combobox items={categories} itemToStringLabel={c => c.name} value={selected} onValueChange={setSelected}>
+    <ComboboxInput placeholder="..." />
+    <ComboboxContent>
+      <ComboboxEmpty>No se encontraron resultados.</ComboboxEmpty>
+      <ComboboxList>{(item) => <ComboboxItem key={item.id} value={item}>{item.name}</ComboboxItem>}</ComboboxList>
+    </ComboboxContent>
+  </Combobox>
+  ```
+  Para catálogos por id se pasa el **objeto completo** como `value` de cada
+  `ComboboxItem` (no el id como string) y se resuelve el id en
+  `onValueChange`/`itemToStringValue` — distinto al patrón de
+  `<SelectItem value={id.toString()}>` que tenía el `<Select>` viejo.
+- **Tres bugs reales encontrados y corregidos** (no cosméticos — sin esto el
+  componente era inusable con mouse):
+  1. **Clics no hacían nada dentro del popup.** Radix Dialog pone
+     `pointer-events: none` en `<body>` mientras el modal está abierto (para
+     bloquear el fondo) y solo reactiva `pointer-events: auto` en el propio
+     subárbol del `DialogContent`. El popup del Combobox se porta aparte
+     (`Portal` a `document.body`, fuera de ese subárbol), así que heredaba el
+     `none` sin que nadie lo reactivara — el teclado sí funcionaba (no le
+     afecta `pointer-events`), lo que ocultó el bug en las primeras pruebas.
+     Fix: `pointer-events-auto` explícito en el `Positioner` del popup.
+  2. **La rueda del mouse no hacía scroll en la lista** (arrastrar la
+     scrollbar sí funcionaba, confirmando que era un problema específico de
+     wheel, no de pointer-events). El scroll-lock del Dialog solo reconoce
+     como "propio" el contenido dentro de su subárbol; al estar el popup en
+     un portal aparte, el wheel se bloqueaba antes de llegar al
+     `overflow-y-auto` de la lista. Fix: `onWheel` manual en `ComboboxList`
+     que aplica el `deltaY` directo a `scrollTop`, sin depender del scroll
+     nativo.
+  3. **Fondo distinto al resto de inputs en modo oscuro.** `input-group.tsx`
+     trae `dark:bg-input/30` (un tinte gris propio) que ni `<Input>` ni
+     `<SelectTrigger>` tienen (ambos son `bg-transparent`). Fix: override a
+     `bg-transparent dark:bg-transparent` en `ComboboxInput`.
+- **Alto/tipografía:** se detectó que `productForm.tsx` usaba `<input>`/
+  `<textarea>` a mano (42px, texto 16px fijo) en vez de los componentes
+  compartidos `<Input>`/`<Textarea>` (36px, `h-9`, texto 14px en desktop) que
+  usa el resto de la app. En vez de forzar el Combobox a 42px solo en ese
+  archivo (parche local que hubiera vuelto a desalinear todo si se tocaba
+  cualquier otro form), se estandarizó `productForm.tsx` para usar los
+  mismos `<Input>`/`<Textarea>` que todos los demás — así el Combobox (que ya
+  hereda el tamaño estándar de shadcn por defecto) queda pixel-idéntico en
+  **todos** los forms sin overrides por archivo. Verificado con
+  `getBoundingClientRect()` en el navegador, no a ojo.
+- **Archivos convertidos** (los únicos que usaban `<select>` nativo o
+  `<Select>` de shadcn en toda la app — confirmado con grep global antes y
+  después, cero restantes):
+  - `productForm.tsx`: categoría, proveedor (con botón "×" para limpiar,
+    `showClear`), tipo de movimiento.
+  - `clientForm.tsx`: tipo de documento, departamento, ciudad (los dos
+    últimos eran el caso de uso real del pedido — ~32 departamentos con
+    scroll nativo molesto).
+  - `inventoryMovementForm.tsx`: tipo de movimiento, producto (~450
+    movimientos sembrados, el select de producto era el más largo de toda
+    la app).
+  - `transactionForm.tsx`: tipo, categoría (filtrada por tipo), medio de pago.
+  - `usersForm.tsx`: rol.
+  - `pagination.tsx`: selector de "registros por página" (10/25/50/100) —
+    convertido también pese a ser una lista fija corta, por consistencia
+    total pedida explícitamente ("todos los selects, sin excepción").
+  - **Limpieza:** `ui/select.tsx` (y su dependencia `@radix-ui/react-select`)
+    quedó sin ningún import en toda la app — eliminado. El Combobox armado a
+    mano que se descartó (`popover.tsx`, `command.tsx`, `cmdk`,
+    `@radix-ui/react-popover`) también se eliminó por el mismo motivo.
+
+❌ **Pendiente / no verificado de este punto:**
+- No se probó el flujo completo de **crear** un registro nuevo (solo editar)
+  en cada uno de los 6 forms convertidos — se verificó a fondo
+  `productForm`/`clientForm` (incluida la cascada departamento→ciudad) y
+  visualmente el resto, pero falta un pase de humo completo módulo por
+  módulo antes de dar esto por 100% cerrado.
+- **Hallazgo sin confirmar, no resuelto:** durante las pruebas volvió a
+  aparecer la alerta de "Stock crítico"/"Productos agotados"
+  (`notification-bell.tsx`) más seguido de lo esperado (el diseño es cada 45s
+  con memoria de 30 min en `localStorage` para no repetir si nada cambió). No
+  se determinó si es un bug real (¿la memoria se resetea en algún caso?) o si
+  fue solo un artefacto de las pruebas automatizadas (clics con coordenadas
+  de capturas viejas que a veces cerraban el modal y provocaban
+  remontar el header). Revisar con uso normal antes de asumir que es un bug.
+- No se corrió `npm run lint`/`npm run format` sobre los archivos tocados
+  hoy (sí `tsc --noEmit` y `npm run build` después de cada cambio).
+
 ---
 
 ## Orden sugerido de ejecución
@@ -498,29 +648,36 @@ y pegarla en `MAIL_PASSWORD`. El código de envío en sí está verificado
 7. Calidad de código / tests (punto 7) — transversal, ir aplicando en cada PR,
    pero hacer una pasada final antes de cerrar el refactor. Tests en pausa
    mientras dure el MVP.
-8. Catálogos en BD + Combobox (punto 8) — antes de esto, proponer el diseño de
-   las tablas nuevas para aprobación.
-9. WhatsApp (punto 8) — pausado a propósito; retomar cuando el usuario lo pida
-   de nuevo, confirmando primero viabilidad de Baileys en Render free tier
-   (persistencia de sesión) o decidiendo ir por la API oficial de Meta.
+8. ~~Combobox (punto 8)~~ — ✅ hecho 2026-08-06, ver sección 10.
+9. Catálogos en BD (punto 8) — proponer el diseño de las tablas nuevas para
+   aprobación antes de construir (tipos de movimiento de inventario,
+   métodos de pago). Ya no depende del Combobox, que quedó listo.
+10. WhatsApp (punto 8) — pausado a propósito; retomar cuando el usuario lo
+    pida de nuevo, confirmando primero viabilidad de Baileys en Render free
+    tier (persistencia de sesión) o decidiendo ir por la API oficial de Meta.
 
 ## Próxima sesión — por dónde seguir
 
 Lo más práctico para retomar, en orden de impacto:
 
-1. **Responsive total (punto 3):** falta la auditoría en 375px real (no se
+1. **Pase de humo del Combobox (sección 10):** probar "crear" (no solo
+   editar) en los 6 forms convertidos hoy, y confirmar si la alerta de stock
+   crítico reapareciendo es un bug real o fue solo ruido de las pruebas
+   automatizadas de hoy.
+2. **Responsive total (punto 3):** falta la auditoría en 375px real (no se
    pudo probar en esta sesión por limitación del entorno de browser
    automatizado) — hacerlo con la ventana del navegador real del usuario.
-2. **Auditar modales/diseño del resto de módulos (puntos 1 y 2):** confirmar
+3. **Auditar modales/diseño del resto de módulos (puntos 1 y 2):** confirmar
    cuáles de `cashRegister`, `categories`, `clients`, `inventoryMovements`,
    `permissions`, `suppliers`, `transactions`, `users` ya están en modal y
    cuáles siguen como página completa; aplicar el mismo patrón de Roles/Ventas
    a los que falten.
-3. **Catálogos en BD (punto 8):** proponer diseño de tablas para tipos de
-   movimiento y métodos de pago antes de construir, luego el Combobox.
-4. **PWA (punto 4):** no depende de nada de lo anterior, se puede hacer en
+4. **Catálogos en BD (punto 8):** proponer diseño de tablas para tipos de
+   movimiento y métodos de pago antes de construir (el Combobox que los va
+   a mostrar ya está listo).
+5. **PWA (punto 4):** no depende de nada de lo anterior, se puede hacer en
    paralelo si se prefiere.
-5. **WhatsApp:** retomar la investigación de Baileys + Render solo cuando el
+6. **WhatsApp:** retomar la investigación de Baileys + Render solo cuando el
    usuario lo pida explícitamente otra vez (quedó pausado a propósito).
 
 ## Criterios de aceptación
