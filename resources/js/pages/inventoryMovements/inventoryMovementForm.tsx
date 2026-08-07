@@ -5,7 +5,19 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Combobox, ComboboxContent, ComboboxEmpty, ComboboxInput, ComboboxItem, ComboboxList } from "@/components/ui/combobox";
+
+const MOVEMENT_TYPES = [
+  { value: 'Entrada', label: 'Entrada' },
+  { value: 'Salida', label: 'Salida' },
+  { value: 'Devolucion Cliente', label: 'Devolución Cliente' },
+  { value: 'Devolucion Proveedor', label: 'Devolución Proveedor' },
+  { value: 'Consignacion Entrada', label: 'Consignación Entrada' },
+  { value: 'Consignacion Salida', label: 'Consignación Salida' },
+  { value: 'Cambio Entrada', label: 'Cambio Entrada' },
+  { value: 'Cambio Salida', label: 'Cambio Salida' },
+  { value: 'Ajuste Inventario', label: 'Ajuste Inventario' },
+] as const;
 
 interface InventoryMovementForForm {
   id?: number;
@@ -167,26 +179,23 @@ const InventoryMovementForm: React.FC<InventoryMovementFormProps> = ({
           <Label htmlFor="type" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
             Tipo *
           </Label>
-          <Select
-            value={data.type || ""}
-            onValueChange={(value) => setData("type", value)}
-            required
+          <Combobox
+            items={MOVEMENT_TYPES}
+            value={MOVEMENT_TYPES.find(t => t.value === data.type) ?? null}
+            onValueChange={(t: { value: string; label: string } | null) => setData("type", (t?.value ?? "") as typeof data.type)}
           >
-            <SelectTrigger className="mt-1 w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-black text-gray-900 dark:text-gray-100">
-              <SelectValue placeholder="Seleccione un tipo" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="Entrada">Entrada</SelectItem>
-              <SelectItem value="Salida">Salida</SelectItem>
-              <SelectItem value="Devolucion Cliente">Devolución Cliente</SelectItem>
-              <SelectItem value="Devolucion Proveedor">Devolución Proveedor</SelectItem>
-              <SelectItem value="Consignacion Entrada">Consignación Entrada</SelectItem>
-              <SelectItem value="Consignacion Salida">Consignación Salida</SelectItem>
-              <SelectItem value="Cambio Entrada">Cambio Entrada</SelectItem>
-              <SelectItem value="Cambio Salida">Cambio Salida</SelectItem>
-              <SelectItem value="Ajuste Inventario">Ajuste Inventario</SelectItem>
-            </SelectContent>
-          </Select>
+            <ComboboxInput placeholder="Seleccione un tipo" className="mt-1 w-full" />
+            <ComboboxContent>
+              <ComboboxEmpty>No se encontraron resultados.</ComboboxEmpty>
+              <ComboboxList>
+                {(type: { value: string; label: string }) => (
+                  <ComboboxItem key={type.value} value={type}>
+                    {type.label}
+                  </ComboboxItem>
+                )}
+              </ComboboxList>
+            </ComboboxContent>
+          </Combobox>
           {errors.type && <p className="mt-1 text-sm text-red-600">{errors.type}</p>}
         </div>
 
@@ -212,22 +221,25 @@ const InventoryMovementForm: React.FC<InventoryMovementFormProps> = ({
           <Label htmlFor="product_id" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
             Producto *
           </Label>
-          <Select
-            value={typeof data.product_id === 'number' ? data.product_id.toString() : ""}
-            onValueChange={handleProductChange}
-            required
+          <Combobox
+            items={products}
+            itemToStringLabel={(p: Product) => p.name}
+            itemToStringValue={(p: Product) => p.id.toString()}
+            value={products.find(p => p.id === data.product_id) ?? null}
+            onValueChange={(p: Product | null) => handleProductChange(p ? p.id.toString() : '')}
           >
-            <SelectTrigger className="mt-1 w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-black text-gray-900 dark:text-gray-100">
-              <SelectValue placeholder="Seleccione un producto" />
-            </SelectTrigger>
-            <SelectContent>
-              {products.map((p) => (
-                <SelectItem key={p.id} value={p.id.toString()}>
-                  {p.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+            <ComboboxInput placeholder="Seleccione un producto" className="mt-1 w-full" />
+            <ComboboxContent>
+              <ComboboxEmpty>No se encontraron productos.</ComboboxEmpty>
+              <ComboboxList>
+                {(p: Product) => (
+                  <ComboboxItem key={p.id} value={p}>
+                    {p.name}
+                  </ComboboxItem>
+                )}
+              </ComboboxList>
+            </ComboboxContent>
+          </Combobox>
           {errors.product_id && <p className="mt-1 text-sm text-red-600">{errors.product_id}</p>}
         </div>
 

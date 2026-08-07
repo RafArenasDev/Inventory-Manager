@@ -4,7 +4,7 @@ import Swal from '@/lib/swal';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Combobox, ComboboxContent, ComboboxEmpty, ComboboxInput, ComboboxItem, ComboboxList } from '@/components/ui/combobox';
 import { Wand2 } from 'lucide-react';
 
 const generateSecurePassword = (): string => {
@@ -225,18 +225,25 @@ const UserForm: React.FC<UserFormProps> = ({ user, roles, onCancel, onSaved, onD
                     <Label htmlFor="roles" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                         Roles *
                     </Label>
-                    <Select value={currentRoleName} onValueChange={handleRoleChange}>
-                        <SelectTrigger className="w-full">
-                            <SelectValue placeholder="Seleccione un rol" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            {roles.map((role) => (
-                                <SelectItem key={role.id} value={role.name}>
-                                    {role.label}
-                                </SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
+                    <Combobox
+                        items={roles}
+                        itemToStringLabel={(r: Role) => r.label}
+                        itemToStringValue={(r: Role) => r.name}
+                        value={roles.find(r => r.name === currentRoleName) ?? null}
+                        onValueChange={(r: Role | null) => handleRoleChange(r?.name ?? '')}
+                    >
+                        <ComboboxInput placeholder="Seleccione un rol" className="w-full" />
+                        <ComboboxContent>
+                            <ComboboxEmpty>No se encontraron roles.</ComboboxEmpty>
+                            <ComboboxList>
+                                {(role: Role) => (
+                                    <ComboboxItem key={role.id} value={role}>
+                                        {role.label}
+                                    </ComboboxItem>
+                                )}
+                            </ComboboxList>
+                        </ComboboxContent>
+                    </Combobox>
                     {errors.roles && <p className="mt-1 text-sm text-red-600">{errors.roles}</p>}
                 </div>
             </div>

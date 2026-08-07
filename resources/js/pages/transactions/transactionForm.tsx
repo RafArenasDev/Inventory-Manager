@@ -6,12 +6,18 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from "@/components/ui/select"
+    Combobox,
+    ComboboxContent,
+    ComboboxEmpty,
+    ComboboxInput,
+    ComboboxItem,
+    ComboboxList,
+} from "@/components/ui/combobox"
+
+const TRANSACTION_TYPES = [
+    { value: 'Ingreso', label: 'Ingreso' },
+    { value: 'Gasto', label: 'Gasto' },
+] as const;
 
 interface TransactionCategory {
     id: number;
@@ -243,18 +249,23 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ transaction, categori
                     <Label htmlFor="type" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                         Tipo *
                     </Label>
-                    <Select
-                        value={data.type}
-                        onValueChange={handleTypeChange}
+                    <Combobox
+                        items={TRANSACTION_TYPES}
+                        value={TRANSACTION_TYPES.find(t => t.value === data.type) ?? null}
+                        onValueChange={(t: { value: string; label: string } | null) => handleTypeChange(t?.value ?? '')}
                     >
-                        <SelectTrigger>
-                            <SelectValue placeholder="Seleccione el tipo" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="Ingreso">Ingreso</SelectItem>
-                            <SelectItem value="Gasto">Gasto</SelectItem>
-                        </SelectContent>
-                    </Select>
+                        <ComboboxInput placeholder="Seleccione el tipo" />
+                        <ComboboxContent>
+                            <ComboboxEmpty>No se encontraron resultados.</ComboboxEmpty>
+                            <ComboboxList>
+                                {(type: { value: string; label: string }) => (
+                                    <ComboboxItem key={type.value} value={type}>
+                                        {type.label}
+                                    </ComboboxItem>
+                                )}
+                            </ComboboxList>
+                        </ComboboxContent>
+                    </Combobox>
                     {errors.type && <p className="mt-1 text-sm text-red-600">{errors.type}</p>}
                 </div>
 
@@ -263,22 +274,26 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ transaction, categori
                     <Label htmlFor="transaction_category_id" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                         Categoría *
                     </Label>
-                    <Select
-                        value={data.transaction_category_id.toString()}
-                        onValueChange={(value) => setData('transaction_category_id', value)}
+                    <Combobox
+                        items={filteredCategories}
+                        itemToStringLabel={(c: TransactionCategory) => c.name}
+                        itemToStringValue={(c: TransactionCategory) => c.id.toString()}
+                        value={filteredCategories.find(c => c.id.toString() === data.transaction_category_id.toString()) ?? null}
+                        onValueChange={(c: TransactionCategory | null) => setData('transaction_category_id', c ? c.id.toString() : '')}
                         disabled={!selectedType}
                     >
-                        <SelectTrigger>
-                            <SelectValue placeholder={selectedType ? "Seleccione la categoría" : "Seleccione primero el tipo"} />
-                        </SelectTrigger>
-                        <SelectContent>
-                            {filteredCategories.map((category) => (
-                                <SelectItem key={category.id} value={category.id.toString()}>
-                                    {category.name}
-                                </SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
+                        <ComboboxInput placeholder={selectedType ? "Seleccione la categoría" : "Seleccione primero el tipo"} />
+                        <ComboboxContent>
+                            <ComboboxEmpty>No hay categorías disponibles.</ComboboxEmpty>
+                            <ComboboxList>
+                                {(category: TransactionCategory) => (
+                                    <ComboboxItem key={category.id} value={category}>
+                                        {category.name}
+                                    </ComboboxItem>
+                                )}
+                            </ComboboxList>
+                        </ComboboxContent>
+                    </Combobox>
                     {errors.transaction_category_id && <p className="mt-1 text-sm text-red-600">{errors.transaction_category_id}</p>}
                 </div>
 
@@ -308,21 +323,23 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ transaction, categori
                     <Label htmlFor="payment_method" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                         Medio de Pago *
                     </Label>
-                    <Select
-                        value={data.payment_method}
-                        onValueChange={(value) => setData('payment_method', value)}
+                    <Combobox
+                        items={paymentMethods}
+                        value={data.payment_method || null}
+                        onValueChange={(value: string | null) => setData('payment_method', value ?? '')}
                     >
-                        <SelectTrigger>
-                            <SelectValue placeholder="Seleccione el medio de pago" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            {paymentMethods.map((method) => (
-                                <SelectItem key={method} value={method}>
-                                    {method}
-                                </SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
+                        <ComboboxInput placeholder="Seleccione el medio de pago" />
+                        <ComboboxContent>
+                            <ComboboxEmpty>No se encontraron resultados.</ComboboxEmpty>
+                            <ComboboxList>
+                                {(method: string) => (
+                                    <ComboboxItem key={method} value={method}>
+                                        {method}
+                                    </ComboboxItem>
+                                )}
+                            </ComboboxList>
+                        </ComboboxContent>
+                    </Combobox>
                     {errors.payment_method && <p className="mt-1 text-sm text-red-600">{errors.payment_method}</p>}
                 </div>
 

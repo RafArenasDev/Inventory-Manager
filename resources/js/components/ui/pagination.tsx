@@ -1,6 +1,8 @@
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Combobox, ComboboxContent, ComboboxEmpty, ComboboxInput, ComboboxItem, ComboboxList } from "@/components/ui/combobox";
 import { router } from "@inertiajs/react";
 import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from "lucide-react";
+
+const PER_PAGE_OPTIONS = ['10', '25', '50', '100'];
 
 interface PaginationProps {
     data: {
@@ -140,17 +142,23 @@ export const Pagination = ({
 
             <div className="flex items-center gap-2 text-xs sm:text-sm">
                 <span className="whitespace-nowrap">Registros por página:</span>
-                <Select onValueChange={handlePerPageChange} value={perPage}>
-                    <SelectTrigger className="w-[70px] text-xs sm:w-[90px] sm:text-sm">
-                        <SelectValue placeholder={perPage} />
-                    </SelectTrigger>
-                    <SelectContent>
-                        <SelectItem value="10">10</SelectItem>
-                        <SelectItem value="25">25</SelectItem>
-                        <SelectItem value="50">50</SelectItem>
-                        <SelectItem value="100">100</SelectItem>
-                    </SelectContent>
-                </Select>
+                <Combobox
+                    items={PER_PAGE_OPTIONS}
+                    value={perPage}
+                    onValueChange={(value: string | null) => value && handlePerPageChange(value)}
+                >
+                    <ComboboxInput placeholder={perPage} className="w-[70px] text-xs sm:w-[90px] sm:text-sm" />
+                    <ComboboxContent>
+                        <ComboboxEmpty>No se encontraron resultados.</ComboboxEmpty>
+                        <ComboboxList>
+                            {(option: string) => (
+                                <ComboboxItem key={option} value={option}>
+                                    {option}
+                                </ComboboxItem>
+                            )}
+                        </ComboboxList>
+                    </ComboboxContent>
+                </Combobox>
             </div>
         </div>
     );

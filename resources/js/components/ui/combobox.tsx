@@ -68,7 +68,16 @@ function ComboboxInput({
   inputClassName?: string
 }) {
   return (
-    <InputGroup className={cn("w-auto", className)}>
+    <InputGroup
+      className={cn(
+        // input-group.tsx trae dark:bg-input/30 (un tinte gris propio de
+        // InputGroup) que ningún otro campo del form tiene — <Input> y
+        // <SelectTrigger> son bg-transparent siempre. Se pisa para que el
+        // combobox use exactamente el mismo fondo que el resto.
+        "w-auto bg-transparent dark:bg-transparent",
+        className
+      )}
+    >
       <ComboboxPrimitive.Input
         render={<InputGroupInput disabled={disabled} />}
         className={inputClassName}
