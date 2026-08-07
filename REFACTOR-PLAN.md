@@ -317,6 +317,25 @@ explícitamente fuera hasta que esa fase termine.
     `total_price`, `product_name`; las reales son `price_at_sale`,
     `subtotal`, y el nombre viene de la relación `product`). Corregido.
 
+## 9.5 Calculadora de precio de venta por utilidad (pedido 2026-08-07)
+
+**Estado: ✅ hecho.** El modal de crear/editar producto (`productForm.tsx`)
+ya calculaba bien el IVA (sin IVA ↔ con IVA, bidireccional, 0%/19%/
+personalizado) — se confirmó que esa parte no tenía bugs. Se agregó lo que
+faltaba: un toggle "Manual" / "Por utilidad" junto al campo de precio de
+venta. En modo "Por utilidad" se ingresa el % de utilidad deseado y el
+precio de venta se calcula solo (`sale_price = price_with_tax * (1 +
+utilidad/100)`, sobre el costo con IVA); en ambos modos se muestra siempre
+la utilidad real actual (% y $) comparando `sale_price` contra
+`price_with_tax`, en rojo si es negativa.
+
+❌ No se agregó ningún campo de "descuento" al producto — no existe hoy en
+el modelo `Product` y el pedido original no especificó qué representaría
+(¿precio de lista vs. promocional?). El descuento que sí existe y funciona
+es el de **ventas** (`saleForm.tsx`, por venta/factura). Si se quiere un
+descuento a nivel de producto, hay que proponer el diseño del campo antes
+de crear la migración (regla del proyecto).
+
 ## 9. Seguridad de usuarios (pedido 2026-08-07)
 
 **Estado: ✅ hecho.**

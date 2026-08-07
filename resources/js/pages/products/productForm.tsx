@@ -90,6 +90,8 @@ const ProductForm: React.FC<ProductFormProps> = ({
   });
 
   const [imagePreview, setImagePreview] = useState<string | null>(product?.image_path || null);
+  const [priceMode, setPriceMode] = useState<'manual' | 'profit'>('manual');
+  const [profitPercent, setProfitPercent] = useState('');
   const [ivaType, setIvaType] = useState(
     product?.iva_value && parseInt(product.iva_value) > 0
       ? parseInt(product.iva_value) === Math.round(0.19 * parseInt(product?.price_without_tax || '0'))
@@ -138,13 +140,50 @@ const ProductForm: React.FC<ProductFormProps> = ({
       }
     }
 
-    setData({
+    const updated: typeof data = {
       ...data,
       price_without_tax: newPriceWithoutTax.toString(),
       price_with_tax: newPriceWithTax.toString(),
       iva_value: newIvaValue.toString(),
-    });
+    };
+
+    if (priceMode === 'profit') {
+      updated.sale_price = calculateSalePriceFromProfit(newPriceWithTax, profitPercent);
+    }
+
+    setData(updated);
   };
+
+  const calculateSalePriceFromProfit = (cost: number, profit: string): string => {
+    const profitNum = parseFloat(profit || '0');
+    return Math.round(cost * (1 + profitNum / 100)).toString();
+  };
+
+  const handleProfitPercentChange = (value: string) => {
+    setProfitPercent(value);
+    setData('sale_price', calculateSalePriceFromProfit(parseInt(data.price_with_tax || '0'), value));
+  };
+
+  const handlePriceModeChange = (mode: 'manual' | 'profit') => {
+    setPriceMode(mode);
+    if (mode === 'profit') {
+      const cost = parseInt(data.price_with_tax || '0');
+      const currentSalePrice = parseInt(data.sale_price || '0');
+      const impliedProfit = cost > 0 ? (((currentSalePrice - cost) / cost) * 100).toFixed(1) : '0';
+      setProfitPercent(impliedProfit);
+      setData('sale_price', calculateSalePriceFromProfit(cost, impliedProfit));
+    }
+  };
+
+  const currentProfit = (() => {
+    const cost = parseInt(data.price_with_tax || '0');
+    const sale = parseInt(data.sale_price || '0');
+    if (cost <= 0) return null;
+    return {
+      amount: sale - cost,
+      percent: (((sale - cost) / cost) * 100).toFixed(1),
+    };
+  })();
 
   const handleInputChange = (field: keyof typeof data) => (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
@@ -410,17 +449,69 @@ const ProductForm: React.FC<ProductFormProps> = ({
             {errors.iva_value && <p className="mt-1 text-sm text-red-600">{errors.iva_value}</p>}
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Precio de venta *
-            </label>
-            <input
-              type="text"
-              value={formatCOP(data.sale_price)}
-              onChange={handleInputChange('sale_price')}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-black text-gray-900 dark:text-gray-100"
-              required
-            />
+          <div className="sm:col-span-2">
+            <div className="flex items-center justify-between mb-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                Precio de venta *
+              </label>
+              <div className="flex space-x-2">
+                <Button
+                  type="button"
+                  size="sm"
+                  variant={priceMode === 'manual' ? 'default' : 'outline'}
+                  onClick={() => handlePriceModeChange('manual')}
+                >
+                  Manual
+                </Button>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant={priceMode === 'profit' ? 'default' : 'outline'}
+                  onClick={() => handlePriceModeChange('profit')}
+                >
+                  Por utilidad
+                </Button>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {priceMode === 'profit' && (
+                <div>
+                  <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">
+                    Utilidad deseada (%)
+                  </label>
+                  <input
+                    type="number"
+                    value={profitPercent}
+                    onChange={(e) => handleProfitPercentChange(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-black text-gray-900 dark:text-gray-100"
+                    min="0"
+                    step="0.1"
+                  />
+                </div>
+              )}
+              <div>
+                {priceMode === 'profit' && (
+                  <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">
+                    Precio de venta calculado
+                  </label>
+                )}
+                <input
+                  type="text"
+                  value={formatCOP(data.sale_price)}
+                  onChange={handleInputChange('sale_price')}
+                  readOnly={priceMode === 'profit'}
+                  className={`w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-black text-gray-900 dark:text-gray-100 ${priceMode === 'profit' ? 'cursor-not-allowed opacity-80' : ''}`}
+                  required
+                />
+              </div>
+            </div>
+
+            {currentProfit && (
+              <p className={`mt-2 text-xs ${currentProfit.amount < 0 ? 'text-red-600 dark:text-red-400' : 'text-gray-500 dark:text-gray-400'}`}>
+                Utilidad sobre el costo (precio con IVA): <span className="font-medium">{currentProfit.percent}%</span> ({currentProfit.amount < 0 ? '-' : ''}${formatCOP(Math.abs(currentProfit.amount).toString())})
+              </p>
+            )}
             {errors.sale_price && <p className="mt-1 text-sm text-red-600">{errors.sale_price}</p>}
           </div>
 
