@@ -12,16 +12,24 @@ use App\Models\Sale;
 use App\Models\Supplier;
 use App\Models\Transaction;
 use App\Models\User;
+use App\Support\ChartSvg;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Inertia\Response;
+use PhpOffice\PhpSpreadsheet\Chart\Chart;
+use PhpOffice\PhpSpreadsheet\Chart\DataSeries;
+use PhpOffice\PhpSpreadsheet\Chart\DataSeriesValues;
+use PhpOffice\PhpSpreadsheet\Chart\Legend;
+use PhpOffice\PhpSpreadsheet\Chart\PlotArea;
+use PhpOffice\PhpSpreadsheet\Chart\Title;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
 use PhpOffice\PhpSpreadsheet\Style\Border;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
+use PhpOffice\PhpSpreadsheet\Worksheet\Drawing;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
@@ -159,10 +167,14 @@ class DashboardController extends Controller
             abort(400, 'Invalid format');
         }
 
+        // El reporte exportado siempre incluye TODOS los períodos y TODA la
+        // información, sin importar qué filtro esté seleccionado en el
+        // dashboard visual (ahí se filtra solo para ocupar menos espacio en
+        // pantalla; el reporte es para revisar completo).
         $allPeriods = ['diario', 'semanal', 'mensual', 'trimestral', 'semestral', 'anual'];
         $allFinancials = [];
         $allSalesData = [];
-        $categoryData = $this->getCategoryChartData($period);
+        $allCategoryData = [];
 
         foreach ($allPeriods as $p) {
             $allFinancials[$p] = [
@@ -171,20 +183,33 @@ class DashboardController extends Controller
                 'expenses' => $this->getTransactionData('Gasto', $p),
             ];
             $allSalesData[$p] = $this->getSalesChartData($p);
+            $allCategoryData[$p] = $this->getCategoryChartData($p);
         }
 
         if ($format === 'excel') {
-            return $this->exportToExcel($allPeriods, $allFinancials, $allSalesData, $categoryData);
+            return $this->exportToExcel($allPeriods, $allFinancials, $allSalesData, $allCategoryData);
         } else {
-            return $this->exportToPDF($allPeriods, $allFinancials, $allSalesData, $categoryData);
+            return $this->exportToPDF($allPeriods, $allFinancials, $allSalesData, $allCategoryData);
         }
     }
 
-    private function exportToExcel($allPeriods, $allFinancials, $allSalesData, $categoryData)
+    private function exportToExcel($allPeriods, $allFinancials, $allSalesData, $allCategoryData)
     {
         $spreadsheet = new Spreadsheet;
         $financialSheet = $spreadsheet->getActiveSheet();
         $financialSheet->setTitle('Dashboard Report');
+
+        $logoPath = public_path('assets/img/black.png');
+        if (file_exists($logoPath)) {
+            $drawing = new Drawing;
+            $drawing->setPath($logoPath);
+            $drawing->setHeight(40);
+            $drawing->setCoordinates('A1');
+            $drawing->setOffsetX(5);
+            $drawing->setOffsetY(5);
+            $drawing->setWorksheet($financialSheet);
+            $financialSheet->getRowDimension(1)->setRowHeight(45);
+        }
 
         // Estilos
         $headerStyle = [
@@ -263,15 +288,14 @@ class DashboardController extends Controller
             ],
         ];
 
-        // Título principal
-        $financialSheet->setCellValue('A1', 'Dashboard Report Completo');
-        $financialSheet->mergeCells('A1:H1');
-        $financialSheet->getStyle('A1:H1')->applyFromArray($titleStyle);
+        // Título principal (columnas A:B quedan libres para el logo)
+        $financialSheet->setCellValue('C1', config('business.name').' — Dashboard Report Completo');
+        $financialSheet->mergeCells('C1:H1');
+        $financialSheet->getStyle('C1:H1')->applyFromArray($titleStyle);
 
-        // Fecha CON HORA (HH-MM-SS)
-        $financialSheet->setCellValue('A2', 'Fecha: '.now()->format('Y-m-d H:i:s'));
-        $financialSheet->mergeCells('A2:H2');
-        $financialSheet->getStyle('A2:H2')->applyFromArray($dateStyle);
+        $financialSheet->setCellValue('C2', 'Fecha: '.now()->format('Y-m-d'));
+        $financialSheet->mergeCells('C2:H2');
+        $financialSheet->getStyle('C2:H2')->applyFromArray($dateStyle);
 
         // Resumen Financiero - Título
         $financialSheet->setCellValue('A4', 'Resumen Financiero por Período');
@@ -361,184 +385,113 @@ class DashboardController extends Controller
             $startRow = $dataRow + 2;
         }
 
-        // Ventas por Categoría
-        $financialSheet->setCellValue('A'.$startRow, 'Ventas por Categoría (Mensual)');
-        $financialSheet->mergeCells('A'.$startRow.':C'.$startRow);
-        $financialSheet->getStyle('A'.$startRow.':C'.$startRow)->applyFromArray($headerStyle);
+        // Ventas por Categoría — una tabla por período, igual que Ventas
+        $categoryChartAnchorRow = null;
+        foreach ($allPeriods as $p) {
+            $cData = $allCategoryData[$p];
 
-        $financialSheet->setCellValue('A'.($startRow + 1), 'Categoría');
-        $financialSheet->setCellValue('B'.($startRow + 1), 'Porcentaje (%)');
-        $financialSheet->setCellValue('C'.($startRow + 1), 'Monto (COP)');
-        $financialSheet->getStyle('A'.($startRow + 1).':C'.($startRow + 1))->applyFromArray($headerStyle);
+            $financialSheet->setCellValue('A'.$startRow, 'Ventas por Categoría - '.ucfirst($p));
+            $financialSheet->mergeCells('A'.$startRow.':C'.$startRow);
+            $financialSheet->getStyle('A'.$startRow.':C'.$startRow)->applyFromArray($headerStyle);
 
-        // Datos de categorías - USANDO FORMATO DE NÚMERO DE EXCEL
-        $dataRow = $startRow + 2;
-        foreach ($categoryData as $category) {
-            $financialSheet->setCellValue('A'.$dataRow, $category['label']);
-            $financialSheet->setCellValue('B'.$dataRow, $category['value'].'%');
-            $financialSheet->setCellValue('C'.$dataRow, $category['amount']); // Valor numérico
-            $dataRow++;
+            $financialSheet->setCellValue('A'.($startRow + 1), 'Categoría');
+            $financialSheet->setCellValue('B'.($startRow + 1), 'Porcentaje (%)');
+            $financialSheet->setCellValue('C'.($startRow + 1), 'Monto (COP)');
+            $financialSheet->getStyle('A'.($startRow + 1).':C'.($startRow + 1))->applyFromArray($headerStyle);
+
+            if ($p === 'mensual') {
+                $categoryChartAnchorRow = $startRow + 2;
+            }
+
+            $dataRow = $startRow + 2;
+            foreach ($cData as $category) {
+                $financialSheet->setCellValue('A'.$dataRow, $category['label']);
+                $financialSheet->setCellValue('B'.$dataRow, $category['value'].'%');
+                $financialSheet->setCellValue('C'.$dataRow, $category['amount']);
+                $dataRow++;
+            }
+
+            if ($dataRow > $startRow + 2) {
+                $financialSheet->getStyle('A'.($startRow + 2).':A'.($dataRow - 1))->applyFromArray($dataStyle);
+                $financialSheet->getStyle('B'.($startRow + 2).':B'.($dataRow - 1))->applyFromArray($dataStyle);
+                $financialSheet->getStyle('C'.($startRow + 2).':C'.($dataRow - 1))->applyFromArray($numberStyle);
+            }
+
+            $startRow = $dataRow + 2;
         }
 
-        // Aplicar estilos específicos (TODOS CENTRADOS)
-        $financialSheet->getStyle('A'.($startRow + 2).':A'.($dataRow - 1))->applyFromArray($dataStyle);   // Categorías
-        $financialSheet->getStyle('B'.($startRow + 2).':B'.($dataRow - 1))->applyFromArray($dataStyle);   // Porcentajes
-        $financialSheet->getStyle('C'.($startRow + 2).':C'.($dataRow - 1))->applyFromArray($numberStyle); // Montos (numérico)
+        // Gráfico de barras: ventas por período (resumen del inicio del reporte)
+        $barLabels = new DataSeriesValues(DataSeriesValues::DATASERIES_TYPE_STRING, "'Dashboard Report'!\$A\$6:\$A\$".(5 + count($allPeriods)), null, count($allPeriods));
+        $barValues = new DataSeriesValues(DataSeriesValues::DATASERIES_TYPE_NUMBER, "'Dashboard Report'!\$B\$6:\$B\$".(5 + count($allPeriods)), null, count($allPeriods));
+        $barSeriesLabel = new DataSeriesValues(DataSeriesValues::DATASERIES_TYPE_STRING, null, null, 1, ['Ventas (COP)']);
+        $barSeries = new DataSeries(DataSeries::TYPE_BARCHART, DataSeries::GROUPING_CLUSTERED, range(0, 0), [$barSeriesLabel], [$barLabels], [$barValues]);
+        $barPlotArea = new PlotArea(null, [$barSeries]);
+        $barChart = new Chart('ventasPorPeriodo', new Title('Ventas por Período'), new Legend(Legend::POSITION_BOTTOM, null, false), $barPlotArea);
+        $barChart->setTopLeftPosition('J4');
+        $barChart->setBottomRightPosition('R20');
+        $financialSheet->addChart($barChart);
+
+        // Gráfico de torta: categorías del período mensual
+        if ($categoryChartAnchorRow && ! empty($allCategoryData['mensual'])) {
+            $pieCount = count($allCategoryData['mensual']);
+            $pieLabels = new DataSeriesValues(DataSeriesValues::DATASERIES_TYPE_STRING, "'Dashboard Report'!\$A\$".$categoryChartAnchorRow.':$A$'.($categoryChartAnchorRow + $pieCount - 1), null, $pieCount);
+            $pieValues = new DataSeriesValues(DataSeriesValues::DATASERIES_TYPE_NUMBER, "'Dashboard Report'!\$C\$".$categoryChartAnchorRow.':$C$'.($categoryChartAnchorRow + $pieCount - 1), null, $pieCount);
+            $pieSeriesLabel = new DataSeriesValues(DataSeriesValues::DATASERIES_TYPE_STRING, null, null, 1, ['Categoría']);
+            $pieSeries = new DataSeries(DataSeries::TYPE_PIECHART, null, range(0, 0), [$pieSeriesLabel], [$pieLabels], [$pieValues]);
+            $piePlotArea = new PlotArea(null, [$pieSeries]);
+            $pieChart = new Chart('categoriasMensual', new Title('Ventas por Categoría (Mensual)'), new Legend(Legend::POSITION_RIGHT, null, false), $piePlotArea);
+            $pieChart->setTopLeftPosition('J22');
+            $pieChart->setBottomRightPosition('R38');
+            $financialSheet->addChart($pieChart);
+        }
 
         // Auto-size columns para mejor visualización
         foreach (range('A', 'H') as $col) {
             $financialSheet->getColumnDimension($col)->setAutoSize(true);
         }
 
-        // Nombre del archivo CON HORA (HH-MM-SS)
         $filename = 'Informe-Dashboard-Ventas-Ingresos-Egresos-'.now()->format('Y-m-d').'.xlsx';
         $writer = new Xlsx($spreadsheet);
+        $writer->setIncludeCharts(true);
 
         return response()->streamDownload(function () use ($writer) {
             $writer->save('php://output');
         }, $filename, [
-            'Content-Type' => 'application/vnd.openformats-officedocument.spreadsheetml.sheet',
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
         ]);
-
     }
 
-    private function exportToPDF($allPeriods, $allFinancials, $allSalesData, $categoryData)
+    private function exportToPDF($allPeriods, $allFinancials, $allSalesData, $allCategoryData)
     {
-        // Sanitize data to prevent HTML injection
-        $sanitizedCategoryData = array_map(function ($category) {
-            return [
-                'label' => htmlspecialchars($category['label'], ENT_QUOTES, 'UTF-8'),
-                'value' => $category['value'],
-                'amount' => $category['amount'],
-                'color' => $category['color'],
-            ];
-        }, $categoryData);
+        $summaryChart = ChartSvg::bars(
+            array_map(fn ($p) => ['label' => ucfirst($p), 'value' => $allFinancials[$p]['sales']['amount']], $allPeriods)
+        );
 
-        $sanitizedAllSalesData = [];
+        $salesCharts = [];
+        $categoryCharts = [];
         foreach ($allPeriods as $p) {
             $sData = $allSalesData[$p];
-            $sanitizedAllSalesData[$p] = [
-                'labels' => array_map(function ($label) {
-                    return htmlspecialchars($label, ENT_QUOTES, 'UTF-8');
-                }, $sData['labels']),
-                'ventas' => $sData['ventas'],
-                'cantidad' => $sData['cantidad'],
-            ];
+            $salesCharts[$p] = ChartSvg::bars(array_map(
+                fn ($label, $value) => ['label' => $label, 'value' => $value],
+                $sData['labels'],
+                $sData['ventas']
+            ));
+            $categoryCharts[$p] = ChartSvg::pie($allCategoryData[$p]);
         }
 
-        // HTML content for PDF
-        $html = '
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <meta charset="UTF-8">
-            <title>Dashboard Report Completo</title>
-            <style>
-                body { font-family: Arial, sans-serif; margin: 20px; font-size: 10px; }
-                h1 { text-align: center; color: #333; font-size: 18px; }
-                h2 { color: #444; margin-top: 20px; font-size: 14px; }
-                h3 { color: #555; margin-top: 15px; font-size: 12px; }
-                table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 9px; }
-                th, td { border: 1px solid #ccc; padding: 6px; text-align: left; }
-                th { background-color: #4472C4; color: white; text-align: center; }
-                tr:nth-child(even) { background-color: #f2f2f2; }
-                .financial-table th, .financial-table td { text-align: center; }
-                .period-section { page-break-inside: avoid; margin-bottom: 30px; }
-            </style>
-        </head>
-        <body>
-            <h1>Dashboard Report Completo</h1>
-            <p>Fecha: '.now()->format('Y-m-d H:i:s').'</p>
+        $pdf = Pdf::loadView('dashboard.report', [
+            'businessName' => config('business.name'),
+            'logoPath' => public_path('assets/img/black.png'),
+            'generatedAt' => now()->format('Y-m-d'),
+            'allPeriods' => $allPeriods,
+            'allFinancials' => $allFinancials,
+            'allSalesData' => $allSalesData,
+            'allCategoryData' => $allCategoryData,
+            'summaryChart' => $summaryChart,
+            'salesCharts' => $salesCharts,
+            'categoryCharts' => $categoryCharts,
+        ])->setPaper('a4', 'landscape');
 
-            <div class="period-section">
-                <h2>Resumen Financiero por Período</h2>
-                <table class="financial-table">
-                    <tr>
-                        <th>Período</th>
-                        <th>Ventas Monto (COP)</th>
-                        <th>Ventas Cantidad</th>
-                        <th>Ventas Crecimiento %</th>
-                        <th>Ingresos Monto (COP)</th>
-                        <th>Ingresos Crecimiento %</th>
-                        <th>Egresos Monto (COP)</th>
-                        <th>Egresos Crecimiento %</th>
-                    </tr>';
-
-        foreach ($allPeriods as $p) {
-            $sales = $allFinancials[$p]['sales'];
-            $incomes = $allFinancials[$p]['incomes'];
-            $expenses = $allFinancials[$p]['expenses'];
-
-            $html .= '
-                <tr>
-                    <td>'.ucfirst($p).'</td>
-                    <td>'.number_format($sales['amount'], 0, ',', '.').'</td>
-                    <td>'.$sales['count'].'</td>
-                    <td>'.$sales['growth'].'%</td>
-                    <td>'.number_format($incomes['amount'], 0, ',', '.').'</td>
-                    <td>'.$incomes['growth'].'%</td>
-                    <td>'.number_format($expenses['amount'], 0, ',', '.').'</td>
-                    <td>'.$expenses['growth'].'%</td>
-                </tr>';
-        }
-
-        $html .= '
-                </table>
-            </div>';
-
-        foreach ($allPeriods as $p) {
-            $sData = $sanitizedAllSalesData[$p];
-            $html .= '
-            <div class="period-section">
-                <h2>Datos de Ventas - '.ucfirst($p).'</h2>
-                <table>
-                    <tr>
-                        <th>Etiqueta</th>
-                        <th>Ventas (COP)</th>
-                        <th>Cantidad</th>
-                    </tr>';
-
-            foreach ($sData['labels'] as $index => $label) {
-                $html .= '
-                    <tr>
-                        <td>'.$label.'</td>
-                        <td>'.number_format($sData['ventas'][$index], 0, ',', '.').'</td>
-                        <td>'.$sData['cantidad'][$index].'</td>
-                    </tr>';
-            }
-
-            $html .= '
-                </table>
-            </div>';
-        }
-
-        $html .= '
-            <div class="period-section">
-                <h2>Ventas por Categoría (Mensual)</h2>
-                <table>
-                    <tr>
-                        <th>Categoría</th>
-                        <th>Porcentaje (%)</th>
-                        <th>Monto (COP)</th>
-                    </tr>';
-
-        foreach ($sanitizedCategoryData as $category) {
-            $html .= '
-                <tr>
-                    <td>'.$category['label'].'</td>
-                    <td>'.$category['value'].'%</td>
-                    <td>'.number_format($category['amount'], 0, ',', '.').'</td>
-                </tr>';
-        }
-
-        $html .= '
-                </table>
-            </div>
-        </body>
-        </html>';
-
-        // Generate PDF using DOMPDF in landscape
-        $pdf = Pdf::loadHTML($html)->setPaper('a4', 'landscape');
         $filename = 'Informe-Dashboard-Ventas-Ingresos-Egresos-'.now()->format('Y-m-d').'.pdf';
 
         return $pdf->download($filename);
