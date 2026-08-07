@@ -269,7 +269,7 @@ class SaleController extends Controller
         $pdf = Pdf::loadView('sales.invoice', ['sale' => $sale])
             ->setOptions(['defaultFont' => 'Helvetica']);
 
-        return $pdf->download('recibo_'.$sale->invoice_number.'.pdf');
+        return $pdf->download(InvoicePdfService::fileName($sale));
     }
 
     public function getClientByDocument(Request $request)
@@ -424,7 +424,7 @@ class SaleController extends Controller
 
         $sheet->getRowDimension(1)->setRowHeight(25);
 
-        $filename = 'Ventas_'.now()->format('Y-m-d_H-i-s').'.xlsx';
+        $filename = 'Ventas_'.now()->format('Y-m-d').'.xlsx';
 
         $writer = new Xlsx($spreadsheet);
 

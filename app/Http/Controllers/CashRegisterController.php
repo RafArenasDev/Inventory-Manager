@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Http\Controllers;
 
 use App\Http\Requests\CashRegisterCloseRequest;
@@ -40,9 +41,9 @@ class CashRegisterController extends Controller
             });
         }
 
-        $totalCount    = CashRegister::count();
+        $totalCount = CashRegister::count();
         $filteredCount = $cashQuery->count();
-        $perPage       = max(1, min((int) ($request->per_page ?? 10), 100));
+        $perPage = max(1, min((int) ($request->per_page ?? 10), 100));
 
         $cashRegisters = $cashQuery->paginate($perPage)->withQueryString();
         $cashRegisters->getCollection()->transform(function ($register) {
@@ -59,8 +60,8 @@ class CashRegisterController extends Controller
 
         return Inertia::render('cashRegister/index', [
             'cashRegisters' => $cashRegisters,
-            'filters'       => $request->only(['search', 'per_page']),
-            'totalCount'    => $totalCount,
+            'filters' => $request->only(['search', 'per_page']),
+            'totalCount' => $totalCount,
             'filteredCount' => $filteredCount,
             'todayRegister' => $todayRegister,
         ]);
@@ -76,37 +77,39 @@ class CashRegisterController extends Controller
             return back()->with('error', 'Ya existe una caja registrada para esta fecha.');
         }
 
-        $totalIncome    = Transaction::where('type', 'Ingreso')->sum('amount');
-        $totalExpenses  = Transaction::where('type', 'Gasto')->sum('amount');
+        $totalIncome = Transaction::where('type', 'Ingreso')->sum('amount');
+        $totalExpenses = Transaction::where('type', 'Gasto')->sum('amount');
         $opening_amount = $totalIncome - $totalExpenses;
 
         DB::beginTransaction();
         try {
             CashRegister::create([
-                'register_date'  => today(),
+                'register_date' => today(),
                 'opening_amount' => max(0, $opening_amount),
                 'closing_amount' => null,
-                'total_sales'    => 0,
-                'total_income'   => 0,
+                'total_sales' => 0,
+                'total_income' => 0,
                 'total_expenses' => 0,
-                'difference'     => null,
-                'opened_by'      => auth()->id(),
-                'opened_at'      => now(),
-                'closed_by'      => null,
-                'closed_at'      => null,
-                'is_closed'      => false,
-                'notes'          => $request->notes ?? '',
+                'difference' => null,
+                'opened_by' => auth()->id(),
+                'opened_at' => now(),
+                'closed_by' => null,
+                'closed_at' => null,
+                'is_closed' => false,
+                'notes' => $request->notes ?? '',
             ]);
 
             DB::commit();
 
-                                             // Calcular props actualizados como en index
-            $updatedRequest = new Request(); // Filtros por defecto
+            // Calcular props actualizados como en index
+            $updatedRequest = new Request; // Filtros por defecto
+
             return $this->index($updatedRequest)->with('success', 'Caja abierta correctamente.');
         } catch (\Exception $e) {
             DB::rollBack();
-            Log::error('Error al abrir caja: ' . $e->getMessage());
-            return back()->with('error', 'Error al abrir la caja: ' . $e->getMessage());
+            Log::error('Error al abrir caja: '.$e->getMessage());
+
+            return back()->with('error', 'Error al abrir la caja: '.$e->getMessage());
         }
     }
 
@@ -136,66 +139,68 @@ class CashRegisterController extends Controller
                 ->sum('amount');
 
             $closingAmount = $cashRegister->opening_amount + $totalIncome - $expensesTotal;
-            $difference    = $closingAmount - $cashRegister->opening_amount;
+            $difference = $closingAmount - $cashRegister->opening_amount;
 
             Log::info('Cerrando caja', [
-                'id'             => $cashRegister->id,
-                'sales_total'    => $salesTotal,
-                'total_income'   => $totalIncome,
+                'id' => $cashRegister->id,
+                'sales_total' => $salesTotal,
+                'total_income' => $totalIncome,
                 'expenses_total' => $expensesTotal,
                 'closing_amount' => $closingAmount,
-                'difference'     => $difference,
+                'difference' => $difference,
             ]);
 
             $cashRegister->update([
                 'closing_amount' => $closingAmount,
-                'total_sales'    => $salesTotal,
-                'total_income'   => $totalIncome,
+                'total_sales' => $salesTotal,
+                'total_income' => $totalIncome,
                 'total_expenses' => $expensesTotal,
-                'difference'     => $difference,
-                'closed_by'      => auth()->id(),
-                'closed_at'      => now(),
-                'is_closed'      => true,
-                'notes'          => $request->notes ?? $cashRegister->notes,
+                'difference' => $difference,
+                'closed_by' => auth()->id(),
+                'closed_at' => now(),
+                'is_closed' => true,
+                'notes' => $request->notes ?? $cashRegister->notes,
             ]);
 
             DB::commit();
 
-                                             // Calcular props actualizados como en index
-            $updatedRequest = new Request(); // Filtros por defecto
+            // Calcular props actualizados como en index
+            $updatedRequest = new Request; // Filtros por defecto
+
             return $this->index($updatedRequest)->with('success', 'Caja cerrada correctamente.');
         } catch (\Exception $e) {
             DB::rollBack();
-            Log::error('Error al cerrar caja: ' . $e->getMessage());
-            return back()->with('error', 'Error al cerrar la caja: ' . $e->getMessage());
+            Log::error('Error al cerrar caja: '.$e->getMessage());
+
+            return back()->with('error', 'Error al cerrar la caja: '.$e->getMessage());
         }
     }
 
     private function formatCashRegister($register)
     {
         return [
-            'id'                  => $register->id,
-            'register_date'       => $register->register_date->format('Y-m-d'),
-            'opening_amount'      => $register->opening_amount,
-            'closing_amount'      => $register->closing_amount ?? 0,
-            'total_sales'         => $register->total_sales / 100,
-            'total_income'        => $register->total_income,
-            'total_expenses'      => $register->total_expenses,
-            'difference'          => $register->difference ?? 0,
-            'opened_by'           => $register->opened_by,
-            'closed_by'           => $register->closed_by,
-            'opened_at'           => $register->opened_at,
-            'closed_at'           => $register->closed_at,
+            'id' => $register->id,
+            'register_date' => $register->register_date->format('Y-m-d'),
+            'opening_amount' => $register->opening_amount,
+            'closing_amount' => $register->closing_amount ?? 0,
+            'total_sales' => $register->total_sales / 100,
+            'total_income' => $register->total_income,
+            'total_expenses' => $register->total_expenses,
+            'difference' => $register->difference ?? 0,
+            'opened_by' => $register->opened_by,
+            'closed_by' => $register->closed_by,
+            'opened_at' => $register->opened_at,
+            'closed_at' => $register->closed_at,
             'opened_at_formatted' => $register->opened_at
                 ? $register->opened_at->format('d/m/Y - h:i A')
                 : null,
             'closed_at_formatted' => $register->closed_at
                 ? $register->closed_at->format('d/m/Y - h:i A')
                 : null,
-            'is_closed'           => $register->is_closed,
-            'notes'               => $register->notes ?? '',
-            'openedBy'            => $register->openedBy ? ['id' => $register->openedBy->id, 'name' => $register->openedBy->name] : ['id' => 0, 'name' => '-'],
-            'closedBy'            => $register->closedBy ? ['id' => $register->closedBy->id, 'name' => $register->closedBy->name] : ['id' => 0, 'name' => '-'],
+            'is_closed' => $register->is_closed,
+            'notes' => $register->notes ?? '',
+            'openedBy' => $register->openedBy ? ['id' => $register->openedBy->id, 'name' => $register->openedBy->name] : ['id' => 0, 'name' => '-'],
+            'closedBy' => $register->closedBy ? ['id' => $register->closedBy->id, 'name' => $register->closedBy->name] : ['id' => 0, 'name' => '-'],
         ];
     }
 
@@ -215,8 +220,8 @@ class CashRegisterController extends Controller
             return $this->formatCashRegister($register);
         });
 
-        $spreadsheet = new Spreadsheet();
-        $sheet       = $spreadsheet->getActiveSheet();
+        $spreadsheet = new Spreadsheet;
+        $sheet = $spreadsheet->getActiveSheet();
         $sheet->setTitle('Cajas');
 
         $headers = [
@@ -240,22 +245,22 @@ class CashRegisterController extends Controller
         }
 
         $headerStyle = [
-            'font'      => [
-                'bold'  => true,
+            'font' => [
+                'bold' => true,
                 'color' => ['rgb' => 'FFFFFF'],
             ],
-            'fill'      => [
-                'fillType'   => Fill::FILL_SOLID,
+            'fill' => [
+                'fillType' => Fill::FILL_SOLID,
                 'startColor' => ['rgb' => '4472C4'],
             ],
             'alignment' => [
                 'horizontal' => Alignment::HORIZONTAL_CENTER,
-                'vertical'   => Alignment::VERTICAL_CENTER,
+                'vertical' => Alignment::VERTICAL_CENTER,
             ],
-            'borders'   => [
+            'borders' => [
                 'allBorders' => [
                     'borderStyle' => Border::BORDER_THIN,
-                    'color'       => ['rgb' => '000000'],
+                    'color' => ['rgb' => '000000'],
                 ],
             ],
         ];
@@ -264,27 +269,27 @@ class CashRegisterController extends Controller
 
         $row = 2;
         foreach ($cashRegisters as $register) {
-            $sheet->setCellValue('A' . $row, $register['id']);
-            $sheet->setCellValue('B' . $row, $register['opened_at_formatted'] ?? '');
-            $sheet->setCellValue('C' . $row, $register['opening_amount'] ? '$' . number_format($register['opening_amount'], 0, ',', '.') : '$0');
-            $sheet->setCellValue('D' . $row, $register['total_sales'] ? '$' . number_format($register['total_sales'], 0, ',', '.') : '$0');
-            $sheet->setCellValue('E' . $row, $register['total_income'] ? '$' . number_format($register['total_income'], 0, ',', '.') : '$0');
-            $sheet->setCellValue('F' . $row, $register['total_expenses'] ? '$' . number_format($register['total_expenses'], 0, ',', '.') : '$0');
-            $sheet->setCellValue('G' . $row, $register['is_closed'] ? ($register['closing_amount'] ? '$' . number_format($register['closing_amount'], 0, ',', '.') : '$0') : '');
-            $sheet->setCellValue('H' . $row, $register['is_closed'] ? ($register['difference'] ? ($register['difference'] >= 0 ? '+' : '') . '$' . number_format(abs($register['difference']), 0, ',', '.') : '$0') : '');
-            $sheet->setCellValue('I' . $row, $register['notes'] ?? '');
-            $sheet->setCellValue('J' . $row, $register['is_closed'] ? 'Cerrada' : 'Abierta');
-            $sheet->setCellValue('K' . $row, $register['openedBy']['name'] ?? '');
-            $sheet->setCellValue('L' . $row, $register['closedBy']['name'] ?? '');
-            $sheet->setCellValue('M' . $row, $register['closed_at_formatted'] ?? '');
+            $sheet->setCellValue('A'.$row, $register['id']);
+            $sheet->setCellValue('B'.$row, $register['opened_at_formatted'] ?? '');
+            $sheet->setCellValue('C'.$row, $register['opening_amount'] ? '$'.number_format($register['opening_amount'], 0, ',', '.') : '$0');
+            $sheet->setCellValue('D'.$row, $register['total_sales'] ? '$'.number_format($register['total_sales'], 0, ',', '.') : '$0');
+            $sheet->setCellValue('E'.$row, $register['total_income'] ? '$'.number_format($register['total_income'], 0, ',', '.') : '$0');
+            $sheet->setCellValue('F'.$row, $register['total_expenses'] ? '$'.number_format($register['total_expenses'], 0, ',', '.') : '$0');
+            $sheet->setCellValue('G'.$row, $register['is_closed'] ? ($register['closing_amount'] ? '$'.number_format($register['closing_amount'], 0, ',', '.') : '$0') : '');
+            $sheet->setCellValue('H'.$row, $register['is_closed'] ? ($register['difference'] ? ($register['difference'] >= 0 ? '+' : '').'$'.number_format(abs($register['difference']), 0, ',', '.') : '$0') : '');
+            $sheet->setCellValue('I'.$row, $register['notes'] ?? '');
+            $sheet->setCellValue('J'.$row, $register['is_closed'] ? 'Cerrada' : 'Abierta');
+            $sheet->setCellValue('K'.$row, $register['openedBy']['name'] ?? '');
+            $sheet->setCellValue('L'.$row, $register['closedBy']['name'] ?? '');
+            $sheet->setCellValue('M'.$row, $register['closed_at_formatted'] ?? '');
             $row++;
         }
 
         $dataStyle = [
-            'borders'   => [
+            'borders' => [
                 'allBorders' => [
                     'borderStyle' => Border::BORDER_THIN,
-                    'color'       => ['rgb' => 'CCCCCC'],
+                    'color' => ['rgb' => 'CCCCCC'],
                 ],
             ],
             'alignment' => [
@@ -293,11 +298,11 @@ class CashRegisterController extends Controller
         ];
 
         if ($row > 2) {
-            $sheet->getStyle('A1:M' . ($row - 1))->applyFromArray($dataStyle);
+            $sheet->getStyle('A1:M'.($row - 1))->applyFromArray($dataStyle);
         }
 
-        $sheet->getStyle('A2:A' . ($row - 1))->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-        $sheet->getStyle('J2:J' . ($row - 1))->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+        $sheet->getStyle('A2:A'.($row - 1))->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+        $sheet->getStyle('J2:J'.($row - 1))->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
 
         foreach (range('A', 'M') as $col) {
             $sheet->getColumnDimension($col)->setAutoSize(true);
@@ -305,7 +310,7 @@ class CashRegisterController extends Controller
 
         $sheet->getRowDimension(1)->setRowHeight(25);
 
-        $filename = 'Movimientos_caja_' . now()->format('Y-m-d_H-i-s') . '.xlsx';
+        $filename = 'Movimientos_Caja_'.now()->format('Y-m-d').'.xlsx';
 
         $writer = new Xlsx($spreadsheet);
 

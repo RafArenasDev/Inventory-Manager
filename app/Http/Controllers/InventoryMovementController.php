@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Http\Controllers;
 
 use App\Http\Requests\InventoryMovementRequest;
@@ -56,7 +57,7 @@ class InventoryMovementController extends Controller
         }
 
         // Count total and filtered movements
-        $totalCount    = InventoryMovement::count();
+        $totalCount = InventoryMovement::count();
         $filteredCount = $movementsQuery->count();
 
         // Pagination (topada a 100 para evitar cargas desmedidas)
@@ -65,40 +66,40 @@ class InventoryMovementController extends Controller
         $movementsQuery = $movementsQuery->paginate($perPage)->withQueryString();
         $movementsQuery->getCollection()->transform(function ($movement) {
             return [
-                'id'         => $movement->id,
-                'type'       => $movement->type,
-                'quantity'   => $movement->quantity,
-                'date'       => $movement->date->format('Y-m-d'),
-                'notes'      => $movement->notes,
+                'id' => $movement->id,
+                'type' => $movement->type,
+                'quantity' => $movement->quantity,
+                'date' => $movement->date->format('Y-m-d'),
+                'notes' => $movement->notes,
                 'created_at' => $movement->created_at->format('Y-m-d H:i:s'),
-                'product'    => [
-                    'id'    => $movement->product->id,
-                    'code'  => $movement->product->code,
-                    'name'  => $movement->product->name,
+                'product' => [
+                    'id' => $movement->product->id,
+                    'code' => $movement->product->code,
+                    'name' => $movement->product->name,
                     'stock' => $movement->product->stock,
                 ],
-                'supplier'   => $movement->supplier ? [
-                    'id'   => $movement->supplier->id,
+                'supplier' => $movement->supplier ? [
+                    'id' => $movement->supplier->id,
                     'name' => $movement->supplier->name,
                 ] : null,
-                'category'   => $movement->product->category->name,
+                'category' => $movement->product->category->name,
             ];
         });
 
         return Inertia::render('inventoryMovements/index', [
-            'movements'     => $movementsQuery,
-            'products'      => Product::with(['category', 'supplier'])
+            'movements' => $movementsQuery,
+            'products' => Product::with(['category', 'supplier'])
                 ->select('id', 'code', 'name', 'supplier_id')
                 ->orderBy('name')
                 ->get(),
-            'suppliers'     => Supplier::select('id', 'name')
+            'suppliers' => Supplier::select('id', 'name')
                 ->where('is_active', true)
                 ->orderBy('name')
                 ->get(),
-            'filters'       => $request->only([
+            'filters' => $request->only([
                 'search', 'per_page', 'product_id', 'type', 'date_from', 'date_to',
             ]),
-            'totalCount'    => $totalCount,
+            'totalCount' => $totalCount,
             'filteredCount' => $filteredCount,
         ]);
     }
@@ -112,7 +113,7 @@ class InventoryMovementController extends Controller
         // Validar stock para movimientos de salida
         if (in_array($validated['type'], ['Salida', 'Devolucion Proveedor', 'Consignacion Salida', 'Cambio Salida']) && $product->stock < $validated['quantity']) {
             return back()->with('error',
-                'No hay suficiente stock. Stock actual: ' . $product->stock
+                'No hay suficiente stock. Stock actual: '.$product->stock
             )->withInput();
         }
 
@@ -157,7 +158,7 @@ class InventoryMovementController extends Controller
         // Validar stock para el nuevo movimiento si es de salida
         if (in_array($validated['type'], ['Salida', 'Devolucion Proveedor', 'Consignacion Salida', 'Cambio Salida']) && $product->stock < $validated['quantity']) {
             return back()->with('error',
-                'No hay suficiente stock después de revertir el movimiento anterior. Stock actual: ' . $product->stock
+                'No hay suficiente stock después de revertir el movimiento anterior. Stock actual: '.$product->stock
             )->withInput();
         }
 
@@ -243,8 +244,8 @@ class InventoryMovementController extends Controller
         $movements = $movementsQuery->get();
 
         // Crear spreadsheet
-        $spreadsheet = new Spreadsheet();
-        $sheet       = $spreadsheet->getActiveSheet();
+        $spreadsheet = new Spreadsheet;
+        $sheet = $spreadsheet->getActiveSheet();
         $sheet->setTitle('Movimientos de Inventario');
 
         // Encabezados
@@ -269,22 +270,22 @@ class InventoryMovementController extends Controller
 
         // Estilo para encabezados
         $headerStyle = [
-            'font'      => [
-                'bold'  => true,
+            'font' => [
+                'bold' => true,
                 'color' => ['rgb' => 'FFFFFF'],
             ],
-            'fill'      => [
-                'fillType'   => Fill::FILL_SOLID,
+            'fill' => [
+                'fillType' => Fill::FILL_SOLID,
                 'startColor' => ['rgb' => '4472C4'], // Azul
             ],
             'alignment' => [
                 'horizontal' => Alignment::HORIZONTAL_CENTER,
-                'vertical'   => Alignment::VERTICAL_CENTER,
+                'vertical' => Alignment::VERTICAL_CENTER,
             ],
-            'borders'   => [
+            'borders' => [
                 'allBorders' => [
                     'borderStyle' => Border::BORDER_THIN,
-                    'color'       => ['rgb' => '000000'],
+                    'color' => ['rgb' => '000000'],
                 ],
             ],
         ];
@@ -295,26 +296,26 @@ class InventoryMovementController extends Controller
         // Escribir datos
         $row = 2;
         foreach ($movements as $movement) {
-            $sheet->setCellValue('A' . $row, $movement->id);
-            $sheet->setCellValue('B' . $row, $movement->type);
-            $sheet->setCellValue('C' . $row, $movement->product->name);
-            $sheet->setCellValue('D' . $row, $movement->product->code);
-            $sheet->setCellValue('E' . $row, $movement->product->category->name);
-            $sheet->setCellValue('F' . $row, $movement->supplier->name ?? '');
-            $sheet->setCellValue('G' . $row, $movement->quantity);
-            $sheet->setCellValue('H' . $row, $movement->product->stock);
-            $sheet->setCellValue('I' . $row, $movement->date->format('d/m/Y'));
-            $sheet->setCellValue('J' . $row, $movement->notes ?? '');
-            $sheet->setCellValue('K' . $row, $movement->created_at->format('d/m/Y H:i:s'));
+            $sheet->setCellValue('A'.$row, $movement->id);
+            $sheet->setCellValue('B'.$row, $movement->type);
+            $sheet->setCellValue('C'.$row, $movement->product->name);
+            $sheet->setCellValue('D'.$row, $movement->product->code);
+            $sheet->setCellValue('E'.$row, $movement->product->category->name);
+            $sheet->setCellValue('F'.$row, $movement->supplier->name ?? '');
+            $sheet->setCellValue('G'.$row, $movement->quantity);
+            $sheet->setCellValue('H'.$row, $movement->product->stock);
+            $sheet->setCellValue('I'.$row, $movement->date->format('d/m/Y'));
+            $sheet->setCellValue('J'.$row, $movement->notes ?? '');
+            $sheet->setCellValue('K'.$row, $movement->created_at->format('d/m/Y H:i:s'));
             $row++;
         }
 
         // Estilo para datos
         $dataStyle = [
-            'borders'   => [
+            'borders' => [
                 'allBorders' => [
                     'borderStyle' => Border::BORDER_THIN,
-                    'color'       => ['rgb' => 'CCCCCC'],
+                    'color' => ['rgb' => 'CCCCCC'],
                 ],
             ],
             'alignment' => [
@@ -324,13 +325,13 @@ class InventoryMovementController extends Controller
 
         // Aplicar bordes a todos los datos
         if ($row > 2) {
-            $sheet->getStyle('A1:K' . ($row - 1))->applyFromArray($dataStyle);
+            $sheet->getStyle('A1:K'.($row - 1))->applyFromArray($dataStyle);
         }
 
         // Centrar columnas numéricas
-        $sheet->getStyle('A2:A' . ($row - 1))->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-        $sheet->getStyle('G2:H' . ($row - 1))->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-        $sheet->getStyle('I2:I' . ($row - 1))->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+        $sheet->getStyle('A2:A'.($row - 1))->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+        $sheet->getStyle('G2:H'.($row - 1))->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+        $sheet->getStyle('I2:I'.($row - 1))->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
 
         // Autoajustar columnas
         foreach (range('A', 'K') as $col) {
@@ -341,7 +342,7 @@ class InventoryMovementController extends Controller
         $sheet->getRowDimension(1)->setRowHeight(25);
 
         // Crear writer y descargar
-        $filename = 'movimientos_inventario_' . now()->format('Y-m-d_H-i-s') . '.xlsx';
+        $filename = 'Movimientos_Inventario_'.now()->format('Y-m-d').'.xlsx';
 
         $writer = new Xlsx($spreadsheet);
 

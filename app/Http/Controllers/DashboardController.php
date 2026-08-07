@@ -391,7 +391,7 @@ class DashboardController extends Controller
         }
 
         // Nombre del archivo CON HORA (HH-MM-SS)
-        $filename = 'Informe-Dashboard-Ventas-Ingresos-Egresos-'.now()->format('Y-m-d-H-i-s').'.xlsx';
+        $filename = 'Informe-Dashboard-Ventas-Ingresos-Egresos-'.now()->format('Y-m-d').'.xlsx';
         $writer = new Xlsx($spreadsheet);
 
         return response()->streamDownload(function () use ($writer) {
@@ -539,7 +539,7 @@ class DashboardController extends Controller
 
         // Generate PDF using DOMPDF in landscape
         $pdf = Pdf::loadHTML($html)->setPaper('a4', 'landscape');
-        $filename = 'Informe-Dashboard-Ventas-Ingresos-Egresos-'.now()->format('Y-m-d-H-i-s').'.pdf';
+        $filename = 'Informe-Dashboard-Ventas-Ingresos-Egresos-'.now()->format('Y-m-d').'.pdf';
 
         return $pdf->download($filename);
     }

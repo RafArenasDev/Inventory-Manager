@@ -104,7 +104,7 @@ export default function SaleDetailModal({ isOpen, onClose, sale, businessName }:
                     const url = window.URL.createObjectURL(blob);
                     const a = document.createElement('a');
                     a.href = url;
-                    a.download = `recibo_${sale.invoice_number}.pdf`;
+                    a.download = decodeURIComponent(sale.public_invoice_url!.split('/').pop() || `Recibo_${sale.invoice_number}.pdf`);
                     document.body.appendChild(a);
                     a.click();
                     a.remove();
