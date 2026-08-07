@@ -7,7 +7,7 @@ import {
 } from '@/components/ui/dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import { MessageCircle } from 'lucide-react';
+import { WhatsAppIcon } from '@/components/icons/whatsapp-icon';
 import Swal from '@/lib/swal';
 
 export interface SaleItem {
@@ -266,8 +266,8 @@ export default function SaleDetailModal({ isOpen, onClose, sale, businessName }:
 
                     {sale.public_invoice_url && sale.client?.cellphone && (
                         <div className="flex justify-end">
-                            <Button onClick={handleSendToWhatsApp} className="gap-2">
-                                <MessageCircle className="h-4 w-4" />
+                            <Button onClick={handleSendToWhatsApp} className="gap-2 bg-[#25D366] text-white hover:bg-[#1DA851] dark:bg-[#25D366] dark:hover:bg-[#1DA851]">
+                                <WhatsAppIcon className="h-4 w-4" />
                                 Enviar a WhatsApp
                             </Button>
                         </div>

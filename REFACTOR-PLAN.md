@@ -281,28 +281,37 @@ explícitamente fuera hasta que esa fase termine.
   frontend. ❌ No migrado a tablas — diseño pendiente de proponer antes de
   crear modelos/migraciones nuevas (regla del proyecto: proponer antes de
   construir).
-- **Envío de factura por WhatsApp gratis:** se investigó a fondo y quedó
-  **pausado a pedido explícito del usuario**, no descartado. Resumen de lo que
-  se descubrió para no repetir la investigación:
-  - CallMeBot (la opción que el usuario había visto en un video) **no sirve**:
-    su plan gratis solo envía texto (no PDFs) y requiere que cada destinatario
-    se registre manualmente con el bot antes — inviable para clientes que
-    compran una sola vez.
-  - La única opción realmente gratis que envía el PDF a cualquier número sin
-    registro previo es **Baileys** (librería no oficial de Node.js que replica
-    el protocolo de WhatsApp Web). Requiere un servicio Node.js aparte y
-    escanear un QR una vez con el WhatsApp del negocio; zona gris de ToS de
-    WhatsApp (no ilegal, pero no oficial).
-  - La alternativa "segura" es la API oficial de WhatsApp Cloud (Meta), que
-    exige verificación de negocio y plantillas de mensaje aprobadas — el
-    usuario prefiere evitar ese trámite.
-  - **Quedó sin resolver:** si Baileys es viable en el Render free tier actual
-    (disco efímero + spin-down a los 15 min de inactividad rompen la sesión de
-    WhatsApp guardada en disco). La investigación se interrumpió justo antes
-    de confirmar esto — la salida sugiere que habría que persistir el estado
-    de sesión de Baileys en la base de datos (Aiven MySQL) en vez de en
-    archivos locales, para sobrevivir redeploys/spin-downs. Confirmar esto
-    antes de empezar a implementar.
+- **Envío de factura por WhatsApp gratis:** **decisión consciente 2026-08-07:
+  se queda solo con el link manual (`wa.me` + descarga del PDF), automatización
+  descartada por ahora.** Historial completo para no repetir la investigación
+  ni la implementación:
+  - CallMeBot **no sirve**: solo texto (no PDFs), requiere que cada
+    destinatario se registre manualmente con el bot antes.
+  - Se **construyó completo** un servicio de automatización con
+    `whatsapp-web.js` (adjuntaba el PDF real en el chat, sin paso manual):
+    integrado en el mismo Docker de Render (Node + Chromium del sistema en
+    el `Dockerfile`, arrancado desde `docker/entrypoint.sh`), con la sesión
+    de WhatsApp persistida en una tabla nueva (`whatsapp_sessions`) vía
+    `RemoteAuth` en vez de disco local — resolviendo el problema de
+    persistencia que había quedado sin resolver en la investigación
+    original (Render free tier borra el disco en cada sleep/wake). Backend
+    Laravel actuaba de proxy (`POST /sales/{sale}/send-whatsapp`,
+    `GET /whatsapp/status`, `GET /whatsapp/qr`) para que el navegador nunca
+    hablara directo con el servicio interno. **Revertido completo** (commit
+    de revert) tras preguntarle directamente al usuario sobre el riesgo real
+    de baneo: cualquier automatización no oficial de WhatsApp (Baileys,
+    whatsapp-web.js, o cualquier equivalente en Python — el lenguaje no
+    cambia el riesgo ni evita necesitar un navegador real ~300MB) tiene
+    riesgo bajo-pero-no-cero de que WhatsApp banee el número vinculado. El
+    usuario decidió explícitamente **no** asumir ese riesgo ni para su
+    número de pruebas ni para el del negocio real de su tío, prefiriendo
+    quedarse con el link manual (riesgo cero, porque es el mecanismo
+    "click to chat" que WhatsApp ofrece oficialmente + un humano hace clic
+    en enviar) hasta poder costear la API oficial de Meta más adelante, o
+    evaluar otra solución (posible app de notificación aparte).
+  - Si se retoma en el futuro: el diseño de arriba (Docker + RemoteAuth +
+    proxy Laravel) es el punto de partida correcto, ya validado — solo
+    faltaría reconstruirlo y decidir en qué número probarlo primero.
   - **Fix puntual 2026-08-07:** el link `wa.me/${cellphone}` daba 404 porque
     el celular ficticio se generaba con guion (`ClientSeeder`, formato
     `3##-#######`) y sin código de país — wa.me exige solo dígitos con
@@ -311,6 +320,11 @@ explícitamente fuera hasta que esa fase termine.
     cuando detecta un celular local de 10 dígitos. El link en sí
     (`https://wa.me/<número>?text=<mensaje>`) ya era la forma simple
     correcta — el problema era solo el formato del número, no el link.
+  - **Fix puntual 2026-08-07:** el botón usaba el ícono genérico `MessageCircle`
+    de lucide-react (no es un logo de marca). Se reemplazó por un ícono SVG
+    inline del logo real de WhatsApp (`components/icons/whatsapp-icon.tsx`,
+    sin dependencia nueva) y el botón pasó a usar el verde de marca
+    (`#25D366`) en vez del color primario genérico del tema.
   - **Fix puntual 2026-08-07:** `ClientController::history()` (historial de
     compras del cliente, `clientHistoryModal.tsx`) nunca traía datos —
     seleccionaba columnas inexistentes en `sale_items` (`unit_price`,
