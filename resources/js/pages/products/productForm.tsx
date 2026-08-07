@@ -8,6 +8,12 @@ import { Combobox, ComboboxContent, ComboboxEmpty, ComboboxInput, ComboboxItem, 
 const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/gif'];
 const MAX_IMAGE_SIZE = 2048 * 1024; // 2MB, igual al límite del backend
 
+// Este form usa inputs "planos" (no <Input> de shadcn) de 42px/16px en vez
+// del h-9/text-sm estándar de shadcn — se iguala el Combobox a ESE tamaño
+// para que no desentone dentro de este form en particular.
+const COMBOBOX_CLASSNAME = 'h-auto rounded-md border-gray-300 bg-white shadow-sm dark:border-gray-600 dark:bg-black has-[[data-slot=input-group-control]:focus-visible]:border-blue-500 has-[[data-slot=input-group-control]:focus-visible]:ring-blue-500';
+const COMBOBOX_INPUT_CLASSNAME = 'h-auto py-2 text-base text-gray-900 md:text-base dark:text-gray-100';
+
 // Colombia no fija por ley un margen de utilidad para retail (a diferencia
 // del IVA, que sí es legalmente 0% o 19%). 30% es un punto de partida común
 // en comercio minorista, editable por el usuario.
@@ -396,7 +402,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
               value={categories.find(c => c.id.toString() === data.category_id?.toString()) ?? null}
               onValueChange={(c: Category | null) => setData('category_id', c ? c.id.toString() : '')}
             >
-              <ComboboxInput placeholder="Seleccionar Categoría" />
+              <ComboboxInput placeholder="Seleccionar Categoría" className={COMBOBOX_CLASSNAME} inputClassName={COMBOBOX_INPUT_CLASSNAME} />
               <ComboboxContent>
                 <ComboboxEmpty>No se encontraron categorías.</ComboboxEmpty>
                 <ComboboxList>
@@ -663,7 +669,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
               value={suppliers.find(s => s.id.toString() === data.supplier_id?.toString()) ?? null}
               onValueChange={(s: Supplier | null) => setData('supplier_id', s ? s.id.toString() : '')}
             >
-              <ComboboxInput placeholder="Seleccionar Proveedor" showClear />
+              <ComboboxInput placeholder="Seleccionar Proveedor" showClear className={COMBOBOX_CLASSNAME} inputClassName={COMBOBOX_INPUT_CLASSNAME} />
               <ComboboxContent>
                 <ComboboxEmpty>No se encontraron proveedores.</ComboboxEmpty>
                 <ComboboxList>
@@ -708,7 +714,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
                 value={movementTypes.find(t => t.value === data.movement_type) ?? null}
                 onValueChange={(t: { value: string; label: string } | null) => setData('movement_type', t ? t.value : '')}
               >
-                <ComboboxInput placeholder="Seleccionar Tipo de Movimiento" />
+                <ComboboxInput placeholder="Seleccionar Tipo de Movimiento" className={COMBOBOX_CLASSNAME} inputClassName={COMBOBOX_INPUT_CLASSNAME} />
                 <ComboboxContent>
                   <ComboboxEmpty>No se encontraron tipos de movimiento.</ComboboxEmpty>
                   <ComboboxList>

@@ -54,6 +54,7 @@ function ComboboxClear({ className, ...props }: ComboboxPrimitive.Clear.Props) {
 
 function ComboboxInput({
   className,
+  inputClassName,
   children,
   disabled = false,
   showTrigger = true,
@@ -63,24 +64,14 @@ function ComboboxInput({
 }: ComboboxPrimitive.Input.Props & {
   showTrigger?: boolean
   showClear?: boolean
+  /** Clases para el <input> interno (p.ej. igualar el alto/tipografía a inputs no estándar de un form puntual); `className` controla el contenedor. */
+  inputClassName?: string
 }) {
   return (
-    <InputGroup
-      className={cn(
-        // Mismo estándar visual que el resto de inputs de los forms de la
-        // app (bg, borde y anillo de foco), en vez del gris genérico de
-        // shadcn — para que el combobox no se vea "distinto" o más chico.
-        "h-auto w-auto rounded-md border-gray-300 bg-white shadow-sm dark:border-gray-600 dark:bg-black has-[[data-slot=input-group-control]:focus-visible]:border-blue-500 has-[[data-slot=input-group-control]:focus-visible]:ring-blue-500",
-        className
-      )}
-    >
+    <InputGroup className={cn("w-auto", className)}>
       <ComboboxPrimitive.Input
         render={<InputGroupInput disabled={disabled} />}
-        // Los inputs "planos" del resto de la app miden 42px de alto con
-        // texto de 16px (h-9/text-sm de shadcn dan una caja más baja y
-        // chica) — se pisa explícitamente para que el combobox mida
-        // exactamente lo mismo, al pixel, no "aproximado".
-        className="h-auto py-2 text-base text-gray-900 md:text-base dark:text-gray-100"
+        className={inputClassName}
         onFocus={(e) => {
           // Como en cualquier combobox: al enfocar con un valor ya elegido,
           // selecciona todo el texto para que escribir reemplace en vez de
