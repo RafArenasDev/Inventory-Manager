@@ -331,6 +331,53 @@ explícitamente fuera hasta que esa fase termine.
     `total_price`, `product_name`; las reales son `price_at_sale`,
     `subtotal`, y el nombre viene de la relación `product`). Corregido.
 
+## 9.8 Barrido de consistencia UI + filtros fuera de la URL (pedido 2026-08-07)
+
+**Estado: ✅ hecho, salvo lo anotado abajo.**
+
+- Producto (`products/index.tsx`) convertido de página completa a modal —
+  era el único módulo que faltaba de los 10.
+- Botón de cierre "bonito" (círculo, `bg-white/90`, sombra) centralizado en
+  `dialog.tsx` (antes solo `saleDetailModal.tsx` lo tenía vía override
+  local) — todos los modales lo heredan ahora sin tener que repetirlo.
+- Barra de búsqueda: los 10 módulos usaban `flex justify-between
+  items-center` fijo, que comprimía el input contra el botón de exportar
+  en mobile (ahí se perdía el placeholder). Normalizado a
+  `flex flex-col gap-4 sm:flex-row ...` + `className="w-full sm:max-w-md"`
+  en el `SearchInput`.
+- `PageHeader`: quitada la línea divisoria bajo título+descripción.
+- Fondo de contenido: los 14 archivos que hardcodeaban
+  `dark:bg-[oklch(0.100205_0_0)]` (el mismo valor exacto del sidebar, cero
+  contraste) pasaron a `bg-card` (token de tema, `oklch(0.145 0 0)` en
+  oscuro — más claro que el sidebar a propósito).
+- Botones de acción: confirmado que todos los módulos ya usan
+  `IconActionButton` con el mismo patrón ghost-hover; no quedó ninguno con
+  estilo sólido fuera de patrón.
+- **Filtros fuera de la URL:** cambio más grande — todo el flujo de
+  búsqueda/paginación pasó de `router.get()` (query string, terminaba en
+  el historial del navegador y en logs del servidor) a `router.post()`
+  contra una ruta `/<módulo>/search` nueva por módulo. `pagination.tsx` se
+  reescribió completo: antes construía los links de página leyendo
+  `window.location.href` (heredaba el filtro activo sin querer); ahora
+  todo pasa por POST con los filtros en el body. Verificado en el
+  navegador: la barra de direcciones nunca muestra el término buscado, y
+  recargar en `/search` (GET simple, sin body) cae al listado sin filtro
+  en vez de un 405.
+
+❌ **Pendiente / no verificado:**
+- **Responsive real en 375px:** no se pudo confirmar visualmente esta
+  sesión tampoco — la herramienta de navegador no logró redimensionar el
+  viewport de forma confiable (la pestaña parecía estar en uso paralelo
+  del usuario, saltando de página sola). Las tablas ya usan contenedores
+  `overflow-x-auto`, pero falta la pasada visual real en mobile.
+- **Búsqueda insensible a tildes** (hallazgo nuevo, no pedido esta vez):
+  buscar "portatil" no encuentra "Portátil" — el `LIKE` de MySQL/Postgres
+  es sensible al acento. No se tocó, queda para cuando se pida.
+- Filtros adicionales de `inventoryMovements` (`product_id`, `type`,
+  fechas) y `transactions` (`category_id`, `status`, fechas) existen en el
+  backend pero no tienen UI conectada — no se les pasó `extraFilters` a
+  `Pagination` porque no hay nada que preservar todavía.
+
 ## 9.6 Exports con nombre de archivo descriptivo y export de Dashboard completo (pedido 2026-08-07)
 
 **Estado: ✅ hecho.** Ver commits del 2026-08-07: nombres de archivo
