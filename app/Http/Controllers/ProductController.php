@@ -386,6 +386,7 @@ class ProductController extends Controller
             'description' => 'nullable|string',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             'image_path' => 'nullable|string|max:255',
+            'remove_image' => 'nullable|boolean',
             'price_without_tax' => 'required|integer|min:0',
             'price_with_tax' => 'required|integer|min:0',
             'iva_value' => 'nullable|integer|min:0',
@@ -419,6 +420,11 @@ class ProductController extends Controller
                 Storage::disk('public')->delete($product->image_path);
             }
             $imagePath = $request->file('image')->store('products', 'public');
+        } elseif ($request->boolean('remove_image')) {
+            if ($product->image_path) {
+                Storage::disk('public')->delete($product->image_path);
+            }
+            $imagePath = null;
         } elseif ($validated['image_path']) {
             $imagePath = $validated['image_path'];
             if (str_starts_with($imagePath, '/storage/')) {

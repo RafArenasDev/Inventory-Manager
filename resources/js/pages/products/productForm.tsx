@@ -1,7 +1,16 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useForm, router } from '@inertiajs/react';
 import Swal from '@/lib/swal';
 import { Button } from "@/components/ui/button";
+import { Image as ImageIcon, Loader2 } from "lucide-react";
+
+const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/gif'];
+const MAX_IMAGE_SIZE = 2048 * 1024; // 2MB, igual al límite del backend
+
+// Colombia no fija por ley un margen de utilidad para retail (a diferencia
+// del IVA, que sí es legalmente 0% o 19%). 30% es un punto de partida común
+// en comercio minorista, editable por el usuario.
+const DEFAULT_PROFIT_PERCENT = '30';
 
 interface Category {
   id: number;
@@ -94,6 +103,11 @@ const ProductForm: React.FC<ProductFormProps> = ({
   });
 
   const [imagePreview, setImagePreview] = useState<string | null>(product?.image_path || null);
+  const [imageError, setImageError] = useState<string | null>(null);
+  const [isImageLoading, setIsImageLoading] = useState(false);
+  const [isDraggingImage, setIsDraggingImage] = useState(false);
+  const [imageRemoved, setImageRemoved] = useState(false);
+  const imageInputRef = useRef<HTMLInputElement>(null);
   const [priceMode, setPriceMode] = useState<'manual' | 'profit'>('manual');
   const [profitPercent, setProfitPercent] = useState('');
   const [ivaType, setIvaType] = useState(
@@ -116,6 +130,9 @@ const ProductForm: React.FC<ProductFormProps> = ({
   useEffect(() => {
     if (product) {
       setImagePreview(product.image_path || null);
+      setImageError(null);
+      setImageRemoved(false);
+      setIsImageLoading(false);
     }
   }, [product]);
 
@@ -177,7 +194,15 @@ const ProductForm: React.FC<ProductFormProps> = ({
     if (mode === 'profit') {
       const cost = parseInt(data.price_with_tax || '0');
       const currentSalePrice = parseInt(data.sale_price || '0');
-      const impliedProfit = cost > 0 ? (((currentSalePrice - cost) / cost) * 100).toFixed(1) : '0';
+      // Colombia no fija por ley un margen de utilidad (a diferencia del IVA,
+      // que sí es 0%/19% por ley). Si ya hay un precio de venta real por
+      // encima del costo, se respeta esa utilidad implícita; si no (producto
+      // nuevo o sin precio de venta aún), se sugiere un margen por defecto
+      // razonable para no dejar al usuario calculando manualmente.
+      const hasMeaningfulSalePrice = cost > 0 && currentSalePrice > cost;
+      const impliedProfit = hasMeaningfulSalePrice
+        ? (((currentSalePrice - cost) / cost) * 100).toFixed(1)
+        : DEFAULT_PROFIT_PERCENT;
       setProfitPercent(impliedProfit);
       setData('sale_price', calculateSalePriceFromProfit(cost, impliedProfit));
     }
@@ -217,12 +242,44 @@ const ProductForm: React.FC<ProductFormProps> = ({
     }
   };
 
+  const validateAndSetImage = (file: File) => {
+    setImageError(null);
+
+    if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
+      setImageError('Solo se permiten imágenes JPEG, PNG o GIF.');
+      return;
+    }
+    if (file.size > MAX_IMAGE_SIZE) {
+      setImageError('La imagen no puede superar 2MB.');
+      return;
+    }
+
+    setImageRemoved(false);
+    setIsImageLoading(true);
+    setData('image', file);
+    setImagePreview(URL.createObjectURL(file));
+  };
+
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      setData('image', file);
-      setImagePreview(URL.createObjectURL(file));
-    }
+    if (file) validateAndSetImage(file);
+    e.target.value = '';
+  };
+
+  const handleImageDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setIsDraggingImage(false);
+    const file = e.dataTransfer.files?.[0];
+    if (file) validateAndSetImage(file);
+  };
+
+  const handleRemoveImage = () => {
+    setData('image', null);
+    setData('image_path', '');
+    setImagePreview(null);
+    setImageError(null);
+    setIsImageLoading(false);
+    setImageRemoved(true);
   };
 
   const isFormValid = () => {
@@ -256,6 +313,9 @@ const ProductForm: React.FC<ProductFormProps> = ({
     }
 
     formData.append('image_path', data.image_path || '');
+    if (imageRemoved && !data.image) {
+      formData.append('remove_image', '1');
+    }
     formData.append('price_without_tax', data.price_without_tax);
     formData.append('price_with_tax', data.price_with_tax);
     formData.append('iva_value', data.iva_value || '0');
@@ -290,6 +350,9 @@ const ProductForm: React.FC<ProductFormProps> = ({
         });
         reset();
         setImagePreview(null);
+        setImageError(null);
+        setImageRemoved(false);
+        setIsImageLoading(false);
         onSaved();
       },
       onError: (errors) => {
@@ -368,21 +431,77 @@ const ProductForm: React.FC<ProductFormProps> = ({
             {errors.description && <p className="mt-1 text-sm text-red-600">{errors.description}</p>}
           </div>
 
-          <div>
+          <div className="sm:col-span-2">
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Imagen
+              Imagen del Producto
             </label>
             <input
+              ref={imageInputRef}
               type="file"
-              accept="image/*"
+              accept="image/jpeg,image/png,image/gif"
               onChange={handleImageChange}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-black text-gray-900 dark:text-gray-100"
+              className="hidden"
             />
-            {imagePreview && (
-              <div className="mt-2">
-                <img src={imagePreview} alt="Vista previa" className="h-24 w-24 object-cover rounded-md" />
+
+            {imagePreview ? (
+              <div className="relative w-full overflow-hidden rounded-xl border border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-black">
+                {isImageLoading && (
+                  <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/70 dark:bg-black/70">
+                    <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+                  </div>
+                )}
+                <img
+                  src={imagePreview}
+                  alt="Vista previa del producto"
+                  onLoad={() => setIsImageLoading(false)}
+                  onError={() => {
+                    setIsImageLoading(false);
+                    setImageError('No se pudo cargar la vista previa de la imagen.');
+                  }}
+                  className="h-56 w-full object-cover sm:h-64"
+                />
+                <div className="absolute top-3 right-3 flex gap-2">
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="secondary"
+                    className="shadow-md"
+                    onClick={() => imageInputRef.current?.click()}
+                  >
+                    Cambiar
+                  </Button>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="destructive"
+                    className="shadow-md"
+                    onClick={handleRemoveImage}
+                  >
+                    Eliminar
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <div
+                onClick={() => imageInputRef.current?.click()}
+                onDragOver={(e) => { e.preventDefault(); setIsDraggingImage(true); }}
+                onDragLeave={(e) => { e.preventDefault(); setIsDraggingImage(false); }}
+                onDrop={handleImageDrop}
+                className={`flex h-56 w-full cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed transition-colors sm:h-64 ${
+                  isDraggingImage
+                    ? 'border-blue-500 bg-blue-50 dark:bg-blue-950/20'
+                    : 'border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-black hover:border-blue-400 dark:hover:border-blue-500'
+                }`}
+              >
+                <ImageIcon className="h-10 w-10 text-gray-400" />
+                <p className="text-sm font-medium text-gray-600 dark:text-gray-300">
+                  Haz clic o arrastra una imagen aquí
+                </p>
+                <p className="text-xs text-gray-400 dark:text-gray-500">JPG, PNG o GIF · Máximo 2MB</p>
               </div>
             )}
+
+            {imageError && <p className="mt-2 text-sm text-red-600">{imageError}</p>}
             {errors.image && <p className="mt-1 text-sm text-red-600">{errors.image}</p>}
           </div>
 
@@ -496,6 +615,9 @@ const ProductForm: React.FC<ProductFormProps> = ({
                     min="0"
                     step="0.1"
                   />
+                  <p className="mt-1 text-xs text-gray-400 dark:text-gray-500">
+                    Sugerencia inicial de {DEFAULT_PROFIT_PERCENT}% (Colombia no fija un margen mínimo por ley, solo IVA); ajústala según tu producto.
+                  </p>
                 </div>
               )}
               <div>
