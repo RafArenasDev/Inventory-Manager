@@ -144,7 +144,7 @@ export default function CashRegisterIndex({
                         </Button>
                     )}
                 </PageHeader>
-                <div className="bg-white dark:bg-[oklch(0.100205_0_0)] overflow-hidden shadow-sm sm:rounded-lg p-6">
+                <div className="bg-card overflow-hidden shadow-sm sm:rounded-lg p-6">
                     <CashRegisterTable
                         cashRegisters={cashRegisters}
                         perPage={filters.per_page || '10'}

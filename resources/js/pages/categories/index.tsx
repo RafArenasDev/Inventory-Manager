@@ -121,7 +121,7 @@ export default function CategoryIndex({ categories, filters, totalCount, filtere
                         </Button>
                     )}
                 </PageHeader>
-                <div className="bg-white dark:bg-[oklch(0.100205_0_0)] overflow-hidden shadow-sm sm:rounded-lg p-6">
+                <div className="bg-card overflow-hidden shadow-sm sm:rounded-lg p-6">
                     <CategoriesTable
                         categories={categories}
                         perPage={filters.per_page || "10"}

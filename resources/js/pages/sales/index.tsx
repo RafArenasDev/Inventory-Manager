@@ -228,7 +228,7 @@ export default function SaleIndex({ sales, products, clients, departments, citie
                         </Button>
                     )}
                 </PageHeader>
-                <div className="bg-white dark:bg-[oklch(0.100205_0_0)] overflow-hidden shadow-sm sm:rounded-lg p-6">
+                <div className="bg-card overflow-hidden shadow-sm sm:rounded-lg p-6">
                     <SalesTable
                         sales={sales}
                         filters={filters}
@@ -282,7 +282,7 @@ export default function SaleIndex({ sales, products, clients, departments, citie
 
             <Dialog open={isInvoiceModalOpen} onOpenChange={setIsInvoiceModalOpen}>
                 <DialogContent
-                    className="sm:max-w-[550px] max-w-[95vw] max-h-[95vh] bg-white dark:bg-[oklch(0.100205_0_0)] rounded-2xl p-0 shadow-2xl [&>button]:absolute [&>button]:top-4 [&>button]:right-4 [&>button]:z-10 [&>button]:p-2 [&>button]:rounded-full [&>button]:bg-white/90 [&>button]:dark:bg-gray-800/90 [&>button]:hover:bg-white [&>button]:dark:hover:bg-gray-700 [&>button]:transition-colors [&>button]:shadow-md [&>button]:border-0"
+                    className="sm:max-w-[550px] max-w-[95vw] max-h-[95vh] bg-card rounded-2xl p-0 shadow-2xl [&>button]:absolute [&>button]:top-4 [&>button]:right-4 [&>button]:z-10 [&>button]:p-2 [&>button]:rounded-full [&>button]:bg-white/90 [&>button]:dark:bg-gray-800/90 [&>button]:hover:bg-white [&>button]:dark:hover:bg-gray-700 [&>button]:transition-colors [&>button]:shadow-md [&>button]:border-0"
                 >
                     <div className="p-6 space-y-4">
                         <DialogTitle className="text-xl font-bold text-gray-900 dark:text-gray-100">

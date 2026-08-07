@@ -97,12 +97,12 @@ export default function CategoriesTable({
 
     return (
         <div className="space-y-4">
-            {/* Añadimos el SearchInput aquí */}
-            <div className="flex justify-between items-center">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <SearchInput
                     placeholder="Buscar por nombre de categoría..."
                     searchValue={search}
                     onSearch={onSearch}
+                    className="w-full sm:max-w-md"
                 />
             </div>
 

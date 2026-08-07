@@ -10,7 +10,7 @@ interface PageHeaderProps {
 
 export function PageHeader({ icon: Icon, title, description, children }: PageHeaderProps) {
     return (
-        <div className="flex flex-col gap-4 border-b border-border pb-5 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center gap-3">
                 <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-border bg-muted/50 text-foreground">
                     <Icon className="h-5 w-5" />

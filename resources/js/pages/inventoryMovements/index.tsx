@@ -182,7 +182,7 @@ export default function InventoryMovementsIndex({
             </Button>
           )}
         </PageHeader>
-        <div className="bg-white dark:bg-[oklch(0.100205_0_0)] overflow-hidden shadow-sm sm:rounded-lg p-6">
+        <div className="bg-card overflow-hidden shadow-sm sm:rounded-lg p-6">
           <InventoryMovementsTable
             movements={movements}
             products={products}

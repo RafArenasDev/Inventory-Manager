@@ -43,7 +43,7 @@ export default function ForcePasswordChangeModal() {
             <DialogContent
                 onInteractOutside={(e) => e.preventDefault()}
                 onEscapeKeyDown={(e) => e.preventDefault()}
-                className="sm:max-w-[450px] max-w-[95vw] bg-white dark:bg-[oklch(0.100205_0_0)] dark:border-gray-800 rounded-2xl p-0 shadow-2xl [&>button]:hidden"
+                className="sm:max-w-[450px] max-w-[95vw] bg-card dark:border-gray-800 rounded-2xl p-0 shadow-2xl [&>button]:hidden"
             >
                 <div className="p-6 space-y-4">
                     <div>

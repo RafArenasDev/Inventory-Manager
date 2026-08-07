@@ -85,7 +85,7 @@ export default function TransactionsTable({
     search,
     onSearch,
     userPermissions,
-    }: TransactionsTableProps) {
+}: TransactionsTableProps) {
 
     // console.log("Datos recibidos:", transactions.data);
 
@@ -151,12 +151,12 @@ export default function TransactionsTable({
 
     return (
         <div className="space-y-4">
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <SearchInput
                     placeholder="Buscar por descripción o referencia..."
                     searchValue={search}
                     onSearch={onSearch}
-                    className="w-full sm:w-auto sm:max-w-md"
+                    className="w-full sm:max-w-md"
                 />
                 {userPermissions.includes('Exportar Transacciones') && (
                     <Button

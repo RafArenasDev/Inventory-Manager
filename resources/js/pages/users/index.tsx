@@ -123,7 +123,7 @@ export default function UserIndex({ users, roles, filters, totalCount, filteredC
                         </Button>
                     )}
                 </PageHeader>
-                <div className="bg-white dark:bg-[oklch(0.100205_0_0)] overflow-hidden shadow-sm sm:rounded-lg p-6">
+                <div className="bg-card overflow-hidden shadow-sm sm:rounded-lg p-6">
                     <UsersTable
                         users={users}
                         roles={roles}
