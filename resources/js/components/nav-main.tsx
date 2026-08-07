@@ -18,6 +18,16 @@ import { ChevronRight } from 'lucide-react';
 
 export function NavMain({ items = [] }: { items: NavItem[] }) {
     const page = usePage();
+    const currentPath = page.url.split('?')[0];
+
+    // Coincidencia por prefijo de path (no URL exacta): navegar dentro del
+    // mismo módulo (búsqueda vía /modulo/search, paginación, /modulo/5/edit,
+    // etc.) no debe hacer que el item deje de verse activo.
+    const isPathActive = (href: string | undefined | null) => {
+        if (!href || href === '#') return false;
+        if (href === '/') return currentPath === '/';
+        return currentPath === href || currentPath.startsWith(`${href}/`);
+    };
 
     return (
         <SidebarGroup className="px-2 py-0">
@@ -48,7 +58,7 @@ export function NavMain({ items = [] }: { items: NavItem[] }) {
                                                 <SidebarMenuSubItem key={subItem.title}>
                                                     <SidebarMenuSubButton
                                                         asChild
-                                                        isActive={subItem.href === page.url}
+                                                        isActive={isPathActive(subItem.href)}
                                                     >
                                                         <Link href={subItem.href || '#'} prefetch>
                                                             {subItem.icon && <subItem.icon />}
@@ -69,7 +79,7 @@ export function NavMain({ items = [] }: { items: NavItem[] }) {
                         <SidebarMenuItem key={item.title}>
                             <SidebarMenuButton
                                 asChild
-                                isActive={item.href === page.url}
+                                isActive={isPathActive(item.href)}
                                 tooltip={{ children: item.title }}
                             >
                                 <Link href={item.href || '#'} prefetch>
