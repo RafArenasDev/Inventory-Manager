@@ -1,9 +1,10 @@
 <?php
+
 namespace Database\Seeders;
 
 use App\Models\City;
 use App\Models\Client;
-use App\Models\Department;
+use Faker\Factory;
 use Illuminate\Database\Seeder;
 
 class ClientSeeder extends Seeder
@@ -12,17 +13,35 @@ class ClientSeeder extends Seeder
     {
         // No existe un locale es_CO en fakerphp/faker (cae en inglés en
         // silencio); es_PE da nombres y apellidos latinoamericanos plausibles.
-        $faker = \Faker\Factory::create('es_PE');
+        $faker = Factory::create('es_PE');
 
         $cities = City::with('department')->get();
 
         if ($cities->isEmpty()) {
             \Log::warning('No hay ciudades disponibles; se omite ClientSeeder. Ejecuta primero DepartmentCitySeeder.');
+
             return;
         }
 
         $documentTypes = ['CC', 'CC', 'CC', 'CC', 'CE', 'NIT', 'TI'];
         $usedDocuments = [];
+
+        // Cliente de prueba real (para validar envío de factura por WhatsApp/email
+        // con datos reales). Nombre distinto al usuario admin homónimo a propósito:
+        // el email es único en `users`, pero `clients` no valida unicidad de email.
+        Client::create([
+            'document_type' => 'CC',
+            'document_number' => 1000000001,
+            'verification_digit' => null,
+            'name' => 'Rafa Arenas (Cliente Demo)',
+            'department_id' => $cities->first()->department_id,
+            'city_id' => $cities->first()->id,
+            'phone' => null,
+            'cellphone' => '3132653515',
+            'address' => 'Dirección de prueba',
+            'email' => 'rafarenas.dev@gmail.com',
+            'is_active' => true,
+        ]);
 
         for ($i = 0; $i < 25; $i++) {
             $city = $cities->random();
@@ -40,17 +59,17 @@ class ClientSeeder extends Seeder
                 : $faker->name();
 
             Client::create([
-                'document_type'       => $documentType,
-                'document_number'     => $documentNumber,
-                'verification_digit'  => $documentType === 'NIT' ? $faker->numberBetween(0, 9) : null,
-                'name'                => $name,
-                'department_id'       => $city->department_id,
-                'city_id'             => $city->id,
-                'phone'               => $faker->optional(0.4)->numerify('60#-#######'),
-                'cellphone'           => $faker->numerify('3##-#######'),
-                'address'             => $faker->streetAddress(),
-                'email'               => $faker->unique()->safeEmail(),
-                'is_active'           => $faker->boolean(92),
+                'document_type' => $documentType,
+                'document_number' => $documentNumber,
+                'verification_digit' => $documentType === 'NIT' ? $faker->numberBetween(0, 9) : null,
+                'name' => $name,
+                'department_id' => $city->department_id,
+                'city_id' => $city->id,
+                'phone' => $faker->optional(0.4)->numerify('60#-#######'),
+                'cellphone' => $faker->numerify('3##-#######'),
+                'address' => $faker->streetAddress(),
+                'email' => $faker->unique()->safeEmail(),
+                'is_active' => $faker->boolean(92),
             ]);
         }
     }

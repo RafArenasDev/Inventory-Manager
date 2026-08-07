@@ -120,7 +120,8 @@ class ClientController extends Controller
     {
         try {
             $query = $client->sales()->with(['items' => function ($query) {
-                $query->select('id', 'sale_id', 'product_id', 'quantity', 'unit_price', 'total_price', 'product_name');
+                $query->select('id', 'sale_id', 'product_id', 'quantity', 'price_at_sale', 'subtotal')
+                    ->with('product:id,name');
             }]);
 
             if ($request->filled('start_date')) {
@@ -159,13 +160,13 @@ class ClientController extends Controller
                             return [
                                 'id' => $item->id,
                                 'product_id' => $item->product_id,
-                                'product_name' => $item->product_name,
+                                'product_name' => $item->product->name ?? 'Producto no especificado',
                                 'quantity' => $item->quantity,
-                                'unit_price' => $item->unit_price,
-                                'total_price' => $item->total_price,
+                                'unit_price' => $item->price_at_sale,
+                                'total_price' => $item->subtotal,
                             ];
                         })->toArray(),
-                        'total' => $sale->items->sum('total_price'),
+                        'total' => $sale->items->sum('subtotal'),
                     ];
                 });
 

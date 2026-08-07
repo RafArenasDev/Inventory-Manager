@@ -1,4 +1,5 @@
 <?php
+
 namespace Database\Seeders;
 
 use App\Models\Role;
@@ -18,11 +19,12 @@ class UserSeeder extends Seeder
         }
 
         $users = [
-            ['email' => 'admin@admin.com', 'name' => 'Administrador', 'password' => 'Admin-123*', 'role' => 'admin'],
-            ['email' => 'seller@seller.com', 'name' => 'Camila Torres', 'password' => 'seller-123*', 'role' => 'seller'],
+            ['email' => 'admin@admin.com', 'name' => 'Administrador', 'password' => 'Admin-12345*', 'role' => 'admin'],
+            ['email' => 'rafarenas.dev@gmail.com', 'name' => 'Rafael Arenas', 'password' => 'RafaAdmin-2026*', 'role' => 'admin'],
+            ['email' => 'seller@seller.com', 'name' => 'Camila Torres', 'password' => 'Seller-1234*', 'role' => 'seller'],
             ['email' => 'vendedor2@demo.com', 'name' => 'Andrés Felipe Ríos', 'password' => 'Vendedor-123*', 'role' => 'seller'],
-            ['email' => 'cajero@demo.com', 'name' => 'Valentina Suárez', 'password' => 'Cajero-123*', 'role' => 'cashier'],
-            ['email' => 'bodega@demo.com', 'name' => 'Julián Castaño', 'password' => 'Bodega-123*', 'role' => 'warehouse'],
+            ['email' => 'cajero@demo.com', 'name' => 'Valentina Suárez', 'password' => 'Cajero-1234*', 'role' => 'cashier'],
+            ['email' => 'bodega@demo.com', 'name' => 'Julián Castaño', 'password' => 'Bodega-1234*', 'role' => 'warehouse'],
             ['email' => 'auditor@demo.com', 'name' => 'Marcela Duque', 'password' => 'Auditor-123*', 'role' => 'auditor'],
         ];
 
@@ -30,8 +32,8 @@ class UserSeeder extends Seeder
             $user = User::firstOrCreate(
                 ['email' => $userData['email']],
                 [
-                    'name'              => $userData['name'],
-                    'password'          => bcrypt($userData['password']),
+                    'name' => $userData['name'],
+                    'password' => bcrypt($userData['password']),
                     'email_verified_at' => now(),
                 ]
             );
