@@ -122,7 +122,13 @@ function ComboboxContent({
         align={align}
         alignOffset={alignOffset}
         anchor={anchor}
-        className="isolate z-50"
+        // Cuando el combobox vive dentro de un Dialog (caso de todos los
+        // forms de esta app), Radix pone pointer-events:none en <body>
+        // mientras el modal está abierto para bloquear el fondo. Este
+        // popup se porta aparte, fuera del content del Dialog, así que
+        // hereda ese "none" y los clics/scroll dentro de él no
+        // funcionaban — se reactiva explícitamente aquí.
+        className="isolate z-50 pointer-events-auto"
       >
         <ComboboxPrimitive.Popup
           data-slot="combobox-content"
