@@ -141,18 +141,17 @@ export default function CashRegisterTable({
                                 <TableCell>{cashRegister.is_closed ? formatCurrency(cashRegister.closing_amount) : '-'}</TableCell>
                                 <TableCell className={
                                     !cashRegister.is_closed ? '' :
-                                    cashRegister.difference > 0 ? 'text-green-600 font-semibold' :
-                                    cashRegister.difference < 0 ? 'text-red-600 font-semibold' : ''
+                                        cashRegister.difference > 0 ? 'text-green-600 font-semibold' :
+                                            cashRegister.difference < 0 ? 'text-red-600 font-semibold' : ''
                                 }>
                                     {cashRegister.is_closed ? formatDifference(cashRegister.difference) : '-'}
                                 </TableCell>
                                 <TableCell>{cashRegister.notes || '-'}</TableCell>
                                 <TableCell>
-                                    <span className={`inline-flex items-center justify-center px-2 py-1 text-xs font-bold rounded-full border w-20 text-center shadow-sm ${
-                                        cashRegister.is_closed
+                                    <span className={`inline-flex items-center justify-center px-2 py-1 text-xs font-bold rounded-full border w-20 text-center shadow-sm ${cashRegister.is_closed
                                             ? 'bg-red-600 text-white dark:bg-red-700'
                                             : 'bg-green-600 text-white dark:bg-green-700'
-                                    }`}>
+                                        }`}>
                                         {cashRegister.is_closed ? 'Cerrada' : 'Abierta'}
                                     </span>
                                 </TableCell>
