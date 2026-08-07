@@ -144,7 +144,7 @@ function ComboboxContent({
   )
 }
 
-function ComboboxList({ className, ...props }: ComboboxPrimitive.List.Props) {
+function ComboboxList({ className, onWheel, ...props }: ComboboxPrimitive.List.Props) {
   return (
     <ComboboxPrimitive.List
       data-slot="combobox-list"
@@ -152,6 +152,14 @@ function ComboboxList({ className, ...props }: ComboboxPrimitive.List.Props) {
         "max-h-[min(calc(--spacing(96)---spacing(9)),calc(var(--available-height)---spacing(9)))] scroll-py-1 overflow-y-auto p-1 data-empty:p-0",
         className
       )}
+      onWheel={(e) => {
+        // El scroll-lock del Dialog que envuelve este popup (bloquea la
+        // rueda del mouse fuera del subárbol que reconoce como propio)
+        // también atrapa este popup, que vive en un portal aparte — se
+        // aplica el desplazamiento a mano para que la rueda funcione.
+        e.currentTarget.scrollTop += e.deltaY
+        onWheel?.(e)
+      }}
       {...props}
     />
   )
