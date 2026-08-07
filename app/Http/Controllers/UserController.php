@@ -1,9 +1,11 @@
 <?php
+
 namespace App\Http\Controllers;
 
 use App\Http\Requests\UserRequest;
 use App\Models\Role;
 use App\Models\User;
+use App\Notifications\WelcomeUserNotification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Inertia\Inertia;
@@ -28,7 +30,7 @@ class UserController extends Controller
         }
 
         // Contar total y filtrados
-        $totalCount    = $userQuery->count();
+        $totalCount = $userQuery->count();
         $filteredCount = $userQuery->count();
 
         // Paginación (topada a 200 para evitar cargas desmedidas)
@@ -37,8 +39,8 @@ class UserController extends Controller
         $users = $userQuery->paginate($perPage)->withQueryString();
         $users->getCollection()->transform(function ($user) {
             return [
-                'id'    => $user->id,
-                'name'  => $user->name,
+                'id' => $user->id,
+                'name' => $user->name,
                 'email' => $user->email,
                 'roles' => $user->roles->pluck('name')->toArray(), // Devolver roles como array de nombres
             ];
@@ -47,17 +49,17 @@ class UserController extends Controller
         // Obtener todos los roles disponibles
         $roles = Role::get()->map(function ($role) {
             return [
-                'id'    => $role->id,
-                'name'  => $role->name,
+                'id' => $role->id,
+                'name' => $role->name,
                 'label' => $role->label,
             ];
         });
 
         return Inertia::render('users/index', [
-            'users'         => $users,
-            'roles'         => $roles,
-            'filters'       => $request->only(['search', 'per_page']),
-            'totalCount'    => $totalCount,
+            'users' => $users,
+            'roles' => $roles,
+            'filters' => $request->only(['search', 'per_page']),
+            'totalCount' => $totalCount,
             'filteredCount' => $filteredCount,
         ]);
     }
@@ -68,14 +70,17 @@ class UserController extends Controller
     public function store(UserRequest $request)
     {
         $user = User::create([
-            'name'     => $request->name,
-            'email'    => $request->email,
+            'name' => $request->name,
+            'email' => $request->email,
             'password' => Hash::make($request->password),
+            'must_change_password' => true,
         ]);
 
         if ($user && $request->has('roles')) {
             $user->syncRoles($request->roles);
         }
+
+        $user->notify(new WelcomeUserNotification($request->password));
 
         return redirect()->route('users.index')->with('success', 'Usuario creado correctamente.');
     }
@@ -85,7 +90,7 @@ class UserController extends Controller
      */
     public function update(UserRequest $request, User $user)
     {
-        $user->name  = $request->name;
+        $user->name = $request->name;
         $user->email = $request->email;
 
         // Solo actualizar contraseña si se proporciona
@@ -108,6 +113,7 @@ class UserController extends Controller
     public function destroy(User $user)
     {
         $user->delete();
+
         return redirect()->route('users.index')->with('success', 'Usuario eliminado correctamente.');
     }
 }

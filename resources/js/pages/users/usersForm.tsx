@@ -5,6 +5,22 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Wand2 } from 'lucide-react';
+
+const generateSecurePassword = (): string => {
+    const lower = 'abcdefghijkmnopqrstuvwxyz';
+    const upper = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
+    const numbers = '23456789';
+    const symbols = '!@#$%^&*-_+=';
+    const all = lower + upper + numbers + symbols;
+
+    const pick = (chars: string) => chars[Math.floor(Math.random() * chars.length)];
+
+    const required = [pick(lower), pick(upper), pick(numbers), pick(symbols)];
+    const rest = Array.from({ length: 8 }, () => pick(all));
+
+    return [...required, ...rest].sort(() => Math.random() - 0.5).join('');
+};
 
 interface Role {
     id: number;
@@ -103,6 +119,15 @@ const UserForm: React.FC<UserFormProps> = ({ user, roles, onCancel, onSaved, onD
         setData('roles', [value]);
     };
 
+    const handleGeneratePassword = () => {
+        const generated = generateSecurePassword();
+        setData((current) => ({
+            ...current,
+            password: generated,
+            confirm_password: generated,
+        }));
+    };
+
     const isEditing = !!user?.id;
     const passwordRequired = !isEditing;
 
@@ -146,9 +171,21 @@ const UserForm: React.FC<UserFormProps> = ({ user, roles, onCancel, onSaved, onD
                 </div>
 
                 <div>
-                    <Label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                        Contraseña {passwordRequired ? '*' : '(opcional)'}
-                    </Label>
+                    <div className="flex items-center justify-between mb-1">
+                        <Label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                            Contraseña {passwordRequired ? '*' : '(opcional)'}
+                        </Label>
+                        <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={handleGeneratePassword}
+                            className="h-auto gap-1 px-2 py-1 text-xs text-blue-600 hover:bg-blue-100 hover:text-blue-700 dark:text-blue-500 dark:hover:bg-blue-950/40 dark:hover:text-blue-400"
+                        >
+                            <Wand2 className="h-3 w-3" />
+                            Generar contraseña
+                        </Button>
+                    </div>
                     <Input
                         type="password"
                         id="password"
@@ -157,8 +194,11 @@ const UserForm: React.FC<UserFormProps> = ({ user, roles, onCancel, onSaved, onD
                         className="w-full"
                         placeholder={isEditing ? 'Dejar vacío para mantener la contraseña actual' : 'Ingrese la contraseña'}
                         required={passwordRequired}
-                        minLength={6}
+                        minLength={12}
                     />
+                    <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                        Mínimo 12 caracteres, con mayúsculas, minúsculas, números y símbolos.
+                    </p>
                     {errors.password && <p className="mt-1 text-sm text-red-600">{errors.password}</p>}
                 </div>
 
