@@ -275,6 +275,7 @@ export default function SalesTable({
                 totalCount={totalCount}
                 filteredCount={filteredCount}
                 search={search}
+                searchRoute="sales.search"
             />
         </div>
     );

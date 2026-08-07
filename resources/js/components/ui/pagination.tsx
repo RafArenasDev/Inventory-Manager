@@ -1,5 +1,5 @@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Link, router } from "@inertiajs/react";
+import { router } from "@inertiajs/react";
 import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from "lucide-react";
 
 interface PaginationProps {
@@ -21,9 +21,13 @@ interface PaginationProps {
     totalCount: number;
     filteredCount: number;
     search: string;
+    /** Nombre de la ruta POST dedicada a paginar/filtrar (ej. "products.search") — nunca se navega por GET con el filtro en la URL. */
+    searchRoute: string;
+    /** Filtros adicionales activos (además de search/page/per_page), ej. category_id, stock_filter. */
+    extraFilters?: Record<string, string | undefined>;
 }
 
-const edgeButtonClass = "px-1.5 py-0.5 border rounded flex items-center justify-center min-w-[24px] text-xs sm:px-2 sm:py-1 sm:min-w-[28px]";
+const edgeButtonClass = "px-1.5 py-0.5 border rounded flex items-center justify-center min-w-[24px] text-xs sm:px-2 sm:py-1 sm:min-w-[28px] disabled:opacity-50 disabled:cursor-not-allowed bg-background hover:enabled:bg-accent hover:enabled:text-accent-foreground";
 
 export const Pagination = ({
     data,
@@ -31,22 +35,22 @@ export const Pagination = ({
     onPerPageChange,
     totalCount,
     filteredCount,
-    search
+    search,
+    searchRoute,
+    extraFilters = {},
 }: PaginationProps) => {
-    const handlePerPageChange = (value: string) => {
-        onPerPageChange(value);
-        const url = new URL(window.location.href);
-        url.searchParams.set('per_page', value);
-        // La página actual puede quedar fuera de rango con el nuevo tamaño; volver a la 1.
-        url.searchParams.set('page', '1');
-        router.get(url.pathname + url.search, {}, { preserveState: true, replace: true });
+    const goToPage = (page: number, newPerPage?: string) => {
+        router.post(
+            route(searchRoute),
+            { ...extraFilters, search, per_page: newPerPage ?? perPage, page },
+            { preserveState: true, preserveScroll: true }
+        );
     };
 
-    const buildPageUrl = (page: number) => {
-        const url = new URL(window.location.href);
-        url.searchParams.set('page', String(page));
-        url.searchParams.set('per_page', perPage);
-        return url.pathname + url.search;
+    const handlePerPageChange = (value: string) => {
+        onPerPageChange(value);
+        // La página actual puede quedar fuera de rango con el nuevo tamaño; volver a la 1.
+        goToPage(1, value);
     };
 
     const currentPage = data.current_page ?? 1;
@@ -69,25 +73,22 @@ export const Pagination = ({
             </div>
 
             <div className="flex gap-1 overflow-x-auto py-2 w-full justify-center sm:w-auto sm:overflow-visible">
-                {isFirstPage ? (
-                    <span className={`${edgeButtonClass} opacity-50 cursor-not-allowed`}>
-                        <ChevronsLeft size={10} />
-                    </span>
-                ) : (
-                    <Link
-                        href={buildPageUrl(1)}
-                        preserveState
-                        className={`${edgeButtonClass} bg-background hover:bg-accent hover:text-accent-foreground`}
-                    >
-                        <ChevronsLeft size={10} />
-                    </Link>
-                )}
+                <button
+                    type="button"
+                    disabled={isFirstPage}
+                    onClick={() => goToPage(1)}
+                    className={edgeButtonClass}
+                    aria-label="Primera página"
+                >
+                    <ChevronsLeft size={10} />
+                </button>
                 {data.links.map((link, index) => {
                     const isPrevious = link.label.includes('previous') || link.label.includes('«');
                     const isNext = link.label.includes('next') || link.label.includes('»');
                     const isNumber = !isPrevious && !isNext;
+                    const pageNumber = isNumber ? parseInt(link.label, 10) : null;
 
-                    if (!link.url) {
+                    if (!link.url || (isNumber && Number.isNaN(pageNumber))) {
                         return (
                             <span
                                 key={index}
@@ -105,11 +106,13 @@ export const Pagination = ({
                         );
                     }
 
+                    const targetPage = isPrevious ? currentPage - 1 : isNext ? currentPage + 1 : (pageNumber as number);
+
                     return (
-                        <Link
+                        <button
+                            type="button"
                             key={index}
-                            href={`${link.url}&per_page=${perPage}`}
-                            preserveState
+                            onClick={() => goToPage(targetPage)}
                             className={`px-1.5 py-0.5 border rounded flex items-center justify-center min-w-[24px] text-xs
                                 ${link.active ? 'bg-primary text-primary-foreground' : 'bg-background hover:bg-accent hover:text-accent-foreground'}
                                 sm:px-2 sm:py-1 sm:min-w-[28px] ${isNumber ? 'hidden sm:flex' : ''}`}
@@ -121,22 +124,18 @@ export const Pagination = ({
                             ) : (
                                 <span dangerouslySetInnerHTML={{ __html: link.label }} />
                             )}
-                        </Link>
+                        </button>
                     );
                 })}
-                {isLastPage ? (
-                    <span className={`${edgeButtonClass} opacity-50 cursor-not-allowed`}>
-                        <ChevronsRight size={10} />
-                    </span>
-                ) : (
-                    <Link
-                        href={buildPageUrl(lastPage)}
-                        preserveState
-                        className={`${edgeButtonClass} bg-background hover:bg-accent hover:text-accent-foreground`}
-                    >
-                        <ChevronsRight size={10} />
-                    </Link>
-                )}
+                <button
+                    type="button"
+                    disabled={isLastPage}
+                    onClick={() => goToPage(lastPage)}
+                    className={edgeButtonClass}
+                    aria-label="Última página"
+                >
+                    <ChevronsRight size={10} />
+                </button>
             </div>
 
             <div className="flex items-center gap-2 text-xs sm:text-sm">

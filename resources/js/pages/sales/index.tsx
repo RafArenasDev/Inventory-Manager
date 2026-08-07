@@ -163,28 +163,19 @@ export default function SaleIndex({ sales, products, clients, departments, citie
     };
 
     const handleSearch = (search: string) => {
-        router.visit(route('sales.index'), {
-            data: {
-                ...filters,
-                search,
-                page: '1',
-            },
+        router.post(route('sales.search'), {
+            ...filters,
+            search,
+            page: 1,
+        }, {
             preserveState: true,
-            replace: true,
+            preserveScroll: true,
         });
     };
 
-    const handlePerPageChange = (value: string) => {
-        router.visit(route('sales.index'), {
-            data: {
-                ...filters,
-                per_page: value,
-                page: '1',
-            },
-            preserveState: true,
-            replace: true,
-        });
-    };
+    // El cambio de per_page ya lo maneja Pagination internamente (POST a
+    // sales.search); este callback solo existe para cumplir la prop.
+    const handlePerPageChange = () => {};
 
     const handleViewInvoice = (url: string) => {
         setCurrentInvoiceUrl(url);

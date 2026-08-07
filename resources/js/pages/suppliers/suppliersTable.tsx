@@ -254,6 +254,7 @@ export default function SuppliersTable({
                 totalCount={totalCount}
                 filteredCount={filteredCount}
                 search={search}
+                searchRoute="suppliers.search"
             />
         </div>
     )

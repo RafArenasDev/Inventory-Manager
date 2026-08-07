@@ -201,6 +201,7 @@ export default function UsersTable({
                 totalCount={totalCount}
                 filteredCount={filteredCount}
                 search={search}
+                searchRoute="users.search"
             />
         </div>
     );

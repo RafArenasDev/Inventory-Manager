@@ -39,6 +39,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/', [RoleController::class, 'index'])
             ->name('roles.index')
             ->middleware('permission:Ver Roles y Permisos');
+        Route::match(['get', 'post'], '/search', [RoleController::class, 'index'])
+            ->name('roles.search')
+            ->middleware('permission:Ver Roles y Permisos');
         Route::post('/', [RoleController::class, 'store'])
             ->name('roles.store')
             ->middleware('permission:Crear Roles y Permisos');
@@ -54,6 +57,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::prefix('users')->group(function () {
         Route::get('/', [UserController::class, 'index'])
             ->name('users.index')
+            ->middleware('permission:Ver Usuarios');
+        Route::match(['get', 'post'], '/search', [UserController::class, 'index'])
+            ->name('users.search')
             ->middleware('permission:Ver Usuarios');
         Route::post('/', [UserController::class, 'store'])
             ->name('users.store')
@@ -74,6 +80,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/', [SupplierController::class, 'index'])
             ->name('suppliers.index')
             ->middleware('permission:Ver Proveedores');
+        Route::match(['get', 'post'], '/search', [SupplierController::class, 'index'])
+            ->name('suppliers.search')
+            ->middleware('permission:Ver Proveedores');
         Route::post('/', [SupplierController::class, 'store'])
             ->name('suppliers.store')
             ->middleware('permission:Crear Proveedores');
@@ -89,6 +98,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::prefix('categories')->group(function () {
         Route::get('/', [CategoryController::class, 'index'])
             ->name('categories.index')
+            ->middleware('permission:Ver Categorías');
+        Route::match(['get', 'post'], '/search', [CategoryController::class, 'index'])
+            ->name('categories.search')
             ->middleware('permission:Ver Categorías');
         Route::post('/', [CategoryController::class, 'store'])
             ->name('categories.store')
@@ -108,6 +120,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
             ->middleware('permission:Exportar Productos');
         Route::get('/', [ProductController::class, 'index'])
             ->name('products.index')
+            ->middleware('permission:Ver Productos');
+        Route::match(['get', 'post'], '/search', [ProductController::class, 'index'])
+            ->name('products.search')
             ->middleware('permission:Ver Productos');
         Route::get('/create', [ProductController::class, 'create'])
             ->name('products.create')
@@ -144,6 +159,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/', [InventoryMovementController::class, 'index'])
             ->name('inventory-movements.index')
             ->middleware('permission:Ver Movimientos Inventario');
+        Route::match(['get', 'post'], '/search', [InventoryMovementController::class, 'index'])
+            ->name('inventory-movements.search')
+            ->middleware('permission:Ver Movimientos Inventario');
 
         // Exportar movimientos a Excel
         Route::get('/export', [InventoryMovementController::class, 'export'])
@@ -163,6 +181,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::prefix('clients')->group(function () {
         Route::get('/', [ClientController::class, 'index'])
             ->name('clients.index')
+            ->middleware('permission:Ver Clientes');
+        Route::match(['get', 'post'], '/search', [ClientController::class, 'index'])
+            ->name('clients.search')
             ->middleware('permission:Ver Clientes');
         Route::post('/', [ClientController::class, 'store'])
             ->name('clients.store')
@@ -192,6 +213,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/', [SaleController::class, 'index'])
             ->name('sales.index')
             ->middleware('permission:Ver Ventas');
+        Route::match(['get', 'post'], '/search', [SaleController::class, 'index'])
+            ->name('sales.search')
+            ->middleware('permission:Ver Ventas');
         Route::post('/', [SaleController::class, 'store'])
             ->name('sales.store')
             ->middleware('permission:Crear Ventas');
@@ -211,7 +235,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // ==================== FINANZAS ====================
 
-// Transaction Categories (Categorías de Transacciones)
+    // Transaction Categories (Categorías de Transacciones)
     Route::prefix('transaction-categories')->group(function () {
         Route::get('/', [TransactionCategoryController::class, 'index'])
             ->name('transaction-categories.index')
@@ -238,6 +262,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/', [TransactionController::class, 'index'])
             ->name('transactions.index')
             ->middleware('permission:Ver Finanzas');
+        Route::match(['get', 'post'], '/search', [TransactionController::class, 'index'])
+            ->name('transactions.search')
+            ->middleware('permission:Ver Finanzas');
         Route::get('/transactions/export', [TransactionController::class, 'export'])
             ->name('transactions.export')
             ->middleware('permission:Exportar Transacciones');
@@ -257,6 +284,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/', [CashRegisterController::class, 'index'])
             ->name('cash-register.index')
             ->middleware('permission:Ver Caja');
+        Route::match(['get', 'post'], '/search', [CashRegisterController::class, 'index'])
+            ->name('cash-register.search')
+            ->middleware('permission:Ver Caja');
         Route::post('/', [CashRegisterController::class, 'store'])
             ->name('cash-register.store')
             ->middleware('permission:Crear Caja');
@@ -270,5 +300,5 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
 });
 
-require __DIR__ . '/settings.php';
-require __DIR__ . '/auth.php';
+require __DIR__.'/settings.php';
+require __DIR__.'/auth.php';

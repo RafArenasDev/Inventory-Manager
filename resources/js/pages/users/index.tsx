@@ -99,12 +99,12 @@ export default function UserIndex({ users, roles, filters, totalCount, filteredC
         setShowDiscardConfirm(true);
     };
 
-    const handlePerPageChange = (value: string) => {
-        router.get(route('users.index'), { ...filters, per_page: value }, { preserveState: true, replace: true });
-    };
+    // El cambio de per_page ya lo maneja Pagination internamente (POST a
+    // users.search); este callback solo existe para cumplir la prop.
+    const handlePerPageChange = () => {};
 
     const handleSearch = (search: string) => {
-        router.get(route('users.index'), { ...filters, search, page: 1 }, { preserveState: true, replace: true });
+        router.post(route('users.search'), { ...filters, search, page: 1 }, { preserveState: true, preserveScroll: true });
     };
 
     return (

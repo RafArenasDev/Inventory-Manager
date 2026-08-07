@@ -147,20 +147,16 @@ export default function InventoryMovementsIndex({
   };
 
   const handleSearch = (search: string) => {
-    router.get(
-      route('inventory-movements.index'),
+    router.post(
+      route('inventory-movements.search'),
       { ...filters, search, page: 1 },
-      { preserveState: true, replace: true }
+      { preserveState: true, preserveScroll: true }
     );
   };
 
-  const handlePerPageChange = (perPage: string) => {
-    router.get(
-      route('inventory-movements.index'),
-      { ...filters, per_page: perPage, page: 1 },
-      { preserveState: true, replace: true }
-    );
-  };
+  // El cambio de per_page ya lo maneja Pagination internamente (POST a
+  // inventory-movements.search); este callback solo existe para cumplir la prop.
+  const handlePerPageChange = () => {};
 
   // Check if the user has any permissions to show the "Acciones" column
   const showActionsColumn = userPermissions.includes('Editar Movimientos Inventario') ||

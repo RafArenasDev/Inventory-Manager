@@ -192,6 +192,7 @@ export default function CashRegisterTable({
                 totalCount={totalCount}
                 filteredCount={filteredCount}
                 search={search}
+                searchRoute="cash-register.search"
             />
         </div>
     );

@@ -271,6 +271,7 @@ export default function ProductsTable({
                 totalCount={totalCount}
                 filteredCount={filteredCount}
                 search={search}
+                searchRoute="products.search"
             />
         </div>
     )

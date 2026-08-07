@@ -115,19 +115,16 @@ export default function CashRegisterIndex({
     };
 
     const handleSearch = (search: string) => {
-        router.get(route('cash-register.index'), {
+        router.post(route('cash-register.search'), {
             ...filters,
             search,
             page: 1,
-        }, { preserveState: true, replace: true });
+        }, { preserveState: true, preserveScroll: true });
     };
 
-    const handlePerPageChange = (value: string) => {
-        router.get(route('cash-register.index'), {
-            ...filters,
-            per_page: value,
-        }, { preserveState: true, replace: true });
-    };
+    // El cambio de per_page ya lo maneja Pagination internamente (POST a
+    // cash-register.search); este callback solo existe para cumplir la prop.
+    const handlePerPageChange = () => {};
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>

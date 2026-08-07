@@ -148,26 +148,19 @@ export default function TransactionsPage({
     };
 
     const handleSearch = (search: string) => {
-        router.get(route('transactions.index'), {
+        router.post(route('transactions.search'), {
             ...filters,
             search,
             page: 1
         }, {
             preserveState: true,
-            replace: true
+            preserveScroll: true
         });
     };
 
-    const handlePerPageChange = (perPage: string) => {
-        router.get(route('transactions.index'), {
-            ...filters,
-            per_page: perPage,
-            page: 1
-        }, {
-            preserveState: true,
-            replace: true
-        });
-    };
+    // El cambio de per_page ya lo maneja Pagination internamente (POST a
+    // transactions.search); este callback solo existe para cumplir la prop.
+    const handlePerPageChange = () => {};
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>

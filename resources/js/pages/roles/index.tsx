@@ -109,13 +109,13 @@ export default function RoleIndex({ roles, permissions, catalogModules, filters,
     };
 
     const handleSearch = (search: string) => {
-        router.get(route('roles.index'), {
+        router.post(route('roles.search'), {
             ...filters,
             search,
             page: 1
         }, {
             preserveState: true,
-            replace: true
+            preserveScroll: true
         });
     };
 

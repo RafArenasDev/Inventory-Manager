@@ -186,6 +186,7 @@ export default function CategoriesTable({
                 totalCount={totalCount}
                 filteredCount={filteredCount}
                 search={search}
+                searchRoute="categories.search"
             />
         </div>
     )

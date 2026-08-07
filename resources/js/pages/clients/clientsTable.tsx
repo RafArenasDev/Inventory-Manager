@@ -227,6 +227,7 @@ export default function ClientsTable({
                 totalCount={totalCount}
                 filteredCount={filteredCount}
                 search={search}
+                searchRoute="clients.search"
             />
         </div>
     );

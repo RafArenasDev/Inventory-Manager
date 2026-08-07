@@ -227,6 +227,7 @@ export default function InventoryMovementsTable({
         totalCount={totalCount}
         filteredCount={filteredCount}
         search={search}
+        searchRoute="inventory-movements.search"
       />
     </div>
   );

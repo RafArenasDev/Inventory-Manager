@@ -261,6 +261,7 @@ export default function TransactionsTable({
                 totalCount={totalCount}
                 filteredCount={filteredCount}
                 search={search}
+                searchRoute="transactions.search"
             />
         </div>
     )

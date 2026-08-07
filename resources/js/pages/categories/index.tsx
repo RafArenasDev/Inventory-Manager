@@ -95,13 +95,13 @@ export default function CategoryIndex({ categories, filters, totalCount, filtere
     };
 
     const handleSearch = (search: string) => {
-        router.get(route('categories.index'), {
+        router.post(route('categories.search'), {
             ...filters,
             search,
             page: 1
         }, {
             preserveState: true,
-            replace: true
+            preserveScroll: true
         });
     };
 

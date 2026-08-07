@@ -198,6 +198,7 @@ export default function RolesTable({
                 totalCount={totalCount}
                 filteredCount={filteredCount}
                 search={search}
+                searchRoute="roles.search"
             />
         </div>
     )

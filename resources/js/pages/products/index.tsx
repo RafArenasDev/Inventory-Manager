@@ -166,8 +166,8 @@ export default function ProductIndex({
     };
 
     const handleSearch = (search: string) => {
-        router.get(
-            route('products.index'),
+        router.post(
+            route('products.search'),
             {
                 ...filters,
                 search,
@@ -175,7 +175,7 @@ export default function ProductIndex({
             },
             {
                 preserveState: true,
-                replace: true,
+                preserveScroll: true,
             }
         );
     };
