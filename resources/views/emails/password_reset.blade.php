@@ -250,16 +250,7 @@
                                 <div class="header">
                                     <a href="{{ config('app.url') }}" style="text-decoration: none;">
                                         <div class="logo-wrapper">
-                                            <span class="logo-main">
-                                                <span class="word">Moto</span>
-                                                <span class="word">Repuestos</span>
-                                            </span>
-                                            <span class="logo-rainbow">
-                                                <span class="ar-a">A</span><span class="ar-r">r</span><span
-                                                    class="ar-c">c</span><span class="ar-o">o</span><span
-                                                    class="ar-i">i</span><span class="ar-r2">r</span><span
-                                                    class="ar-i2">i</span><span class="ar-s">s</span>
-                                            </span>
+                                            <span class="logo-main">{{ config('business.name') }}</span>
                                         </div>
                                     </a>
                                 </div>

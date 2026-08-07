@@ -1,4 +1,5 @@
 <?php
+
 namespace Database\Seeders;
 
 use App\Models\Client;
@@ -9,7 +10,9 @@ use App\Models\SaleItem;
 use App\Models\Transaction;
 use App\Models\TransactionCategory;
 use App\Models\User;
+use App\Services\InvoicePdfService;
 use Carbon\Carbon;
+use Faker\Factory;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 
@@ -27,14 +30,16 @@ class SaleSeeder extends Seeder
      */
     public function run(): void
     {
-        $faker = \Faker\Factory::create('es_CO');
+        $faker = Factory::create('es_CO');
 
+        $invoicePdfService = app(InvoicePdfService::class);
         $sellers = User::role(['admin', 'seller', 'cashier'])->get();
         $clients = Client::all();
         $salesCategory = TransactionCategory::where('name', 'Ventas')->first();
 
         if ($sellers->isEmpty() || ! $salesCategory) {
             \Log::warning('No hay usuarios vendedores o categoría "Ventas"; se omite SaleSeeder.');
+
             return;
         }
 
@@ -51,11 +56,14 @@ class SaleSeeder extends Seeder
                 continue;
             }
 
-            $client = $faker->boolean(65) ? $clients->random() : null;
+            $testClient = $clients->firstWhere('email', 'rafarenas.dev@gmail.com');
+            $client = $i < 2 && $testClient
+                ? $testClient
+                : ($faker->boolean(65) ? $clients->random() : null);
             $seller = $sellers->random();
             $discountPercent = $faker->boolean(20) ? $faker->randomElement([5, 10, 15]) : 0;
 
-            DB::transaction(function () use ($availableProducts, $client, $seller, $saleDate, $saleTime, $discountPercent, $salesCategory, $paymentMethods, $faker) {
+            DB::transaction(function () use ($availableProducts, $client, $seller, $saleDate, $saleTime, $discountPercent, $salesCategory, $paymentMethods, $faker, $invoicePdfService) {
                 $invoiceNumber = Sale::generateInvoiceNumber();
 
                 $items = [];
@@ -69,10 +77,10 @@ class SaleSeeder extends Seeder
 
                     $subtotal = $product->sale_price * $quantity;
                     $items[] = [
-                        'product'   => $product,
-                        'quantity'  => $quantity,
-                        'price'     => $product->sale_price,
-                        'subtotal'  => $subtotal,
+                        'product' => $product,
+                        'quantity' => $quantity,
+                        'price' => $product->sale_price,
+                        'subtotal' => $subtotal,
                     ];
                     $totalWithoutTax += $subtotal;
                 }
@@ -87,37 +95,37 @@ class SaleSeeder extends Seeder
                 $paymentMethod = $paymentMethods[array_rand($paymentMethods)];
 
                 $sale = Sale::create([
-                    'invoice_number'      => $invoiceNumber,
-                    'client_id'           => $client?->id,
-                    'user_id'             => $seller->id,
-                    'sale_date'           => $saleDate->toDateString(),
-                    'sale_time'           => $saleTime,
-                    'discount'            => $discountPercent * 100,
-                    'payment_method'      => $paymentMethod,
-                    'notes'               => null,
-                    'total_without_tax'   => $totalWithoutTax * 100,
+                    'invoice_number' => $invoiceNumber,
+                    'client_id' => $client?->id,
+                    'user_id' => $seller->id,
+                    'sale_date' => $saleDate->toDateString(),
+                    'sale_time' => $saleTime,
+                    'discount' => $discountPercent * 100,
+                    'payment_method' => $paymentMethod,
+                    'notes' => null,
+                    'total_without_tax' => $totalWithoutTax * 100,
                     'total_with_discount' => $totalWithDiscount * 100,
-                    'total_paid'          => $totalPaid * 100,
-                    'is_cancelled'        => false,
+                    'total_paid' => $totalPaid * 100,
+                    'is_cancelled' => false,
                 ]);
 
                 foreach ($items as $item) {
                     SaleItem::create([
-                        'sale_id'       => $sale->id,
-                        'product_id'    => $item['product']->id,
-                        'quantity'      => $item['quantity'],
+                        'sale_id' => $sale->id,
+                        'product_id' => $item['product']->id,
+                        'quantity' => $item['quantity'],
                         'price_at_sale' => $item['price'],
-                        'subtotal'      => $item['subtotal'],
+                        'subtotal' => $item['subtotal'],
                     ]);
 
                     $item['product']->decrement('stock', $item['quantity']);
 
                     InventoryMovement::create([
-                        'product_id'  => $item['product']->id,
-                        'type'        => 'Salida',
-                        'quantity'    => $item['quantity'],
-                        'date'        => $saleDate->toDateString(),
-                        'notes'       => 'Venta ' . $invoiceNumber,
+                        'product_id' => $item['product']->id,
+                        'type' => 'Salida',
+                        'quantity' => $item['quantity'],
+                        'date' => $saleDate->toDateString(),
+                        'notes' => 'Venta '.$invoiceNumber,
                         'supplier_id' => $item['product']->supplier_id,
                     ]);
                 }
@@ -125,18 +133,20 @@ class SaleSeeder extends Seeder
                 $clientName = $client?->name ?? 'Cliente varios';
 
                 Transaction::create([
-                    'user_id'                 => $seller->id,
-                    'type'                    => 'Ingreso',
+                    'user_id' => $seller->id,
+                    'type' => 'Ingreso',
                     'transaction_category_id' => $salesCategory->id,
-                    'amount'                  => $totalPaid,
-                    'transaction_date'        => $saleDate->toDateString(),
-                    'transaction_time'        => $saleTime,
-                    'payment_method'          => $paymentMethod,
-                    'invoice_number'          => $invoiceNumber,
-                    'description'             => 'Cliente: ' . $clientName,
-                    'notes'                   => 'Transacción automática generada por venta: ' . $invoiceNumber,
-                    'sale_id'                 => $sale->id,
+                    'amount' => $totalPaid,
+                    'transaction_date' => $saleDate->toDateString(),
+                    'transaction_time' => $saleTime,
+                    'payment_method' => $paymentMethod,
+                    'invoice_number' => $invoiceNumber,
+                    'description' => 'Cliente: '.$clientName,
+                    'notes' => 'Transacción automática generada por venta: '.$invoiceNumber,
+                    'sale_id' => $sale->id,
                 ]);
+
+                $invoicePdfService->generateAndStore($sale);
             });
         }
     }

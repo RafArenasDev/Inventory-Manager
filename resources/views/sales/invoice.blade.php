@@ -276,12 +276,11 @@
                         <img src="{{ public_path('assets/img/black.png') }}" alt="Logo" class="logo">
                     </div>
                     <div class="company-info">
-                        <div class="company-name">Moto Repuestos Arcoiris</div>
-                        <div class="company-detail"><strong>NIT:</strong> 94262139-0</div>
-                        <div class="company-detail"><strong>Celular:</strong> 3113932477</div>
-                        <div class="company-detail"><strong>Email:</strong> arcoiris.moto.repuestos@gmail.com</div>
-                        <div class="company-detail"><strong>Dirección:</strong> Cr16 44-36 B/San Fernando, Dosquebradas,
-                            Risaralda</div>
+                        <div class="company-name">{{ config('business.name') }}</div>
+                        <div class="company-detail"><strong>NIT:</strong> {{ config('business.nit') }}</div>
+                        <div class="company-detail"><strong>Celular:</strong> {{ config('business.phone') }}</div>
+                        <div class="company-detail"><strong>Email:</strong> {{ config('business.email') }}</div>
+                        <div class="company-detail"><strong>Dirección:</strong> {{ config('business.address') }}</div>
                     </div>
                 </div>
             </div>
@@ -301,16 +300,16 @@
                 <div class="info-row">
                     <div class="info-cell">
                         <span class="info-label">Nombre:</span>
-                        <span class="info-value">{{ $sale->client->name ?? '-' }}</span>
+                        <span class="info-value">{{ $sale->client?->name ?? 'Cliente varios' }}</span>
                     </div>
                     <div class="info-cell">
                         <span class="info-label">Tipo Doc:</span>
-                        <span class="info-value">{{ $sale->client->document_type ?? '-' }}</span>
+                        <span class="info-value">{{ $sale->client?->document_type ?? '-' }}</span>
                     </div>
                     <div class="info-cell">
                         <span class="info-label">Documento:</span>
                         <span class="info-value">
-                            {{ $sale->client->document_number ?? '-' }}@if($sale->client->document_type === 'NIT' && $sale->client->verification_digit)
+                            {{ $sale->client?->document_number ?? '-' }}@if($sale->client?->document_type === 'NIT' && $sale->client?->verification_digit)
                             - {{ $sale->client->verification_digit }}@endif
                         </span>
                     </div>
@@ -318,22 +317,22 @@
                 <div class="info-row">
                     <div class="info-cell">
                         <span class="info-label">Email:</span>
-                        <span class="info-value">{{ $sale->client->email ?? '-' }}</span>
+                        <span class="info-value">{{ $sale->client?->email ?? '-' }}</span>
                     </div>
                     <div class="info-cell">
                         <span class="info-label">Teléfono:</span>
-                        <span class="info-value">{{ $sale->client->phone ?? '-' }}</span>
+                        <span class="info-value">{{ $sale->client?->phone ?? '-' }}</span>
                     </div>
                     <div class="info-cell">
                         <span class="info-label">Celular:</span>
-                        <span class="info-value">{{ $sale->client->cellphone ?? '-' }}</span>
+                        <span class="info-value">{{ $sale->client?->cellphone ?? '-' }}</span>
                     </div>
                 </div>
                 <div class="info-row">
                     <div class="info-cell-full">
                         <span class="info-label">Dirección:</span>
-                        <span class="info-value">{{ $sale->client->address ?? '-' }},
-                            {{ $sale->client->city->name ?? '-' }}, {{ $sale->client->department->name ?? '-' }}</span>
+                        <span class="info-value">{{ $sale->client?->address ?? '-' }},
+                            {{ $sale->client?->city?->name ?? '-' }}, {{ $sale->client?->department?->name ?? '-' }}</span>
                     </div>
                 </div>
             </div>
