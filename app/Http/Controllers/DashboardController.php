@@ -816,46 +816,46 @@ class DashboardController extends Controller
         switch ($period) {
             case 'diario':
                 $start = $today;
-                $end = $today;
                 $previousStart = Carbon::yesterday();
-                $previousEnd = Carbon::yesterday();
                 break;
             case 'semanal':
                 $start = $today->copy()->startOfWeek();
-                $end = $today->copy()->endOfWeek();
-                $previousStart = $today->copy()->subWeek()->startOfWeek();
-                $previousEnd = $today->copy()->subWeek()->endOfWeek();
+                $previousStart = $start->copy()->subWeek();
                 break;
             case 'mensual':
                 $start = Carbon::now()->startOfMonth();
-                $end = Carbon::now()->endOfMonth();
-                $previousStart = Carbon::now()->subMonth()->startOfMonth();
-                $previousEnd = Carbon::now()->subMonth()->endOfMonth();
+                $previousStart = $start->copy()->subMonth();
                 break;
             case 'trimestral':
                 $start = Carbon::now()->firstOfQuarter();
-                $end = Carbon::now()->lastOfQuarter();
-                $previousStart = Carbon::now()->subQuarter()->firstOfQuarter();
-                $previousEnd = Carbon::now()->subQuarter()->lastOfQuarter();
+                $previousStart = $start->copy()->subQuarter();
                 break;
             case 'semestral':
                 $start = ($currentMonth <= 6) ? Carbon::create($currentYear, 1, 1) : Carbon::create($currentYear, 7, 1);
-                $end = ($currentMonth <= 6) ? Carbon::create($currentYear, 6, 30) : Carbon::create($currentYear, 12, 31);
-                $previousStart = ($currentMonth <= 6) ? Carbon::create($currentYear - 1, 7, 1) : Carbon::create($currentYear - 1, 1, 1);
-                $previousEnd = ($currentMonth <= 6) ? Carbon::create($currentYear - 1, 12, 31) : Carbon::create($currentYear - 1, 6, 30);
+                // El semestre anterior al 2º semestre es el 1º del MISMO año,
+                // no del año pasado (antes saltaba 1.5 años sin querer).
+                $previousStart = ($currentMonth <= 6) ? Carbon::create($currentYear - 1, 7, 1) : Carbon::create($currentYear, 1, 1);
                 break;
             case 'anual':
                 $start = Carbon::create($currentYear, 1, 1);
-                $end = Carbon::create($currentYear, 12, 31);
                 $previousStart = Carbon::create($currentYear - 1, 1, 1);
-                $previousEnd = Carbon::create($currentYear - 1, 12, 31);
                 break;
             default:
                 $start = $today;
-                $end = $today;
                 $previousStart = Carbon::yesterday();
-                $previousEnd = Carbon::yesterday();
         }
+
+        // El período actual siempre corre hasta hoy (no hay ventas futuras,
+        // así que usar "hoy" en vez del fin de período calendario no cambia
+        // el resultado). Lo que sí importa es que el período ANTERIOR se
+        // compare con la misma cantidad de días transcurridos, no con el
+        // período completo — si no, un mes que recién empezó (ej. 6 días de
+        // agosto) siempre se ve como una caída enorme frente a un mes
+        // anterior completo (31 días de julio), aunque el ritmo de ventas
+        // sea igual o mejor.
+        $end = $today;
+        $daysElapsed = $start->diffInDays($today);
+        $previousEnd = $previousStart->copy()->addDays($daysElapsed);
 
         return [$start, $end, $previousStart, $previousEnd];
     }

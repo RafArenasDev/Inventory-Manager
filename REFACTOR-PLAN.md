@@ -331,6 +331,54 @@ explícitamente fuera hasta que esa fase termine.
     `total_price`, `product_name`; las reales son `price_at_sale`,
     `subtotal`, y el nombre viene de la relación `product`). Corregido.
 
+## 9.6 Exports con nombre de archivo descriptivo y export de Dashboard completo (pedido 2026-08-07)
+
+**Estado: ✅ hecho.** Ver commits del 2026-08-07: nombres de archivo
+(factura y todos los exports Excel) pasaron a mayúscula + descriptivos +
+fecha sin hora; el export del Dashboard (Excel y PDF) se reconstruyó con
+logo, gráficos reales (nativos en Excel, SVG server-side en PDF) y ahora
+siempre trae TODOS los períodos con TODA la info, sin importar el filtro
+que esté activo en pantalla. De paso se encontraron y arreglaron dos bugs
+reales que rompían el export en producción: `products.export` apuntaba a
+un método que no existía (500 al hacer clic), y el nombre de hoja
+`"Dashboard Report"` (con espacio) sin comillas en las referencias de
+rango de los gráficos de Excel hacía que el parser de fórmulas lo
+interpretara como un operador de intersección inválido
+(`array_intersect_key(): string given` — el archivo se corrompía en
+silencio).
+
+## 9.7 Lógica de crecimiento % del Dashboard (pedido 2026-08-07)
+
+**Estado: ✅ revisado y corregido.** Se pidió auditar si la fórmula de
+crecimiento (comparar período actual vs. anterior) estaba bien. La fórmula
+en sí (`(actual - anterior) / anterior * 100`, con tope a 100% cuando el
+anterior es 0) ya era correcta — el problema real estaba en **cómo se
+calculaba el rango "período anterior"**:
+
+- **Bug real corregido:** en el período semestral, al estar en el 2º
+  semestre el código comparaba contra el 1er semestre del **año pasado**
+  (saltando 1.5 años) en vez del 1er semestre del **año actual** (el
+  semestre inmediatamente anterior). `getPeriodDateRange()`.
+- **Sesgo de comparación corregido:** el período "anterior" se comparaba
+  completo (ej. mes anterior con sus 31 días) contra el período "actual"
+  parcial (ej. 6 días transcurridos del mes en curso), lo que siempre daba
+  caídas artificiales enormes (-98%) sin reflejar el ritmo real de ventas.
+  Ahora el período anterior se recorta a la misma cantidad de días
+  transcurridos que el actual (comparación equivalente, no período
+  completo vs. parcial).
+- **Limitación real que queda, no es un bug:** con solo ~90 días de datos
+  sembrados, las comparaciones trimestral/semestral/anual necesitan un
+  "período anterior equivalente" que cae *antes* del inicio de los datos
+  — da 100% (convención de "sin histórico"), que es matemáticamente
+  correcto dado que no hay más historia. Un negocio real con más tiempo
+  operando no tendría este límite.
+- **Seeder ampliado** (`SaleSeeder`) de 30 ventas sueltas en fechas
+  aleatorias a ~180 ventas recorriendo día por día los últimos ~90 días
+  (85% de probabilidad de vender algo cada día, 1-4 ventas por día
+  cuando sí vende) — sin esto, meses/semanas enteras quedaban en cero por
+  simple escasez de muestras, lo cual por sí solo ya generaba saltos de
+  crecimiento sin sentido incluso con la fórmula bien calculada.
+
 ## 9.5 Calculadora de precio de venta por utilidad (pedido 2026-08-07)
 
 **Estado: ✅ hecho.** El modal de crear/editar producto (`productForm.tsx`)
