@@ -732,6 +732,185 @@ usuario, en este orden):
   forma confiable con el navegador automatizado — pendiente de una pasada
   visual real del usuario.
 
+## 12. [DISEÑO APROBADO, PENDIENTE DE IMPLEMENTAR] Sidebar agrupada, versión/copyright, módulo Pedidos y rediseño de alertas de stock (pedido 2026-08-07)
+
+**Estado: 📋 diseño aprobado por el usuario 2026-08-07, sin código todavío**
+(salvo el punto 12.6, ya aplicado). Antes de tocar los 10 módulos o crear
+tablas nuevas, este documento es la referencia — seguir el flujo normal del
+proyecto: implementar, verificar en navegador, y solo entonces marcar ✅.
+
+## 12.1 Sidebar agrupada + versión + copyright
+
+- La lista de módulos de la sidebar **ya vive en BD** (tabla `modules`:
+  `key, label, icon, route, order, is_active`, compartida vía Inertia en
+  `HandleInertiaRequests`, `ModuleSeeder` la puebla). Se le agrega una
+  columna `group` (string, nullable — `null` = sin grupo, como Dashboard),
+  editando la migración original (`2026_08_05_164932_create_modules_table`)
+  + `ModuleSeeder`, no una migración `add_*` nueva (regla del proyecto en
+  DEV: editar + `migrate:fresh --seed`).
+- Grupos y contenido:
+  - *(sin grupo, arriba)* Dashboard.
+  - **Administración**: Usuarios, Roles y Permisos.
+  - **Inventario**: Categorías, Productos, Proveedores, Movimientos de
+    Inventario, **Pedidos** (nuevo, ver 12.2).
+  - **Ventas**: Ventas, Clientes, Caja, Finanzas.
+- `nav-main.tsx` ya soporta un patrón de `Collapsible` (hoy pensado para un
+  item padre con sub-items); se adapta para agrupar por `group` con
+  `SidebarGroupLabel`/`SidebarGroupContent` (ya existen en `ui/sidebar.tsx`,
+  no hace falta un componente nuevo) envueltos en `Collapsible`. Estado
+  abierto/cerrado por grupo persistido en `localStorage` (clave por grupo,
+  mismo patrón que ya usa `notification-bell.tsx` para su memoria).
+- Separador (`SidebarSeparator`, ya existe en `ui/sidebar.tsx`) entre el
+  logo (`SidebarHeader`) y la lista de grupos.
+- **Pie de la sidebar** (`SidebarFooter`, nuevo): versión + copyright en una
+  línea compacta, ej. `v1.0.0 · © 2025–2026 RafArenasDev`. Misma línea (sin
+  la versión) en el footer de `login.tsx`.
+- **Versionado:**
+  - Fuente única: `APP_VERSION` en `.env`, default en `config/app.php`
+    (`'version' => env('APP_VERSION', '1.0.0')`), compartido por Inertia
+    (mismo mecanismo que `modules`/`flash`).
+  - `git tag v1.0.0` se crea cuando este punto 12 quede implementado y
+    verificado — primera versión "completa": el negocio ya puede vender,
+    cobrar, inventariar, **y** reabastecer desde la propia app. Versiones
+    `v1.x.0` para mejoras incrementales después. `v2.0.0` queda reservada
+    para cuando se cierre el resto de este documento (responsive real, PWA,
+    tests) — el hito de "portfolio-ready".
+  - Copyright: derecho de autor de software nace automático al crearlo (no
+    requiere RUT ni Cámara de Comercio — eso es para operar como
+    comerciante, algo aparte). Primer commit real: 1 de junio de 2025
+    (verificado con `git log --reverse`), de ahí el rango `2025–2026`.
+
+## 12.2 Módulo Pedidos (nuevo)
+
+Órdenes de compra a proveedores, para reabastecer productos agotados/bajos
+sin salir de la app.
+
+- **`purchase_orders`**: `id, supplier_id (FK), status, requested_by (FK
+  users), notes, expected_at (nullable), received_at (nullable),
+  timestamps`.
+- **`purchase_order_items`**: `id, purchase_order_id (FK), product_id (FK),
+  quantity_requested, quantity_received (default 0), unit_cost (nullable),
+  timestamps`.
+- Un Pedido = un proveedor + N líneas de producto (como una Venta con
+  ítems) — no un pedido suelto por producto.
+- **Estados: `Solicitado` → `Recibido`, + `Cancelado`** como salida en
+  cualquier punto antes de Recibido. Sin estados intermedios de tránsito
+  (decisión explícita del usuario: no quiere trazabilidad de transportadora
+  ni integraciones de courier — eso sería mucho más desarrollo sin aportar
+  a un negocio de este tamaño).
+- `Recibido` se marca **automático** cuando un movimiento de inventario
+  (manual o por carga masiva, ver 12.4) cubre `quantity_requested` de sus
+  líneas — no hay botón manual de "marcar recibido" en el v1 (si algún día
+  hace falta un cierre parcial/forzado, se agrega después).
+- Permisos siguiendo el patrón existente (`spatie/laravel-permission`):
+  `Ver Pedidos`, `Crear Pedidos`, `Actualizar Pedidos`, `Eliminar Pedidos`,
+  `Exportar Pedidos` — asignar a Admin/Bodega en `RoleSeeder`.
+- Tabla propia `pedidos/index.tsx` + `pedidosTable.tsx`, con badge de
+  estado (mismo estilo/paleta ya estandarizado: emerald=Recibido,
+  amber=Solicitado, rose=Cancelado) y filtro Año/Mes (`PeriodFilter`, ya
+  existe) por fecha de creación.
+
+## 12.3 Rediseño del modal de alertas de stock bajo
+
+Reemplaza el `SweetAlert` emergente y el `DropdownMenuContent` chico
+actuales de `notification-bell.tsx`.
+
+- Clic en la campana → abre un `Dialog` grande (mismo tamaño que Roles y
+  Permisos), agrupado **por proveedor**: nombre + botón WhatsApp del
+  proveedor, y debajo sus productos agotados/bajos con badge de severidad
+  (reutiliza los tiers `advertencia/crítico/agotado` ya existentes).
+- Acciones por proveedor: **"Pedir con este proveedor"** (abre el modal de
+  Nuevo Pedido — modal sobre modal — con proveedor y productos
+  preseleccionados) y **"Cambiar de proveedor"** (mismo modal de Nuevo
+  Pedido, pero con el selector de proveedor abierto en vez de fijo).
+- Modal de Nuevo Pedido: proveedor (fijo o `Combobox`), líneas
+  producto+cantidad (precargadas desde la alerta, editables), notas. Al
+  guardar (`status=Solicitado`), aparece un botón **"Enviar por WhatsApp"**
+  que arma el mensaje con la lista de productos solicitados y abre
+  `wa.me/<celular del proveedor>` — mismo patrón `formatWhatsAppNumber()`
+  ya construido en `saleDetailModal.tsx`, reusado tal cual.
+- **El modal nunca se abre solo** — decisión explícita del usuario, mismo
+  criterio que ya se aplicó a la caja (no interrumpir el flujo de trabajo).
+  Solo lo abre el usuario, con clic en la campana o en una notificación del
+  sistema operativo (ver abajo).
+- **Badge de la campana:**
+  - Cuenta = número de productos crítico/agotado **sin** un Pedido activo
+    (`Solicitado`) que los cubra. Anima con `animate-pulse` + un aro de
+    color mientras el conteo sea &gt; 0 — llamativo a propósito.
+  - **No se resetea por abrir el modal ni por verlo** — solo se resetea
+    (deja de contar ese producto) cuando se crea un Pedido que lo cubre.
+    Si el Pedido se cancela, el producto vuelve a sumar al badge si sigue
+    bajo de stock.
+- **Notificación nativa del navegador/SO** (`Notification` API — gratis, ya
+  incluida en cualquier navegador moderno, sin servicio nuevo ni permiso de
+  pago): se dispara una vez apenas un producto cruza a crítico/agotado sin
+  Pedido activo, y como recordatorio cada **2 horas** (antes eran 30 min,
+  demasiado seguido) mientras siga sin Pedido — **solo dentro del horario
+  laboral 8:00am–6:30pm** (mismas constantes `BUSINESS_OPEN`/
+  `BUSINESS_CLOSE` que ya usa `CashRegisterController`, para no despertar
+  a nadie con la pestaña olvidada abierta de noche o el fin de semana).
+  Clic en la notificación enfoca la pestaña de la app (no abre el modal
+  solo — el usuario decide si hace clic en la campana después).
+  Requiere pedir permiso del navegador una vez (`Notification.
+  requestPermission()`), con manejo explícito de "permiso denegado" (la
+  campana sigue funcionando igual, solo sin el aviso del SO).
+- Sin AI/MCP: se descartó explícitamente — una máquina de estados simple
+  (las tablas de 12.2 + estas reglas) cubre todo lo pedido sin costo ni
+  complejidad extra, apropiado para un negocio de este tamaño. Sugerencias
+  de reorden con IA quedan anotadas como posible mejora futura, fuera de
+  alcance ahora.
+
+## 12.4 Carga masiva de productos/movimientos (Excel/CSV)
+
+Una sola pieza reutilizable (`App\Services\ImportInventoryBatch` o similar,
+usando `phpoffice/phpspreadsheet` ya instalado — soporta leer .xlsx/.csv,
+no hace falta ninguna librería nueva), con botón "Importar" en tres
+lugares: `products/index.tsx`, `inventoryMovements/index.tsx`, y dentro del
+detalle de un Pedido (ahí, además, alimenta `quantity_received`).
+
+- Columnas de la plantilla: `codigo, nombre, categoria, proveedor,
+  precio_sin_iva, iva_porcentaje, precio_venta, cantidad, tipo_movimiento,
+  fecha, notas`. `nombre/categoria/proveedor/precios` son opcionales si
+  `codigo` ya existe (solo hace falta para crear un producto nuevo).
+- Flujo: (1) parsear el archivo completo, (2) validar TODAS las filas
+  primero (dry-run, sin tocar la BD) y mostrar una vista previa — fila por
+  fila, "crea producto nuevo" / "registra movimiento" / error — (3) el
+  usuario confirma, (4) se ejecuta todo dentro de una transacción de BD.
+- Crear un producto nuevo desde el importador **reutiliza la lógica que ya
+  existe** en `ProductController::store()` (incluido el movimiento inicial
+  automático con la nota "Primer pedido del proveedor X") — no se duplica
+  esa lógica en el importador.
+- Si se invoca desde un Pedido, cada fila procesada además intenta calzar
+  contra sus líneas (`purchase_order_items`) por `product_id`, suma a
+  `quantity_received`, y dispara el cierre automático (12.2) si con eso
+  quedó completo.
+- Botón "Descargar plantilla" (Excel en blanco con esas columnas,
+  reutilizando el mismo `PhpSpreadsheet` que ya generan los exports).
+
+## 12.5 Auditoría Postgres + barrido final (después de implementar 12.1-12.4)
+
+Pedido explícito del usuario para **después** de que el módulo de Pedidos
+esté funcionando: revisar que todo el código quede estandarizado para
+Postgres (recordar que el proyecto migró de MySQL a Postgres — ver "Estado
+al cierre... 2026-08-06" y la sección de contexto al inicio de este
+documento) — buscar cualquier función SQL específica de MySQL que haya
+quedado (`DB::raw`, `selectRaw`, `whereRaw`, `having` sin verificar,
+`ENUM` de MySQL vs `CHECK` de Postgres, etc.), y cerrar con un resumen
+general de todo lo hecho en el proyecto vs. lo que queda pendiente.
+
+## 12.6 Ya aplicado (sin esperar al resto del punto 12)
+
+✅ **`SESSION_LIFETIME`** subido de 120 a **630 minutos** (exactamente
+8:00am–6:30pm) en `.env`/`.env.example` — antes cualquiera que entrara a
+las 8am quedaba desconectado a las 10am, mucho antes de terminar turno.
+Nota: Laravel usa una sesión "sliding" (el contador se reinicia con cada
+request), así que mientras el usuario siga usando la app durante el día
+esto prácticamente no expira — el valor solo importa si la pestaña queda
+totalmente inactiva. **No afecta** el cierre automático de caja al hacer
+logout (`AuthenticatedSessionController::destroy()`) — ese se dispara por
+la petición explícita de logout, no por expiración de sesión; son dos
+mecanismos independientes.
+
 ---
 
 ## Orden sugerido de ejecución
@@ -758,29 +937,37 @@ usuario, en este orden):
 
 ## Próxima sesión — por dónde seguir
 
-Lo más práctico para retomar, en orden de impacto (actualizado tras la
-sesión del punto 11):
+Lo más práctico para retomar, en orden de impacto (actualizado tras el
+diseño aprobado del punto 12):
 
-1. **Diseñar y proponer** (antes de escribir código) los componentes
-   reutilizables de tabla y modal descritos en el punto 11 — es el pedido
-   más reciente y explícito del usuario, y cambia cómo se implementan
-   todos los ítems siguientes de esta lista.
-2. **Modales "Ver" (show)** para Usuarios, Proveedores, Categorías,
+1. **Implementar el punto 12** (diseño ya aprobado 2026-08-07, ver esa
+   sección para el detalle completo): sidebar agrupada + versión/
+   copyright, módulo Pedidos, rediseño del modal de alertas de stock, e
+   importador masivo Excel/CSV. Seguir el orden interno 12.1 → 12.4 (la
+   sidebar y el modelo de Pedidos son la base de todo lo demás). Cerrar con
+   12.5 (auditoría Postgres + barrido general) una vez lo anterior esté
+   verificado en el navegador.
+2. **Diseñar y proponer** (antes de escribir código) los componentes
+   reutilizables de tabla y modal descritos en el punto 11 — considerar
+   hacerlo junto con el punto 12 ya que el módulo Pedidos y su tabla son
+   una oportunidad natural de estrenar ese patrón en vez de escribirlo "a
+   mano" una vez más.
+3. **Modales "Ver" (show)** para Usuarios, Proveedores, Categorías,
    Movimientos de Inventario y Finanzas — implementarlos ya usando el
-   componente reutilizable del punto 1 si quedó listo, para no duplicar
+   componente reutilizable del punto 2 si quedó listo, para no duplicar
    trabajo dos veces.
-3. **Auditar modo claro** de los tonos nuevos (emerald/rose/amber/zinc,
+4. **Auditar modo claro** de los tonos nuevos (emerald/rose/amber/zinc,
    popover del filtro Año-Mes) — la verificación del punto 11 fue
    mayormente en tema oscuro.
-4. **Responsive total (punto 3):** sigue sin poder auditarse en un viewport
+5. **Responsive total (punto 3):** sigue sin poder auditarse en un viewport
    angosto real de forma confiable con el navegador automatizado — hacerlo
    con la ventana del navegador real del usuario.
-5. **Catálogos en BD (punto 8):** proponer diseño de tablas para tipos de
+6. **Catálogos en BD (punto 8):** proponer diseño de tablas para tipos de
    movimiento y métodos de pago antes de construir (el Combobox que los va
    a mostrar ya está listo).
-6. **PWA (punto 4):** no depende de nada de lo anterior, se puede hacer en
+7. **PWA (punto 4):** no depende de nada de lo anterior, se puede hacer en
    paralelo si se prefiere.
-7. **WhatsApp:** retomar la investigación de Baileys + Render solo cuando el
+8. **WhatsApp:** retomar la investigación de Baileys + Render solo cuando el
    usuario lo pida explícitamente otra vez (quedó pausado a propósito).
 
 ## Criterios de aceptación
