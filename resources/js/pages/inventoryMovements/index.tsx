@@ -3,10 +3,11 @@ import AppLayout from '@/layouts/app-layout';
 import { LinkProps, type BreadcrumbItem } from '@/types';
 import { Head, router, usePage } from '@inertiajs/react';
 import { Button } from '@/components/ui/button';
-import { ClipboardList, Plus } from 'lucide-react';
+import { ClipboardList, Plus, Upload } from 'lucide-react';
 import InventoryMovementsTable from './inventoryMovementsTable';
 import InventoryMovementForm from './inventoryMovementForm';
 import { PageHeader } from '@/components/page-header';
+import { InventoryImportDialog } from '@/components/inventory-import-dialog';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { ConfirmDialog } from '@/components/confirm-dialog';
 
@@ -90,6 +91,7 @@ export default function InventoryMovementsIndex({
   filteredCount,
 }: InventoryMovementIndexProps) {
   const [isCreating, setIsCreating] = useState(false);
+  const [isImporting, setIsImporting] = useState(false);
   const [editingMovement, setEditingMovement] = useState<InventoryMovementForForm | null>(null);
   const [isFormDirty, setIsFormDirty] = useState(false);
   const [showDiscardConfirm, setShowDiscardConfirm] = useState(false);
@@ -182,6 +184,12 @@ export default function InventoryMovementsIndex({
           description="Historial de entradas, salidas y ajustes de inventario."
         >
           {userPermissions.includes('Crear Movimientos Inventario') && (
+            <Button onClick={() => setIsImporting(true)} variant="outline" className="gap-1 bg-card hover:bg-card/70">
+              <Upload className="h-4 w-4" />
+              Carga Masiva
+            </Button>
+          )}
+          {userPermissions.includes('Crear Movimientos Inventario') && (
             <Button onClick={handleCreateMovement} className="gap-1">
               <Plus className="h-4 w-4" />
               Nuevo Movimiento
@@ -245,6 +253,8 @@ export default function InventoryMovementsIndex({
         cancelText="Seguir editando"
         onConfirm={closeForm}
       />
+
+      <InventoryImportDialog open={isImporting} onOpenChange={setIsImporting} />
     </AppLayout>
   );
 }

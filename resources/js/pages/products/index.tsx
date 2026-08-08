@@ -4,9 +4,10 @@ import { LinkProps, type BreadcrumbItem } from '@/types';
 import { Head, router, usePage } from '@inertiajs/react';
 import ProductsTable from './productsTable';
 import { Button } from '@/components/ui/button';
-import { Package, Plus } from 'lucide-react';
+import { Package, Plus, Upload } from 'lucide-react';
 import ProductForm from './productForm';
 import { PageHeader } from '@/components/page-header';
+import { InventoryImportDialog } from '@/components/inventory-import-dialog';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { ConfirmDialog } from '@/components/confirm-dialog';
 
@@ -92,6 +93,7 @@ export default function ProductIndex({
     filteredCount,
 }: ProductIndexProps) {
     const [isCreating, setIsCreating] = useState(false);
+    const [isImporting, setIsImporting] = useState(false);
     const [editingProduct, setEditingProduct] = useState<ProductForForm | null>(null);
     const [isFormDirty, setIsFormDirty] = useState(false);
     const [showDiscardConfirm, setShowDiscardConfirm] = useState(false);
@@ -191,6 +193,12 @@ export default function ProductIndex({
                     title="Productos"
                     description="Consulta y administra el inventario de productos."
                 >
+                    {userPermissions.includes('Crear Movimientos Inventario') && (
+                        <Button onClick={() => setIsImporting(true)} variant="outline" className="gap-1 bg-card hover:bg-card/70">
+                            <Upload className="h-4 w-4" />
+                            Carga Masiva
+                        </Button>
+                    )}
                     {userPermissions.includes('Crear Productos') && (
                         <Button onClick={handleCreateProduct} className="gap-1">
                             <Plus className="h-4 w-4" />
@@ -252,6 +260,8 @@ export default function ProductIndex({
                 cancelText="Seguir editando"
                 onConfirm={closeForm}
             />
+
+            <InventoryImportDialog open={isImporting} onOpenChange={setIsImporting} />
         </AppLayout>
     );
 }
