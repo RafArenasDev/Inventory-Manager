@@ -8,6 +8,7 @@ use App\Models\Client;
 use App\Models\Department;
 use App\Models\InventoryMovement;
 use App\Models\Product;
+use App\Models\PurchaseOrderItem;
 use App\Models\Sale;
 use App\Models\Supplier;
 use App\Models\Transaction;
@@ -131,19 +132,11 @@ class DashboardController extends Controller
      * "Medio" (advertencia) del semáforo ya usado en el módulo de Productos
      * (ver productsTable.tsx). Las franjas "Bueno"/"Óptimo" no son alertables.
      */
-    private const ALERT_STOCK_THRESHOLD = 7;
+    public const ALERT_STOCK_THRESHOLD = 7;
 
     private function stockTier(int $stock): string
     {
-        if ($stock === 0) {
-            return 'agotado';
-        }
-
-        if ($stock <= 3) {
-            return 'critico';
-        }
-
-        return 'advertencia';
+        return Product::stockTier($stock);
     }
 
     public function lowStockNotifications()
@@ -152,16 +145,24 @@ class DashboardController extends Controller
             ->select('id', 'code', 'name', 'stock')
             ->orderBy('stock')
             ->limit(200)
-            ->get()
-            ->map(function ($product) {
-                return [
-                    'id' => $product->id,
-                    'code' => $product->code,
-                    'name' => $product->name,
-                    'stock' => $product->stock,
-                    'tier' => $this->stockTier($product->stock),
-                ];
-            });
+            ->get();
+
+        $activeProductIds = PurchaseOrderItem::query()
+            ->whereHas('purchaseOrder', fn ($q) => $q->where('status', 'Solicitado'))
+            ->whereIn('product_id', $products->pluck('id'))
+            ->pluck('product_id')
+            ->unique();
+
+        $products = $products->map(function ($product) use ($activeProductIds) {
+            return [
+                'id' => $product->id,
+                'code' => $product->code,
+                'name' => $product->name,
+                'stock' => $product->stock,
+                'tier' => $this->stockTier($product->stock),
+                'has_active_order' => $activeProductIds->contains($product->id),
+            ];
+        });
 
         return response()->json([
             'products' => $products,
