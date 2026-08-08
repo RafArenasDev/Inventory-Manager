@@ -32,14 +32,26 @@ class CashRegisterController extends Controller
             ->orderBy('register_date', 'desc');
 
         if ($request->filled('search')) {
+            // La fecha ya se filtra con el selector de Año/Mes de abajo (con
+            // opciones claras, sin adivinar formato) — buscar fechas como
+            // texto libre era incoherente con cómo se ve la fecha en la
+            // tabla (dd/mm/aaaa) y encima rompía la consulta en Postgres.
             $search = $request->search;
             $cashQuery->where(function ($query) use ($search) {
-                $query->whereDate('register_date', 'like', "%{$search}%")
+                $query->where('notes', 'ilike', "%{$search}%")
                     ->orWhereHas('openedBy', function ($q) use ($search) {
-                        $q->where('name', 'like', "%{$search}%");
+                        $q->where('name', 'ilike', "%{$search}%");
                     });
             });
         }
+
+        // Sin filtro explícito, se limita al mes actual — nunca se pinta el
+        // histórico completo de una sola vez (puede ser años de registros).
+        $dateFrom = $request->filled('date_from') ? $request->date_from : today()->startOfMonth()->toDateString();
+        $dateTo = $request->filled('date_to') ? $request->date_to : today()->endOfMonth()->toDateString();
+
+        $cashQuery->whereDate('register_date', '>=', $dateFrom)
+            ->whereDate('register_date', '<=', $dateTo);
 
         $totalCount = CashRegister::count();
         $filteredCount = $cashQuery->count();
@@ -60,7 +72,7 @@ class CashRegisterController extends Controller
 
         return Inertia::render('cashRegister/index', [
             'cashRegisters' => $cashRegisters,
-            'filters' => $request->only(['search', 'per_page']),
+            'filters' => [...$request->only(['search', 'per_page']), 'date_from' => $dateFrom, 'date_to' => $dateTo],
             'totalCount' => $totalCount,
             'filteredCount' => $filteredCount,
             'todayRegister' => $todayRegister,
@@ -72,73 +84,183 @@ class CashRegisterController extends Controller
         config(['app.timezone' => 'America/Bogota']);
         date_default_timezone_set('America/Bogota');
 
-        $existingRegister = CashRegister::where('register_date', today())->first();
-        if ($existingRegister) {
+        if (CashRegister::where('register_date', today())->exists()) {
             return back()->with('error', 'Ya existe una caja registrada para esta fecha.');
         }
 
-        $totalIncome = Transaction::where('type', 'Ingreso')->sum('amount');
-        $totalExpenses = Transaction::where('type', 'Gasto')->sum('amount');
-        $opening_amount = $totalIncome - $totalExpenses;
-
-        DB::beginTransaction();
         try {
-            CashRegister::create([
-                'register_date' => today(),
-                'opening_amount' => max(0, $opening_amount),
-                'closing_amount' => null,
-                'total_sales' => 0,
-                'total_income' => 0,
-                'total_expenses' => 0,
-                'difference' => null,
-                'opened_by' => auth()->id(),
-                'opened_at' => now(),
-                'closed_by' => null,
-                'closed_at' => null,
-                'is_closed' => false,
-                'notes' => $request->notes ?? '',
-            ]);
-
-            DB::commit();
+            $this->openRegisterForToday(auth()->id(), $request->notes ?? '');
 
             // Calcular props actualizados como en index
             $updatedRequest = new Request; // Filtros por defecto
 
             return $this->index($updatedRequest)->with('success', 'Caja abierta correctamente.');
         } catch (\Exception $e) {
-            DB::rollBack();
             Log::error('Error al abrir caja: '.$e->getMessage());
 
             return back()->with('error', 'Error al abrir la caja: '.$e->getMessage());
         }
     }
 
-    public function update(CashRegisterCloseRequest $request, CashRegister $cashRegister)
+    /**
+     * Horario comercial: 8:00am - 6:30pm, cotejado con la hora del PC. Sin
+     * restricción de días — solo de hora, tal como se pidió.
+     */
+    private const BUSINESS_OPEN = '08:00';
+
+    private const BUSINESS_CLOSE = '18:30';
+
+    private function isWithinBusinessHours(): bool
+    {
+        $now = now()->format('H:i');
+
+        return $now >= self::BUSINESS_OPEN && $now <= self::BUSINESS_CLOSE;
+    }
+
+    private function openRegisterForToday(?int $openedBy, string $notes = ''): CashRegister
+    {
+        $totalIncome = Transaction::where('type', 'Ingreso')->sum('amount');
+        $totalExpenses = Transaction::where('type', 'Gasto')->sum('amount');
+        $openingAmount = max(0, $totalIncome - $totalExpenses);
+
+        return CashRegister::create([
+            'register_date' => today(),
+            'opening_amount' => $openingAmount,
+            'closing_amount' => null,
+            'total_sales' => 0,
+            'total_income' => 0,
+            'total_expenses' => 0,
+            'difference' => null,
+            'opened_by' => $openedBy,
+            'opened_at' => now(),
+            'closed_by' => null,
+            'closed_at' => null,
+            'is_closed' => false,
+            'notes' => $notes,
+        ]);
+    }
+
+    /**
+     * Se llama desde el login: dentro del horario comercial y sin caja de
+     * hoy, la abre sola. Devuelve la caja creada (para el aviso al usuario)
+     * o null si no hizo falta hacer nada.
+     */
+    public function autoOpenIfNeeded(?int $openedBy): ?CashRegister
     {
         config(['app.timezone' => 'America/Bogota']);
         date_default_timezone_set('America/Bogota');
 
+        if (! $this->isWithinBusinessHours()) {
+            return null;
+        }
+
+        if (CashRegister::where('register_date', today())->exists()) {
+            return null;
+        }
+
+        return $this->openRegisterForToday($openedBy, 'Abierta automáticamente al iniciar sesión.');
+    }
+
+    /**
+     * Se llama desde el logout: si ya pasó la hora de cierre (6:30pm) y la
+     * caja de hoy sigue abierta, la cierra sola. Devuelve la caja cerrada
+     * (para el aviso) o null si no hizo falta.
+     */
+    public function autoCloseIfNeeded(?int $closedBy): ?CashRegister
+    {
+        config(['app.timezone' => 'America/Bogota']);
+        date_default_timezone_set('America/Bogota');
+
+        if (now()->format('H:i') < self::BUSINESS_CLOSE) {
+            return null;
+        }
+
+        $register = CashRegister::where('register_date', today())->where('is_closed', false)->first();
+
+        if (! $register) {
+            return null;
+        }
+
+        $this->closeRegister($register, $closedBy, 'Cerrada automáticamente al finalizar la sesión.');
+
+        return $register->fresh();
+    }
+
+    public function update(CashRegisterCloseRequest $request, CashRegister $cashRegister)
+    {
         if ($cashRegister->is_closed) {
             return back()->with('error', 'La caja ya está cerrada.');
         }
 
-        DB::beginTransaction();
         try {
+            $this->closeRegister($cashRegister, auth()->id(), $request->notes);
+
+            // Calcular props actualizados como en index
+            $updatedRequest = new Request; // Filtros por defecto
+
+            return $this->index($updatedRequest)->with('success', 'Caja cerrada correctamente.');
+        } catch (\Exception $e) {
+            Log::error('Error al cerrar caja: '.$e->getMessage());
+
+            return back()->with('error', 'Error al cerrar la caja: '.$e->getMessage());
+        }
+    }
+
+    /**
+     * Calcula y aplica el cierre de una caja para su propio register_date
+     * (no necesariamente "hoy" — lo usa tanto el cierre manual como el
+     * autocierre de cajas que quedaron abiertas de un día anterior).
+     *
+     * "Diferencia" aquí es en realidad el resultado neto del día
+     * (ingresos - gastos): como no se cuenta efectivo físico al cerrar, no
+     * hay un valor "esperado vs contado" que comparar, así que no puede
+     * revelar una descuadre real. Ver 'total_income' - 'total_expenses'.
+     */
+    /**
+     * "+$0"/"-$0" no tiene sentido: solo se antepone signo cuando de verdad
+     * hay ganancia o pérdida, igual que en la tabla del frontend.
+     */
+    private function formatSignedAmount(int $value): string
+    {
+        $amount = '$'.number_format(abs($value), 0, ',', '.');
+
+        if ($value > 0) {
+            return '+'.$amount;
+        }
+        if ($value < 0) {
+            return '-'.$amount;
+        }
+
+        return $amount;
+    }
+
+    private function closeRegister(CashRegister $cashRegister, ?int $closedBy, ?string $notes = null): void
+    {
+        config(['app.timezone' => 'America/Bogota']);
+        date_default_timezone_set('America/Bogota');
+
+        DB::transaction(function () use ($cashRegister, $closedBy, $notes) {
+            // Sale.total_paid se guarda en centavos (igual que en toda la
+            // app), pero total_income/total_expenses/opening_amount vienen
+            // de Transaction.amount, que se guarda en pesos. Sin este /100,
+            // total_sales quedaba 100 veces más grande que total_income.
             $salesTotal = Sale::whereDate('sale_date', $cashRegister->register_date)
                 ->where('is_cancelled', false)
-                ->sum('total_paid');
+                ->sum('total_paid') / 100;
 
-            $otherIncome = Transaction::whereDate('transaction_date', $cashRegister->register_date)
+            $totalIncome = Transaction::whereDate('transaction_date', $cashRegister->register_date)
                 ->where('type', 'Ingreso')
                 ->sum('amount');
-
-            $totalIncome = $otherIncome;
 
             $expensesTotal = Transaction::whereDate('transaction_date', $cashRegister->register_date)
                 ->where('type', 'Gasto')
                 ->sum('amount');
 
             $closingAmount = $cashRegister->opening_amount + $totalIncome - $expensesTotal;
+            // Ganancia/pérdida del día = cuánto quedó vs. cuánto había al
+            // abrir. Da el mismo número que (ingresos - gastos) — es álgebra
+            // básica, closing_amount ya se define como opening + esa resta —
+            // pero se deja explícito así para que se lea directo qué significa.
             $difference = $closingAmount - $cashRegister->opening_amount;
 
             Log::info('Cerrando caja', [
@@ -156,24 +278,32 @@ class CashRegisterController extends Controller
                 'total_income' => $totalIncome,
                 'total_expenses' => $expensesTotal,
                 'difference' => $difference,
-                'closed_by' => auth()->id(),
+                'closed_by' => $closedBy,
                 'closed_at' => now(),
                 'is_closed' => true,
-                'notes' => $request->notes ?? $cashRegister->notes,
+                'notes' => $notes ?? $cashRegister->notes,
             ]);
+        });
+    }
 
-            DB::commit();
-
-            // Calcular props actualizados como en index
-            $updatedRequest = new Request; // Filtros por defecto
-
-            return $this->index($updatedRequest)->with('success', 'Caja cerrada correctamente.');
-        } catch (\Exception $e) {
-            DB::rollBack();
-            Log::error('Error al cerrar caja: '.$e->getMessage());
-
-            return back()->with('error', 'Error al cerrar la caja: '.$e->getMessage());
-        }
+    /**
+     * Cierra solas las cajas que quedaron abiertas de un día anterior (el
+     * admin cerró sesión sin cerrar caja) — se llama desde el primer login
+     * del día siguiente, dejando todo en orden antes de que se pueda abrir
+     * la caja de hoy.
+     */
+    public function closeStaleRegisters(?int $closedBy): void
+    {
+        CashRegister::where('is_closed', false)
+            ->whereDate('register_date', '<', today())
+            ->get()
+            ->each(function (CashRegister $register) use ($closedBy) {
+                $this->closeRegister(
+                    $register,
+                    $closedBy,
+                    trim(($register->notes ? $register->notes.' — ' : '').'Cerrada automáticamente al iniciar sesión el día siguiente.')
+                );
+            });
     }
 
     private function formatCashRegister($register)
@@ -183,7 +313,12 @@ class CashRegisterController extends Controller
             'register_date' => $register->register_date->format('Y-m-d'),
             'opening_amount' => $register->opening_amount,
             'closing_amount' => $register->closing_amount ?? 0,
-            'total_sales' => $register->total_sales / 100,
+            'total_sales' => $register->total_sales,
+            // 'Otros Ingresos' = ingresos totales menos lo que ya se cuenta
+            // en Ventas (aportes de capital, u otros ingresos que no son de
+            // inventario) — así Ventas + Otros Ingresos se pueden sumar sin
+            // duplicar ni un peso.
+            'other_income' => $register->total_income - $register->total_sales,
             'total_income' => $register->total_income,
             'total_expenses' => $register->total_expenses,
             'difference' => $register->difference ?? 0,
@@ -192,10 +327,10 @@ class CashRegisterController extends Controller
             'opened_at' => $register->opened_at,
             'closed_at' => $register->closed_at,
             'opened_at_formatted' => $register->opened_at
-                ? $register->opened_at->format('d/m/Y - h:i A')
+                ? $register->opened_at->format('d/m/Y - h:i a')
                 : null,
             'closed_at_formatted' => $register->closed_at
-                ? $register->closed_at->format('d/m/Y - h:i A')
+                ? $register->closed_at->format('d/m/Y - h:i a')
                 : null,
             'is_closed' => $register->is_closed,
             'notes' => $register->notes ?? '',
@@ -229,10 +364,10 @@ class CashRegisterController extends Controller
             'B1' => 'Fecha Apertura',
             'C1' => 'Monto Apertura',
             'D1' => 'Ventas',
-            'E1' => 'Ingresos',
+            'E1' => 'Otros Ingresos',
             'F1' => 'Egresos',
             'G1' => 'Monto Cierre',
-            'H1' => 'Diferencia',
+            'H1' => 'Resultado del Día',
             'I1' => 'Notas',
             'J1' => 'Estado',
             'K1' => 'Abierto por',
@@ -273,10 +408,10 @@ class CashRegisterController extends Controller
             $sheet->setCellValue('B'.$row, $register['opened_at_formatted'] ?? '');
             $sheet->setCellValue('C'.$row, $register['opening_amount'] ? '$'.number_format($register['opening_amount'], 0, ',', '.') : '$0');
             $sheet->setCellValue('D'.$row, $register['total_sales'] ? '$'.number_format($register['total_sales'], 0, ',', '.') : '$0');
-            $sheet->setCellValue('E'.$row, $register['total_income'] ? '$'.number_format($register['total_income'], 0, ',', '.') : '$0');
+            $sheet->setCellValue('E'.$row, $register['other_income'] ? '$'.number_format($register['other_income'], 0, ',', '.') : '$0');
             $sheet->setCellValue('F'.$row, $register['total_expenses'] ? '$'.number_format($register['total_expenses'], 0, ',', '.') : '$0');
             $sheet->setCellValue('G'.$row, $register['is_closed'] ? ($register['closing_amount'] ? '$'.number_format($register['closing_amount'], 0, ',', '.') : '$0') : '');
-            $sheet->setCellValue('H'.$row, $register['is_closed'] ? ($register['difference'] ? ($register['difference'] >= 0 ? '+' : '').'$'.number_format(abs($register['difference']), 0, ',', '.') : '$0') : '');
+            $sheet->setCellValue('H'.$row, $register['is_closed'] ? $this->formatSignedAmount($register['difference']) : '');
             $sheet->setCellValue('I'.$row, $register['notes'] ?? '');
             $sheet->setCellValue('J'.$row, $register['is_closed'] ? 'Cerrada' : 'Abierta');
             $sheet->setCellValue('K'.$row, $register['openedBy']['name'] ?? '');

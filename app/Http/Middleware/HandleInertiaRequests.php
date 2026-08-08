@@ -53,8 +53,9 @@ class HandleInertiaRequests extends Middleware
                 'location' => $request->url(),
             ],
             'flash'       => [
-                'success' => $request->session()->get('success'),
-                'error'   => $request->session()->get('error'),
+                'success'              => $request->session()->get('success'),
+                'error'                => $request->session()->get('error'),
+                'cash_register_notice' => $request->session()->get('cash_register_notice'),
             ],
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
             'modules'     => fn() => Module::where('is_active', true)

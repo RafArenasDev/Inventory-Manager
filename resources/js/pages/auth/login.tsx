@@ -35,7 +35,15 @@ export default function Login({ status, canResetPassword = true }: LoginProps) {
         post(route('login'), {
             onFinish: () => reset('password'),
             onError: (errors) => {
-                if (errors.email || errors.password) {
+                if (errors.email?.toLowerCase().includes('inactiva')) {
+                    Swal.fire({
+                        title: 'Cuenta inactiva',
+                        icon: 'warning',
+                        text: 'Tu cuenta ha sido desactivada. Comunícate con el administrador del sistema para más información.',
+                        confirmButtonText: 'Entendido',
+                        draggable: true,
+                    });
+                } else if (errors.email || errors.password) {
                     Swal.fire({
                         title: "Error al iniciar sesión",
                         icon: "error",
@@ -62,6 +70,15 @@ export default function Login({ status, canResetPassword = true }: LoginProps) {
                     if (result.isConfirmed) {
                         // console.log('Enlace enviado - listo para login');
                     }
+                });
+            } else if (status.includes('Se cerró la caja')) {
+                // MENSAJE DE AUTOCIERRE DE CAJA AL CERRAR SESIÓN
+                Swal.fire({
+                    title: "Caja cerrada automáticamente",
+                    icon: "info",
+                    text: status,
+                    draggable: true,
+                    confirmButtonText: 'Entendido'
                 });
             } else if (status.includes('Contraseña restablecida')) {
                 // MENSAJE DEL RESET-PASSWORD

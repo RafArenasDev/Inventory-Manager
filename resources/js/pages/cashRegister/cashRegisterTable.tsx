@@ -7,10 +7,11 @@ import {
     TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { IconActionButton } from "@/components/icon-action-button";
-import { X, Download, Landmark } from "lucide-react";
+import { Download, Landmark } from "lucide-react";
 import { Pagination } from "@/components/ui/pagination";
 import SearchInput from "@/components/ui/search-input";
+import { PeriodFilter } from "@/components/period-filter";
+import { formatDateTime } from "@/lib/format-datetime";
 
 interface CashRegister {
     id: number;
@@ -18,6 +19,7 @@ interface CashRegister {
     opening_amount: number;
     closing_amount: number;
     total_sales: number;
+    other_income: number;
     total_income: number;
     total_expenses: number;
     difference: number;
@@ -49,34 +51,41 @@ interface CashRegisterTableProps {
     };
     perPage: string;
     onPerPageChange: (value: string) => void;
-    onEditCashRegister: (cashRegister: CashRegister) => void;
     totalCount: number;
     filteredCount: number;
     search: string;
     onSearch: (search: string) => void;
+    onPeriodChange: (range: { date_from: string; date_to: string }) => void;
     userPermissions: string[];
+    extraFilters?: Record<string, string | undefined>;
 }
 
 export default function CashRegisterTable({
     cashRegisters,
     perPage,
     onPerPageChange,
-    onEditCashRegister,
     totalCount,
     filteredCount,
     search,
     onSearch,
+    onPeriodChange,
     userPermissions,
+    extraFilters,
 }: CashRegisterTableProps) {
     const formatCurrency = (value: number) => {
         return value ? '$' + value.toLocaleString('es-CO', { minimumFractionDigits: 0, maximumFractionDigits: 0 }) : '$0';
     };
 
     const formatDifference = (value: number) => {
-        if (value >= 0) {
-            return '+$' + value.toLocaleString('es-CO', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+        const amount = Math.abs(value).toLocaleString('es-CO', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+
+        if (value > 0) {
+            return '+$' + amount;
         }
-        return '-$' + Math.abs(value).toLocaleString('es-CO', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+        if (value < 0) {
+            return '-$' + amount;
+        }
+        return '$' + amount;
     };
 
     const handleExport = () => {
@@ -84,97 +93,79 @@ export default function CashRegisterTable({
         window.open(exportUrl, '_blank');
     };
 
-    const showActionsColumn = userPermissions.includes('Actualizar Caja');
-
     return (
-        <div className="space-y-4">
+        <div className="space-y-3">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                <SearchInput
-                    placeholder="Buscar por Fecha o Usuario..."
-                    searchValue={search}
-                    onSearch={onSearch}
-                    className="w-full sm:max-w-md"
-                />
+                <div className="flex w-full items-center gap-2 sm:max-w-md">
+                    <SearchInput
+                        placeholder="Buscar por usuario o notas..."
+                        searchValue={search}
+                        onSearch={onSearch}
+                        className="min-w-0 flex-1"
+                    />
+                    <PeriodFilter onChange={onPeriodChange} />
+                </div>
                 {userPermissions.includes('Exportar Caja') && (
                     <Button
-                        variant="outline"
                         size="sm"
                         onClick={handleExport}
                         title="Exportar cajas a Excel"
-                        className="gap-2"
+                        className="gap-2 bg-gray-500 text-white hover:bg-gray-600"
                     >
                         <Download className="h-4 w-4" />
                         Exportar Excel
                     </Button>
                 )}
             </div>
-            {filteredCount !== totalCount && (
-                <div className="text-sm text-muted-foreground">
-                    Mostrando {filteredCount} de {totalCount} registros de caja
-                </div>
-            )}
-            <div className="rounded-md border overflow-hidden">
+            <div className="rounded-md bg-card shadow-lg shadow-black/10 dark:shadow-black/60 overflow-hidden">
                 <Table>
                     <TableHeader className="bg-gray-400 dark:bg-gray-700">
                         <TableRow>
                             <TableHead>Fecha Apertura</TableHead>
                             <TableHead>Monto Apertura</TableHead>
                             <TableHead>Ventas</TableHead>
-                            <TableHead>Ingresos</TableHead>
+                            <TableHead>Otros Ingresos</TableHead>
                             <TableHead>Egresos</TableHead>
                             <TableHead>Monto Cierre</TableHead>
-                            <TableHead>Diferencia</TableHead>
+                            <TableHead>Resultado del Día</TableHead>
                             <TableHead>Notas</TableHead>
                             <TableHead>Estado</TableHead>
                             <TableHead>Abierto por</TableHead>
                             <TableHead>Cerrado por</TableHead>
-                            {showActionsColumn && <TableHead className="text-right">Acciones</TableHead>}
                         </TableRow>
                     </TableHeader>
                     <TableBody>
                         {cashRegisters.data.map((cashRegister) => (
                             <TableRow key={cashRegister.id}>
-                                <TableCell>{cashRegister.opened_at_formatted || '-'}</TableCell>
+                                <TableCell>{formatDateTime(cashRegister.opened_at)}</TableCell>
                                 <TableCell>{formatCurrency(cashRegister.opening_amount)}</TableCell>
                                 <TableCell>{formatCurrency(cashRegister.total_sales)}</TableCell>
-                                <TableCell>{formatCurrency(cashRegister.total_income)}</TableCell>
+                                <TableCell>{formatCurrency(cashRegister.other_income)}</TableCell>
                                 <TableCell>{formatCurrency(cashRegister.total_expenses)}</TableCell>
                                 <TableCell>{cashRegister.is_closed ? formatCurrency(cashRegister.closing_amount) : '-'}</TableCell>
                                 <TableCell className={
                                     !cashRegister.is_closed ? '' :
-                                        cashRegister.difference > 0 ? 'text-green-600 font-semibold' :
-                                            cashRegister.difference < 0 ? 'text-red-600 font-semibold' : ''
+                                        cashRegister.difference > 0 ? 'text-emerald-600 font-semibold' :
+                                            cashRegister.difference < 0 ? 'text-rose-600 font-semibold' : ''
                                 }>
                                     {cashRegister.is_closed ? formatDifference(cashRegister.difference) : '-'}
                                 </TableCell>
                                 <TableCell>{cashRegister.notes || '-'}</TableCell>
                                 <TableCell>
-                                    <span className={`inline-flex items-center justify-center px-2 py-1 text-xs font-bold rounded-full border w-20 text-center shadow-sm ${cashRegister.is_closed
-                                            ? 'bg-red-600 text-white dark:bg-red-700'
-                                            : 'bg-green-600 text-white dark:bg-green-700'
+                                    <span className={`inline-flex items-center justify-center px-2.5 py-0.5 text-xs font-bold rounded-full w-20 text-center shadow-sm ${cashRegister.is_closed
+                                            ? 'bg-rose-600 text-white dark:bg-rose-700'
+                                            : 'bg-emerald-600 text-white dark:bg-emerald-700'
                                         }`}>
                                         {cashRegister.is_closed ? 'Cerrada' : 'Abierta'}
                                     </span>
                                 </TableCell>
                                 <TableCell>{cashRegister.openedBy.name}</TableCell>
                                 <TableCell>{cashRegister.closedBy?.name || '-'}</TableCell>
-                                {showActionsColumn && !cashRegister.is_closed && (
-                                    <TableCell className="text-right">
-                                        <IconActionButton
-                                            variant="ghost"
-                                            onClick={() => onEditCashRegister(cashRegister)}
-                                            className="text-red-600 hover:bg-red-100 hover:text-red-700 dark:text-red-500 dark:hover:bg-red-950/40 dark:hover:text-red-400"
-                                            label="Cerrar caja"
-                                        >
-                                            <X className="h-4 w-4" />
-                                        </IconActionButton>
-                                    </TableCell>
-                                )}
                             </TableRow>
                         ))}
                         {cashRegisters.data.length === 0 && (
                             <TableRow>
-                                <TableCell colSpan={showActionsColumn ? 12 : 11} className="h-24 text-center text-gray-500 dark:text-gray-400">
+                                <TableCell colSpan={11} className="h-24 text-center text-gray-500 dark:text-gray-400">
                                     <div className="flex flex-col items-center justify-center gap-2">
                                         <Landmark className="h-8 w-8 text-gray-400 dark:text-gray-500" />
                                         <span className="text-sm font-medium">No se encontraron registros de caja</span>
@@ -193,6 +184,7 @@ export default function CashRegisterTable({
                 filteredCount={filteredCount}
                 search={search}
                 searchRoute="cash-register.search"
+                extraFilters={extraFilters}
             />
         </div>
     );

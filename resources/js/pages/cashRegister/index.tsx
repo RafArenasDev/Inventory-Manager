@@ -4,7 +4,7 @@ import { BreadcrumbItem } from '@/types';
 import { Head, router, usePage } from '@inertiajs/react';
 import CashRegisterTable from './cashRegisterTable';
 import { Button } from '@/components/ui/button';
-import { Clock, Wallet } from 'lucide-react';
+import { Clock, Lock, Wallet } from 'lucide-react';
 import CashRegisterForm from './cashRegisterForm';
 import { PageHeader } from '@/components/page-header';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
@@ -56,6 +56,8 @@ interface CashRegisterIndexProps {
     filters: {
         search?: string;
         per_page?: string;
+        date_from?: string;
+        date_to?: string;
     };
     totalCount: number;
     filteredCount: number;
@@ -126,6 +128,17 @@ export default function CashRegisterIndex({
     // cash-register.search); este callback solo existe para cumplir la prop.
     const handlePerPageChange = () => {};
 
+    const handlePeriodChange = (range: { date_from?: string; date_to?: string }) => {
+        router.post(route('cash-register.search'), {
+            ...filters,
+            date_from: range.date_from ?? '',
+            date_to: range.date_to ?? '',
+            page: 1,
+        }, { preserveState: true, preserveScroll: true });
+    };
+
+    const hasMultiplePages = totalCount > Number(filters.per_page || 10);
+
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Caja" />
@@ -136,23 +149,31 @@ export default function CashRegisterIndex({
                     description="Controla la apertura y cierre de caja de cada jornada."
                 >
                     {userPermissions.includes('Crear Caja') && !todayRegister && (
-                        <Button onClick={handleCreateCashRegister} className="gap-1 bg-green-500 text-white">
+                        <Button onClick={handleCreateCashRegister} className="gap-1 bg-emerald-600 text-white hover:bg-emerald-700">
                             <Clock className="h-4 w-4" /> Abrir Caja
                         </Button>
                     )}
+                    {userPermissions.includes('Actualizar Caja') && todayRegister && !todayRegister.is_closed && (
+                        <Button onClick={() => handleEditCashRegister(todayRegister)} className="gap-1 bg-rose-600 text-white hover:bg-rose-700">
+                            <Lock className="h-4 w-4" /> Cerrar Caja
+                        </Button>
+                    )}
                 </PageHeader>
-                <div className="bg-card overflow-hidden shadow-sm sm:rounded-lg p-6">
-                    <CashRegisterTable
-                        cashRegisters={cashRegisters}
-                        perPage={filters.per_page || '10'}
-                        onPerPageChange={handlePerPageChange}
-                        onEditCashRegister={handleEditCashRegister}
-                        totalCount={totalCount}
-                        filteredCount={filteredCount}
-                        search={filters.search || ''}
-                        onSearch={handleSearch}
-                        userPermissions={userPermissions}
-                    />
+                <div className={`relative rounded-xl bg-card shadow-lg shadow-black/10 dark:shadow-black/60 overflow-hidden ${hasMultiplePages ? 'flex-1' : ''}`}>
+                    <div className={`h-full ${hasMultiplePages ? 'px-6 py-4' : 'p-6'}`}>
+                        <CashRegisterTable
+                            cashRegisters={cashRegisters}
+                            perPage={filters.per_page || '10'}
+                            onPerPageChange={handlePerPageChange}
+                            totalCount={totalCount}
+                            filteredCount={filteredCount}
+                            search={filters.search || ''}
+                            onSearch={handleSearch}
+                            onPeriodChange={handlePeriodChange}
+                            userPermissions={userPermissions}
+                            extraFilters={{ date_from: filters.date_from, date_to: filters.date_to }}
+                        />
+                    </div>
                 </div>
             </div>
 

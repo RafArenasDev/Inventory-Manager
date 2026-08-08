@@ -35,7 +35,7 @@ class RoleSeeder extends Seeder
             ['name' => 'cashier', 'guard_name' => 'web'],
             [
                 'label'       => 'Cajero',
-                'description' => 'Rol de cajero: abre/cierra caja y registra ventas.',
+                'description' => 'Rol de cajero: registra ventas y consulta caja; abrir/cerrar caja es solo del administrador.',
                 'is_active'   => true,
             ]
         );
@@ -74,11 +74,9 @@ class RoleSeeder extends Seeder
             'Exportar Ventas',
         ])->get());
 
-        // Cajero: caja + ventas + clientes
+        // Cajero: solo registra — abrir/cerrar caja queda reservado al admin.
         $cashierRole->syncPermissions(Permission::whereIn('name', [
             'Ver Caja',
-            'Crear Caja',
-            'Actualizar Caja',
             'Exportar Caja',
             'Ver Ventas',
             'Crear Ventas',
