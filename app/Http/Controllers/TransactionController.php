@@ -30,18 +30,17 @@ class TransactionController extends Controller
         if ($request->filled('search')) {
             $search = $request->search;
             $transactionsQuery->where(function ($query) use ($search) {
-                $query->where('description', 'like', "%{$search}%")
-                    ->orWhere('invoice_number', 'like', "%{$search}%");
+                $query->where('description', 'ilike', "%{$search}%")
+                    ->orWhere('invoice_number', 'ilike', "%{$search}%");
             });
         }
 
-        if ($request->filled('date_from')) {
-            $transactionsQuery->whereDate('transaction_date', '>=', $request->date_from);
-        }
-
-        if ($request->filled('date_to')) {
-            $transactionsQuery->whereDate('transaction_date', '<=', $request->date_to);
-        }
+        // Sin filtro explícito, se limita al mes actual — nunca se pinta el
+        // histórico completo de una sola vez.
+        $dateFrom = $request->filled('date_from') ? $request->date_from : today()->startOfMonth()->toDateString();
+        $dateTo = $request->filled('date_to') ? $request->date_to : today()->endOfMonth()->toDateString();
+        $transactionsQuery->whereDate('transaction_date', '>=', $dateFrom)
+            ->whereDate('transaction_date', '<=', $dateTo);
 
         if ($request->filled('category_id')) {
             $transactionsQuery->where('transaction_category_id', $request->category_id);
@@ -56,7 +55,17 @@ class TransactionController extends Controller
         }
 
         $totalCount = $transactionsQuery->count();
-        $filteredCount = $transactionsQuery->count();
+        $filteredCount = $totalCount;
+
+        // Los totales deben corresponder a lo que se ve filtrado, no a todo
+        // el histórico — si no, la tarjeta de totales nunca coincide con las
+        // filas que realmente se están mostrando. reorder() es obligatorio:
+        // el ORDER BY id heredado del query base + un SELECT solo de
+        // agregados (SUM/COUNT) sin GROUP BY revienta en Postgres.
+        $totals = (clone $transactionsQuery)->reorder()->selectRaw('
+            SUM(amount) as total_amount,
+            COUNT(*) as total_count
+        ')->first();
 
         $perPage = max(1, min((int) ($request->per_page ?? 10), 100));
 
@@ -93,15 +102,10 @@ class TransactionController extends Controller
             ];
         });
 
-        $totals = Transaction::selectRaw('
-            SUM(amount) as total_amount,
-            COUNT(*) as total_count
-        ')->first();
-
         return Inertia::render('transactions/index', [
             'transactions' => $transactions,
             'categories' => $categories,
-            'filters' => $request->only(['search', 'per_page', 'date_from', 'date_to', 'category_id', 'type', 'status']),
+            'filters' => [...$request->only(['search', 'per_page', 'category_id', 'type', 'status']), 'date_from' => $dateFrom, 'date_to' => $dateTo],
             'totalCount' => $totalCount,
             'filteredCount' => $filteredCount,
             'totals' => $totals,
@@ -225,7 +229,7 @@ class TransactionController extends Controller
             $sheet->setCellValue('D'.$row, $transaction->amount); // Guardar como número para poder sumar
             $sheet->setCellValue('E'.$row, $transaction->payment_method ?? '');
             $sheet->setCellValue('F'.$row, $transaction->transaction_date ? date('d/m/Y', strtotime($transaction->transaction_date)) : '');
-            $sheet->setCellValue('G'.$row, $transaction->transaction_time ? date('h:i A', strtotime($transaction->transaction_time)) : '');
+            $sheet->setCellValue('G'.$row, $transaction->transaction_time ? date('h:i a', strtotime($transaction->transaction_time)) : '');
             $sheet->setCellValue('H'.$row, $transaction->invoice_number ?? ($transaction->sale->invoice_number ?? ''));
             $sheet->setCellValue('I'.$row, $transaction->description ?? '');
             $sheet->setCellValue('J'.$row, $transaction->notes ?? '');

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\SaleRequest;
+use App\Models\CashRegister;
 use App\Models\City;
 use App\Models\Client;
 use App\Models\Department;
@@ -39,12 +40,19 @@ class SaleController extends Controller
             $search = $request->search;
             $salesQuery->where(function ($query) use ($search) {
                 $query->whereHas('client', function ($q) use ($search) {
-                    $q->where('name', 'like', "%{$search}%")
-                        ->orWhere('document_number', 'like', "%{$search}%");
-                })->orWhere('id', 'like', "%{$search}%")
-                    ->orWhere('invoice_number', 'like', "%{$search}%");
+                    $q->where('name', 'ilike', "%{$search}%")
+                        ->orWhere('document_number', 'ilike', "%{$search}%");
+                })->orWhere('id', 'ilike', "%{$search}%")
+                    ->orWhere('invoice_number', 'ilike', "%{$search}%");
             });
         }
+
+        // Sin filtro explícito, se limita al mes actual — nunca se pinta el
+        // histórico completo de una sola vez.
+        $dateFrom = $request->filled('date_from') ? $request->date_from : today()->startOfMonth()->toDateString();
+        $dateTo = $request->filled('date_to') ? $request->date_to : today()->endOfMonth()->toDateString();
+        $salesQuery->whereDate('sale_date', '>=', $dateFrom)
+            ->whereDate('sale_date', '<=', $dateTo);
 
         $filteredCount = $salesQuery->count();
         $perPage = max(1, min((int) ($request->per_page ?? 10), 100));
@@ -60,7 +68,7 @@ class SaleController extends Controller
 
         return Inertia::render('sales/index', [
             'sales' => $sales,
-            'filters' => $request->only(['search', 'per_page']),
+            'filters' => ['search' => $request->search, 'per_page' => $request->per_page, 'date_from' => $dateFrom, 'date_to' => $dateTo],
             'totalCount' => $totalCount,
             'filteredCount' => $filteredCount,
             'products' => Product::select('id', 'name', 'code', 'sale_price', 'stock')->get(),
@@ -139,6 +147,12 @@ class SaleController extends Controller
 
     public function store(SaleRequest $request): RedirectResponse
     {
+        $todayRegister = CashRegister::where('register_date', today())->where('is_closed', false)->first();
+
+        if (! $todayRegister) {
+            return back()->with('error', 'No puedes registrar la venta: la caja del día no está abierta. Pide a un administrador que la abra.');
+        }
+
         try {
             $validated = $request->validated();
             $invoiceNumber = Sale::generateInvoiceNumber();
@@ -163,6 +177,10 @@ class SaleController extends Controller
                     'total_paid' => $validated['total_paid'],
                     'is_cancelled' => false,
                 ]);
+
+                if ($validated['client_id']) {
+                    Client::where('id', $validated['client_id'])->where('is_active', false)->update(['is_active' => true]);
+                }
 
                 foreach ($validated['items'] as $item) {
                     SaleItem::create([
@@ -316,10 +334,10 @@ class SaleController extends Controller
             $search = $request->search;
             $salesQuery->where(function ($query) use ($search) {
                 $query->whereHas('client', function ($q) use ($search) {
-                    $q->where('name', 'like', "%{$search}%")
-                        ->orWhere('document_number', 'like', "%{$search}%");
-                })->orWhere('id', 'like', "%{$search}%")
-                    ->orWhere('invoice_number', 'like', "%{$search}%");
+                    $q->where('name', 'ilike', "%{$search}%")
+                        ->orWhere('document_number', 'ilike', "%{$search}%");
+                })->orWhere('id', 'ilike', "%{$search}%")
+                    ->orWhere('invoice_number', 'ilike', "%{$search}%");
             });
         }
 
@@ -412,6 +430,8 @@ class SaleController extends Controller
 
         if ($row > 2) {
             $sheet->getStyle('A1:N'.($row - 1))->applyFromArray($dataStyle);
+            $sheet->getStyle('G2:G'.($row - 1))->getNumberFormat()->setFormatCode('"$" #,##0');
+            $sheet->getStyle('I2:I'.($row - 1))->getNumberFormat()->setFormatCode('"$" #,##0');
         }
 
         $sheet->getStyle('A2:A'.($row - 1))->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);

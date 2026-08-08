@@ -5,7 +5,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Combobox, ComboboxContent, ComboboxEmpty, ComboboxInput, ComboboxItem, ComboboxList } from '@/components/ui/combobox';
-import { Checkbox } from "@/components/ui/checkbox"
 import axios from 'axios';
 
 // Interface unificada - id es requerido para Client
@@ -59,7 +58,6 @@ const ClientForm: React.FC<ClientFormProps> = ({ client, onCancel, onSaved, onDi
         cellphone: client?.cellphone || '',
         address: client?.address || '',
         email: client?.email || '',
-        is_active: client?.id ? !!client.is_active : true,
     });
 
     const [availableCities, setAvailableCities] = useState<City[]>([]);
@@ -362,20 +360,6 @@ const ClientForm: React.FC<ClientFormProps> = ({ client, onCancel, onSaved, onDi
                     />
                     {errors.email && <p className="mt-1 text-sm text-red-600">{errors.email}</p>}
                 </div>
-
-                {isEditing && (
-                    <div className="flex items-center space-x-2">
-                        <Checkbox
-                            id="is_active"
-                            checked={data.is_active}
-                            onCheckedChange={(checked) => setData('is_active', !!checked)}
-                        />
-                        <Label htmlFor="is_active" className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                            Activo
-                        </Label>
-                        {errors.is_active && <p className="mt-1 text-sm text-red-600">{errors.is_active}</p>}
-                    </div>
-                )}
             </div>
 
             <div className="flex justify-end space-x-3 pt-4 border-t border-gray-300 dark:border-gray-600">

@@ -66,20 +66,40 @@ class DashboardController extends Controller
             'updated_at'
         )->get();
 
-        $salesClients = Client::select(
-            'id',
-            'document_type',
-            'document_number',
-            'verification_digit',
-            'name',
-            'department_id',
-            'city_id',
-            'phone',
-            'cellphone',
-            'address',
-            'email',
-            'is_active'
-        )->where('is_active', true)->get();
+        $salesClients = Client::with(['department', 'city'])
+            ->select(
+                'id',
+                'document_type',
+                'document_number',
+                'verification_digit',
+                'name',
+                'department_id',
+                'city_id',
+                'phone',
+                'cellphone',
+                'address',
+                'email',
+                'is_active'
+            )
+            ->get()
+            ->map(function ($client) {
+                return [
+                    'id' => $client->id,
+                    'document_type' => $client->document_type,
+                    'document_number' => $client->document_number,
+                    'verification_digit' => $client->verification_digit,
+                    'name' => $client->name,
+                    'department_id' => $client->department_id,
+                    'department' => $client->department?->name,
+                    'city_id' => $client->city_id,
+                    'city' => $client->city?->name,
+                    'phone' => $client->phone,
+                    'cellphone' => $client->cellphone,
+                    'address' => $client->address,
+                    'email' => $client->email,
+                    'is_active' => $client->is_active,
+                ];
+            });
 
         $salesDepartments = Department::select('id', 'name')->get();
         $salesCities = City::select('id', 'name', 'department_id')->get();
