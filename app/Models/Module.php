@@ -11,6 +11,7 @@ class Module extends Model
         'label',
         'icon',
         'route',
+        'group',
         'order',
         'is_active',
     ];

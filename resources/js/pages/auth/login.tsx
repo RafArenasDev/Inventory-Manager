@@ -188,6 +188,10 @@ export default function Login({ status, canResetPassword = true }: LoginProps) {
                     </Button>
                 </div>
             </form>
+
+            <p className="mt-8 text-center text-xs text-muted-foreground">
+                © 2025–2026 RafArenasDev
+            </p>
         </AuthSplitLayout>
     );
 }

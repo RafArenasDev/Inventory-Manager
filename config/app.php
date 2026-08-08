@@ -15,6 +15,11 @@ return [
 
     'name'            => env('APP_NAME', 'Inventory Manager'),
 
+    // Mostrada en el pie de la sidebar y del login. v1.0.0 se etiqueta
+    // (`git tag`) cuando el módulo de Pedidos + rediseño de alertas quede
+    // funcionando — ver REFACTOR-PLAN.md punto 12.1 para el roadmap completo.
+    'version'         => env('APP_VERSION', '1.0.0'),
+
     /*
     |--------------------------------------------------------------------------
     | Application Environment

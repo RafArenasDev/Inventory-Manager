@@ -17,6 +17,8 @@ return new class extends Migration
             $table->string('label');
             $table->string('icon')->nullable();
             $table->string('route')->nullable();
+            // null = sin grupo (ej. Dashboard, siempre visible arriba de todo).
+            $table->string('group')->nullable();
             $table->unsignedInteger('order')->default(0);
             $table->boolean('is_active')->default(true);
             $table->timestamps();

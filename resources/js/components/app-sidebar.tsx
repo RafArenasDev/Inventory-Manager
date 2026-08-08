@@ -2,12 +2,14 @@ import { NavMain } from '@/components/nav-main';
 import {
     Sidebar,
     SidebarContent,
+    SidebarFooter,
     SidebarHeader,
     SidebarMenu,
     SidebarMenuButton,
-    SidebarMenuItem
+    SidebarMenuItem,
+    SidebarSeparator,
 } from '@/components/ui/sidebar';
-import { type NavItem } from '@/types';
+import { type NavItem, type SharedData } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
 import { resolveIcon } from '@/lib/icon-map';
 import AppLogo from './app-logo';
@@ -17,6 +19,7 @@ interface SidebarModule {
     label: string;
     icon: string | null;
     route: string | null;
+    group: string | null;
 }
 
 export function AppSidebar() {
@@ -24,7 +27,7 @@ export function AppSidebar() {
         permissions: string[];
     };
 
-    const { auth, modules } = usePage().props as unknown as { auth: Auth; modules: SidebarModule[] };
+    const { auth, modules, appVersion } = usePage().props as unknown as SharedData & { auth: Auth; modules: SidebarModule[] };
     const userPermissions = auth.permissions;
 
     const mainNavItems: NavItem[] = (modules ?? []).map((module) => ({
@@ -33,6 +36,7 @@ export function AppSidebar() {
         icon: resolveIcon(module.icon),
         // El módulo Dashboard no tiene permiso "Ver Dashboard" propio, siempre es visible.
         permission: module.key === 'dashboard' ? undefined : `Ver ${module.label}`,
+        group: module.group,
     }));
 
     const filterNavItems = (items: NavItem[]): NavItem[] => {
@@ -74,9 +78,18 @@ export function AppSidebar() {
                 </SidebarMenu>
             </SidebarHeader>
 
+            <SidebarSeparator />
+
             <SidebarContent>
                 <NavMain items={filteredNavItems} />
             </SidebarContent>
+
+            <SidebarFooter>
+                <div className="group-data-[collapsible=icon]:hidden px-2 py-1 text-[11px] leading-tight text-sidebar-foreground/50">
+                    <p>v{appVersion}</p>
+                    <p>© 2025–2026 RafArenasDev</p>
+                </div>
+            </SidebarFooter>
         </Sidebar>
     );
 }

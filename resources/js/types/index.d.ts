@@ -22,10 +22,12 @@ export interface NavItem {
     isActive?: boolean;
     permission?: string;
     items?: NavItem[];
+    group?: string | null;
 }
 
 export interface SharedData {
     name: string;
+    appVersion: string;
     quote: { message: string; author: string };
     auth: Auth;
     ziggy: Config & { location: string };
