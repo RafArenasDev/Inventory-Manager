@@ -59,6 +59,10 @@ export const Pagination = ({
     const lastPage = data.last_page ?? 1;
     const isFirstPage = currentPage <= 1;
     const isLastPage = currentPage >= lastPage;
+    // Solo los links numéricos de Laravel — prev/next se resuelven aparte con
+    // isFirstPage/isLastPage, la misma fuente de verdad que primera/última
+    // página, para que las 4 flechas se deshabiliten con el mismo criterio.
+    const numberLinks = data.links.filter((link) => !link.label.includes('previous') && !link.label.includes('«') && !link.label.includes('next') && !link.label.includes('»'));
 
     return (
         <div className="flex flex-col sm:flex-row items-center justify-between gap-2 mt-4 p-2 sm:p-4 max-w-full overflow-hidden">
@@ -84,51 +88,51 @@ export const Pagination = ({
                 >
                     <ChevronsLeft size={10} />
                 </button>
-                {data.links.map((link, index) => {
-                    const isPrevious = link.label.includes('previous') || link.label.includes('«');
-                    const isNext = link.label.includes('next') || link.label.includes('»');
-                    const isNumber = !isPrevious && !isNext;
-                    const pageNumber = isNumber ? parseInt(link.label, 10) : null;
+                <button
+                    type="button"
+                    disabled={isFirstPage}
+                    onClick={() => goToPage(currentPage - 1)}
+                    className={edgeButtonClass}
+                    aria-label="Página anterior"
+                >
+                    <ChevronLeft size={10} />
+                </button>
+                {numberLinks.map((link, index) => {
+                    const pageNumber = parseInt(link.label, 10);
 
-                    if (!link.url || (isNumber && Number.isNaN(pageNumber))) {
+                    if (!link.url || Number.isNaN(pageNumber)) {
                         return (
                             <span
                                 key={index}
-                                className={`px-1.5 py-0.5 border rounded flex items-center justify-center min-w-[24px] text-xs opacity-50 cursor-not-allowed
-                                    sm:px-2 sm:py-1 sm:min-w-[28px] ${isNumber ? 'hidden sm:flex' : ''}`}
+                                className="hidden sm:flex px-1.5 py-0.5 border rounded items-center justify-center min-w-[24px] text-xs opacity-50 cursor-not-allowed sm:px-2 sm:py-1 sm:min-w-[28px]"
                             >
-                                {isPrevious ? (
-                                    <ChevronLeft size={10} />
-                                ) : isNext ? (
-                                    <ChevronRight size={10} />
-                                ) : (
-                                    <span dangerouslySetInnerHTML={{ __html: link.label }} />
-                                )}
+                                <span dangerouslySetInnerHTML={{ __html: link.label }} />
                             </span>
                         );
                     }
-
-                    const targetPage = isPrevious ? currentPage - 1 : isNext ? currentPage + 1 : (pageNumber as number);
 
                     return (
                         <button
                             type="button"
                             key={index}
-                            onClick={() => goToPage(targetPage)}
-                            className={`px-1.5 py-0.5 border rounded flex items-center justify-center min-w-[24px] text-xs
+                            onClick={() => goToPage(pageNumber)}
+                            className={`hidden sm:flex px-1.5 py-0.5 border rounded items-center justify-center min-w-[24px] text-xs
                                 ${link.active ? 'bg-primary text-primary-foreground' : 'bg-background hover:bg-accent hover:text-accent-foreground'}
-                                sm:px-2 sm:py-1 sm:min-w-[28px] ${isNumber ? 'hidden sm:flex' : ''}`}
+                                sm:px-2 sm:py-1 sm:min-w-[28px]`}
                         >
-                            {isPrevious ? (
-                                <ChevronLeft size={10} />
-                            ) : isNext ? (
-                                <ChevronRight size={10} />
-                            ) : (
-                                <span dangerouslySetInnerHTML={{ __html: link.label }} />
-                            )}
+                            <span dangerouslySetInnerHTML={{ __html: link.label }} />
                         </button>
                     );
                 })}
+                <button
+                    type="button"
+                    disabled={isLastPage}
+                    onClick={() => goToPage(currentPage + 1)}
+                    className={edgeButtonClass}
+                    aria-label="Página siguiente"
+                >
+                    <ChevronRight size={10} />
+                </button>
                 <button
                     type="button"
                     disabled={isLastPage}

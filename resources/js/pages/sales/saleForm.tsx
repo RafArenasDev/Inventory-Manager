@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
+import { Textarea } from '@/components/ui/textarea';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Plus, Minus, Trash2 } from "lucide-react";
@@ -111,7 +112,7 @@ const InfoField: React.FC<{ label: string; value?: string | number | null; class
             className="truncate text-sm text-gray-900 dark:text-gray-100"
             title={value !== undefined && value !== null && value !== '' ? String(value) : undefined}
         >
-            {value !== undefined && value !== null && value !== '' ? value : 'No especificado'}
+            {value !== undefined && value !== null && value !== '' ? value : '-'}
         </p>
     </div>
 );
@@ -443,18 +444,18 @@ const SaleForm: React.FC<SaleFormProps> = ({ sale, onCancel, onSaved, onDirtyCha
                                     }
                                 }}
                                 placeholder="Documento (CC, TI, CE, NIT)"
-                                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-black text-gray-900 dark:text-gray-100"
+                                className="w-full"
                             />
                             <Button type="button" onClick={handleClientSearch} disabled={!formData.client_document_number}>
                                 Buscar
                             </Button>
                         </div>
                         {filteredClients.length > 0 && (
-                            <ul className="absolute z-10 w-full bg-white dark:bg-black border border-gray-300 dark:border-gray-700 max-h-60 overflow-auto rounded-md shadow-lg mt-1">
+                            <ul className="absolute z-10 w-full bg-background text-foreground border border-input max-h-60 overflow-auto rounded-md shadow-lg mt-1">
                                 {filteredClients.map((c) => (
                                     <li
                                         key={c.id}
-                                        className="px-3 py-2 hover:bg-gray-100 dark:hover:bg-white/5 cursor-pointer text-gray-900 dark:text-gray-100"
+                                        className="px-3 py-2 hover:bg-accent hover:text-accent-foreground cursor-pointer"
                                         onClick={() => handleSelectClient(c)}
                                     >
                                         {c.document_number} - {c.name}
@@ -481,7 +482,7 @@ const SaleForm: React.FC<SaleFormProps> = ({ sale, onCancel, onSaved, onDirtyCha
                             <InfoField label="Dirección" value={selectedClient.address} />
                             <InfoField
                                 label="Ciudad / Depto."
-                                value={`${selectedClient.city || 'Ciudad no especificada'}, ${selectedClient.department || 'Depto. no especificado'}`}
+                                value={`${selectedClient.city || '-'}, ${selectedClient.department || '-'}`}
                             />
                             {selectedClient.document_type === 'NIT' && (
                                 <InfoField label="Dígito Verif." value={selectedClient.verification_digit} />
@@ -519,7 +520,7 @@ const SaleForm: React.FC<SaleFormProps> = ({ sale, onCancel, onSaved, onDirtyCha
                             <Label htmlFor="discount" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                                 Descuento Total (%)
                             </Label>
-                            <input
+                            <Input
                                 type="text"
                                 id="discount"
                                 value={formData.discount === 0 ? '' : formData.discount}
@@ -529,7 +530,7 @@ const SaleForm: React.FC<SaleFormProps> = ({ sale, onCancel, onSaved, onDirtyCha
                                         e.preventDefault();
                                     }
                                 }}
-                                className="w-24 px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-black text-gray-900 dark:text-gray-100"
+                                className="w-24"
                                 placeholder="0"
                             />
                             {errors.discount && <p className="mt-1 text-sm text-red-600">{errors.discount}</p>}
@@ -540,12 +541,12 @@ const SaleForm: React.FC<SaleFormProps> = ({ sale, onCancel, onSaved, onDirtyCha
                         <Label htmlFor="notes" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                             Notas
                         </Label>
-                        <textarea
+                        <Textarea
                             id="notes"
                             value={formData.notes || ''}
                             onChange={(e) => setFormData(prev => ({ ...prev, notes: e.target.value }))}
                             rows={1}
-                            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-black text-gray-900 dark:text-gray-100"
+                            className="w-full min-h-0"
                             placeholder="Notas adicionales (opcional)"
                         />
                         {errors.notes && <p className="mt-1 text-sm text-red-600">{errors.notes}</p>}
@@ -569,18 +570,18 @@ const SaleForm: React.FC<SaleFormProps> = ({ sale, onCancel, onSaved, onDirtyCha
                                         }
                                     }}
                                     placeholder="Código del producto (ej. JL161200)"
-                                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-black text-gray-900 dark:text-gray-100"
+                                    className="w-full"
                                 />
                                 <Button type="button" onClick={handleProductSearch} disabled={!productSearch}>
                                     Añadir Item
                                 </Button>
                             </div>
                             {filteredProducts.length > 0 && (
-                                <ul className="absolute z-10 w-full bg-white dark:bg-black border border-gray-300 dark:border-gray-700 max-h-60 overflow-auto rounded-md shadow-lg mt-1">
+                                <ul className="absolute z-10 w-full bg-background text-foreground border border-input max-h-60 overflow-auto rounded-md shadow-lg mt-1">
                                     {filteredProducts.map((p) => (
                                         <li
                                             key={p.id}
-                                            className="px-3 py-2 hover:bg-gray-100 dark:hover:bg-white/5 cursor-pointer text-gray-900 dark:text-gray-100"
+                                            className="px-3 py-2 hover:bg-accent hover:text-accent-foreground cursor-pointer"
                                             onClick={() => handleSelectProduct(p)}
                                         >
                                             {p.code} - {p.name}

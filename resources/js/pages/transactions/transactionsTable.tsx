@@ -11,6 +11,8 @@ import { IconActionButton } from "@/components/icon-action-button"
 import { Pencil, Download, Wallet } from "lucide-react"
 import { Pagination } from "@/components/ui/pagination"
 import SearchInput from "@/components/ui/search-input"
+import { PeriodFilter } from "@/components/period-filter"
+import { formatDate, formatTime } from "@/lib/format-datetime"
 // import Swal from 'sweetalert2'
 // import { router } from "@inertiajs/react"
 
@@ -67,11 +69,13 @@ interface TransactionsTableProps {
     filteredCount: number
     search: string
     onSearch: (search: string) => void
+    onPeriodChange: (range: { date_from: string; date_to: string }) => void
     totals: {
         total_amount: number
         total_count: number
     }
     userPermissions: string[]
+    extraFilters?: Record<string, string | undefined>
     filters: TransactionFilters
 }
 
@@ -84,49 +88,12 @@ export default function TransactionsTable({
     filteredCount,
     search,
     onSearch,
+    onPeriodChange,
     userPermissions,
+    extraFilters,
 }: TransactionsTableProps) {
 
     // console.log("Datos recibidos:", transactions.data);
-
-    const formatDate = (dateString: string) => {
-        try {
-            if (dateString.includes('T')) {
-                const date = new Date(dateString);
-                return date.toLocaleDateString('es-CO', {
-                    day: '2-digit',
-                    month: '2-digit',
-                    year: 'numeric'
-                });
-            }
-            if (/^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
-                const [year, month, day] = dateString.split('-');
-                return `${day}/${month}/${year}`;
-            }
-            return 'N/A';
-        } catch (error) {
-            console.error('Error formateando fecha:', dateString, error);
-            return 'N/A';
-        }
-    };
-
-    const formatTime = (timeString: string) => {
-        try {
-            if (!timeString) return 'N/A';
-            const date = new Date(timeString);
-            if (isNaN(date.getTime())) {
-                return 'N/A';
-            }
-            return date.toLocaleTimeString('es-CO', {
-                hour: '2-digit',
-                minute: '2-digit',
-                hour12: true
-            });
-        } catch (error) {
-            console.error('Error formateando hora:', timeString, error);
-            return 'N/A';
-        }
-    };
 
     const formatAmount = (amount: number) => {
         return new Intl.NumberFormat('es-CO', {
@@ -138,8 +105,8 @@ export default function TransactionsTable({
 
     const getTypeColor = (type: 'Ingreso' | 'Gasto') => {
         return type === 'Ingreso'
-            ? 'bg-green-600 dark:bg-green-700'
-            : 'bg-red-600 dark:bg-red-700';
+            ? 'bg-emerald-600 dark:bg-emerald-700'
+            : 'bg-rose-600 dark:bg-rose-700';
     };
 
     const handleExport = () => {
@@ -150,19 +117,21 @@ export default function TransactionsTable({
     const showActionsColumn = userPermissions.includes('Editar Finanzas');
 
     return (
-        <div className="space-y-4">
+        <div className="space-y-3">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                <SearchInput
-                    placeholder="Buscar por descripción o referencia..."
-                    searchValue={search}
-                    onSearch={onSearch}
-                    className="w-full sm:max-w-md"
-                />
+                <div className="flex w-full items-center gap-2 sm:max-w-md">
+                    <SearchInput
+                        placeholder="Buscar por descripción o referencia..."
+                        searchValue={search}
+                        onSearch={onSearch}
+                        className="min-w-0 flex-1"
+                    />
+                    <PeriodFilter onChange={onPeriodChange} />
+                </div>
                 {userPermissions.includes('Exportar Transacciones') && (
                     <Button
                         onClick={handleExport}
-                        className="gap-2"
-                        variant="outline"
+                        className="gap-2 bg-gray-500 text-white hover:bg-gray-600"
                     >
                         <Download className="h-4 w-4" />
                         Exportar
@@ -170,7 +139,7 @@ export default function TransactionsTable({
                 )}
             </div>
 
-            <div className="rounded-md border overflow-hidden">
+            <div className="rounded-md bg-card shadow-lg shadow-black/10 dark:shadow-black/60 overflow-hidden">
                 <Table>
                     <TableHeader className="bg-gray-400 dark:bg-gray-700">
                         <TableRow>
@@ -189,7 +158,7 @@ export default function TransactionsTable({
                         {transactions.data.map((transaction) => (
                             <TableRow key={transaction.id}>
                                 <TableCell>
-                                    <span className={`text-xs px-3 py-1 rounded-full ${getTypeColor(transaction.type)} text-white font-bold w-fit shadow-sm`}>
+                                    <span className={`text-xs px-3 py-0.5 rounded-full ${getTypeColor(transaction.type)} text-white font-bold w-fit shadow-sm`}>
                                         {transaction.type}
                                     </span>
                                 </TableCell>
@@ -232,7 +201,7 @@ export default function TransactionsTable({
                                                     className="text-amber-600 hover:bg-amber-100 hover:text-amber-700 dark:text-amber-500 dark:hover:bg-amber-950/40 dark:hover:text-amber-400"
                                                     label="Editar transacción"
                                                 >
-                                                    <Pencil className="h-4 w-4" />
+                                                    <Pencil className="size-3.5" />
                                                 </IconActionButton>
                                             )}
                                         </div>
@@ -262,6 +231,7 @@ export default function TransactionsTable({
                 filteredCount={filteredCount}
                 search={search}
                 searchRoute="transactions.search"
+                extraFilters={extraFilters}
             />
         </div>
     )

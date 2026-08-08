@@ -210,7 +210,7 @@ const InventoryMovementForm: React.FC<InventoryMovementFormProps> = ({
             value={data.date}
             onChange={(e) => setData("date", e.target.value)}
             max={formattedToday}
-            className="mt-1 w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-black text-gray-900 dark:text-gray-100"
+            className="w-full"
             required
           />
           {errors.date && <p className="mt-1 text-sm text-red-600">{errors.date}</p>}
@@ -253,7 +253,7 @@ const InventoryMovementForm: React.FC<InventoryMovementFormProps> = ({
             type="text"
             value={supplierName}
             readOnly
-            className="mt-1 w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100 cursor-not-allowed"
+            className="w-full cursor-not-allowed"
           />
           {errors.supplier_id && <p className="mt-1 text-sm text-red-600">{errors.supplier_id}</p>}
         </div>
@@ -274,7 +274,7 @@ const InventoryMovementForm: React.FC<InventoryMovementFormProps> = ({
             min={quantityMin}
             placeholder="0"
             required
-            className="mt-1 w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-black text-gray-900 dark:text-gray-100"
+            className="w-full"
           />
           {errors.quantity && <p className="mt-1 text-sm text-red-600">{errors.quantity}</p>}
         </div>
@@ -288,7 +288,7 @@ const InventoryMovementForm: React.FC<InventoryMovementFormProps> = ({
             id="notes"
             value={data.notes}
             onChange={(e) => setData("notes", e.target.value)}
-            className="mt-1 w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-black text-gray-900 dark:text-gray-100"
+            className="w-full"
             rows={3}
             placeholder="Opcional: agregar notas sobre este movimiento..."
           />

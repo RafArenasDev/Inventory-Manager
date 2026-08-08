@@ -162,6 +162,20 @@ export default function TransactionsPage({
     // transactions.search); este callback solo existe para cumplir la prop.
     const handlePerPageChange = () => {};
 
+    const handlePeriodChange = (range: { date_from?: string; date_to?: string }) => {
+        router.post(route('transactions.search'), {
+            ...filters,
+            date_from: range.date_from ?? '',
+            date_to: range.date_to ?? '',
+            page: 1,
+        }, {
+            preserveState: true,
+            preserveScroll: true,
+        });
+    };
+
+    const hasMultiplePages = totalCount > Number(filters.per_page || 10);
+
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Finanzas" />
@@ -179,21 +193,25 @@ export default function TransactionsPage({
                         </Button>
                     )}
                 </PageHeader>
-                <div className="bg-card overflow-hidden shadow-sm sm:rounded-lg p-6">
-                    <TransactionsTable
-                        transactions={transactions}
-                        categories={categories}
-                        perPage={filters.per_page || "10"}
-                        onPerPageChange={handlePerPageChange}
-                        onEditTransaction={handleEditTransaction}
-                        totalCount={totalCount}
-                        filteredCount={filteredCount}
-                        search={filters.search || ""}
-                        onSearch={handleSearch}
-                        totals={totals}
-                        userPermissions={userPermissions}
-                        filters={filters}
-                    />
+                <div className={`relative rounded-xl bg-card shadow-lg shadow-black/10 dark:shadow-black/60 overflow-hidden ${hasMultiplePages ? 'flex-1' : ''}`}>
+                    <div className={`h-full ${hasMultiplePages ? 'px-6 py-4' : 'p-6'}`}>
+                        <TransactionsTable
+                            transactions={transactions}
+                            categories={categories}
+                            perPage={filters.per_page || "10"}
+                            onPerPageChange={handlePerPageChange}
+                            onEditTransaction={handleEditTransaction}
+                            totalCount={totalCount}
+                            filteredCount={filteredCount}
+                            search={filters.search || ""}
+                            onSearch={handleSearch}
+                            onPeriodChange={handlePeriodChange}
+                            totals={totals}
+                            userPermissions={userPermissions}
+                            extraFilters={{ date_from: filters.date_from, date_to: filters.date_to }}
+                            filters={filters}
+                        />
+                    </div>
                 </div>
             </div>
 

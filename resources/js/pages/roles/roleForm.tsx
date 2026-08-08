@@ -4,6 +4,9 @@ import { useForm } from '@inertiajs/react';
 import Swal from '@/lib/swal';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from "@/components/ui/checkbox"
+import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 
 interface Permission {
     id: number;
@@ -195,15 +198,15 @@ const RoleForm: React.FC<RoleFormProps> = ({
             {/* Información básica */}
             <div className="space-y-4 shrink-0">
                 <div>
-                    <label htmlFor="label" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    <Label htmlFor="label" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                         Nombre del Rol *
-                    </label>
-                    <input
+                    </Label>
+                    <Input
                         type="text"
                         id="label"
                         value={data.label}
                         onChange={(e) => setData('label', e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-black text-gray-900 dark:text-gray-100"
+                        className="w-full"
                         placeholder="Ingrese el nombre del rol"
                         required
                     />
@@ -211,16 +214,16 @@ const RoleForm: React.FC<RoleFormProps> = ({
                 </div>
 
                 <div>
-                    <label htmlFor="description" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    <Label htmlFor="description" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                         Descripción
-                    </label>
-                    <textarea
+                    </Label>
+                    <Textarea
                         ref={descriptionRef}
                         id="description"
                         value={data.description}
                         onChange={(e) => setData('description', e.target.value)}
                         rows={1}
-                        className="w-full min-h-[42px] px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-black text-gray-900 dark:text-gray-100 resize-none overflow-hidden"
+                        className="w-full min-h-[42px] resize-none overflow-hidden"
                         placeholder="Descripción del rol (opcional)"
                     />
                     {errors.description && <p className="mt-1 text-sm text-red-600">{errors.description}</p>}

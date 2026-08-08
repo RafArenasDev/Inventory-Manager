@@ -36,6 +36,11 @@ interface LinkProps {
     url: string | null;
 }
 
+// Máximo de badges de módulo visibles por fila antes de resumir el resto en
+// un "+N" — evita que roles con muchos módulos (Auditor, Administrador)
+// envuelvan a 2 líneas y desalineen la altura estándar de la fila.
+const MAX_VISIBLE_MODULES = 4;
+
 interface RolesTableProps {
     roles: {
         data: Role[]
@@ -104,17 +109,17 @@ export default function RolesTable({
     const showActionsColumn = userPermissions.includes('Editar Roles y Permisos') || userPermissions.includes('Eliminar Roles y Permisos');
 
     return (
-        <div className="space-y-4">
+        <div className="space-y-3">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <SearchInput
-                    placeholder="Buscar por Nombre..."
+                    placeholder="Buscar por nombre..."
                     searchValue={search}
                     onSearch={onSearch}
                     className="w-full sm:max-w-md"
                 />
             </div>
 
-            <div className="rounded-md border overflow-hidden">
+            <div className="rounded-md bg-card shadow-lg shadow-black/10 dark:shadow-black/60 overflow-hidden">
                 <Table>
                     <TableHeader className="bg-gray-400 dark:bg-gray-700">
                         <TableRow>
@@ -130,24 +135,40 @@ export default function RolesTable({
                                 <TableCell>{role.label}</TableCell>
                                 <TableCell>{role.description}</TableCell>
                                 <TableCell>
-                                    <div className="flex flex-wrap gap-2">
-                                        {Object.entries(
+                                    {(() => {
+                                        const moduleCounts = Object.entries(
                                             role.permissions.reduce((acc, permission) => {
                                                 acc[permission.module] = (acc[permission.module] ?? 0) + 1;
                                                 return acc;
                                             }, {} as Record<string, number>)
-                                        ).map(([module, count]) => (
-                                            <span
-                                                key={module}
-                                                className="inline-flex items-center gap-1.5 text-xs pl-3 pr-1.5 py-1 rounded-full bg-blue-600 text-white font-medium shadow-sm dark:bg-blue-700"
-                                            >
-                                                {module}
-                                                <span className="inline-flex items-center justify-center min-w-[1.25rem] h-5 px-1 rounded-full bg-white/20 text-[11px] font-bold">
-                                                    {count}
-                                                </span>
-                                            </span>
-                                        ))}
-                                    </div>
+                                        );
+                                        const visibleModules = moduleCounts.slice(0, MAX_VISIBLE_MODULES);
+                                        const hiddenModules = moduleCounts.slice(MAX_VISIBLE_MODULES);
+
+                                        return (
+                                            <div className="flex flex-nowrap items-center gap-2">
+                                                {visibleModules.map(([module, count]) => (
+                                                    <span
+                                                        key={module}
+                                                        className="inline-flex shrink-0 items-center gap-1.5 text-xs pl-3 pr-1.5 py-0.5 rounded-full bg-blue-600 text-white font-medium shadow-sm dark:bg-blue-700"
+                                                    >
+                                                        {module}
+                                                        <span className="inline-flex items-center justify-center min-w-[1.25rem] h-5 px-1 rounded-full bg-white/20 text-[11px] font-bold">
+                                                            {count}
+                                                        </span>
+                                                    </span>
+                                                ))}
+                                                {hiddenModules.length > 0 && (
+                                                    <span
+                                                        title={hiddenModules.map(([module]) => module).join(', ')}
+                                                        className="inline-flex shrink-0 items-center text-xs px-2.5 py-0.5 rounded-full bg-muted text-muted-foreground font-medium shadow-sm"
+                                                    >
+                                                        +{hiddenModules.length}
+                                                    </span>
+                                                )}
+                                            </div>
+                                        );
+                                    })()}
                                 </TableCell>
                                 {showActionsColumn && (
                                     <TableCell className="text-right">
@@ -159,7 +180,7 @@ export default function RolesTable({
                                                     className="text-amber-600 hover:bg-amber-100 hover:text-amber-700 dark:text-amber-500 dark:hover:bg-amber-950/40 dark:hover:text-amber-400"
                                                     label="Editar rol"
                                                 >
-                                                    <Pencil className="h-4 w-4" />
+                                                    <Pencil className="size-3.5" />
                                                 </IconActionButton>
                                             )}
                                             {userPermissions.includes('Eliminar Roles y Permisos') && (
@@ -169,7 +190,7 @@ export default function RolesTable({
                                                     className="text-red-600 hover:bg-red-100 hover:text-red-700 dark:text-red-500 dark:hover:bg-red-950/40 dark:hover:text-red-400"
                                                     label="Eliminar rol"
                                                 >
-                                                    <Trash2 className="h-4 w-4" />
+                                                    <Trash2 className="size-3.5" />
                                                 </IconActionButton>
                                             )}
                                         </div>

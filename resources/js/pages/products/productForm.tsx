@@ -398,7 +398,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
               value={categories.find(c => c.id.toString() === data.category_id?.toString()) ?? null}
               onValueChange={(c: Category | null) => setData('category_id', c ? c.id.toString() : '')}
             >
-              <ComboboxInput placeholder="Seleccionar Categoría" className="w-full" />
+              <ComboboxInput placeholder="Seleccionar categoría" className="w-full" />
               <ComboboxContent>
                 <ComboboxEmpty>No se encontraron categorías.</ComboboxEmpty>
                 <ComboboxList>
@@ -665,7 +665,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
               value={suppliers.find(s => s.id.toString() === data.supplier_id?.toString()) ?? null}
               onValueChange={(s: Supplier | null) => setData('supplier_id', s ? s.id.toString() : '')}
             >
-              <ComboboxInput placeholder="Seleccionar Proveedor" showClear className="w-full" />
+              <ComboboxInput placeholder="Seleccionar proveedor" showClear className="w-full" />
               <ComboboxContent>
                 <ComboboxEmpty>No se encontraron proveedores.</ComboboxEmpty>
                 <ComboboxList>
@@ -710,7 +710,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
                 value={movementTypes.find(t => t.value === data.movement_type) ?? null}
                 onValueChange={(t: { value: string; label: string } | null) => setData('movement_type', t ? t.value : '')}
               >
-                <ComboboxInput placeholder="Seleccionar Tipo de Movimiento" className="w-full" />
+                <ComboboxInput placeholder="Seleccionar tipo de movimiento" className="w-full" />
                 <ComboboxContent>
                   <ComboboxEmpty>No se encontraron tipos de movimiento.</ComboboxEmpty>
                   <ComboboxList>

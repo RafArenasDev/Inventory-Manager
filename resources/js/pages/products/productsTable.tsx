@@ -106,15 +106,15 @@ export default function ProductsTable({
 
     const getStockStatus = (stock: number) => {
         if (stock === 0) {
-            return { label: 'Sin Stock', color: 'bg-red-600 text-white font-bold dark:bg-red-700' };
+            return { label: 'Sin Stock', color: 'bg-rose-600 text-white font-bold dark:bg-rose-700' };
         } else if (stock <= 3) {
-            return { label: 'Bajo', color: 'bg-red-600 text-white font-bold dark:bg-red-700' };
+            return { label: 'Bajo', color: 'bg-rose-600 text-white font-bold dark:bg-rose-700' };
         } else if (stock <= 7) {
             return { label: 'Medio', color: 'bg-orange-600 text-white font-bold dark:bg-orange-700' };
         } else if (stock <= 15) {
-            return { label: 'Bueno', color: 'bg-yellow-600 text-white font-bold dark:bg-yellow-700' };
+            return { label: 'Bueno', color: 'bg-amber-600 text-white font-bold dark:bg-amber-700' };
         } else {
-            return { label: 'Óptimo', color: 'bg-green-600 text-white font-bold dark:bg-green-700' };
+            return { label: 'Óptimo', color: 'bg-emerald-600 text-white font-bold dark:bg-emerald-700' };
         }
     };
 
@@ -140,7 +140,7 @@ export default function ProductsTable({
                               userPermissions.includes('Eliminar Productos');
 
     return (
-        <div className="space-y-4">
+        <div className="space-y-3">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <SearchInput
                     placeholder="Buscar por código, nombre o proveedor..."
@@ -150,7 +150,7 @@ export default function ProductsTable({
                 />
             </div>
 
-            <div className="rounded-md border dark:border-gray-700 overflow-hidden">
+            <div className="rounded-md bg-card shadow-lg shadow-black/10 dark:shadow-black/60 overflow-hidden">
                 <Table>
                     <TableHeader className="bg-gray-400 dark:bg-gray-700">
                         <TableRow>
@@ -187,12 +187,12 @@ export default function ProductsTable({
                                         </div>
                                     </TableCell>
                                     <TableCell className="text-left">
-                                        <span className="text-xs px-3 py-1 rounded-full bg-blue-600 text-white font-bold w-fit shadow-sm dark:bg-blue-700">
+                                        <span className="text-xs px-3 py-0.5 rounded-full bg-blue-600 text-white font-bold w-fit shadow-sm dark:bg-blue-700">
                                             { product.category }
                                         </span>
                                     </TableCell>
                                     <TableCell className="text-left">
-                                        <span className={`inline-flex items-center gap-2 text-xs px-3 py-1 rounded-full ${stockStatus.color} w-fit shadow-sm`}>
+                                        <span className={`inline-flex items-center gap-2 text-xs px-3 py-0.5 rounded-full ${stockStatus.color} w-fit shadow-sm`}>
                                             <span className="font-bold">{product.stock}</span>
                                             <span>{stockStatus.label}</span>
                                         </span>
@@ -201,7 +201,7 @@ export default function ProductsTable({
                                         {formatPrice(product.sale_price)}
                                     </TableCell>
                                     <TableCell className="text-xs text-left">
-                                        <span className="text-xs px-3 py-1 rounded-full bg-gray-600 text-white font-bold w-fit shadow-sm dark:bg-gray-700">
+                                        <span className="text-xs px-3 py-0.5 rounded-full bg-zinc-600 text-white font-bold w-fit shadow-sm dark:bg-zinc-700">
                                             {product.supplier || '-'}
                                         </span>
                                     </TableCell>
@@ -215,7 +215,7 @@ export default function ProductsTable({
                                                         className="text-blue-600 hover:bg-blue-100 hover:text-blue-700 dark:text-blue-500 dark:hover:bg-blue-950/40 dark:hover:text-blue-400"
                                                         label="Ver producto"
                                                     >
-                                                        <Eye className="h-4 w-4" />
+                                                        <Eye className="size-3.5" />
                                                     </IconActionButton>
                                                 )}
                                                 {userPermissions.includes('Editar Productos') && (
@@ -225,7 +225,7 @@ export default function ProductsTable({
                                                         className="text-amber-600 hover:bg-amber-100 hover:text-amber-700 dark:text-amber-500 dark:hover:bg-amber-950/40 dark:hover:text-amber-400"
                                                         label="Editar producto"
                                                     >
-                                                        <Pencil className="h-4 w-4" />
+                                                        <Pencil className="size-3.5" />
                                                     </IconActionButton>
                                                 )}
                                                 {userPermissions.includes('Eliminar Productos') && (
@@ -235,7 +235,7 @@ export default function ProductsTable({
                                                         className="text-red-600 hover:bg-red-100 hover:text-red-700 dark:text-red-500 dark:hover:bg-red-950/40 dark:hover:text-red-400"
                                                         label="Eliminar producto"
                                                     >
-                                                        <Trash2 className="h-4 w-4" />
+                                                        <Trash2 className="size-3.5" />
                                                     </IconActionButton>
                                                 )}
                                             </div>

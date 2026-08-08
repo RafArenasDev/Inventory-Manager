@@ -417,7 +417,7 @@ export default function Dashboard({
                 </div>
 
                 {/* Financials Section */}
-                <div className="border-sidebar-border/70 dark:border-sidebar-border relative flex-1 rounded-xl border bg-card">
+                <div className="relative flex-1 rounded-xl bg-card shadow-lg shadow-black/10 dark:shadow-black/60">
                     <div className="p-6 h-full flex flex-col gap-6">
                         {/* Header + selector de período (controla las tarjetas y el gráfico) */}
                         <div className="flex items-center justify-between flex-wrap gap-3">
@@ -464,8 +464,14 @@ export default function Dashboard({
                                         </div>
                                         <div className="text-right shrink-0">
                                             <p className="text-xs text-white/80">{card.subtext}</p>
-                                            <span className={`px-3 py-1 bg-white text-xs font-semibold rounded-full ${card.data.growth >= 0 ? 'text-green-500' : 'text-red-500'}`}>
-                                                {card.data.growth >= 0 ? '+' : ''}{card.data.growth}%
+                                            <span className={`px-3 py-1 bg-white text-xs font-semibold rounded-full ${
+                                                card.data.growth > 0
+                                                    ? 'text-green-500'
+                                                    : card.data.growth < 0
+                                                        ? 'text-red-500'
+                                                        : 'text-gray-500'
+                                            }`}>
+                                                {card.data.growth > 0 ? '+' : ''}{card.data.growth}%
                                             </span>
                                         </div>
                                     </div>

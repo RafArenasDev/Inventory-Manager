@@ -6,6 +6,7 @@ import { IconActionButton } from "@/components/icon-action-button";
 import { Pencil, Download, ArrowLeftRight } from "lucide-react";
 import { Pagination } from "@/components/ui/pagination";
 import SearchInput from "@/components/ui/search-input";
+import { PeriodFilter } from "@/components/period-filter";
 
 interface Product {
   id: number;
@@ -50,6 +51,7 @@ interface MovementsTableProps {
   filteredCount: number;
   search: string;
   onSearch: (search: string) => void;
+  onPeriodChange: (range: { date_from: string; date_to: string }) => void;
   filters: {
     search?: string;
     per_page?: string;
@@ -71,33 +73,32 @@ export default function InventoryMovementsTable({
   filteredCount,
   search,
   onSearch,
+  onPeriodChange,
   filters,
   userPermissions,
   showActionsColumn,
 }: MovementsTableProps) {
 
+  // Tono estándar por dirección del movimiento (no por subtipo individual):
+  // esmeralda = entra stock, rosa = sale stock, ámbar = ajuste neutral. El
+  // texto ya distingue el subtipo exacto; el color solo debe comunicar la
+  // dirección para no saturar la tabla con 9 tonos distintos.
   const getTypeBadgeClass = (type: string) => {
     switch (type) {
       case 'Entrada':
-        return 'bg-green-500 dark:bg-green-600';
       case 'Devolucion Cliente':
-        return 'bg-green-600 dark:bg-green-700';
       case 'Consignacion Entrada':
-        return 'bg-green-700 dark:bg-green-800';
       case 'Cambio Entrada':
-        return 'bg-green-800 dark:bg-green-900';
+        return 'bg-emerald-600 dark:bg-emerald-700';
       case 'Salida':
-        return 'bg-red-500 dark:bg-red-600';
       case 'Devolucion Proveedor':
-        return 'bg-red-600 dark:bg-red-700';
       case 'Consignacion Salida':
-        return 'bg-red-700 dark:bg-red-800';
       case 'Cambio Salida':
-        return 'bg-red-800 dark:bg-red-900';
+        return 'bg-rose-600 dark:bg-rose-700';
       case 'Ajuste Inventario':
-        return 'bg-blue-600 dark:bg-blue-700';
+        return 'bg-amber-600 dark:bg-amber-700';
       default:
-        return 'bg-gray-600 dark:bg-gray-700';
+        return 'bg-zinc-600 dark:bg-zinc-700';
     }
   };
 
@@ -118,21 +119,23 @@ export default function InventoryMovementsTable({
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <SearchInput
-          placeholder="Buscar por producto, tipo o proveedor..."
-          searchValue={search}
-          onSearch={onSearch}
-          className="w-full sm:max-w-md"
-        />
+        <div className="flex w-full items-center gap-2 sm:max-w-md">
+          <SearchInput
+            placeholder="Buscar por producto, tipo o proveedor..."
+            searchValue={search}
+            onSearch={onSearch}
+            className="min-w-0 flex-1"
+          />
+          <PeriodFilter onChange={onPeriodChange} />
+        </div>
         {userPermissions.includes('Exportar Movimientos Inventario') && (
           <Button
-            variant="outline"
             size="sm"
             onClick={handleExport}
             title="Exportar movimientos a Excel"
-            className="gap-2"
+            className="gap-2 bg-gray-500 text-white hover:bg-gray-600"
           >
             <Download className="h-4 w-4" />
             Exportar Excel
@@ -140,14 +143,8 @@ export default function InventoryMovementsTable({
         )}
       </div>
 
-      {/* Contador de resultados */}
-      {filteredCount !== totalCount && (
-        <div className="text-sm text-muted-foreground">
-          Mostrando {filteredCount} de {totalCount} movimientos
-        </div>
-      )}
 
-      <div className="rounded-md border overflow-hidden">
+      <div className="rounded-md bg-card shadow-lg shadow-black/10 dark:shadow-black/60 overflow-hidden">
         <Table>
           <TableHeader className="bg-gray-400 dark:bg-gray-700">
             <TableRow>
@@ -165,14 +162,14 @@ export default function InventoryMovementsTable({
               movements.data.map((m) => (
                 <TableRow key={m.id}>
                   <TableCell className="capitalize font-medium">
-                    <span className={`text-xs px-3 py-1 rounded-full font-bold w-fit shadow-sm text-white ${getTypeBadgeClass(m.type)}`}>
+                    <span className={`text-xs px-3 py-0.5 rounded-full font-bold w-fit shadow-sm text-white ${getTypeBadgeClass(m.type)}`}>
                       {m.type}
                     </span>
                   </TableCell>
                   <TableCell className="font-medium">{m.quantity}</TableCell>
                   <TableCell>{m.product.name}</TableCell>
                   <TableCell>
-                    <span className="text-xs px-3 py-1 rounded-full bg-gray-600 text-white font-bold w-fit shadow-sm dark:bg-gray-700">
+                    <span className="text-xs px-3 py-0.5 rounded-full bg-zinc-600 text-white font-bold w-fit shadow-sm dark:bg-zinc-700">
                       {m.supplier?.name || '-'}
                     </span>
                   </TableCell>
@@ -198,7 +195,7 @@ export default function InventoryMovementsTable({
                             className="text-amber-600 hover:bg-amber-100 hover:text-amber-700 dark:text-amber-500 dark:hover:bg-amber-950/40 dark:hover:text-amber-400"
                             label="Editar movimiento"
                           >
-                            <Pencil className="h-4 w-4" />
+                            <Pencil className="size-3.5" />
                           </IconActionButton>
                         )}
                       </div>
@@ -228,6 +225,7 @@ export default function InventoryMovementsTable({
         filteredCount={filteredCount}
         search={search}
         searchRoute="inventory-movements.search"
+        extraFilters={{ date_from: filters.date_from, date_to: filters.date_to }}
       />
     </div>
   );

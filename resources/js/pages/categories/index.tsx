@@ -105,6 +105,12 @@ export default function CategoryIndex({ categories, filters, totalCount, filtere
         });
     };
 
+    // Cuando hay más de una página, la card se estira (flex-1) para que el
+    // margen inferior respecto al módulo quede igual al superior — igual
+    // que el panel de Resumen Financiero del Dashboard. Con pocos registros
+    // se deja del tamaño natural, sin espacio muerto forzado abajo.
+    const hasMultiplePages = totalCount > Number(filters.per_page || 10);
+
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Categorías" />
@@ -121,18 +127,20 @@ export default function CategoryIndex({ categories, filters, totalCount, filtere
                         </Button>
                     )}
                 </PageHeader>
-                <div className="bg-card overflow-hidden shadow-sm sm:rounded-lg p-6">
-                    <CategoriesTable
-                        categories={categories}
-                        perPage={filters.per_page || "10"}
-                        onPerPageChange={() => { }}
-                        onEditCategory={handleEditCategory}
-                        totalCount={totalCount}
-                        filteredCount={filteredCount}
-                        search={filters.search || ""}
-                        onSearch={handleSearch}
-                        userPermissions={userPermissions}
-                    />
+                <div className={`relative rounded-xl bg-card shadow-lg shadow-black/10 dark:shadow-black/60 overflow-hidden ${hasMultiplePages ? 'flex-1' : ''}`}>
+                    <div className={`h-full ${hasMultiplePages ? 'px-6 py-4' : 'p-6'}`}>
+                        <CategoriesTable
+                            categories={categories}
+                            perPage={filters.per_page || "10"}
+                            onPerPageChange={() => { }}
+                            onEditCategory={handleEditCategory}
+                            totalCount={totalCount}
+                            filteredCount={filteredCount}
+                            search={filters.search || ""}
+                            onSearch={handleSearch}
+                            userPermissions={userPermissions}
+                        />
+                    </div>
                 </div>
             </div>
 

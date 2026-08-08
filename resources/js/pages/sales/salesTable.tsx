@@ -8,12 +8,14 @@ import {
 } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
 import { IconActionButton } from "@/components/icon-action-button"
-import { Ban, FileText, Eye, Download, Receipt } from "lucide-react"
+import { Ban, Printer, Eye, Download, Receipt } from "lucide-react"
 import { Pagination } from "@/components/ui/pagination"
 import { router } from "@inertiajs/react"
 import axios from "axios"
 import Swal from '@/lib/swal';
 import SearchInput from "@/components/ui/search-input"
+import { PeriodFilter } from "@/components/period-filter"
+import { formatDate } from "@/lib/format-datetime"
 
 interface SaleItem {
     id: number;
@@ -78,25 +80,21 @@ interface SalesTableProps {
     filteredCount: number;
     search: string;
     onSearch: (search: string) => void;
+    onPeriodChange: (range: { date_from: string; date_to: string }) => void;
     userPermissions: string[];
     onViewInvoice: (url: string) => void;
     onViewDetails: (saleId: number) => void;
     filters: {
         search?: string;
         per_page?: string;
+        date_from?: string;
+        date_to?: string;
     };
+    extraFilters?: Record<string, string | undefined>;
 }
 
 const formatCurrency = (value: number): string => {
     return `$ ${Math.round(value).toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.')}`;
-};
-
-const formatDate = (dateString: string): string => {
-    const date = new Date(dateString);
-    const day = String(date.getDate()).padStart(2, '0');
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const year = date.getFullYear();
-    return `${day}/${month}/${year}`;
 };
 
 export default function SalesTable({
@@ -107,10 +105,12 @@ export default function SalesTable({
     filteredCount,
     search,
     onSearch,
+    onPeriodChange,
     userPermissions,
     onViewInvoice,
     onViewDetails,
     filters = {}, // Default to empty object to avoid undefined
+    extraFilters,
 }: SalesTableProps) {
     const handleCancel = (sale: Sale) => {
         Swal.fire({
@@ -156,21 +156,23 @@ export default function SalesTable({
     const showActionsColumn = userPermissions.includes('Eliminar Ventas') || sales.data.some(sale => sale.public_invoice_url);
 
     return (
-        <div className="space-y-4">
+        <div className="space-y-3">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                <SearchInput
-                    placeholder="Buscar por Cliente, Documento o Nº Factura..."
-                    searchValue={search}
-                    onSearch={onSearch}
-                    className="w-full sm:max-w-md"
-                />
+                <div className="flex w-full items-center gap-2 sm:max-w-md">
+                    <SearchInput
+                        placeholder="Buscar por cliente, documento o n.° de factura..."
+                        searchValue={search}
+                        onSearch={onSearch}
+                        className="min-w-0 flex-1"
+                    />
+                    <PeriodFilter onChange={onPeriodChange} />
+                </div>
                 {userPermissions.includes('Exportar Ventas') && (
                     <Button
-                        variant="outline"
                         size="sm"
                         onClick={handleExport}
                         title="Exportar ventas a Excel"
-                        className="gap-2"
+                        className="gap-2 bg-gray-500 text-white hover:bg-gray-600"
                     >
                         <Download className="h-4 w-4" />
                         Exportar Excel
@@ -178,13 +180,8 @@ export default function SalesTable({
                 )}
             </div>
 
-            {filteredCount !== totalCount && (
-                <div className="text-sm text-muted-foreground">
-                    Mostrando {filteredCount} de {totalCount} ventas
-                </div>
-            )}
 
-            <div className="rounded-md border overflow-hidden">
+            <div className="rounded-md bg-card shadow-lg shadow-black/10 dark:shadow-black/60 overflow-hidden">
                 <Table>
                     <TableHeader className="bg-gray-400 dark:bg-gray-700">
                         <TableRow>
@@ -209,11 +206,11 @@ export default function SalesTable({
                                 <TableCell>{sale.items.length}</TableCell>
                                 <TableCell>
                                     {sale.is_cancelled ? (
-                                        <span className="text-xs px-3 py-1 rounded-full bg-red-600 text-white font-bold w-fit shadow-sm dark:bg-red-700">
+                                        <span className="text-xs px-3 py-0.5 rounded-full bg-rose-600 text-white font-bold w-fit shadow-sm dark:bg-rose-700">
                                             Anulada
                                         </span>
                                     ) : (
-                                        <span className="text-xs px-3 py-1 rounded-full bg-green-600 text-white font-bold w-fit shadow-sm dark:bg-green-700">
+                                        <span className="text-xs px-3 py-0.5 rounded-full bg-emerald-600 text-white font-bold w-fit shadow-sm dark:bg-emerald-700">
                                             Activa
                                         </span>
                                     )}
@@ -227,16 +224,16 @@ export default function SalesTable({
                                                 className="text-blue-600 hover:bg-blue-100 hover:text-blue-700 dark:text-blue-500 dark:hover:bg-blue-950/40 dark:hover:text-blue-400"
                                                 label="Ver detalles"
                                             >
-                                                <Eye className="h-4 w-4" />
+                                                <Eye className="size-3.5" />
                                             </IconActionButton>
                                             {sale.public_invoice_url && (
                                                 <IconActionButton
                                                     variant="ghost"
                                                     onClick={() => onViewInvoice(sale.public_invoice_url!)}
                                                     className="text-blue-600 hover:bg-blue-100 hover:text-blue-700 dark:text-blue-500 dark:hover:bg-blue-950/40 dark:hover:text-blue-400"
-                                                    label="Ver factura"
+                                                    label="Imprimir factura"
                                                 >
-                                                    <FileText className="h-4 w-4" />
+                                                    <Printer className="size-3.5" />
                                                 </IconActionButton>
                                             )}
                                             {userPermissions.includes('Eliminar Ventas') && !sale.is_cancelled && (
@@ -246,7 +243,7 @@ export default function SalesTable({
                                                     className="text-red-600 hover:bg-red-100 hover:text-red-700 dark:text-red-500 dark:hover:bg-red-950/40 dark:hover:text-red-400"
                                                     label="Anular venta"
                                                 >
-                                                    <Ban className="h-4 w-4" />
+                                                    <Ban className="size-3.5" />
                                                 </IconActionButton>
                                             )}
                                         </div>
@@ -276,6 +273,7 @@ export default function SalesTable({
                 filteredCount={filteredCount}
                 search={search}
                 searchRoute="sales.search"
+                extraFilters={extraFilters}
             />
         </div>
     );

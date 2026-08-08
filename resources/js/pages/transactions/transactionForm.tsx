@@ -311,7 +311,7 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ transaction, categori
                             type="text"
                             value={amountInput ? formatAmountDisplay(amountInput) : ''}
                             onChange={handleAmountChange}
-                            className="w-full pl-8 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-black text-gray-900 dark:text-gray-100"
+                            className="w-full pl-8"
                             placeholder="0"
                         />
                     </div>
@@ -353,7 +353,7 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ transaction, categori
                         type="date"
                         value={data.transaction_date}
                         onChange={(e) => setData('transaction_date', e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-black text-gray-900 dark:text-gray-100"
+                        className="w-full"
                     />
                     {errors.transaction_date && <p className="mt-1 text-sm text-red-600">{errors.transaction_date}</p>}
                 </div>
@@ -368,7 +368,7 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ transaction, categori
                         type="time"
                         value={data.transaction_time}
                         onChange={(e) => setData('transaction_time', e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-black text-gray-900 dark:text-gray-100"
+                        className="w-full cursor-not-allowed"
                         readOnly
                     />
                     {errors.transaction_time && <p className="mt-1 text-sm text-red-600">{errors.transaction_time}</p>}
@@ -384,7 +384,7 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ transaction, categori
                     id="invoice_number"
                     value={data.invoice_number}
                     onChange={(e) => setData('invoice_number', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-black text-gray-900 dark:text-gray-100"
+                    className="w-full"
                     placeholder="Número de factura (opcional)"
                 />
                 {errors.invoice_number && <p className="mt-1 text-sm text-red-600">{errors.invoice_number}</p>}
@@ -400,7 +400,7 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ transaction, categori
                     value={data.description}
                     onChange={(e) => setData('description', e.target.value)}
                     rows={3}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-black text-gray-900 dark:text-gray-100"
+                    className="w-full"
                     placeholder="Descripción de la transacción (opcional)"
                 />
                 {errors.description && <p className="mt-1 text-sm text-red-600">{errors.description}</p>}
@@ -416,7 +416,7 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ transaction, categori
                     value={data.notes}
                     onChange={(e) => setData('notes', e.target.value)}
                     rows={3}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-black text-gray-900 dark:text-gray-100"
+                    className="w-full"
                     placeholder="Notas adicionales (opcional)"
                 />
                 {errors.notes && <p className="mt-1 text-sm text-red-600">{errors.notes}</p>}

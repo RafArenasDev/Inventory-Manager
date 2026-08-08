@@ -5,32 +5,11 @@ import { Head, router, usePage } from '@inertiajs/react';
 import { Button } from '@/components/ui/button';
 import { Plus, Users } from 'lucide-react';
 import ClientsTable from './clientsTable';
-import ClientHistoryModal from './clientHistoryModal';
+import ClientDetailModal from './clientDetailModal';
 import ClientForm from './clientForm';
-import axios from 'axios';
-import Swal from '@/lib/swal';
 import { PageHeader } from '@/components/page-header';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { ConfirmDialog } from '@/components/confirm-dialog';
-
-interface SaleItem {
-    id: number;
-    product_id: number;
-    product_name?: string;
-    quantity: number;
-    unit_price: number;
-    total_price: number;
-}
-
-interface Sale {
-    id: number;
-    sale_date: string;
-    items: SaleItem[];
-    total?: number;
-    year?: number;
-    month?: number;
-    count?: number;
-}
 
 interface Client {
     id: number;
@@ -39,12 +18,15 @@ interface Client {
     verification_digit?: number;
     name: string;
     department_id?: number;
+    department?: string | null;
     city_id?: number;
+    city?: string | null;
     phone?: string;
     cellphone?: string;
     address?: string;
     email?: string;
     is_active: boolean;
+    created_at?: string;
 }
 
 interface ClientForForm {
@@ -109,10 +91,7 @@ export default function ClientIndex({
     const [editingClient, setEditingClient] = useState<ClientForForm | null>(null);
     const [isFormDirty, setIsFormDirty] = useState(false);
     const [showDiscardConfirm, setShowDiscardConfirm] = useState(false);
-    const [isHistoryOpen, setIsHistoryOpen] = useState(false);
-    const [selectedClient, setSelectedClient] = useState<Client | null>(null);
-    const [salesData, setSalesData] = useState<Sale[]>([]);
-    const [historyFilters, setHistoryFilters] = useState<{ start_date?: string; end_date?: string; group_by?: 'month' | 'year' | null }>({});
+    const [viewingClient, setViewingClient] = useState<Client | null>(null);
 
     const { auth } = usePage().props as unknown as { auth: { permissions: string[] } };
     const userPermissions = auth.permissions;
@@ -154,28 +133,8 @@ export default function ClientIndex({
         setIsCreating(false);
     };
 
-    const handleViewHistory = async (client: Client) => {
-        try {
-            const response = await axios.get(route('clients.history', client.id));
-            setSalesData(response.data.sales || []);
-            setHistoryFilters(response.data.filters || {});
-            setSelectedClient(client);
-            setIsHistoryOpen(true);
-        } catch (error: unknown) {
-            console.error('Error fetching client history:', error);
-            Swal.fire({
-                position: 'center',
-                icon: 'error',
-                title: 'Error al cargar el historial',
-                text: error instanceof Error ? error.message : 'No se pudo cargar el historial de compras.',
-                showConfirmButton: false,
-                timer: 2200,
-            });
-            setSalesData([]);
-            setHistoryFilters({});
-            setSelectedClient(client);
-            setIsHistoryOpen(true);
-        }
+    const handleViewClient = (client: Client) => {
+        setViewingClient(client);
     };
 
     const closeForm = () => {
@@ -213,6 +172,7 @@ export default function ClientIndex({
     };
 
     const defaultClients = { data: [], links: [], from: 0, to: 0, total: 0 };
+    const hasMultiplePages = totalCount > Number(filters.per_page || 10);
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
@@ -230,26 +190,26 @@ export default function ClientIndex({
                         </Button>
                     )}
                 </PageHeader>
-                <div className="bg-card overflow-hidden shadow-sm sm:rounded-lg p-6">
-                    <ClientsTable
-                        clients={clients || defaultClients}
-                        perPage={filters.per_page || '10'}
-                        onPerPageChange={handlePerPageChange}
-                        onEditClient={handleEditClient}
-                        onViewHistory={handleViewHistory}
-                        totalCount={totalCount}
-                        filteredCount={filteredCount}
-                        search={filters.search || ''}
-                        onSearch={handleSearch}
-                        userPermissions={userPermissions}
-                    />
+                <div className={`relative rounded-xl bg-card shadow-lg shadow-black/10 dark:shadow-black/60 overflow-hidden ${hasMultiplePages ? 'flex-1' : ''}`}>
+                    <div className={`h-full ${hasMultiplePages ? 'px-6 py-4' : 'p-6'}`}>
+                        <ClientsTable
+                            clients={clients || defaultClients}
+                            perPage={filters.per_page || '10'}
+                            onPerPageChange={handlePerPageChange}
+                            onEditClient={handleEditClient}
+                            onViewClient={handleViewClient}
+                            totalCount={totalCount}
+                            filteredCount={filteredCount}
+                            search={filters.search || ''}
+                            onSearch={handleSearch}
+                            userPermissions={userPermissions}
+                        />
+                    </div>
                 </div>
-                <ClientHistoryModal
-                    isOpen={isHistoryOpen}
-                    onClose={() => setIsHistoryOpen(false)}
-                    client={selectedClient}
-                    sales={salesData}
-                    filters={historyFilters}
+                <ClientDetailModal
+                    isOpen={!!viewingClient}
+                    onClose={() => setViewingClient(null)}
+                    client={viewingClient}
                 />
             </div>
 

@@ -180,6 +180,8 @@ export default function ProductIndex({
         );
     };
 
+    const hasMultiplePages = totalCount > Number(filters.per_page || 10);
+
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Productos" />
@@ -196,7 +198,8 @@ export default function ProductIndex({
                         </Button>
                     )}
                 </PageHeader>
-                <div className="bg-card overflow-hidden shadow-sm sm:rounded-lg p-6">
+                <div className={`relative rounded-xl bg-card shadow-lg shadow-black/10 dark:shadow-black/60 overflow-hidden ${hasMultiplePages ? 'flex-1' : ''}`}>
+                    <div className={`h-full ${hasMultiplePages ? 'px-6 py-4' : 'p-6'}`}>
                     <ProductsTable
                         products={products}
                         perPage={filters.per_page || '10'}
@@ -208,6 +211,7 @@ export default function ProductIndex({
                         onSearch={handleSearch}
                         userPermissions={userPermissions}
                     />
+                    </div>
                 </div>
             </div>
 

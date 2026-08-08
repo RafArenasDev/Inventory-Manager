@@ -81,7 +81,13 @@ function TableCell({ className, ...props }: React.ComponentProps<"td">) {
     <td
       data-slot="table-cell"
       className={cn(
-        "p-2 align-middle whitespace-nowrap [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]",
+        // h-[51px]: altura estándar de fila en toda la app, recalculada tras
+        // achicar toggles/íconos/badges — la misma que alcanza de forma
+        // natural la tabla de Proveedores con teléfono + celular apilados.
+        // En layout de tablas, `height` en un <td> actúa como un mínimo
+        // (min-height no lo respetan los navegadores en table-cell): las
+        // celdas con contenido más alto siguen creciendo sin recortarse.
+        "h-[51px] p-2 align-middle whitespace-nowrap [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]",
         className
       )}
       {...props}

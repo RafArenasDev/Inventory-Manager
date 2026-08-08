@@ -2,6 +2,9 @@ import React, { useEffect } from 'react';
 import { useForm } from '@inertiajs/react';
 import Swal from '@/lib/swal';
 import { Button } from '@/components/ui/button';
+import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 
 interface Category {
     id?: number;
@@ -102,15 +105,15 @@ const CategoryForm: React.FC<CategoryFormProps> = ({ category, onCancel, onSaved
             {/* Información básica */}
             <div className="space-y-4">
                     <div>
-                        <label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                        <Label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                             Nombre de la Categoría *
-                        </label>
-                        <input
+                        </Label>
+                        <Input
                             type="text"
                             id="name"
                             value={data.name}
                             onChange={(e) => setData('name', e.target.value)}
-                            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-black text-gray-900 dark:text-gray-100"
+                            className="w-full"
                             placeholder="Ingrese el nombre de la categoría"
                             required
                         />
@@ -118,15 +121,15 @@ const CategoryForm: React.FC<CategoryFormProps> = ({ category, onCancel, onSaved
                     </div>
 
                     <div>
-                        <label htmlFor="description" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                        <Label htmlFor="description" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                             Descripción
-                        </label>
-                        <textarea
+                        </Label>
+                        <Textarea
                             id="description"
                             value={data.description}
                             onChange={(e) => setData('description', e.target.value)}
                             rows={3}
-                            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-black text-gray-900 dark:text-gray-100"
+                            className="w-full"
                             placeholder="Descripción de la categoría (opcional)"
                         />
                         {errors.description && <p className="mt-1 text-sm text-red-600">{errors.description}</p>}

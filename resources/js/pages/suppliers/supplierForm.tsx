@@ -2,6 +2,9 @@ import React, { useEffect, useState } from 'react';
 import { useForm } from '@inertiajs/react';
 import Swal from '@/lib/swal';
 import { Button } from '@/components/ui/button';
+import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 
 interface SupplierForForm {
     id?: number;
@@ -14,7 +17,6 @@ interface SupplierForForm {
     address?: string | null;
     email?: string | null;
     description?: string | null;
-    is_active?: boolean;
 }
 
 interface SupplierFormProps {
@@ -36,7 +38,6 @@ const SupplierForm: React.FC<SupplierFormProps> = ({ supplier, onCancel, onSaved
         address: supplier?.address || '',
         email: supplier?.email || '',
         description: supplier?.description || '',
-        is_active: supplier?.id ? supplier.is_active : true,
     });
 
     const [nitNumberError, setNitNumberError] = useState<string>('');
@@ -142,15 +143,15 @@ const SupplierForm: React.FC<SupplierFormProps> = ({ supplier, onCancel, onSaved
         <form onSubmit={handleSubmit} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                    <label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    <Label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                         Nombre del Proveedor *
-                    </label>
-                    <input
+                    </Label>
+                    <Input
                         type="text"
                         id="name"
                         value={data.name}
                         onChange={(e) => setData('name', e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-black text-gray-900 dark:text-gray-100"
+                        className="w-full"
                         placeholder="Ingrese el nombre del proveedor"
                         required
                     />
@@ -158,31 +159,29 @@ const SupplierForm: React.FC<SupplierFormProps> = ({ supplier, onCancel, onSaved
                 </div>
 
                 <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    <Label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                         NIT *
-                    </label>
+                    </Label>
                     <div className="flex items-center gap-2">
-                        <input
+                        <Input
                             type="number"
                             id="nit_number"
                             value={data.nit_number}
                             onChange={handleNitNumberChange}
-                            className={`flex-1 px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-black text-gray-900 dark:text-gray-100 ${
-                                nitNumberError ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : 'border-gray-300 dark:border-gray-600'
-                            }`}
+                            className="flex-1"
+                            aria-invalid={!!nitNumberError}
                             placeholder="Número NIT"
                             min="0"
                             required
                         />
                         <span className="text-gray-500">-</span>
-                        <input
+                        <Input
                             type="number"
                             id="nit_digit"
                             value={data.nit_digit}
                             onChange={handleNitDigitChange}
-                            className={`w-12 px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-black text-gray-900 dark:text-gray-100 ${
-                                nitDigitError ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : 'border-gray-300 dark:border-gray-600'
-                            }`}
+                            className="w-12"
+                            aria-invalid={!!nitDigitError}
                             placeholder="D"
                             min="0"
                             max="9"
@@ -196,110 +195,94 @@ const SupplierForm: React.FC<SupplierFormProps> = ({ supplier, onCancel, onSaved
                 </div>
 
                 <div className="md:col-span-2">
-                    <label htmlFor="representative" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    <Label htmlFor="representative" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                         Representante Legal
-                    </label>
-                    <input
+                    </Label>
+                    <Input
                         type="text"
                         id="representative"
                         value={data.representative || ''}
                         onChange={(e) => setData('representative', e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-black text-gray-900 dark:text-gray-100"
+                        className="w-full"
                         placeholder="Nombre del representante legal"
                     />
                     {errors.representative && <p className="mt-1 text-sm text-red-600">{errors.representative}</p>}
                 </div>
 
                 <div>
-                    <label htmlFor="phone" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    <Label htmlFor="phone" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                         Teléfono Fijo
-                    </label>
-                    <input
+                    </Label>
+                    <Input
                         type="tel"
                         id="phone"
                         value={data.phone || ''}
                         onChange={(e) => setData('phone', e.target.value.replace(/[^0-9]/g, ''))}
-                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-black text-gray-900 dark:text-gray-100"
+                        className="w-full"
                         placeholder="Teléfono fijo"
                     />
                     {errors.phone && <p className="mt-1 text-sm text-red-600">{errors.phone}</p>}
                 </div>
 
                 <div>
-                    <label htmlFor="cellphone" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    <Label htmlFor="cellphone" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                         Celular
-                    </label>
-                    <input
+                    </Label>
+                    <Input
                         type="tel"
                         id="cellphone"
                         value={data.cellphone || ''}
                         onChange={(e) => setData('cellphone', e.target.value.replace(/[^0-9]/g, ''))}
-                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-black text-gray-900 dark:text-gray-100"
+                        className="w-full"
                         placeholder="Número de celular"
                     />
                     {errors.cellphone && <p className="mt-1 text-sm text-red-600">{errors.cellphone}</p>}
                 </div>
 
                 <div className="md:col-span-2">
-                    <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    <Label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                         Email
-                    </label>
-                    <input
+                    </Label>
+                    <Input
                         type="email"
                         id="email"
                         value={data.email || ''}
                         onChange={(e) => setData('email', e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-black text-gray-900 dark:text-gray-100"
+                        className="w-full"
                         placeholder="email@proveedor.com"
                     />
                     {errors.email && <p className="mt-1 text-sm text-red-600">{errors.email}</p>}
                 </div>
 
                 <div className="md:col-span-2">
-                    <label htmlFor="address" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    <Label htmlFor="address" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                         Dirección
-                    </label>
-                    <textarea
+                    </Label>
+                    <Textarea
                         id="address"
                         value={data.address || ''}
                         onChange={(e) => setData('address', e.target.value)}
                         rows={2}
-                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-black text-gray-900 dark:text-gray-100"
+                        className="w-full"
                         placeholder="Dirección completa del proveedor"
                     />
                     {errors.address && <p className="mt-1 text-sm text-red-600">{errors.address}</p>}
                 </div>
 
                 <div className="md:col-span-2">
-                    <label htmlFor="description" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    <Label htmlFor="description" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                         Descripción
-                    </label>
-                    <textarea
+                    </Label>
+                    <Textarea
                         id="description"
                         value={data.description || ''}
                         onChange={(e) => setData('description', e.target.value)}
                         rows={3}
-                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-black text-gray-900 dark:text-gray-100"
+                        className="w-full"
                         placeholder="Descripción del proveedor (opcional)"
                     />
                     {errors.description && <p className="mt-1 text-sm text-red-600">{errors.description}</p>}
                 </div>
-
-                {supplier?.id && (
-                    <div className="md:col-span-2">
-                        <label htmlFor="is_active" className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                            <input
-                                type="checkbox"
-                                id="is_active"
-                                checked={data.is_active}
-                                onChange={(e) => setData('is_active', e.target.checked)}
-                                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 dark:border-gray-600 rounded"
-                            />
-                            Proveedor Activo
-                        </label>
-                        {errors.is_active && <p className="mt-1 text-sm text-red-600">{errors.is_active}</p>}
-                    </div>
-                )}
             </div>
 
             <div className="flex justify-end space-x-3 pt-4 border-t border-gray-200 dark:border-gray-700">

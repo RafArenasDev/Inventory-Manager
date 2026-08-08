@@ -10,7 +10,7 @@ export const IconActionButton = forwardRef<HTMLButtonElement, IconActionButtonPr
     ({ label, ...props }, ref) => (
         <Tooltip>
             <TooltipTrigger asChild>
-                <Button ref={ref} size="icon" aria-label={label} {...props} />
+                <Button ref={ref} size="icon-sm" aria-label={label} {...props} />
             </TooltipTrigger>
             <TooltipContent>{label}</TooltipContent>
         </Tooltip>

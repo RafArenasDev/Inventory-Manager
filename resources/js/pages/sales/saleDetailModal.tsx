@@ -219,7 +219,7 @@ export default function SaleDetailModal({ isOpen, onClose, sale, businessName }:
 
                     <div>
                         <h4 className="mb-3 text-sm font-semibold text-gray-900 dark:text-gray-100">Productos</h4>
-                        <div className="max-h-[240px] overflow-y-auto rounded-md border dark:border-gray-800">
+                        <div className="max-h-[240px] overflow-y-auto rounded-md border">
                             <Table>
                                 <TableHeader className="bg-gray-400 dark:bg-gray-700">
                                     <TableRow>

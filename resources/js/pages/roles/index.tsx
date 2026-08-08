@@ -119,6 +119,8 @@ export default function RoleIndex({ roles, permissions, catalogModules, filters,
         });
     };
 
+    const hasMultiplePages = totalCount > Number(filters.per_page || 10);
+
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Roles y Permisos" />
@@ -135,18 +137,20 @@ export default function RoleIndex({ roles, permissions, catalogModules, filters,
                         </Button>
                     )}
                 </PageHeader>
-                <div className="bg-card overflow-hidden shadow-sm sm:rounded-lg p-6">
-                    <RolesTable
-                        roles={roles}
-                        perPage={filters.per_page || "10"}
-                        onPerPageChange={() => { }}
-                        onEditRole={handleEditRole}
-                        totalCount={totalCount}
-                        filteredCount={filteredCount}
-                        search={filters.search || ""}
-                        onSearch={handleSearch}
-                        userPermissions={userPermissions}
-                    />
+                <div className={`relative rounded-xl bg-card shadow-lg shadow-black/10 dark:shadow-black/60 overflow-hidden ${hasMultiplePages ? 'flex-1' : ''}`}>
+                    <div className={`h-full ${hasMultiplePages ? 'px-6 py-4' : 'p-6'}`}>
+                        <RolesTable
+                            roles={roles}
+                            perPage={filters.per_page || "10"}
+                            onPerPageChange={() => { }}
+                            onEditRole={handleEditRole}
+                            totalCount={totalCount}
+                            filteredCount={filteredCount}
+                            search={filters.search || ""}
+                            onSearch={handleSearch}
+                            userPermissions={userPermissions}
+                        />
+                    </div>
                 </div>
             </div>
 

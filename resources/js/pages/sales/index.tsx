@@ -108,6 +108,8 @@ interface SaleIndexProps {
     filters: {
         search?: string;
         per_page?: string;
+        date_from?: string;
+        date_to?: string;
     };
     totalCount: number;
     filteredCount: number;
@@ -177,6 +179,18 @@ export default function SaleIndex({ sales, products, clients, departments, citie
     // sales.search); este callback solo existe para cumplir la prop.
     const handlePerPageChange = () => {};
 
+    const handlePeriodChange = (range: { date_from?: string; date_to?: string }) => {
+        router.post(route('sales.search'), {
+            ...filters,
+            date_from: range.date_from ?? '',
+            date_to: range.date_to ?? '',
+            page: 1,
+        }, {
+            preserveState: true,
+            preserveScroll: true,
+        });
+    };
+
     const handleViewInvoice = (url: string) => {
         setCurrentInvoiceUrl(url);
         setIsInvoiceModalOpen(true);
@@ -203,6 +217,8 @@ export default function SaleIndex({ sales, products, clients, departments, citie
         }
     };
 
+    const hasMultiplePages = totalCount > Number(filters.per_page || 10);
+
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Ventas" />
@@ -219,20 +235,24 @@ export default function SaleIndex({ sales, products, clients, departments, citie
                         </Button>
                     )}
                 </PageHeader>
-                <div className="bg-card overflow-hidden shadow-sm sm:rounded-lg p-6">
-                    <SalesTable
-                        sales={sales}
-                        filters={filters}
-                        perPage={filters.per_page || '10'}
-                        onPerPageChange={handlePerPageChange}
-                        totalCount={totalCount}
-                        filteredCount={filteredCount}
-                        search={filters.search || ''}
-                        onSearch={handleSearch}
-                        userPermissions={userPermissions}
-                        onViewInvoice={handleViewInvoice}
-                        onViewDetails={handleViewDetails}
-                    />
+                <div className={`relative rounded-xl bg-card shadow-lg shadow-black/10 dark:shadow-black/60 overflow-hidden ${hasMultiplePages ? 'flex-1' : ''}`}>
+                    <div className={`h-full ${hasMultiplePages ? 'px-6 py-4' : 'p-6'}`}>
+                        <SalesTable
+                            sales={sales}
+                            filters={filters}
+                            perPage={filters.per_page || '10'}
+                            onPerPageChange={handlePerPageChange}
+                            totalCount={totalCount}
+                            filteredCount={filteredCount}
+                            search={filters.search || ''}
+                            onSearch={handleSearch}
+                            onPeriodChange={handlePeriodChange}
+                            userPermissions={userPermissions}
+                            onViewInvoice={handleViewInvoice}
+                            onViewDetails={handleViewDetails}
+                            extraFilters={{ date_from: filters.date_from, date_to: filters.date_to }}
+                        />
+                    </div>
                 </div>
             </div>
 
