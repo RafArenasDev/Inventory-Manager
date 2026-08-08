@@ -38,6 +38,11 @@ class Product extends Model
         return $this->hasMany(InventoryMovement::class);
     }
 
+    public function purchaseOrderItems()
+    {
+        return $this->hasMany(PurchaseOrderItem::class);
+    }
+
     // AGREGAR ESTA RELACIÓN
     public function saleItems()
     {
@@ -62,5 +67,23 @@ class Product extends Model
     public function scopeOutOfStock($query)
     {
         return $query->where('stock', 0);
+    }
+
+    /**
+     * Mismos cortes que el semáforo de productsTable.tsx / la campana de
+     * notificaciones — un solo lugar para no repetir los números 0/3 en
+     * cada controlador que necesite clasificar stock bajo.
+     */
+    public static function stockTier(int $stock): string
+    {
+        if ($stock === 0) {
+            return 'agotado';
+        }
+
+        if ($stock <= 3) {
+            return 'critico';
+        }
+
+        return 'advertencia';
     }
 }

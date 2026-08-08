@@ -43,6 +43,11 @@ class Supplier extends Model
         return $this->hasManyThrough(InventoryMovement::class, Product::class);
     }
 
+    public function purchaseOrders()
+    {
+        return $this->hasMany(PurchaseOrder::class);
+    }
+
     public function getShortDescriptionAttribute()
     {
         return Str::limit($this->description ?? '', 100);

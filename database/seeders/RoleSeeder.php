@@ -105,6 +105,10 @@ class RoleSeeder extends Seeder
             'Editar Movimientos Inventario',
             'Actualizar Movimientos Inventario',
             'Exportar Movimientos Inventario',
+            'Ver Pedidos',
+            'Crear Pedidos',
+            'Actualizar Pedidos',
+            'Exportar Pedidos',
         ])->get());
 
         // Auditor: solo lectura y exportación en todos los módulos

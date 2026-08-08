@@ -4,8 +4,10 @@ use App\Http\Controllers\CashRegisterController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\ClientController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\InventoryImportController;
 use App\Http\Controllers\InventoryMovementController;
 use App\Http\Controllers\ProductController;
+use App\Http\Controllers\PurchaseOrderController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\SaleController;
 use App\Http\Controllers\SupplierController;
@@ -33,6 +35,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::get('/notifications/low-stock', [DashboardController::class, 'lowStockNotifications'])
         ->name('notifications.low-stock');
+
+    Route::get('/notifications/low-stock-by-provider', [PurchaseOrderController::class, 'lowStockByProvider'])
+        ->name('notifications.low-stock-by-provider');
 
     // Roles y Permisos
     Route::prefix('roles')->group(function () {
@@ -184,6 +189,43 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::put('/{inventoryMovement}', [InventoryMovementController::class, 'update'])
             ->name('inventory-movements.update')
             ->middleware('permission:Actualizar Movimientos Inventario');
+    });
+
+    // Pedidos (órdenes de compra a proveedores)
+    Route::prefix('purchase-orders')->group(function () {
+        Route::get('/', [PurchaseOrderController::class, 'index'])
+            ->name('purchase-orders.index')
+            ->middleware('permission:Ver Pedidos');
+        Route::match(['get', 'post'], '/search', [PurchaseOrderController::class, 'index'])
+            ->name('purchase-orders.search')
+            ->middleware('permission:Ver Pedidos');
+
+        Route::get('/export', [PurchaseOrderController::class, 'export'])
+            ->name('purchase-orders.export')
+            ->middleware('permission:Exportar Pedidos');
+
+        Route::post('/', [PurchaseOrderController::class, 'store'])
+            ->name('purchase-orders.store')
+            ->middleware('permission:Crear Pedidos');
+
+        Route::put('/{purchaseOrder}', [PurchaseOrderController::class, 'update'])
+            ->name('purchase-orders.update')
+            ->middleware('permission:Actualizar Pedidos');
+
+        Route::post('/{purchaseOrder}/receive', [PurchaseOrderController::class, 'receive'])
+            ->name('purchase-orders.receive')
+            ->middleware('permission:Actualizar Pedidos');
+
+        Route::delete('/{purchaseOrder}', [PurchaseOrderController::class, 'destroy'])
+            ->name('purchase-orders.destroy')
+            ->middleware('permission:Eliminar Pedidos');
+    });
+
+    // Carga masiva (Productos, Movimientos, Pedidos — REFACTOR-PLAN.md 12.4)
+    Route::prefix('inventory-import')->middleware('permission:Crear Movimientos Inventario')->group(function () {
+        Route::get('/template', [InventoryImportController::class, 'template'])->name('inventory-import.template');
+        Route::post('/preview', [InventoryImportController::class, 'preview'])->name('inventory-import.preview');
+        Route::post('/commit', [InventoryImportController::class, 'commit'])->name('inventory-import.commit');
     });
 
     // Clients

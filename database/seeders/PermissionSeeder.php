@@ -86,6 +86,13 @@ class PermissionSeeder extends Seeder
                 'Exportar Transacciones'               => 'Permite exportar las transacciones a Excel',
                 'Gestionar Categorías Transacciones'   => 'Permite crear, editar y eliminar categorías de transacciones',
             ],
+            'Pedidos' => [
+                'Ver Pedidos'        => 'Permite ver el módulo de Pedidos a proveedores',
+                'Crear Pedidos'      => 'Permite solicitar un pedido a un proveedor',
+                'Actualizar Pedidos' => 'Permite cancelar un pedido o editar sus notas',
+                'Eliminar Pedidos'   => 'Permite eliminar pedidos',
+                'Exportar Pedidos'   => 'Permite exportar los pedidos a Excel',
+            ],
             'Caja' => [
                 'Ver Caja'        => 'Permite ver el módulo de Caja',
                 'Crear Caja'      => 'Permite abrir la caja diaria',

@@ -6,6 +6,7 @@ use App\Http\Requests\InventoryMovementRequest;
 use App\Models\Category;
 use App\Models\InventoryMovement;
 use App\Models\Product;
+use App\Models\PurchaseOrderItem;
 use App\Models\Supplier;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -134,13 +135,60 @@ class InventoryMovementController extends Controller
 
         $movement = InventoryMovement::create($validated);
 
+        $this->syncPurchaseOrder($movement, $movement->quantity);
+
         return redirect()->route('inventory-movements.index')
             ->with('success', 'Movimiento de inventario registrado correctamente.');
+    }
+
+    /**
+     * Si el movimiento (de entrada) viene enlazado a un Pedido, suma/resta
+     * $delta a la línea del producto correspondiente y cierra el pedido solo
+     * cuando todas sus líneas quedan cubiertas — o lo reabre si un ajuste
+     * posterior (edición/eliminación del movimiento) deja de cubrirlo.
+     */
+    private function syncPurchaseOrder(InventoryMovement $movement, int $delta): void
+    {
+        if (! $movement->purchase_order_id) {
+            return;
+        }
+
+        $entryTypes = ['Entrada', 'Devolucion Cliente', 'Consignacion Entrada', 'Cambio Entrada'];
+        if (! in_array($movement->type, $entryTypes)) {
+            return;
+        }
+
+        $item = PurchaseOrderItem::where('purchase_order_id', $movement->purchase_order_id)
+            ->where('product_id', $movement->product_id)
+            ->first();
+
+        if (! $item) {
+            return;
+        }
+
+        $item->quantity_received = max(0, $item->quantity_received + $delta);
+        $item->save();
+
+        $purchaseOrder = $item->purchaseOrder()->with('items')->first();
+        if ($purchaseOrder->status === 'Cancelado') {
+            return;
+        }
+
+        if ($purchaseOrder->isFullyReceived() && $purchaseOrder->status !== 'Recibido') {
+            $purchaseOrder->update(['status' => 'Recibido', 'received_at' => now()]);
+        } elseif (! $purchaseOrder->isFullyReceived() && $purchaseOrder->status === 'Recibido') {
+            $purchaseOrder->update(['status' => 'Solicitado', 'received_at' => null]);
+        }
     }
 
     public function update(InventoryMovementRequest $request, InventoryMovement $inventoryMovement)
     {
         $validated = $request->validated();
+
+        // Foto del estado anterior — hace falta para revertir su efecto en
+        // el Pedido enlazado (si lo hay) con los datos correctos, ya que
+        // $inventoryMovement se sobreescribe más abajo con los nuevos.
+        $oldMovement = $inventoryMovement->replicate();
 
         $product = $inventoryMovement->product;
 
@@ -179,6 +227,9 @@ class InventoryMovementController extends Controller
 
         $inventoryMovement->update($validated);
 
+        $this->syncPurchaseOrder($oldMovement, -$oldMovement->quantity);
+        $this->syncPurchaseOrder($inventoryMovement, $inventoryMovement->quantity);
+
         return redirect()->route('inventory-movements.index')
             ->with('success', 'Movimiento de inventario actualizado correctamente.');
     }
@@ -199,6 +250,8 @@ class InventoryMovementController extends Controller
                 $product->increment('stock', abs($inventoryMovement->quantity));
             }
         }
+
+        $this->syncPurchaseOrder($inventoryMovement, -$inventoryMovement->quantity);
 
         $inventoryMovement->delete();
 
