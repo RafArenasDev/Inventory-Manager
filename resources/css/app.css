@@ -78,7 +78,11 @@
 }
 
 :root {
-    --background: oklch(1 0 0);
+    /* El canvas de los módulos va un escalón por debajo del blanco puro
+       para que las card (bg-card, blancas) se distingan de él sin
+       depender solo del borde — antes ambos eran oklch(1) y la card
+       "desaparecía" en el fondo. */
+    --background: oklch(0.965 0 0);
     --foreground: oklch(0.145 0 0);
     --card: oklch(1 0 0);
     --card-foreground: oklch(0.145 0 0);
@@ -88,14 +92,14 @@
     --primary-foreground: oklch(0.985 0 0);
     --secondary: oklch(0.97 0 0);
     --secondary-foreground: oklch(0.205 0 0);
-    --muted: oklch(0.97 0 0);
+    --muted: oklch(0.94 0 0);
     --muted-foreground: oklch(0.556 0 0);
-    --accent: oklch(0.97 0 0);
+    --accent: oklch(0.94 0 0);
     --accent-foreground: oklch(0.205 0 0);
     --destructive: oklch(0.577 0.245 27.325);
     --destructive-foreground: oklch(0.577 0.245 27.325);
-    --border: oklch(0.922 0 0);
-    --input: oklch(0.922 0 0);
+    --border: oklch(0.88 0 0);
+    --input: oklch(0.88 0 0);
     --ring: oklch(0.87 0 0);
     --chart-1: oklch(0.646 0.222 41.116);
     --chart-2: oklch(0.6 0.118 184.704);
@@ -106,36 +110,44 @@
     /* La sidebar siempre usa el tono oscuro, sin importar el tema
        claro/oscuro de la app — es "chrome" de navegación, no contenido, y
        así el resaltado del item activo tiene contraste real (antes, en
-       tema claro, sidebar y highlight eran casi el mismo blanco). */
-    --sidebar: oklch(0.100205 0 0);
+       tema claro, sidebar y highlight eran casi el mismo blanco). Se
+       sube un poco de oklch(0.100) a oklch(0.15) porque en tema oscuro
+       quedaba casi idéntica al fondo (oklch(0) puro) — ahora se
+       distingue tanto del fondo oscuro como del canvas claro. */
+    --sidebar: oklch(0.15 0 0);
     --sidebar-foreground: oklch(0.985 0 0);
     --sidebar-primary: oklch(0.980 0 0);
     --sidebar-primary-foreground: oklch(0.985 0 0);
-    --sidebar-accent: oklch(0.280 0 0);
+    --sidebar-accent: oklch(0.24 0 0);
     --sidebar-accent-foreground: oklch(0.985 0 0);
-    --sidebar-border: oklch(0.269 0 0);
+    --sidebar-border: oklch(0.22 0 0);
     --sidebar-ring: oklch(0.439 0 0);
 }
 
 .dark {
-    --background: oklch(0.0 0 0);
+    /* Antes background era negro absoluto (0) y card oklch(0.145) — muy
+       cerca uno del otro y, sobre todo, casi idéntico a la sidebar fija
+       (0.100), que quedaba "fundida" con el módulo detrás. Se sube el
+       canvas a 0.08 (negro suave, no OLED) para dejar aire debajo de la
+       sidebar (0.15) y de las card (0.16). */
+    --background: oklch(0.08 0 0);
     --foreground: oklch(0.985 0 0);
-    --card: oklch(0.145 0 0);
+    --card: oklch(0.16 0 0);
     --card-foreground: oklch(0.985 0 0);
-    --popover: oklch(0.145 0 0);
+    --popover: oklch(0.16 0 0);
     --popover-foreground: oklch(0.985 0 0);
     --primary: oklch(0.985 0 0);
     --primary-foreground: oklch(0.205 0 0);
     --secondary: oklch(0.269 0 0);
     --secondary-foreground: oklch(0.985 0 0);
-    --muted: oklch(0.269 0 0);
+    --muted: oklch(0.22 0 0);
     --muted-foreground: oklch(0.708 0 0);
-    --accent: oklch(0.269 0 0);
+    --accent: oklch(0.22 0 0);
     --accent-foreground: oklch(0.985 0 0);
     --destructive: oklch(0.396 0.141 25.723);
     --destructive-foreground: oklch(0.637 0.237 25.331);
-    --border: oklch(0.269 0 0);
-    --input: oklch(0.269 0 0);
+    --border: oklch(0.26 0 0);
+    --input: oklch(0.26 0 0);
     --ring: oklch(0.439 0 0);
     --chart-1: oklch(0.488 0.243 264.376);
     --chart-2: oklch(0.696 0.17 162.48);
