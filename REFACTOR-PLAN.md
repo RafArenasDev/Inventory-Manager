@@ -732,12 +732,11 @@ usuario, en este orden):
   forma confiable con el navegador automatizado — pendiente de una pasada
   visual real del usuario.
 
-## 12. [DISEÑO APROBADO, PENDIENTE DE IMPLEMENTAR] Sidebar agrupada, versión/copyright, módulo Pedidos y rediseño de alertas de stock (pedido 2026-08-07)
+## 12. Sidebar agrupada, versión/copyright, módulo Pedidos y rediseño de alertas de stock (pedido 2026-08-07)
 
-**Estado: 📋 diseño aprobado por el usuario 2026-08-07, sin código todavío**
-(salvo el punto 12.6, ya aplicado). Antes de tocar los 10 módulos o crear
-tablas nuevas, este documento es la referencia — seguir el flujo normal del
-proyecto: implementar, verificar en navegador, y solo entonces marcar ✅.
+**Estado: ✅ implementado y verificado en el navegador** (12.1 a 12.4), y
+12.5 (auditoría Postgres) completada — ver el detalle de cada punto abajo.
+`migrate:fresh --seed` corrido tras los cambios de esquema, sin errores.
 
 ## 12.1 Sidebar agrupada + versión + copyright
 
@@ -887,16 +886,66 @@ detalle de un Pedido (ahí, además, alimenta `quantity_received`).
 - Botón "Descargar plantilla" (Excel en blanco con esas columnas,
   reutilizando el mismo `PhpSpreadsheet` que ya generan los exports).
 
-## 12.5 Auditoría Postgres + barrido final (después de implementar 12.1-12.4)
+## 12.5 Auditoría Postgres
 
-Pedido explícito del usuario para **después** de que el módulo de Pedidos
-esté funcionando: revisar que todo el código quede estandarizado para
-Postgres (recordar que el proyecto migró de MySQL a Postgres — ver "Estado
-al cierre... 2026-08-06" y la sección de contexto al inicio de este
-documento) — buscar cualquier función SQL específica de MySQL que haya
-quedado (`DB::raw`, `selectRaw`, `whereRaw`, `having` sin verificar,
-`ENUM` de MySQL vs `CHECK` de Postgres, etc.), y cerrar con un resumen
-general de todo lo hecho en el proyecto vs. lo que queda pendiente.
+**Estado: ✅ hecho — sin hallazgos nuevos.** Se revisó cada uso de SQL
+crudo en la app (`grep` de `DB::raw`, `selectRaw`, `whereRaw`, `havingRaw`,
+`orderByRaw`, `groupByRaw`, y patrones típicos de MySQL como `ON DUPLICATE
+KEY`, `AUTO_INCREMENT`, `ENGINE=`, `UNSIGNED`, `GROUP_CONCAT`,
+`DATE_FORMAT`):
+
+- `DashboardController::dateExtract()` y `weekNumberExpression()` (usados
+  en todo el gráfico de ventas) ya son condicionales por driver
+  (`DB::connection()->getDriverName()`) desde una sesión anterior —
+  `pgsql` usa `EXTRACT(...)`, `sqlite` usa `strftime`, y el `default`
+  (MySQL, ya no usado en este entorno) queda como fallback sin romper nada.
+  Mismo patrón, ya correcto, en `ClientController::history()` para
+  año/mes del historial de compras.
+- El resto de `DB::raw`/`selectRaw`/`havingRaw` de `DashboardController`
+  son agregados estándar (`SUM`, `COUNT`) — portables sin cambios entre
+  MySQL/Postgres/SQLite.
+- Cero coincidencias de sintaxis específica de MySQL (`ON DUPLICATE KEY`,
+  `AUTO_INCREMENT`, `ENGINE=`, etc.) — los `seeders/` ya usan
+  `updateOrCreate`/`firstOrCreate` de Eloquent en vez de upserts crudos.
+- Cero `'like'` case-sensitive restantes (barrido de la sección 11,
+  confirmado de nuevo aquí) — todo el filtrado de texto usa `ilike`.
+- Las tablas nuevas de este punto (`purchase_orders`,
+  `purchase_order_items`) usan `$table->enum()` (Postgres lo traduce a un
+  `CHECK` nativo) y `foreignId()->constrained()` estándar — sin
+  particularidades de motor.
+
+No se encontró deuda técnica de MySQL pendiente — el trabajo de
+portabilidad ya se había hecho a fondo en la sesión del 2026-08-05.
+
+## 12.6b Resumen general del proyecto — hecho vs. pendiente (2026-08-07)
+
+**Hecho (production-ready para el negocio real):** autenticación y
+permisos por rol, CRUD completo de los 10 módulos originales + Pedidos,
+Dashboard con gráficos y alertas, Caja con apertura/cierre automático por
+horario laboral, Estado activo/inactivo con reactivación automática,
+búsqueda case-insensitive en toda la app, exports a Excel con moneda
+formateada correctamente, modal de cliente unificado con filtro por
+período, sidebar agrupada con versión/copyright, y ahora reabastecimiento
+completo (alertas → Pedido → recepción manual o masiva → cierre
+automático). Base de datos 100% Postgres, sin deuda de MySQL.
+
+**Pendiente, en orden de impacto:**
+1. Refactor a componentes de tabla/modal reutilizables (punto 11) — el
+   módulo Pedidos se construyó todavía "a mano" como el resto; sigue
+   siendo la oportunidad de reducir código duplicado entre los 11 módulos.
+2. Modales "Ver" (show) para Usuarios, Proveedores, Categorías,
+   Movimientos de Inventario y Finanzas (puntos 1 y 11).
+3. Auditoría de modo claro de los tonos nuevos (emerald/rose/amber/zinc,
+   popover de filtros, badges de Pedidos/alertas) — la verificación de
+   hoy fue mayormente en tema oscuro.
+4. Responsive real en viewport angosto (punto 3) — sigue sin poder
+   probarse de forma confiable con el navegador automatizado.
+5. PWA instalable (punto 4) — no iniciado.
+6. Catálogos en BD para tipos de movimiento y métodos de pago (punto 8).
+7. Calidad de código general (punto 7): tests en pausa durante el MVP,
+   revisión de nombres/tipos pendiente.
+8. WhatsApp automatizado — pausado a propósito, decisión consciente de
+   quedarse con el link manual (ver punto 8 original).
 
 ## 12.6 Ya aplicado (sin esperar al resto del punto 12)
 
@@ -937,32 +986,24 @@ mecanismos independientes.
 
 ## Próxima sesión — por dónde seguir
 
-Lo más práctico para retomar, en orden de impacto (actualizado tras el
-diseño aprobado del punto 12):
+Lo más práctico para retomar, en orden de impacto (actualizado tras
+implementar y verificar el punto 12 completo, 2026-08-07):
 
-1. **Implementar el punto 12** (diseño ya aprobado 2026-08-07, ver esa
-   sección para el detalle completo): sidebar agrupada + versión/
-   copyright, módulo Pedidos, rediseño del modal de alertas de stock, e
-   importador masivo Excel/CSV. Seguir el orden interno 12.1 → 12.4 (la
-   sidebar y el modelo de Pedidos son la base de todo lo demás). Cerrar con
-   12.5 (auditoría Postgres + barrido general) una vez lo anterior esté
-   verificado en el navegador.
-2. **Diseñar y proponer** (antes de escribir código) los componentes
-   reutilizables de tabla y modal descritos en el punto 11 — considerar
-   hacerlo junto con el punto 12 ya que el módulo Pedidos y su tabla son
-   una oportunidad natural de estrenar ese patrón en vez de escribirlo "a
-   mano" una vez más.
-3. **Modales "Ver" (show)** para Usuarios, Proveedores, Categorías,
-   Movimientos de Inventario y Finanzas — implementarlos ya usando el
-   componente reutilizable del punto 2 si quedó listo, para no duplicar
-   trabajo dos veces.
-4. **Auditar modo claro** de los tonos nuevos (emerald/rose/amber/zinc,
-   popover del filtro Año-Mes) — la verificación del punto 11 fue
-   mayormente en tema oscuro.
-5. **Responsive total (punto 3):** sigue sin poder auditarse en un viewport
+1. **Refactor a componentes reutilizables (punto 11).** Con Pedidos ya
+   construido "a mano" igual que los otros 10 módulos, el patrón repetido
+   es aún más evidente — buen momento para diseñar `DataTable`/
+   `ResourceTable` y `ResourceModal` genéricos y empezar a migrar,
+   arrancando por 1-2 módulos como prueba antes de tocar los demás.
+2. **Modales "Ver" (show)** para Usuarios, Proveedores, Categorías,
+   Movimientos de Inventario y Finanzas — usar el componente reutilizable
+   del punto 1 si quedó listo, para no duplicar trabajo dos veces.
+3. **Auditar modo claro** de los tonos nuevos (emerald/rose/amber/zinc,
+   popover de filtros, badges de Pedidos y del modal de alertas) — la
+   verificación de las secciones 11 y 12 fue mayormente en tema oscuro.
+4. **Responsive total (punto 3):** sigue sin poder auditarse en un viewport
    angosto real de forma confiable con el navegador automatizado — hacerlo
    con la ventana del navegador real del usuario.
-6. **Catálogos en BD (punto 8):** proponer diseño de tablas para tipos de
+5. **Catálogos en BD (punto 8):** proponer diseño de tablas para tipos de
    movimiento y métodos de pago antes de construir (el Combobox que los va
    a mostrar ya está listo).
 7. **PWA (punto 4):** no depende de nada de lo anterior, se puede hacer en
