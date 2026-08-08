@@ -632,6 +632,106 @@ oficial de shadcn en su lugar:
 - No se corrió `npm run lint`/`npm run format` sobre los archivos tocados
   hoy (sí `tsc --noEmit` y `npm run build` después de cada cambio).
 
+## 11. Caja automática, Estado activo/inactivo, y estandarización UI/UX (sesión larga 2026-08-07)
+
+**Estado: ✅ hecho y verificado en el navegador**, salvo lo anotado al final.
+Sesión muy larga con demanda explícita y repetida de "estandarización" (una
+misma corrección debe aplicarse igual en todos los módulos, no solo donde se
+detectó el problema). Commits (`git log`, en orden):
+
+1. `style(theme)`: retoque de contraste sidebar/card/canvas (light y dark).
+2. `feat(auth)`: rediseño del menú de usuario — modales de Perfil/Contraseña
+   inline, switch de tema sol/luna, se elimina la página estática de
+   Configuración. El estado de apertura del modal se subió a `NavUserMenu`
+   (padre) porque `UserMenuContent` (hijo, dentro del `DropdownMenuContent`
+   que se desmonta al cerrar) mataba el modal antes de que renderizara.
+3. `feat`: **Estado (activo/inactivo)** para Usuarios, Categorías, Proveedores
+   y Clientes — switch verde/rojo directo en la tabla (`StatusToggle`,
+   autocontenido: confirma con SweetAlert y dispara el PATCH él mismo). Login
+   bloqueado para usuarios inactivos. Reactivación automática: crear un
+   producto/movimiento reactiva su categoría; una venta reactiva al cliente.
+   Nuevo comando `app:deactivate-inactive-entities` (categorías sin productos
+   60+ días, clientes sin ventas 90+ días) — disparado una vez al día desde
+   el primer login (`routes/console.php`), no vía `Schedule`, porque esta PC
+   no es un servidor 24/7.
+4. `feat(cash-register)`: **caja con horario automático** — se abre sola en
+   el primer login del día (8:00am–6:30pm) y se cierra sola al hacer logout,
+   cada una con aviso SweetAlert (~30s después del login, no interrumpe de
+   inmediato). Abrir/cerrar caja pasó a ser exclusivo de Admin (antes Cajero
+   también podía). **Bug real corregido:** `total_sales` se guardaba en
+   centavos mientras `total_income` estaba en pesos (descuadre de 100x,
+   encontrado por el usuario con un dump crudo de BD) — se corrigió el
+   cálculo y se hizo backfill de los registros ya cerrados. Se separó
+   "Ventas" de "Otros Ingresos" en vez de sumarlos (una venta ya genera su
+   propia Transacción tipo Ingreso, sumarlas de nuevo duplicaba el monto).
+   "Diferencia" se renombró a "Resultado del Día" (no hay caja física que
+   contar, el nombre anterior sugería una reconciliación que no aplica). Se
+   quitó el botón "X" por fila y la columna Acciones completa de la tabla;
+   cerrar la caja de hoy es ahora un botón "Cerrar Caja" en el header
+   (mismo lugar y estilo que "Abrir Caja", en rojo). Se agregó
+   `FlashErrorWatcher` global — `flash.error`/`flash.success` nunca tenían
+   consumidor en el frontend pese a que el middleware ya los compartía.
+5. `fix`: búsqueda **case-insensitive** en toda la app — Postgres's `LIKE` es
+   sensible a mayúsculas (a diferencia de MySQL), se reemplazó por `ilike`
+   (soportado nativo por Laravel) en los ~12 controladores con filtro de
+   búsqueda. De paso se corrigió un `SQLSTATE[42803]` real que rompía
+   Finanzas en producción (`(clone $query)->selectRaw(...)` heredaba un
+   `orderBy` incompatible con un SELECT solo-agregado en Postgres sin
+   `GROUP BY` — se agregó `->reorder()`).
+6. `feat`: modal de cliente **unificado** (info + historial de compras en
+   uno solo, antes dos modales separados), con filtro Año/Mes (default al
+   mes actual). Nuevo componente compartido `PeriodFilter` (solo Año+Mes,
+   sin trimestre/semestre) reusado en Caja, Finanzas, Ventas y Movimientos
+   de Inventario — el backend defaultea `date_from`/`date_to` al mes actual
+   cuando no llega filtro, y devuelve el default aplicado en `filters` para
+   que la UI no tenga que adivinar. Fix de formato de moneda faltante en el
+   export a Excel de Ventas (los montos se escribían como números crudos
+   sin separador de miles, a diferencia de Caja/Finanzas que sí lo tenían).
+7. `style`: **estandarización de tablas y layout** en los 10 módulos —
+   altura de fila única (`TableCell`, misma que ya tenía Proveedores con
+   teléfono+celular), íconos de acción e interruptores más chicos,
+   badges con el mismo padding vertical y paleta (emerald/rose/amber/zinc
+   en vez de la mezcla verde/rojo/azul/naranja de antes — Movimientos de
+   Inventario tenía 9 tonos distintos para lo que en realidad es solo
+   entra/sale/ajuste). Badges de permisos de Roles ya no envuelven a 2-3
+   líneas (capados a 4 + "+N"). La card de cada módulo replica ahora
+   exactamente el panel de Resumen Financiero del Dashboard: mismo shadow,
+   esquinas redondeadas sin condicionar a `sm:` (se veían cuadradas en
+   mobile), y `flex-1` cuando hay paginación activa para que el margen
+   inferior de la card quede igual al superior (antes quedaba un espacio
+   muerto irregular abajo). El filtro Año-Mes pasó de ocupar su propia fila
+   a un botón compacto con ícono + popover (nuevo primitivo `Popover`,
+   porque el Combobox de Base UI se porta mal dentro de un `DropdownMenu`
+   de Radix), con fondo `bg-card` (no `bg-background`) y sin robar el foco
+   al abrir. Botones de Exportar unificados al estilo del propio botón
+   Exportar del Dashboard. Placeholders de búsqueda en minúscula en toda la
+   app; texto redundante "Mostrando X de Y" eliminado (ya lo muestra
+   `Pagination`).
+
+❌ **Pendiente explícito para la próxima sesión** (pedido directo del
+usuario, en este orden):
+- **Modales "Ver" (show)** para Usuarios, Proveedores, Categorías,
+  Movimientos de Inventario y Finanzas — siguiendo el precedente de
+  `clientDetailModal.tsx`/`productModal.tsx`, ya que sus tablas no exponen
+  todas las columnas de la BD.
+- **Refactor a componentes reutilizables**: todas las tablas (`*Table.tsx`)
+  y modales de create/edit repiten la misma estructura (search + tabla +
+  paginación; form con los mismos patrones de Dialog/confirm/dirty-check),
+  solo cambian las columnas, los campos y los colores de botones por
+  módulo. Diseñar un `DataTable`/`ResourceTable` genérico (columnas,
+  render de celda, acciones y badges como parámetros) y un `ResourceModal`/
+  `FormModal` genérico para create/edit, de forma que cada `index.tsx` solo
+  pase parámetros (columnas, endpoints, permisos) en vez de reimplementar
+  la tabla completa — reduce archivos y código duplicado entre los 10
+  módulos. **Diseñar y proponer la forma de estos componentes antes de
+  migrar los módulos uno por uno** (no reescribir los 10 de una).
+- No se auditó el modo claro a fondo en esta sesión (la mayoría de
+  verificación fue en oscuro) — revisar los nuevos tonos emerald/rose/
+  amber/zinc y el popover del filtro también en tema claro.
+- Responsive real en pantallas angostas (móvil) sigue sin poder probarse de
+  forma confiable con el navegador automatizado — pendiente de una pasada
+  visual real del usuario.
+
 ---
 
 ## Orden sugerido de ejecución
@@ -658,26 +758,29 @@ oficial de shadcn en su lugar:
 
 ## Próxima sesión — por dónde seguir
 
-Lo más práctico para retomar, en orden de impacto:
+Lo más práctico para retomar, en orden de impacto (actualizado tras la
+sesión del punto 11):
 
-1. **Pase de humo del Combobox (sección 10):** probar "crear" (no solo
-   editar) en los 6 forms convertidos hoy, y confirmar si la alerta de stock
-   crítico reapareciendo es un bug real o fue solo ruido de las pruebas
-   automatizadas de hoy.
-2. **Responsive total (punto 3):** falta la auditoría en 375px real (no se
-   pudo probar en esta sesión por limitación del entorno de browser
-   automatizado) — hacerlo con la ventana del navegador real del usuario.
-3. **Auditar modales/diseño del resto de módulos (puntos 1 y 2):** confirmar
-   cuáles de `cashRegister`, `categories`, `clients`, `inventoryMovements`,
-   `permissions`, `suppliers`, `transactions`, `users` ya están en modal y
-   cuáles siguen como página completa; aplicar el mismo patrón de Roles/Ventas
-   a los que falten.
-4. **Catálogos en BD (punto 8):** proponer diseño de tablas para tipos de
+1. **Diseñar y proponer** (antes de escribir código) los componentes
+   reutilizables de tabla y modal descritos en el punto 11 — es el pedido
+   más reciente y explícito del usuario, y cambia cómo se implementan
+   todos los ítems siguientes de esta lista.
+2. **Modales "Ver" (show)** para Usuarios, Proveedores, Categorías,
+   Movimientos de Inventario y Finanzas — implementarlos ya usando el
+   componente reutilizable del punto 1 si quedó listo, para no duplicar
+   trabajo dos veces.
+3. **Auditar modo claro** de los tonos nuevos (emerald/rose/amber/zinc,
+   popover del filtro Año-Mes) — la verificación del punto 11 fue
+   mayormente en tema oscuro.
+4. **Responsive total (punto 3):** sigue sin poder auditarse en un viewport
+   angosto real de forma confiable con el navegador automatizado — hacerlo
+   con la ventana del navegador real del usuario.
+5. **Catálogos en BD (punto 8):** proponer diseño de tablas para tipos de
    movimiento y métodos de pago antes de construir (el Combobox que los va
    a mostrar ya está listo).
-5. **PWA (punto 4):** no depende de nada de lo anterior, se puede hacer en
+6. **PWA (punto 4):** no depende de nada de lo anterior, se puede hacer en
    paralelo si se prefiere.
-6. **WhatsApp:** retomar la investigación de Baileys + Render solo cuando el
+7. **WhatsApp:** retomar la investigación de Baileys + Render solo cuando el
    usuario lo pida explícitamente otra vez (quedó pausado a propósito).
 
 ## Criterios de aceptación
