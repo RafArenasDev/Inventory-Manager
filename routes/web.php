@@ -67,6 +67,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::put('/{user}', [UserController::class, 'update'])
             ->name('users.update')
             ->middleware('permission:Actualizar Usuarios');
+        Route::patch('/{user}/toggle-active', [UserController::class, 'toggleActive'])
+            ->name('users.toggle-active')
+            ->middleware('permission:Actualizar Usuarios');
         Route::delete('/{user}', [UserController::class, 'destroy'])
             ->name('users.destroy')
             ->middleware('permission:Eliminar Usuarios');
@@ -89,6 +92,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::put('/{supplier}', [SupplierController::class, 'update'])
             ->name('suppliers.update')
             ->middleware('permission:Actualizar Proveedores');
+        Route::patch('/{supplier}/toggle-active', [SupplierController::class, 'toggleActive'])
+            ->name('suppliers.toggle-active')
+            ->middleware('permission:Actualizar Proveedores');
         Route::delete('/{supplier}', [SupplierController::class, 'destroy'])
             ->name('suppliers.destroy')
             ->middleware('permission:Eliminar Proveedores');
@@ -107,6 +113,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
             ->middleware('permission:Crear Categorías');
         Route::put('/{category}', [CategoryController::class, 'update'])
             ->name('categories.update')
+            ->middleware('permission:Actualizar Categorías');
+        Route::patch('/{category}/toggle-active', [CategoryController::class, 'toggleActive'])
+            ->name('categories.toggle-active')
             ->middleware('permission:Actualizar Categorías');
         Route::delete('/{category}', [CategoryController::class, 'destroy'])
             ->name('categories.destroy')
@@ -193,6 +202,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
             ->middleware('permission:Crear Clientes');
         Route::put('/{client}', [ClientController::class, 'update'])
             ->name('clients.update')
+            ->middleware('permission:Editar Clientes');
+        Route::patch('/{client}/toggle-active', [ClientController::class, 'toggleActive'])
+            ->name('clients.toggle-active')
             ->middleware('permission:Editar Clientes');
         Route::delete('/{client}', [ClientController::class, 'destroy'])
             ->name('clients.destroy')

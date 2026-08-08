@@ -7,6 +7,7 @@ import {
     TableRow,
 } from "@/components/ui/table"
 import { IconActionButton } from "@/components/icon-action-button"
+import { StatusToggle } from "@/components/status-toggle"
 import { Pencil, Tags, Trash2 } from "lucide-react"
 import { Pagination } from "@/components/ui/pagination"
 import { router } from "@inertiajs/react"
@@ -20,6 +21,7 @@ interface Category {
     created_at: string
     updated_at: string
     products_count?: number
+    is_active: boolean
 }
 
 interface LinkProps {
@@ -96,7 +98,7 @@ export default function CategoriesTable({
     const showActionsColumn = userPermissions.includes('Actualizar Categorías') || userPermissions.includes('Eliminar Categorías');
 
     return (
-        <div className="space-y-4">
+        <div className="space-y-3">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <SearchInput
                     placeholder="Buscar por nombre de categoría..."
@@ -106,13 +108,14 @@ export default function CategoriesTable({
                 />
             </div>
 
-            <div className="rounded-md border dark:border-gray-700 overflow-hidden">
+            <div className="rounded-md bg-card shadow-lg shadow-black/10 dark:shadow-black/60 overflow-hidden">
                 <Table>
                     <TableHeader className="bg-gray-400 dark:bg-gray-700">
                         <TableRow>
                             <TableHead>Nombre</TableHead>
                             <TableHead>Descripción</TableHead>
                             <TableHead>Productos</TableHead>
+                            <TableHead>Estado</TableHead>
                             {showActionsColumn && <TableHead className="text-right">Acciones</TableHead>}
                         </TableRow>
                     </TableHeader>
@@ -129,13 +132,24 @@ export default function CategoriesTable({
                                     <span
                                         className={`inline-flex items-center justify-center px-2.5 py-0.5 rounded-full text-xs font-bold w-28 text-center shadow-sm ${
                                             category.products_count === 0
-                                                ? 'bg-red-600 text-white dark:bg-red-700'
-                                                : 'bg-green-600 text-white dark:bg-green-700'
+                                                ? 'bg-rose-600 text-white dark:bg-rose-700'
+                                                : 'bg-emerald-600 text-white dark:bg-emerald-700'
                                         }`}
                                     >
                                         {category.products_count || 0} - Producto
                                         {category.products_count !== 1 ? 's' : ''}
                                     </span>
+                                </TableCell>
+                                <TableCell>
+                                    <StatusToggle
+                                        id={category.id}
+                                        isActive={category.is_active}
+                                        toggleRouteName="categories.toggle-active"
+                                        entityLabel="categoría"
+                                        entityName={category.name}
+                                        feminine
+                                        useArticle
+                                    />
                                 </TableCell>
                                 {showActionsColumn && (
                                     <TableCell className="text-right">
@@ -147,7 +161,7 @@ export default function CategoriesTable({
                                                     className="text-amber-600 hover:bg-amber-100 hover:text-amber-700 dark:text-amber-500 dark:hover:bg-amber-950/40 dark:hover:text-amber-400"
                                                     label="Editar categoría"
                                                 >
-                                                    <Pencil className="h-4 w-4" />
+                                                    <Pencil className="size-3.5" />
                                                 </IconActionButton>
                                             )}
                                             {userPermissions.includes('Eliminar Categorías') && (
@@ -157,7 +171,7 @@ export default function CategoriesTable({
                                                     className="text-red-600 hover:bg-red-100 hover:text-red-700 dark:text-red-500 dark:hover:bg-red-950/40 dark:hover:text-red-400"
                                                     label="Eliminar categoría"
                                                 >
-                                                    <Trash2 className="h-4 w-4" />
+                                                    <Trash2 className="size-3.5" />
                                                 </IconActionButton>
                                             )}
                                         </div>
@@ -167,7 +181,7 @@ export default function CategoriesTable({
                         ))}
                         {categories.data.length === 0 && (
                             <TableRow>
-                                <TableCell colSpan={showActionsColumn ? 4 : 3} className="h-24 text-center text-gray-500 dark:text-gray-400">
+                                <TableCell colSpan={showActionsColumn ? 5 : 4} className="h-24 text-center text-gray-500 dark:text-gray-400">
                                     <div className="flex flex-col items-center justify-center gap-2">
                                         <Tags className="h-8 w-8 text-gray-400 dark:text-gray-500" />
                                         <span className="text-sm font-medium">No se encontraron categorías</span>

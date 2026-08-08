@@ -8,6 +8,7 @@ import {
 } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
 import { IconActionButton } from "@/components/icon-action-button"
+import { StatusToggle } from "@/components/status-toggle"
 import { Pencil, Trash2, Phone, Smartphone, Download, Truck } from "lucide-react"
 import { Pagination } from "@/components/ui/pagination"
 import { router } from "@inertiajs/react"
@@ -125,16 +126,16 @@ export default function SuppliersTable({
         }
 
         return (
-            <div className="space-y-1">
+            <div className="space-y-0.5 text-xs">
                 {hasPhone && (
-                    <div className="flex items-center gap-2">
-                        <Phone className="h-4 w-4 text-gray-500" />
+                    <div className="flex items-center gap-1.5">
+                        <Phone className="size-3.5 text-gray-500" />
                         <span>{supplier.phone}</span>
                     </div>
                 )}
                 {hasCellphone && (
-                    <div className="flex items-center gap-2">
-                        <Smartphone className="h-4 w-4 text-gray-500" />
+                    <div className="flex items-center gap-1.5">
+                        <Smartphone className="size-3.5 text-gray-500" />
                         <span>{supplier.cellphone}</span>
                     </div>
                 )}
@@ -143,7 +144,7 @@ export default function SuppliersTable({
     };
 
     return (
-        <div className="space-y-4">
+        <div className="space-y-3">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <SearchInput
                     placeholder="Buscar por nombre, representante o NIT..."
@@ -153,11 +154,10 @@ export default function SuppliersTable({
                 />
                 {userPermissions.includes('Exportar Proveedores') && (
                     <Button
-                        variant="outline"
                         size="sm"
                         onClick={handleExport}
                         title="Exportar proveedores a Excel"
-                        className="gap-2"
+                        className="gap-2 bg-gray-500 text-white hover:bg-gray-600"
                     >
                         <Download className="h-4 w-4" />
                         Exportar Excel
@@ -165,13 +165,8 @@ export default function SuppliersTable({
                 )}
             </div>
 
-            {filteredCount !== totalCount && (
-                <div className="text-sm text-muted-foreground">
-                    Mostrando {filteredCount} de {totalCount} proveedores
-                </div>
-            )}
 
-            <div className="rounded-md border overflow-hidden">
+            <div className="rounded-md bg-card shadow-lg shadow-black/10 dark:shadow-black/60 overflow-hidden">
                 <Table>
                     <TableHeader className="bg-gray-400 dark:bg-gray-700">
                         <TableRow>
@@ -198,13 +193,13 @@ export default function SuppliersTable({
                                         {supplier.email || '-'}
                                     </TableCell>
                                     <TableCell>
-                                        <span className={`inline-flex items-center justify-center px-2 py-1 text-xs font-bold rounded-full border w-20 text-center shadow-sm ${
-                                            supplier.is_active
-                                                ? 'bg-green-600 text-white dark:bg-green-700'
-                                                : 'bg-red-600 text-white dark:bg-red-700 '
-                                        }`}>
-                                            {supplier.is_active ? 'Activo' : 'Inactivo'}
-                                        </span>
+                                        <StatusToggle
+                                            id={supplier.id}
+                                            isActive={supplier.is_active}
+                                            toggleRouteName="suppliers.toggle-active"
+                                            entityLabel="proveedor"
+                                            entityName={supplier.name}
+                                        />
                                     </TableCell>
                                     {showActionsColumn && (
                                         <TableCell className="text-right">
@@ -216,7 +211,7 @@ export default function SuppliersTable({
                                                         className="text-amber-600 hover:bg-amber-100 hover:text-amber-700 dark:text-amber-500 dark:hover:bg-amber-950/40 dark:hover:text-amber-400"
                                                         label="Editar proveedor"
                                                     >
-                                                        <Pencil className="h-4 w-4" />
+                                                        <Pencil className="size-3.5" />
                                                     </IconActionButton>
                                                 )}
                                                 {userPermissions.includes('Eliminar Proveedores') && (
@@ -226,7 +221,7 @@ export default function SuppliersTable({
                                                         className="text-red-600 hover:bg-red-100 hover:text-red-700 dark:text-red-500 dark:hover:bg-red-950/40 dark:hover:text-red-400"
                                                         label="Eliminar proveedor"
                                                     >
-                                                        <Trash2 className="h-4 w-4" />
+                                                        <Trash2 className="size-3.5" />
                                                     </IconActionButton>
                                                 )}
                                             </div>

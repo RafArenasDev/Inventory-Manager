@@ -29,8 +29,8 @@ class SupplierController extends Controller
         if ($request->filled('search')) {
             $search = $request->search;
             $suppliersQuery->where(function ($query) use ($search) {
-                $query->where('name', 'like', "%{$search}%")
-                    ->orWhere('representative', 'like', "%{$search}%")
+                $query->where('name', 'ilike', "%{$search}%")
+                    ->orWhere('representative', 'ilike', "%{$search}%")
                     ->orWhereRaw("CONCAT(nit_number, '-', nit_digit) LIKE ?", ["%{$search}%"]);
             });
         }
@@ -108,7 +108,6 @@ class SupplierController extends Controller
             'address' => $request->address,
             'email' => $request->email,
             'description' => $request->description,
-            'is_active' => $request->is_active,
         ]);
 
         return redirect()->route('suppliers.index')->with('success', 'Proveedor actualizado correctamente.');
@@ -135,6 +134,19 @@ class SupplierController extends Controller
     }
 
     /**
+     * Alternar el estado activo/inactivo del proveedor.
+     */
+    public function toggleActive(Supplier $supplier)
+    {
+        $supplier->update(['is_active' => ! $supplier->is_active]);
+
+        return redirect()->back()->with(
+            'success',
+            $supplier->is_active ? 'Proveedor activado correctamente.' : 'Proveedor desactivado correctamente.'
+        );
+    }
+
+    /**
      * Summary of export
      *
      * @return StreamedResponse
@@ -146,10 +158,10 @@ class SupplierController extends Controller
         if ($request->filled('search')) {
             $search = $request->search;
             $suppliersQuery->where(function ($query) use ($search) {
-                $query->where('name', 'like', "%{$search}%")
-                    ->orWhere('representative', 'like', "%{$search}%")
-                    ->orWhere('nit_number', 'like', "%{$search}%")
-                    ->orWhere('email', 'like', "%{$search}%");
+                $query->where('name', 'ilike', "%{$search}%")
+                    ->orWhere('representative', 'ilike', "%{$search}%")
+                    ->orWhere('nit_number', 'ilike', "%{$search}%")
+                    ->orWhere('email', 'ilike', "%{$search}%");
             });
         }
 

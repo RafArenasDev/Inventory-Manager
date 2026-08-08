@@ -24,8 +24,8 @@ class UserController extends Controller
         if ($request->filled('search')) {
             $search = $request->search;
             $userQuery->where(function ($query) use ($search) {
-                $query->where('name', 'like', "%{$search}%")
-                    ->orWhere('email', 'like', "%{$search}%");
+                $query->where('name', 'ilike', "%{$search}%")
+                    ->orWhere('email', 'ilike', "%{$search}%");
             });
         }
 
@@ -43,6 +43,7 @@ class UserController extends Controller
                 'name' => $user->name,
                 'email' => $user->email,
                 'roles' => $user->roles->pluck('name')->toArray(), // Devolver roles como array de nombres
+                'is_active' => $user->is_active,
             ];
         });
 
@@ -115,5 +116,23 @@ class UserController extends Controller
         $user->delete();
 
         return redirect()->route('users.index')->with('success', 'Usuario eliminado correctamente.');
+    }
+
+    /**
+     * Alternar el estado activo/inactivo del usuario. Un usuario inactivo no
+     * puede volver a loguearse (ver LoginRequest::authenticate).
+     */
+    public function toggleActive(User $user)
+    {
+        if ($user->id === auth()->id()) {
+            return redirect()->back()->with('error', 'No puedes desactivar tu propia cuenta.');
+        }
+
+        $user->update(['is_active' => ! $user->is_active]);
+
+        return redirect()->back()->with(
+            'success',
+            $user->is_active ? 'Usuario activado correctamente.' : 'Usuario desactivado correctamente.'
+        );
     }
 }

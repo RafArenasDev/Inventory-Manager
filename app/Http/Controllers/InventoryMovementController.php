@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\InventoryMovementRequest;
+use App\Models\Category;
 use App\Models\InventoryMovement;
 use App\Models\Product;
 use App\Models\Supplier;
@@ -26,13 +27,13 @@ class InventoryMovementController extends Controller
         if ($request->filled('search')) {
             $search = $request->search;
             $movementsQuery->where(function ($query) use ($search) {
-                $query->where('notes', 'like', "%{$search}%")
+                $query->where('notes', 'ilike', "%{$search}%")
                     ->orWhereHas('product', function ($q) use ($search) {
-                        $q->where('name', 'like', "%{$search}%")
-                            ->orWhere('code', 'like', "%{$search}%");
+                        $q->where('name', 'ilike', "%{$search}%")
+                            ->orWhere('code', 'ilike', "%{$search}%");
                     })
                     ->orWhereHas('supplier', function ($q) use ($search) {
-                        $q->where('name', 'like', "%{$search}%");
+                        $q->where('name', 'ilike', "%{$search}%");
                     });
             });
         }
@@ -47,14 +48,12 @@ class InventoryMovementController extends Controller
             $movementsQuery->where('type', $request->type);
         }
 
-        // Date range filter
-        if ($request->filled('date_from')) {
-            $movementsQuery->whereDate('date', '>=', $request->date_from);
-        }
-
-        if ($request->filled('date_to')) {
-            $movementsQuery->whereDate('date', '<=', $request->date_to);
-        }
+        // Date range filter — sin filtro explícito, se limita al mes actual
+        // (puede haber años de movimientos, no se pintan todos de una vez).
+        $dateFrom = $request->filled('date_from') ? $request->date_from : today()->startOfMonth()->toDateString();
+        $dateTo = $request->filled('date_to') ? $request->date_to : today()->endOfMonth()->toDateString();
+        $movementsQuery->whereDate('date', '>=', $dateFrom)
+            ->whereDate('date', '<=', $dateTo);
 
         // Count total and filtered movements
         $totalCount = InventoryMovement::count();
@@ -96,9 +95,11 @@ class InventoryMovementController extends Controller
                 ->where('is_active', true)
                 ->orderBy('name')
                 ->get(),
-            'filters' => $request->only([
-                'search', 'per_page', 'product_id', 'type', 'date_from', 'date_to',
-            ]),
+            'filters' => [
+                ...$request->only(['search', 'per_page', 'product_id', 'type']),
+                'date_from' => $dateFrom,
+                'date_to' => $dateTo,
+            ],
             'totalCount' => $totalCount,
             'filteredCount' => $filteredCount,
         ]);
@@ -120,6 +121,7 @@ class InventoryMovementController extends Controller
         // Update stock based on movement type
         if (in_array($validated['type'], ['Entrada', 'Devolucion Cliente', 'Consignacion Entrada', 'Cambio Entrada'])) {
             $product->increment('stock', $validated['quantity']);
+            Category::where('id', $product->category_id)->where('is_active', false)->update(['is_active' => true]);
         } elseif (in_array($validated['type'], ['Salida', 'Devolucion Proveedor', 'Consignacion Salida', 'Cambio Salida'])) {
             $product->decrement('stock', $validated['quantity']);
         } elseif ($validated['type'] === 'Ajuste Inventario') {
@@ -214,13 +216,13 @@ class InventoryMovementController extends Controller
         if ($request->filled('search')) {
             $search = $request->search;
             $movementsQuery->where(function ($query) use ($search) {
-                $query->where('notes', 'like', "%{$search}%")
+                $query->where('notes', 'ilike', "%{$search}%")
                     ->orWhereHas('product', function ($q) use ($search) {
-                        $q->where('name', 'like', "%{$search}%")
-                            ->orWhere('code', 'like', "%{$search}%");
+                        $q->where('name', 'ilike', "%{$search}%")
+                            ->orWhere('code', 'ilike', "%{$search}%");
                     })
                     ->orWhereHas('supplier', function ($q) use ($search) {
-                        $q->where('name', 'like', "%{$search}%");
+                        $q->where('name', 'ilike', "%{$search}%");
                     });
             });
         }

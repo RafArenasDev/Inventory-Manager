@@ -17,13 +17,13 @@ class ClientController extends Controller
 {
     public function index(Request $request)
     {
-        $clientsQuery = Client::orderBy('id', 'desc');
+        $clientsQuery = Client::with(['department', 'city'])->orderBy('id', 'desc');
 
         if ($request->filled('search')) {
             $search = $request->search;
             $clientsQuery->where(function ($query) use ($search) {
-                $query->where('name', 'like', "%{$search}%")
-                    ->orWhere('document_number', 'like', "%{$search}%");
+                $query->where('name', 'ilike', "%{$search}%")
+                    ->orWhere('document_number', 'ilike', "%{$search}%");
             });
         }
 
@@ -31,7 +31,27 @@ class ClientController extends Controller
         $filteredCount = $clientsQuery->count();
         $perPage = max(1, min((int) ($request->per_page ?? 10), 100));
 
-        $clients = $clientsQuery->paginate($perPage)->withQueryString()->toArray();
+        $clients = $clientsQuery->paginate($perPage)->withQueryString();
+        $clients->getCollection()->transform(function ($client) {
+            return [
+                'id' => $client->id,
+                'document_type' => $client->document_type,
+                'document_number' => $client->document_number,
+                'verification_digit' => $client->verification_digit,
+                'name' => $client->name,
+                'department_id' => $client->department_id,
+                'department' => $client->department?->name,
+                'city_id' => $client->city_id,
+                'city' => $client->city?->name,
+                'phone' => $client->phone,
+                'cellphone' => $client->cellphone,
+                'address' => $client->address,
+                'email' => $client->email,
+                'is_active' => $client->is_active,
+                'created_at' => $client->created_at->format('Y-m-d H:i:s'),
+            ];
+        });
+        $clients = $clients->toArray();
 
         $departments = Department::all()->map(fn ($dept) => ['id' => $dept->id, 'name' => $dept->name]);
         $cities = City::all()->map(fn ($city) => ['id' => $city->id, 'name' => $city->name, 'department_id' => $city->department_id]);
@@ -116,12 +136,25 @@ class ClientController extends Controller
         return redirect()->route('clients.index')->with('success', 'Cliente eliminado correctamente.');
     }
 
+    /**
+     * Alternar el estado activo/inactivo del cliente.
+     */
+    public function toggleActive(Client $client): RedirectResponse
+    {
+        $client->update(['is_active' => ! $client->is_active]);
+
+        return redirect()->back()->with(
+            'success',
+            $client->is_active ? 'Cliente activado correctamente.' : 'Cliente desactivado correctamente.'
+        );
+    }
+
     public function history(Client $client, Request $request)
     {
         try {
             $query = $client->sales()->with(['items' => function ($query) {
                 $query->select('id', 'sale_id', 'product_id', 'quantity', 'price_at_sale', 'subtotal')
-                    ->with('product:id,name');
+                    ->with('product:id,name,code');
             }]);
 
             if ($request->filled('start_date')) {
@@ -161,6 +194,7 @@ class ClientController extends Controller
                                 'id' => $item->id,
                                 'product_id' => $item->product_id,
                                 'product_name' => $item->product->name ?? 'Producto no especificado',
+                                'product_code' => $item->product->code ?? '-',
                                 'quantity' => $item->quantity,
                                 'unit_price' => $item->price_at_sale,
                                 'total_price' => $item->subtotal,

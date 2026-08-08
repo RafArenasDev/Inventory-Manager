@@ -21,7 +21,7 @@ class CategoryController extends Controller
         if ($request->filled('search')) {
             $search = $request->search;
             $categoriesQuery->where(function ($query) use ($search) {
-                $query->where('name', 'like', "%{$search}%");
+                $query->where('name', 'ilike', "%{$search}%");
             });
         }
 
@@ -39,6 +39,7 @@ class CategoryController extends Controller
                     'name'           => $category->name,
                     'description'    => $category->description,
                     'products_count' => $category->products_count,
+                    'is_active'      => $category->is_active,
                 ];
             });
 
@@ -57,6 +58,7 @@ class CategoryController extends Controller
                     'name'           => $category->name,
                     'description'    => $category->description,
                     'products_count' => $category->products_count,
+                    'is_active'      => $category->is_active,
                 ];
             });
         }
@@ -135,5 +137,18 @@ class CategoryController extends Controller
         $category->delete();
 
         return redirect()->route('categories.index')->with('success', 'Categoría eliminada correctamente.');
+    }
+
+    /**
+     * Alternar el estado activo/inactivo de la categoría.
+     */
+    public function toggleActive(Category $category)
+    {
+        $category->update(['is_active' => ! $category->is_active]);
+
+        return redirect()->back()->with(
+            'success',
+            $category->is_active ? 'Categoría activada correctamente.' : 'Categoría desactivada correctamente.'
+        );
     }
 }

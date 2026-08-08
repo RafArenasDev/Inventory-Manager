@@ -35,7 +35,6 @@ class ClientRequest extends FormRequest
             'cellphone'          => 'nullable|string|max:20',
             'address'            => 'nullable|string',
             'email'              => 'nullable|email',
-            'is_active'          => 'boolean',
         ];
     }
 }

@@ -7,7 +7,8 @@ import {
     TableRow,
 } from '@/components/ui/table';
 import { IconActionButton } from '@/components/icon-action-button';
-import { Pencil, Trash2, Phone, Smartphone, History, Users } from 'lucide-react';
+import { StatusToggle } from '@/components/status-toggle';
+import { Pencil, Trash2, Phone, Smartphone, Users, Eye } from 'lucide-react';
 import { router } from '@inertiajs/react';
 import { Pagination } from '@/components/ui/pagination';
 import SearchInput from '@/components/ui/search-input';
@@ -20,12 +21,15 @@ interface Client {
     verification_digit?: number;
     name: string;
     department_id?: number;
+    department?: string | null;
     city_id?: number;
+    city?: string | null;
     phone?: string;
     cellphone?: string;
     address?: string;
     email?: string;
     is_active: boolean;
+    created_at?: string;
 }
 
 interface LinkProps {
@@ -45,7 +49,7 @@ interface ClientsTableProps {
     perPage: string;
     onPerPageChange: (value: string) => void;
     onEditClient: (client: Client) => void;
-    onViewHistory: (client: Client) => void;
+    onViewClient: (client: Client) => void;
     totalCount: number;
     filteredCount: number;
     search: string;
@@ -58,7 +62,7 @@ export default function ClientsTable({
     perPage,
     onPerPageChange,
     onEditClient,
-    onViewHistory,
+    onViewClient,
     totalCount,
     filteredCount,
     search,
@@ -110,16 +114,16 @@ export default function ClientsTable({
         }
 
         return (
-            <div className="space-y-1">
+            <div className="space-y-0.5 text-xs">
                 {hasPhone && (
-                    <div className="flex items-center gap-2">
-                        <Phone className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+                    <div className="flex items-center gap-1.5">
+                        <Phone className="size-3.5 text-gray-500 dark:text-gray-400" />
                         <span className="text-gray-900 dark:text-gray-100">{client.phone}</span>
                     </div>
                 )}
                 {hasCellphone && (
-                    <div className="flex items-center gap-2">
-                        <Smartphone className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+                    <div className="flex items-center gap-1.5">
+                        <Smartphone className="size-3.5 text-gray-500 dark:text-gray-400" />
                         <span className="text-gray-900 dark:text-gray-100">{client.cellphone}</span>
                     </div>
                 )}
@@ -128,17 +132,17 @@ export default function ClientsTable({
     };
 
     return (
-        <div className="space-y-4">
+        <div className="space-y-3">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <SearchInput
-                    placeholder="Buscar clientes por Nombre o Documento..."
+                    placeholder="Buscar clientes por nombre o documento..."
                     searchValue={search}
                     onSearch={onSearch}
                     className="w-full sm:max-w-md"
                 />
             </div>
 
-            <div className="rounded-md border dark:border-gray-700 overflow-hidden">
+            <div className="rounded-md bg-card shadow-lg shadow-black/10 dark:shadow-black/60 overflow-hidden">
                 <Table>
                     <TableHeader className="bg-gray-400 dark:bg-gray-700">
                         <TableRow>
@@ -160,13 +164,13 @@ export default function ClientsTable({
                                 <TableCell>{client.email || '-'}</TableCell>
                                 <TableCell>{renderPhones(client)}</TableCell>
                                 <TableCell>
-                                    <span className={`text-xs px-3 py-1 rounded-full font-bold w-fit min-w-[100px] text-center shadow-sm ${
-                                        client.is_active
-                                            ? 'bg-green-600 text-white dark:bg-green-700'
-                                            : 'bg-red-600 text-white dark:bg-red-700'
-                                    }`}>
-                                        {client.is_active ? 'Activo' : 'Inactivo'}
-                                    </span>
+                                    <StatusToggle
+                                        id={client.id}
+                                        isActive={client.is_active}
+                                        toggleRouteName="clients.toggle-active"
+                                        entityLabel="cliente"
+                                        entityName={client.name}
+                                    />
                                 </TableCell>
                                 {showActionsColumn && (
                                     <TableCell className="text-right">
@@ -174,11 +178,11 @@ export default function ClientsTable({
                                             {userPermissions.includes('Ver Clientes') && (
                                                 <IconActionButton
                                                     variant="ghost"
-                                                    onClick={() => onViewHistory(client)}
+                                                    onClick={() => onViewClient(client)}
                                                     className="text-blue-600 hover:bg-blue-100 hover:text-blue-700 dark:text-blue-500 dark:hover:bg-blue-950/40 dark:hover:text-blue-400"
-                                                    label="Ver historial"
+                                                    label="Ver cliente"
                                                 >
-                                                    <History className="h-4 w-4" />
+                                                    <Eye className="size-3.5" />
                                                 </IconActionButton>
                                             )}
                                             {userPermissions.includes('Editar Clientes') && (
@@ -188,7 +192,7 @@ export default function ClientsTable({
                                                     className="text-amber-600 hover:bg-amber-100 hover:text-amber-700 dark:text-amber-500 dark:hover:bg-amber-950/40 dark:hover:text-amber-400"
                                                     label="Editar cliente"
                                                 >
-                                                    <Pencil className="h-4 w-4" />
+                                                    <Pencil className="size-3.5" />
                                                 </IconActionButton>
                                             )}
                                             {userPermissions.includes('Eliminar Clientes') && (
@@ -198,7 +202,7 @@ export default function ClientsTable({
                                                     className="text-red-600 hover:bg-red-100 hover:text-red-700 dark:text-red-500 dark:hover:bg-red-950/40 dark:hover:text-red-400"
                                                     label="Eliminar cliente"
                                                 >
-                                                    <Trash2 className="h-4 w-4" />
+                                                    <Trash2 className="size-3.5" />
                                                 </IconActionButton>
                                             )}
                                         </div>

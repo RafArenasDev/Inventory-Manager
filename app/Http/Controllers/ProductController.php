@@ -37,10 +37,10 @@ class ProductController extends Controller
         if ($request->filled('search')) {
             $search = $request->search;
             $productsQuery->where(function ($query) use ($search) {
-                $query->where('name', 'like', "%{$search}%")
-                    ->orWhere('code', 'like', "%{$search}%")
+                $query->where('name', 'ilike', "%{$search}%")
+                    ->orWhere('code', 'ilike', "%{$search}%")
                     ->orWhereHas('supplier', function ($query) use ($search) {
-                        $query->where('name', 'like', "%{$search}%");
+                        $query->where('name', 'ilike', "%{$search}%");
                     });
             });
         }
@@ -111,10 +111,10 @@ class ProductController extends Controller
         if ($request->filled('search')) {
             $search = $request->search;
             $productsQuery->where(function ($query) use ($search) {
-                $query->where('name', 'like', "%{$search}%")
-                    ->orWhere('code', 'like', "%{$search}%")
+                $query->where('name', 'ilike', "%{$search}%")
+                    ->orWhere('code', 'ilike', "%{$search}%")
                     ->orWhereHas('supplier', function ($query) use ($search) {
-                        $query->where('name', 'like', "%{$search}%");
+                        $query->where('name', 'ilike', "%{$search}%");
                     });
             });
         }
@@ -213,6 +213,7 @@ class ProductController extends Controller
 
         if ($row > 2) {
             $sheet->getStyle('A1:L'.($row - 1))->applyFromArray($dataStyle);
+            $sheet->getStyle('G2:J'.($row - 1))->getNumberFormat()->setFormatCode('"$" #,##0');
         }
 
         $sheet->getStyle('A2:A'.($row - 1))->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
@@ -316,6 +317,8 @@ class ProductController extends Controller
             'stock' => $validated['stock'],
             'initial_movement_id' => null,
         ]);
+
+        $this->reactivateCategoryIfNeeded($validated['category_id']);
 
         if ($validated['stock'] > 0) {
             // Obtener el nombre del proveedor
@@ -456,6 +459,8 @@ class ProductController extends Controller
             'stock' => $stock,
         ]);
 
+        $this->reactivateCategoryIfNeeded($validated['category_id']);
+
         // Obtener el nombre del proveedor
         $supplier = Supplier::find($validated['supplier_id']);
         $supplierName = $supplier->name;
@@ -537,6 +542,7 @@ class ProductController extends Controller
 
         if (in_array($movementType, ['Entrada', 'Devolucion Cliente', 'Consignacion Entrada', 'Cambio Entrada'])) {
             $product->increment('stock', $validated['quantity']);
+            $this->reactivateCategoryIfNeeded($product->category_id);
         } elseif (in_array($movementType, ['Salida', 'Devolucion Proveedor', 'Consignacion Salida', 'Cambio Salida'])) {
             $product->decrement('stock', $validated['quantity']);
         }
@@ -551,5 +557,19 @@ class ProductController extends Controller
 
         return redirect()->route('products.index')
             ->with('success', 'Movimiento de inventario registrado correctamente.');
+    }
+
+    /**
+     * Si la categoría del producto está inactiva, se reactiva sola: tener
+     * productos/entradas de inventario es evidencia de que la categoría
+     * sigue en uso. Sin confirmación, es solo un ajuste de estado.
+     */
+    private function reactivateCategoryIfNeeded(?int $categoryId): void
+    {
+        if (! $categoryId) {
+            return;
+        }
+
+        Category::where('id', $categoryId)->where('is_active', false)->update(['is_active' => true]);
     }
 }
