@@ -250,7 +250,7 @@
                                 <div class="header">
                                     <a href="{{ config('app.url') }}" style="text-decoration: none;">
                                         <div class="logo-wrapper">
-                                            <span class="logo-main">{{ config('business.name') }}</span>
+                                            <span class="logo-main">{{ config('app.name') }}</span>
                                         </div>
                                     </a>
                                 </div>
