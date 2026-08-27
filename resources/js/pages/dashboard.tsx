@@ -1,17 +1,17 @@
-import { ShoppingCart, ArrowUpRight, ArrowDownRight, TrendingUp, Download, LayoutGrid } from 'lucide-react';
-import AppLayout from '@/layouts/app-layout';
-import { type BreadcrumbItem, type SidebarModule } from '@/types';
-import { Head, router, usePage } from '@inertiajs/react';
-import { useState, useEffect, useRef } from 'react';
-import * as Chart from 'chart.js';
-import SaleForm from './sales/saleForm';
-import { SaleModal } from './saleModal';
+import { ConfirmDialog } from '@/components/confirm-dialog';
+import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { PageHeader } from '@/components/page-header';
-import { ConfirmDialog } from '@/components/confirm-dialog';
-import { resolveIcon } from '@/lib/icon-map';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import AppLayout from '@/layouts/app-layout';
+import { resolveIcon } from '@/lib/icon-map';
+import { type BreadcrumbItem, type SidebarModule } from '@/types';
+import { Head, router, usePage } from '@inertiajs/react';
+import * as Chart from 'chart.js';
+import { ArrowDownRight, ArrowUpRight, Download, LayoutGrid, ShoppingCart, TrendingUp } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { SaleModal } from './saleModal';
+import SaleForm from './sales/saleForm';
 
 // Color por módulo para las tarjetas de acceso directo — una entrada por
 // cada `key` de ModuleSeeder. Un módulo nuevo sin color acá cae en el
@@ -61,9 +61,18 @@ const MODULE_CARD_TITLE: Record<string, string> = {
 // cuántos módulos vea este usuario), que es lo que evita el scroll
 // vertical del dashboard en desktop.
 const GRID_COLS_CLASS: Record<number, string> = {
-    1: 'lg:grid-cols-1', 2: 'lg:grid-cols-2', 3: 'lg:grid-cols-3', 4: 'lg:grid-cols-4',
-    5: 'lg:grid-cols-5', 6: 'lg:grid-cols-6', 7: 'lg:grid-cols-7', 8: 'lg:grid-cols-8',
-    9: 'lg:grid-cols-9', 10: 'lg:grid-cols-10', 11: 'lg:grid-cols-11', 12: 'lg:grid-cols-12',
+    1: 'lg:grid-cols-1',
+    2: 'lg:grid-cols-2',
+    3: 'lg:grid-cols-3',
+    4: 'lg:grid-cols-4',
+    5: 'lg:grid-cols-5',
+    6: 'lg:grid-cols-6',
+    7: 'lg:grid-cols-7',
+    8: 'lg:grid-cols-8',
+    9: 'lg:grid-cols-9',
+    10: 'lg:grid-cols-10',
+    11: 'lg:grid-cols-11',
+    12: 'lg:grid-cols-12',
 };
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -74,12 +83,12 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 const formatCOP = (amount: number) => {
-  return new Intl.NumberFormat('es-CO', {
-    style: 'currency',
-    currency: 'COP',
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(amount);
+    return new Intl.NumberFormat('es-CO', {
+        style: 'currency',
+        currency: 'COP',
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0,
+    }).format(amount);
 };
 
 type Period = 'diario' | 'semanal' | 'mensual' | 'trimestral' | 'semestral' | 'anual';
@@ -148,11 +157,14 @@ interface DashboardProps {
         caja: number;
         finanzas: number;
     };
-    financials: Record<Period, {
-        sales: { amount: number; count: number; growth: number };
-        incomes: { amount: number; growth: number };
-        expenses: { amount: number; growth: number };
-    }>;
+    financials: Record<
+        Period,
+        {
+            sales: { amount: number; count: number; growth: number };
+            incomes: { amount: number; growth: number };
+            expenses: { amount: number; growth: number };
+        }
+    >;
     charts: {
         sales_data: {
             labels: string[];
@@ -172,15 +184,7 @@ interface DashboardProps {
     salesCities: City[];
 }
 
-export default function Dashboard({
-    stats,
-    financials,
-    charts,
-    salesProducts,
-    salesClients,
-    salesDepartments,
-    salesCities
-}: DashboardProps) {
+export default function Dashboard({ stats, financials, charts, salesProducts, salesClients, salesDepartments, salesCities }: DashboardProps) {
     type Auth = {
         permissions: string[];
     };
@@ -271,21 +275,23 @@ export default function Dashboard({
                     type: 'bar',
                     data: {
                         labels: salesData.labels || [],
-                        datasets: [{
-                            label: 'Ventas',
-                            data: salesData.ventas || [],
-                            backgroundColor: 'rgba(59, 130, 246, 0.8)',
-                            borderColor: 'rgba(59, 130, 246, 1)',
-                            borderWidth: 1,
-                            borderRadius: 8,
-                        }]
+                        datasets: [
+                            {
+                                label: 'Ventas',
+                                data: salesData.ventas || [],
+                                backgroundColor: 'rgba(59, 130, 246, 0.8)',
+                                borderColor: 'rgba(59, 130, 246, 1)',
+                                borderWidth: 1,
+                                borderRadius: 8,
+                            },
+                        ],
                     },
                     options: {
                         responsive: true,
                         maintainAspectRatio: false,
                         plugins: {
                             legend: {
-                                display: false
+                                display: false,
                             },
                             tooltip: {
                                 callbacks: {
@@ -293,26 +299,26 @@ export default function Dashboard({
                                         const amount = formatCOP(context.parsed.y);
                                         const count = salesData.cantidad?.[context.dataIndex] ?? 0;
                                         return [`Ventas: ${amount}`, `Transacciones: ${count}`];
-                                    }
-                                }
-                            }
+                                    },
+                                },
+                            },
                         },
                         scales: {
                             y: {
                                 beginAtZero: true,
                                 ticks: {
-                                    callback: (value) => formatCOP(Number(value))
-                                }
+                                    callback: (value) => formatCOP(Number(value)),
+                                },
                             },
                             x: {
                                 ticks: {
                                     autoSkip: false,
                                     maxRotation: 45,
-                                    minRotation: 0
-                                }
-                            }
-                        }
-                    }
+                                    minRotation: 0,
+                                },
+                            },
+                        },
+                    },
                 });
             }
         }
@@ -327,13 +333,15 @@ export default function Dashboard({
                 pieInstanceRef.current = new Chart.Chart(ctx, {
                     type: 'doughnut',
                     data: {
-                        labels: categoryData.map(d => d.label),
-                        datasets: [{
-                            data: categoryData.map(d => d.value),
-                            backgroundColor: categoryData.map(d => d.color),
-                            borderWidth: 2,
-                            borderColor: '#fff'
-                        }]
+                        labels: categoryData.map((d) => d.label),
+                        datasets: [
+                            {
+                                data: categoryData.map((d) => d.value),
+                                backgroundColor: categoryData.map((d) => d.color),
+                                borderWidth: 2,
+                                borderColor: '#fff',
+                            },
+                        ],
                     },
                     options: {
                         responsive: true,
@@ -348,15 +356,12 @@ export default function Dashboard({
                                         const label = context.label;
                                         const value = context.parsed;
                                         const amount = categoryData[context.dataIndex]?.amount || 0;
-                                        return [
-                                            `${label}: ${value}%`,
-                                            `Monto: ${formatCOP(amount)}`
-                                        ];
-                                    }
-                                }
-                            }
-                        }
-                    }
+                                        return [`${label}: ${value}%`, `Monto: ${formatCOP(amount)}`];
+                                    },
+                                },
+                            },
+                        },
+                    },
                 });
             }
         }
@@ -408,9 +413,27 @@ export default function Dashboard({
     };
 
     const financialSummaryCards = [
-        { title: 'Ventas', data: financials[period].sales, icon: ShoppingCart, color: 'from-blue-500 to-blue-600', subtext: `${financials[period].sales.count} ventas` },
-        { title: 'Ingresos', data: financials[period].incomes, icon: ArrowUpRight, color: 'from-green-600 to-green-700', subtext: periodLabels[period] },
-        { title: 'Egresos', data: financials[period].expenses, icon: ArrowDownRight, color: 'from-red-600 to-red-700', subtext: periodLabels[period] },
+        {
+            title: 'Ventas',
+            data: financials[period].sales,
+            icon: ShoppingCart,
+            color: 'from-blue-500 to-blue-600',
+            subtext: `${financials[period].sales.count} ventas`,
+        },
+        {
+            title: 'Ingresos',
+            data: financials[period].incomes,
+            icon: ArrowUpRight,
+            color: 'from-green-600 to-green-700',
+            subtext: periodLabels[period],
+        },
+        {
+            title: 'Egresos',
+            data: financials[period].expenses,
+            icon: ArrowDownRight,
+            color: 'from-red-600 to-red-700',
+            subtext: periodLabels[period],
+        },
     ];
 
     return (
@@ -419,12 +442,8 @@ export default function Dashboard({
             <div className="flex h-full flex-1 flex-col gap-4 rounded-xl p-4">
                 <PageHeader icon={LayoutGrid} title="Dashboard" description="Inventario • Ventas • Reportes">
                     {userPermissions.includes('Crear Ventas') && (
-                        <Button
-                            onClick={handleOpenSaleModal}
-                            size="sm"
-                            className="gap-2 bg-green-700 text-white hover:bg-green-800"
-                        >
-                            <ShoppingCart className="w-4 h-4" />
+                        <Button onClick={handleOpenSaleModal} size="sm" className="gap-2 bg-green-700 text-white hover:bg-green-800">
+                            <ShoppingCart className="h-4 w-4" />
                             Nueva Venta
                         </Button>
                     )}
@@ -432,10 +451,7 @@ export default function Dashboard({
                     {userPermissions.includes('Exportar Dashboard') && (
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                                <Button
-                                    size="sm"
-                                    className="gap-2 bg-gray-500 text-white hover:bg-gray-600"
-                                >
+                                <Button size="sm" className="gap-2 bg-gray-500 text-white hover:bg-gray-600">
                                     <Download className="h-4 w-4" />
                                     Exportar
                                 </Button>
@@ -473,18 +489,14 @@ export default function Dashboard({
                                 <TooltipTrigger asChild>
                                     <button
                                         onClick={() => handleNavigate(stat.route)}
-                                        className={`relative rounded-lg overflow-hidden transition-all duration-300 hover:scale-105 hover:shadow-xl cursor-pointer bg-gradient-to-br ${stat.color} px-3 py-2 flex items-center justify-between gap-2 text-left`}
+                                        className={`relative cursor-pointer overflow-hidden rounded-lg bg-gradient-to-br transition-all duration-300 hover:scale-105 hover:shadow-xl ${stat.color} flex items-center justify-between gap-2 px-3 py-2 text-left`}
                                     >
                                         <div className="flex min-w-0 flex-col gap-0.5">
-                                            <Icon className="h-4 w-4 text-white shrink-0" />
-                                            <p className="truncate text-xs font-semibold leading-none text-white">
-                                                {stat.title}
-                                            </p>
+                                            <Icon className="h-4 w-4 shrink-0 text-white" />
+                                            <p className="truncate text-xs leading-none font-semibold text-white">{stat.title}</p>
                                         </div>
                                         {stat.value !== null && (
-                                            <span className="shrink-0 text-xs font-bold text-white">
-                                                {stat.value.toLocaleString()}
-                                            </span>
+                                            <span className="shrink-0 text-xs font-bold text-white">{stat.value.toLocaleString()}</span>
                                         )}
                                     </button>
                                 </TooltipTrigger>
@@ -495,26 +507,24 @@ export default function Dashboard({
                 </div>
 
                 {/* Financials Section */}
-                <div className="relative flex-1 rounded-xl bg-card shadow-lg shadow-black/10 dark:shadow-black/60">
-                    <div className="p-6 h-full flex flex-col gap-6">
+                <div className="bg-card relative flex-1 rounded-xl shadow-lg shadow-black/10 dark:shadow-black/60">
+                    <div className="flex h-full flex-col gap-6 p-6">
                         {/* Header + selector de período (controla las tarjetas y el gráfico) */}
-                        <div className="flex items-center justify-between flex-wrap gap-3">
+                        <div className="flex flex-wrap items-center justify-between gap-3">
                             <div>
-                                <h2 className="text-xl font-bold text-foreground flex items-center gap-2">
-                                    <TrendingUp className="w-5 h-5" />
+                                <h2 className="text-foreground flex items-center gap-2 text-xl font-bold">
+                                    <TrendingUp className="h-5 w-5" />
                                     Resumen Financiero
                                 </h2>
-                                <p className="text-sm text-muted-foreground mt-1">Análisis de rendimiento</p>
+                                <p className="text-muted-foreground mt-1 text-sm">Análisis de rendimiento</p>
                             </div>
-                            <div className="flex gap-2 flex-wrap">
+                            <div className="flex flex-wrap gap-2">
                                 {(['diario', 'semanal', 'mensual', 'trimestral', 'semestral', 'anual'] as const).map((p) => (
                                     <button
                                         key={p}
                                         onClick={() => setPeriod(p)}
-                                        className={`px-3 py-1.5 text-xs rounded-lg transition-colors font-medium ${
-                                            period === p
-                                                ? 'bg-blue-500 text-white'
-                                                : 'bg-muted hover:bg-muted/80 text-muted-foreground'
+                                        className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${
+                                            period === p ? 'bg-blue-500 text-white' : 'bg-muted hover:bg-muted/80 text-muted-foreground'
                                         }`}
                                     >
                                         {periodLabels[p]}
@@ -524,32 +534,28 @@ export default function Dashboard({
                         </div>
 
                         {/* Tarjetas de resumen para el período seleccionado */}
-                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
                             {financialSummaryCards.map((card) => (
-                                <div
-                                    key={card.title}
-                                    className={`bg-gradient-to-br ${card.color} rounded-xl p-5 shadow-lg text-white`}
-                                >
+                                <div key={card.title} className={`bg-gradient-to-br ${card.color} rounded-xl p-5 text-white shadow-lg`}>
                                     <div className="flex items-center justify-between">
-                                        <div className="flex items-center gap-3 min-w-0">
-                                            <div className="p-2 bg-white/20 rounded-lg shrink-0">
-                                                <card.icon className="w-5 h-5" />
+                                        <div className="flex min-w-0 items-center gap-3">
+                                            <div className="shrink-0 rounded-lg bg-white/20 p-2">
+                                                <card.icon className="h-5 w-5" />
                                             </div>
                                             <div className="min-w-0">
                                                 <p className="text-sm font-medium text-white/80">{card.title}</p>
-                                                <p className="text-xl font-bold truncate">{formatCOP(card.data.amount)}</p>
+                                                <p className="truncate text-xl font-bold">{formatCOP(card.data.amount)}</p>
                                             </div>
                                         </div>
-                                        <div className="text-right shrink-0">
+                                        <div className="shrink-0 text-right">
                                             <p className="text-xs text-white/80">{card.subtext}</p>
-                                            <span className={`px-3 py-1 bg-white text-xs font-semibold rounded-full ${
-                                                card.data.growth > 0
-                                                    ? 'text-green-500'
-                                                    : card.data.growth < 0
-                                                        ? 'text-red-500'
-                                                        : 'text-gray-500'
-                                            }`}>
-                                                {card.data.growth > 0 ? '+' : ''}{card.data.growth}%
+                                            <span
+                                                className={`rounded-full bg-white px-3 py-1 text-xs font-semibold ${
+                                                    card.data.growth > 0 ? 'text-green-500' : card.data.growth < 0 ? 'text-red-500' : 'text-gray-500'
+                                                }`}
+                                            >
+                                                {card.data.growth > 0 ? '+' : ''}
+                                                {card.data.growth}%
                                             </span>
                                         </div>
                                     </div>
@@ -558,15 +564,15 @@ export default function Dashboard({
                         </div>
 
                         {/* Charts */}
-                        <div className="flex-1 grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <div className="grid flex-1 grid-cols-1 gap-6 lg:grid-cols-3">
                             {/* Bar Chart */}
-                            <div className="lg:col-span-2 bg-muted/30 rounded-xl p-5 border border-border">
+                            <div className="bg-muted/30 border-border rounded-xl border p-5 lg:col-span-2">
                                 <div className="mb-4">
-                                    <h3 className="text-lg font-bold text-foreground">Tendencia de Ventas</h3>
-                                    <p className="text-xs text-muted-foreground mt-1">{periodLabels[period]}</p>
+                                    <h3 className="text-foreground text-lg font-bold">Tendencia de Ventas</h3>
+                                    <p className="text-muted-foreground mt-1 text-xs">{periodLabels[period]}</p>
                                 </div>
                                 {noDataMessage ? (
-                                    <div className="h-80 flex items-center justify-center text-center text-muted-foreground text-sm">
+                                    <div className="text-muted-foreground flex h-80 items-center justify-center text-center text-sm">
                                         {noDataMessage}
                                     </div>
                                 ) : (
@@ -577,17 +583,17 @@ export default function Dashboard({
                             </div>
 
                             {/* Doughnut Chart */}
-                            <div className="bg-muted/30 rounded-xl p-5 border border-border flex flex-col">
+                            <div className="bg-muted/30 border-border flex flex-col rounded-xl border p-5">
                                 <div className="mb-4">
-                                    <h3 className="text-lg font-bold text-foreground">Ventas por Categoría</h3>
-                                    <p className="text-xs text-muted-foreground mt-1">{periodLabels[period]}</p>
+                                    <h3 className="text-foreground text-lg font-bold">Ventas por Categoría</h3>
+                                    <p className="text-muted-foreground mt-1 text-xs">{periodLabels[period]}</p>
                                 </div>
                                 {categoryData.length === 0 ? (
-                                    <div className="flex-1 flex items-center justify-center text-center text-muted-foreground text-sm py-4">
+                                    <div className="text-muted-foreground flex flex-1 items-center justify-center py-4 text-center text-sm">
                                         Sin ventas por categoría en este período
                                     </div>
                                 ) : (
-                                    <div className="flex-1 flex items-center justify-center">
+                                    <div className="flex flex-1 items-center justify-center">
                                         <canvas ref={pieChartRef} className="max-h-96"></canvas>
                                     </div>
                                 )}
@@ -596,7 +602,12 @@ export default function Dashboard({
                     </div>
                 </div>
             </div>
-            <SaleModal open={showSaleModal} onOpenChange={(open) => { if (!open) handleCloseSaleModal(); }}>
+            <SaleModal
+                open={showSaleModal}
+                onOpenChange={(open) => {
+                    if (!open) handleCloseSaleModal();
+                }}
+            >
                 {showSaleModal && (
                     <SaleForm
                         sale={undefined}

@@ -19,7 +19,7 @@ return new class extends Migration
             $table->foreignId('opened_by')->constrained('users')->onDelete('restrict');
             $table->foreignId('closed_by')->nullable()->constrained('users')->onDelete('restrict');
 
-                                                              // Montos
+            // Montos
             $table->bigInteger('opening_amount')->default(0); // Monto con el que se abre
             $table->bigInteger('closing_amount')->nullable(); // Monto con el que se cierra
             $table->bigInteger('total_sales')->default(0);    // Total ventas del día

@@ -1,4 +1,5 @@
 <?php
+
 namespace Database\Seeders;
 
 use App\Models\Permission;
@@ -16,45 +17,45 @@ class RoleSeeder extends Seeder
         $adminRole = Role::firstOrCreate(
             ['name' => 'admin', 'guard_name' => 'web'],
             [
-                'label'       => 'Administrador',
+                'label' => 'Administrador',
                 'description' => 'Rol de administrador con acceso completo a todas las funcionalidades del sistema.',
-                'is_active'   => true,
+                'is_active' => true,
             ]
         );
 
         $sellerRole = Role::firstOrCreate(
             ['name' => 'seller', 'guard_name' => 'web'],
             [
-                'label'       => 'Vendedor',
+                'label' => 'Vendedor',
                 'description' => 'Rol de vendedor: registra ventas y gestiona clientes.',
-                'is_active'   => true,
+                'is_active' => true,
             ]
         );
 
         $cashierRole = Role::firstOrCreate(
             ['name' => 'cashier', 'guard_name' => 'web'],
             [
-                'label'       => 'Cajero',
+                'label' => 'Cajero',
                 'description' => 'Rol de cajero: registra ventas y consulta caja; abrir/cerrar caja es solo del administrador.',
-                'is_active'   => true,
+                'is_active' => true,
             ]
         );
 
         $warehouseRole = Role::firstOrCreate(
             ['name' => 'warehouse', 'guard_name' => 'web'],
             [
-                'label'       => 'Bodega',
+                'label' => 'Bodega',
                 'description' => 'Rol de bodega: gestiona productos, stock y movimientos de inventario.',
-                'is_active'   => true,
+                'is_active' => true,
             ]
         );
 
         $auditorRole = Role::firstOrCreate(
             ['name' => 'auditor', 'guard_name' => 'web'],
             [
-                'label'       => 'Auditor',
+                'label' => 'Auditor',
                 'description' => 'Rol de auditor: acceso de solo lectura y exportación a todos los módulos.',
-                'is_active'   => true,
+                'is_active' => true,
             ]
         );
 

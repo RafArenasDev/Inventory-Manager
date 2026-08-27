@@ -1,13 +1,13 @@
-import React, { useEffect } from 'react';
-import { useForm } from '@inertiajs/react';
-import Swal from '@/lib/swal';
 import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
-import { Input } from '@/components/ui/input';
-import { PasswordInput } from '@/components/ui/password-input';
 import { Combobox, ComboboxContent, ComboboxEmpty, ComboboxInput, ComboboxItem, ComboboxList } from '@/components/ui/combobox';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { PasswordInput } from '@/components/ui/password-input';
 import { generateSecurePassword } from '@/lib/generate-password';
+import Swal from '@/lib/swal';
+import { useForm } from '@inertiajs/react';
 import { Wand2 } from 'lucide-react';
+import React, { useEffect } from 'react';
 
 interface Role {
     id: number;
@@ -118,15 +118,13 @@ const UserForm: React.FC<UserFormProps> = ({ user, roles, onCancel, onSaved, onD
     const isEditing = !!user?.id;
     const passwordRequired = !isEditing;
 
-    const canSubmit = isEditing
-        ? userPermissions.includes('Editar Usuarios')
-        : userPermissions.includes('Crear Usuarios');
+    const canSubmit = isEditing ? userPermissions.includes('Editar Usuarios') : userPermissions.includes('Crear Usuarios');
 
     return (
         <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-4">
                 <div>
-                    <Label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    <Label htmlFor="name" className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
                         Nombre *
                     </Label>
                     <Input
@@ -142,7 +140,7 @@ const UserForm: React.FC<UserFormProps> = ({ user, roles, onCancel, onSaved, onD
                 </div>
 
                 <div>
-                    <Label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    <Label htmlFor="email" className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
                         Email *
                     </Label>
                     <Input
@@ -158,7 +156,7 @@ const UserForm: React.FC<UserFormProps> = ({ user, roles, onCancel, onSaved, onD
                 </div>
 
                 <div>
-                    <div className="flex items-center justify-between mb-1">
+                    <div className="mb-1 flex items-center justify-between">
                         <Label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                             Contraseña {passwordRequired ? '*' : '(opcional)'}
                         </Label>
@@ -189,10 +187,7 @@ const UserForm: React.FC<UserFormProps> = ({ user, roles, onCancel, onSaved, onD
                 </div>
 
                 <div>
-                    <Label
-                        htmlFor="confirm_password"
-                        className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
-                    >
+                    <Label htmlFor="confirm_password" className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
                         Confirmar Contraseña {passwordRequired ? '*' : '(opcional)'}
                     </Label>
                     <PasswordInput
@@ -207,14 +202,14 @@ const UserForm: React.FC<UserFormProps> = ({ user, roles, onCancel, onSaved, onD
                 </div>
 
                 <div>
-                    <Label htmlFor="roles" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    <Label htmlFor="roles" className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
                         Roles *
                     </Label>
                     <Combobox
                         items={roles}
                         itemToStringLabel={(r: Role) => r.label}
                         itemToStringValue={(r: Role) => r.name}
-                        value={roles.find(r => r.name === currentRoleName) ?? null}
+                        value={roles.find((r) => r.name === currentRoleName) ?? null}
                         onValueChange={(r: Role | null) => handleRoleChange(r?.name ?? '')}
                     >
                         <ComboboxInput placeholder="Seleccione un rol" className="w-full" />
@@ -233,7 +228,7 @@ const UserForm: React.FC<UserFormProps> = ({ user, roles, onCancel, onSaved, onD
                 </div>
             </div>
 
-            <div className="flex justify-end space-x-3 pt-4 border-t border-gray-300 dark:border-gray-600">
+            <div className="flex justify-end space-x-3 border-t border-gray-300 pt-4 dark:border-gray-600">
                 <Button type="button" onClick={onCancel} variant="outline" disabled={processing}>
                     Cancelar
                 </Button>

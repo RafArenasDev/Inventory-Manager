@@ -1,8 +1,8 @@
-import { useCallback, useEffect, useRef } from 'react';
 import { router, usePage } from '@inertiajs/react';
+import { useCallback, useEffect, useRef } from 'react';
 
-import Swal from '@/lib/swal';
 import { waitForAlertQueue } from '@/lib/alertSequencer';
+import Swal from '@/lib/swal';
 
 const POLL_INTERVAL_MS = 60000;
 // Si el usuario elige "Más tarde", no se vuelve a molestar antes de este
@@ -52,17 +52,21 @@ export default function CashRegisterCloseNoticeWatcher() {
             });
 
             if (result.isConfirmed) {
-                router.put(route('cash-register.update', data.open_register_id), {
-                    notes: 'Cerrada manualmente tras aviso de fin de horario.',
-                }, {
-                    preserveScroll: true,
-                    onSuccess: () => {
-                        Swal.fire({ icon: 'success', title: 'Caja cerrada correctamente.', timer: 2200, showConfirmButton: false });
+                router.put(
+                    route('cash-register.update', data.open_register_id),
+                    {
+                        notes: 'Cerrada manualmente tras aviso de fin de horario.',
                     },
-                    onError: () => {
-                        Swal.fire({ icon: 'error', title: 'No se pudo cerrar la caja', text: 'Intenta desde el módulo de Caja.' });
+                    {
+                        preserveScroll: true,
+                        onSuccess: () => {
+                            Swal.fire({ icon: 'success', title: 'Caja cerrada correctamente.', timer: 2200, showConfirmButton: false });
+                        },
+                        onError: () => {
+                            Swal.fire({ icon: 'error', title: 'No se pudo cerrar la caja', text: 'Intenta desde el módulo de Caja.' });
+                        },
                     },
-                });
+                );
             }
 
             promptingRef.current = false;

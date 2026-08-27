@@ -1,33 +1,26 @@
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from "@/components/ui/table"
-import { IconActionButton } from "@/components/icon-action-button"
-import { Pencil, Shield, Trash2 } from "lucide-react"
-import { Pagination } from "@/components/ui/pagination"
-import { router } from "@inertiajs/react"
+import { IconActionButton } from '@/components/icon-action-button';
+import { Pagination } from '@/components/ui/pagination';
+import SearchInput from '@/components/ui/search-input';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import Swal from '@/lib/swal';
-import SearchInput from "@/components/ui/search-input"
+import { router } from '@inertiajs/react';
+import { Pencil, Shield, Trash2 } from 'lucide-react';
 
 interface Role {
-    id: number
-    name: string
-    label: string
-    description: string
-    permissions: Permission[]
-    created_at: string
-    updated_at: string
+    id: number;
+    name: string;
+    label: string;
+    description: string;
+    permissions: Permission[];
+    created_at: string;
+    updated_at: string;
 }
 
 interface Permission {
-    id: number
-    name: string
-    label: string
-    module: string
+    id: number;
+    name: string;
+    label: string;
+    module: string;
 }
 
 interface LinkProps {
@@ -43,20 +36,20 @@ const MAX_VISIBLE_MODULES = 4;
 
 interface RolesTableProps {
     roles: {
-        data: Role[]
-        links: LinkProps[]
-        from: number
-        to: number
-        total: number
-    }
-    perPage: string
-    onPerPageChange: () => void
-    onEditRole: (role: Role) => void
-    totalCount: number
-    filteredCount: number
-    search: string
-    onSearch: (search: string) => void
-    userPermissions: string[]
+        data: Role[];
+        links: LinkProps[];
+        from: number;
+        to: number;
+        total: number;
+    };
+    perPage: string;
+    onPerPageChange: () => void;
+    onEditRole: (role: Role) => void;
+    totalCount: number;
+    filteredCount: number;
+    search: string;
+    onSearch: (search: string) => void;
+    userPermissions: string[];
 }
 
 export default function RolesTable({
@@ -68,38 +61,37 @@ export default function RolesTable({
     filteredCount,
     search,
     onSearch,
-    userPermissions
+    userPermissions,
 }: RolesTableProps) {
-
     const handleDelete = (roleId: number, roleLabel: string) => {
         Swal.fire({
-            title: "¿Estás seguro?",
+            title: '¿Estás seguro?',
             text: `Esta acción eliminará el rol ${roleLabel} permanentemente`,
-            icon: "warning",
+            icon: 'warning',
             showCancelButton: true,
-            confirmButtonColor: "#3085d6",
-            cancelButtonColor: "#d33",
-            confirmButtonText: "Sí, eliminar!",
-            cancelButtonText: "Cancelar"
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Sí, eliminar!',
+            cancelButtonText: 'Cancelar',
         }).then((result) => {
             if (result.isConfirmed) {
                 router.delete(route('roles.destroy', roleId), {
                     onSuccess: () => {
                         Swal.fire({
-                            title: "Eliminado!",
-                            text: "El rol ha sido eliminado.",
-                            icon: "success",
+                            title: 'Eliminado!',
+                            text: 'El rol ha sido eliminado.',
+                            icon: 'success',
                             timer: 2200,
-                            showConfirmButton: false
+                            showConfirmButton: false,
                         });
                     },
                     onError: () => {
                         Swal.fire({
-                            title: "Error!",
-                            text: "No se pudo eliminar el rol.",
-                            icon: "error"
+                            title: 'Error!',
+                            text: 'No se pudo eliminar el rol.',
+                            icon: 'error',
                         });
-                    }
+                    },
                 });
             }
         });
@@ -111,15 +103,10 @@ export default function RolesTable({
     return (
         <div className="space-y-3">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                <SearchInput
-                    placeholder="Buscar por nombre..."
-                    searchValue={search}
-                    onSearch={onSearch}
-                    className="w-full sm:max-w-lg"
-                />
+                <SearchInput placeholder="Buscar por nombre..." searchValue={search} onSearch={onSearch} className="w-full sm:max-w-lg" />
             </div>
 
-            <div className="rounded-md bg-card shadow-lg shadow-black/10 dark:shadow-black/60 overflow-hidden">
+            <div className="bg-card overflow-hidden rounded-md shadow-lg shadow-black/10 dark:shadow-black/60">
                 <Table>
                     <TableHeader className="bg-gray-400 dark:bg-gray-700">
                         <TableRow>
@@ -137,10 +124,13 @@ export default function RolesTable({
                                 <TableCell>
                                     {(() => {
                                         const moduleCounts = Object.entries(
-                                            role.permissions.reduce((acc, permission) => {
-                                                acc[permission.module] = (acc[permission.module] ?? 0) + 1;
-                                                return acc;
-                                            }, {} as Record<string, number>)
+                                            role.permissions.reduce(
+                                                (acc, permission) => {
+                                                    acc[permission.module] = (acc[permission.module] ?? 0) + 1;
+                                                    return acc;
+                                                },
+                                                {} as Record<string, number>,
+                                            ),
                                         );
                                         const visibleModules = moduleCounts.slice(0, MAX_VISIBLE_MODULES);
                                         const hiddenModules = moduleCounts.slice(MAX_VISIBLE_MODULES);
@@ -150,10 +140,10 @@ export default function RolesTable({
                                                 {visibleModules.map(([module, count]) => (
                                                     <span
                                                         key={module}
-                                                        className="inline-flex shrink-0 items-center gap-1.5 text-xs pl-3 pr-1.5 py-0.5 rounded-full bg-blue-600 text-white font-medium shadow-sm dark:bg-blue-700"
+                                                        className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-blue-600 py-0.5 pr-1.5 pl-3 text-xs font-medium text-white shadow-sm dark:bg-blue-700"
                                                     >
                                                         {module}
-                                                        <span className="inline-flex items-center justify-center min-w-[1.25rem] h-5 px-1 rounded-full bg-white/20 text-[11px] font-bold">
+                                                        <span className="inline-flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-white/20 px-1 text-[11px] font-bold">
                                                             {count}
                                                         </span>
                                                     </span>
@@ -161,7 +151,7 @@ export default function RolesTable({
                                                 {hiddenModules.length > 0 && (
                                                     <span
                                                         title={hiddenModules.map(([module]) => module).join(', ')}
-                                                        className="inline-flex shrink-0 items-center text-xs px-2.5 py-0.5 rounded-full bg-muted text-muted-foreground font-medium shadow-sm"
+                                                        className="bg-muted text-muted-foreground inline-flex shrink-0 items-center rounded-full px-2.5 py-0.5 text-xs font-medium shadow-sm"
                                                     >
                                                         +{hiddenModules.length}
                                                     </span>
@@ -222,5 +212,5 @@ export default function RolesTable({
                 searchRoute="roles.search"
             />
         </div>
-    )
+    );
 }

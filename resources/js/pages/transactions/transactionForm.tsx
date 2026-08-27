@@ -1,18 +1,11 @@
-import React, { useState, useEffect } from 'react';
-import { useForm } from '@inertiajs/react';
-import Swal from '@/lib/swal';
 import { Button } from '@/components/ui/button';
+import { Combobox, ComboboxContent, ComboboxEmpty, ComboboxInput, ComboboxItem, ComboboxList } from '@/components/ui/combobox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import {
-    Combobox,
-    ComboboxContent,
-    ComboboxEmpty,
-    ComboboxInput,
-    ComboboxItem,
-    ComboboxList,
-} from "@/components/ui/combobox"
+import Swal from '@/lib/swal';
+import { useForm } from '@inertiajs/react';
+import React, { useEffect, useState } from 'react';
 
 const TRANSACTION_TYPES = [
     { value: 'Ingreso', label: 'Ingreso' },
@@ -58,7 +51,7 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ transaction, categori
 
         // Obtener la hora local en formato Colombia (UTC-5)
         // Crear una nueva fecha con el offset de Colombia
-        const colombiaTime = new Date(now.toLocaleString("en-US", { timeZone: "America/Bogota" }));
+        const colombiaTime = new Date(now.toLocaleString('en-US', { timeZone: 'America/Bogota' }));
 
         return {
             // Getters locales, no toISOString(): ese convertiría usando el
@@ -85,7 +78,7 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ transaction, categori
             const utcDate = new Date(`${dateString}T${timeString}Z`);
             if (!isNaN(utcDate.getTime())) {
                 // Convertir a hora local de Colombia
-                const colombiaDate = new Date(utcDate.toLocaleString("en-US", { timeZone: "America/Bogota" }));
+                const colombiaDate = new Date(utcDate.toLocaleString('en-US', { timeZone: 'America/Bogota' }));
                 return colombiaDate.toTimeString().slice(0, 5);
             }
 
@@ -143,7 +136,7 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ transaction, categori
 
     useEffect(() => {
         if (selectedType) {
-            const filtered = categories.filter(cat => cat.type === selectedType);
+            const filtered = categories.filter((cat) => cat.type === selectedType);
             setFilteredCategories(filtered);
         } else {
             setFilteredCategories([]);
@@ -185,23 +178,23 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ transaction, categori
             put(route('transactions.update', transaction.id), {
                 onSuccess: () => {
                     Swal.fire({
-                        position: "center",
-                        icon: "success",
-                        title: "Transacción actualizada correctamente",
+                        position: 'center',
+                        icon: 'success',
+                        title: 'Transacción actualizada correctamente',
                         showConfirmButton: false,
-                        timer: 2200
+                        timer: 2200,
                     });
                     reset();
                     onSaved();
                 },
                 onError: () => {
                     Swal.fire({
-                        position: "center",
-                        icon: "error",
-                        title: "Error al actualizar la transacción",
+                        position: 'center',
+                        icon: 'error',
+                        title: 'Error al actualizar la transacción',
                         text: 'Verifica los datos ingresados.',
                         showConfirmButton: false,
-                        timer: 2200
+                        timer: 2200,
                     });
                 },
             });
@@ -209,49 +202,44 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ transaction, categori
             post(route('transactions.store'), {
                 onSuccess: () => {
                     Swal.fire({
-                        position: "center",
-                        icon: "success",
-                        title: "Transacción registrada correctamente",
+                        position: 'center',
+                        icon: 'success',
+                        title: 'Transacción registrada correctamente',
                         showConfirmButton: false,
-                        timer: 2200
+                        timer: 2200,
                     });
                     reset();
                     onSaved();
                 },
                 onError: () => {
                     Swal.fire({
-                        position: "center",
-                        icon: "error",
-                        title: "Error al registrar la transacción",
+                        position: 'center',
+                        icon: 'error',
+                        title: 'Error al registrar la transacción',
                         text: 'Verifica los datos ingresados.',
                         showConfirmButton: false,
-                        timer: 2200
+                        timer: 2200,
                     });
                 },
             });
         }
     };
 
-    const paymentMethods = [
-        'Efectivo',
-        'Nequi'
-    ];
+    const paymentMethods = ['Efectivo', 'Nequi'];
 
-    const canSubmit = transaction?.id
-        ? userPermissions.includes('Editar Finanzas')
-        : userPermissions.includes('Crear Finanzas');
+    const canSubmit = transaction?.id ? userPermissions.includes('Editar Finanzas') : userPermissions.includes('Crear Finanzas');
 
     return (
         <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                 {/* Tipo */}
                 <div>
-                    <Label htmlFor="type" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    <Label htmlFor="type" className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
                         Tipo *
                     </Label>
                     <Combobox
                         items={TRANSACTION_TYPES}
-                        value={TRANSACTION_TYPES.find(t => t.value === data.type) ?? null}
+                        value={TRANSACTION_TYPES.find((t) => t.value === data.type) ?? null}
                         onValueChange={(t: { value: string; label: string } | null) => handleTypeChange(t?.value ?? '')}
                     >
                         <ComboboxInput placeholder="Seleccione el tipo" />
@@ -271,18 +259,18 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ transaction, categori
 
                 {/* Categoría */}
                 <div>
-                    <Label htmlFor="transaction_category_id" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    <Label htmlFor="transaction_category_id" className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
                         Categoría *
                     </Label>
                     <Combobox
                         items={filteredCategories}
                         itemToStringLabel={(c: TransactionCategory) => c.name}
                         itemToStringValue={(c: TransactionCategory) => c.id.toString()}
-                        value={filteredCategories.find(c => c.id.toString() === data.transaction_category_id.toString()) ?? null}
+                        value={filteredCategories.find((c) => c.id.toString() === data.transaction_category_id.toString()) ?? null}
                         onValueChange={(c: TransactionCategory | null) => setData('transaction_category_id', c ? c.id.toString() : '')}
                         disabled={!selectedType}
                     >
-                        <ComboboxInput placeholder={selectedType ? "Seleccione la categoría" : "Seleccione primero el tipo"} />
+                        <ComboboxInput placeholder={selectedType ? 'Seleccione la categoría' : 'Seleccione primero el tipo'} />
                         <ComboboxContent>
                             <ComboboxEmpty>No hay categorías disponibles.</ComboboxEmpty>
                             <ComboboxList>
@@ -299,13 +287,11 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ transaction, categori
 
                 {/* Monto */}
                 <div>
-                    <Label htmlFor="amount" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    <Label htmlFor="amount" className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
                         Monto *
                     </Label>
                     <div className="relative">
-                        <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">
-                            $
-                        </span>
+                        <span className="absolute top-1/2 left-3 -translate-y-1/2 transform text-gray-500">$</span>
                         <Input
                             id="amount"
                             type="text"
@@ -320,7 +306,7 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ transaction, categori
 
                 {/* Medio de Pago */}
                 <div>
-                    <Label htmlFor="payment_method" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    <Label htmlFor="payment_method" className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
                         Medio de Pago *
                     </Label>
                     <Combobox
@@ -345,7 +331,7 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ transaction, categori
 
                 {/* Fecha */}
                 <div>
-                    <Label htmlFor="transaction_date" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    <Label htmlFor="transaction_date" className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
                         Fecha *
                     </Label>
                     <Input
@@ -360,7 +346,7 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ transaction, categori
 
                 {/* Hora */}
                 <div>
-                    <Label htmlFor="transaction_time" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    <Label htmlFor="transaction_time" className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
                         Hora *
                     </Label>
                     <Input
@@ -377,7 +363,7 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ transaction, categori
 
             {/* Número de Referencia */}
             <div>
-                <Label htmlFor="invoice_number" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                <Label htmlFor="invoice_number" className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
                     Número de Factura
                 </Label>
                 <Input
@@ -392,7 +378,7 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ transaction, categori
 
             {/* Descripción */}
             <div>
-                <Label htmlFor="description" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                <Label htmlFor="description" className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
                     Descripción
                 </Label>
                 <Textarea
@@ -408,7 +394,7 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ transaction, categori
 
             {/* Notas */}
             <div>
-                <Label htmlFor="notes" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                <Label htmlFor="notes" className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
                     Notas
                 </Label>
                 <Textarea
@@ -423,21 +409,13 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ transaction, categori
             </div>
 
             {/* Botones */}
-            <div className="flex justify-end space-x-3 pt-4 border-t border-gray-200 dark:border-gray-700">
-                <Button
-                    type="button"
-                    onClick={onCancel}
-                    variant="outline"
-                    disabled={processing}
-                >
+            <div className="flex justify-end space-x-3 border-t border-gray-200 pt-4 dark:border-gray-700">
+                <Button type="button" onClick={onCancel} variant="outline" disabled={processing}>
                     Cancelar
                 </Button>
                 {canSubmit && (
-                    <Button
-                        type="submit"
-                        disabled={processing}
-                    >
-                        {processing ? 'Guardando...' : (transaction?.id ? 'Actualizar Transacción' : 'Crear Transacción')}
+                    <Button type="submit" disabled={processing}>
+                        {processing ? 'Guardando...' : transaction?.id ? 'Actualizar Transacción' : 'Crear Transacción'}
                     </Button>
                 )}
             </div>

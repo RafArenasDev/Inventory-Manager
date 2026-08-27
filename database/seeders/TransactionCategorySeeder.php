@@ -1,4 +1,5 @@
 <?php
+
 namespace Database\Seeders;
 
 use App\Models\TransactionCategory;
@@ -14,78 +15,78 @@ class TransactionCategorySeeder extends Seeder
         $categories = [
             // INGRESOS
             [
-                'name'        => 'Ventas',
-                'type'        => 'Ingreso',
+                'name' => 'Ventas',
+                'type' => 'Ingreso',
                 'description' => 'Ingresos por ventas del local',
-                'is_system'   => true,
+                'is_system' => true,
             ],
             [
-                'name'        => 'Aporte de Capital',
-                'type'        => 'Ingreso',
+                'name' => 'Aporte de Capital',
+                'type' => 'Ingreso',
                 'description' => 'Inyección de capital o patrimonio al negocio',
-                'is_system'   => true,
+                'is_system' => true,
             ],
             [
-                'name'        => 'Otros Ingresos',
-                'type'        => 'Ingreso',
+                'name' => 'Otros Ingresos',
+                'type' => 'Ingreso',
                 'description' => 'Otros ingresos no clasificados',
-                'is_system'   => false,
+                'is_system' => false,
             ],
 
             // GASTOS
             [
-                'name'        => 'Arriendo',
-                'type'        => 'Gasto',
+                'name' => 'Arriendo',
+                'type' => 'Gasto',
                 'description' => 'Pago de arriendo del local',
-                'is_system'   => false,
+                'is_system' => false,
             ],
             [
-                'name'        => 'Servicios Públicos',
-                'type'        => 'Gasto',
+                'name' => 'Servicios Públicos',
+                'type' => 'Gasto',
                 'description' => 'Luz, agua, gas, internet, teléfono',
-                'is_system'   => false,
+                'is_system' => false,
             ],
             [
-                'name'        => 'Impuestos',
-                'type'        => 'Gasto',
+                'name' => 'Impuestos',
+                'type' => 'Gasto',
                 'description' => 'Impuestos municipales, predial, industria y comercio',
-                'is_system'   => false,
+                'is_system' => false,
             ],
             [
-                'name'        => 'Nómina',
-                'type'        => 'Gasto',
+                'name' => 'Nómina',
+                'type' => 'Gasto',
                 'description' => 'Pago de salarios y prestaciones',
-                'is_system'   => false,
+                'is_system' => false,
             ],
             [
-                'name'        => 'Mantenimiento',
-                'type'        => 'Gasto',
+                'name' => 'Mantenimiento',
+                'type' => 'Gasto',
                 'description' => 'Mantenimiento y reparaciones del local',
-                'is_system'   => false,
+                'is_system' => false,
             ],
             [
-                'name'        => 'Transporte',
-                'type'        => 'Gasto',
+                'name' => 'Transporte',
+                'type' => 'Gasto',
                 'description' => 'Gastos de transporte y domicilios',
-                'is_system'   => false,
+                'is_system' => false,
             ],
             [
-                'name'        => 'Publicidad',
-                'type'        => 'Gasto',
+                'name' => 'Publicidad',
+                'type' => 'Gasto',
                 'description' => 'Gastos en publicidad y marketing',
-                'is_system'   => false,
+                'is_system' => false,
             ],
             [
-                'name'        => 'Papelería',
-                'type'        => 'Gasto',
+                'name' => 'Papelería',
+                'type' => 'Gasto',
                 'description' => 'Compra de papelería y útiles de oficina',
-                'is_system'   => false,
+                'is_system' => false,
             ],
             [
-                'name'        => 'Otros Gastos',
-                'type'        => 'Gasto',
+                'name' => 'Otros Gastos',
+                'type' => 'Gasto',
                 'description' => 'Otros gastos operacionales no clasificados',
-                'is_system'   => false,
+                'is_system' => false,
             ],
         ];
 

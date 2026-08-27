@@ -17,12 +17,12 @@ export function PageHeader({ icon: Icon, title, description, children }: PageHea
                     oscuro — mismo contraste fuerte en los dos temas, sin
                     depender de un color fijo que en uno de los dos se
                     apague. */}
-                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-foreground text-background">
+                <div className="bg-foreground text-background flex h-11 w-11 shrink-0 items-center justify-center rounded-xl">
                     <Icon className="h-5 w-5" />
                 </div>
                 <div>
                     <h2 className="text-2xl leading-tight font-bold tracking-tight">{title}</h2>
-                    {description && <p className="text-sm text-muted-foreground">{description}</p>}
+                    {description && <p className="text-muted-foreground text-sm">{description}</p>}
                 </div>
             </div>
             {children && <div className="flex items-center gap-2">{children}</div>}

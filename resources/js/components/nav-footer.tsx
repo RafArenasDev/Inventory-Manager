@@ -25,9 +25,7 @@ export function NavFooter({
                     )}
                     {version && (
                         <SidebarMenuItem>
-                            <span className="text-xs text-neutral-500 dark:text-neutral-400">
-                                Versión {version}
-                            </span>
+                            <span className="text-xs text-neutral-500 dark:text-neutral-400">Versión {version}</span>
                         </SidebarMenuItem>
                     )}
                 </SidebarMenu>

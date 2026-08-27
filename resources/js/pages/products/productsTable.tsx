@@ -1,20 +1,13 @@
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from "@/components/ui/table"
-import { IconActionButton } from "@/components/icon-action-button"
-import { Pencil, Trash2, Package, Eye } from "lucide-react"
-import { Pagination } from "@/components/ui/pagination"
-import { router } from "@inertiajs/react"
+import { IconActionButton } from '@/components/icon-action-button';
+import { Pagination } from '@/components/ui/pagination';
+import SearchInput from '@/components/ui/search-input';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import Swal from '@/lib/swal';
-import SearchInput from "@/components/ui/search-input"
-import { useState } from "react"
-import ProductModal from "./productModal"
 import { LinkProps } from '@/types';
+import { router } from '@inertiajs/react';
+import { Eye, Package, Pencil, Trash2 } from 'lucide-react';
+import { useState } from 'react';
+import ProductModal from './productModal';
 
 interface Product {
     id: number;
@@ -40,20 +33,20 @@ interface Product {
 
 interface ProductsTableProps {
     products: {
-        data: Product[]
-        links: LinkProps[]
-        from: number
-        to: number
-        total: number
-    }
-    perPage: string
-    onPerPageChange: () => void
-    onEditProduct: (product: Product) => void
-    totalCount: number
-    filteredCount: number
-    search: string
-    onSearch: (search: string) => void
-    userPermissions: string[]
+        data: Product[];
+        links: LinkProps[];
+        from: number;
+        to: number;
+        total: number;
+    };
+    perPage: string;
+    onPerPageChange: () => void;
+    onEditProduct: (product: Product) => void;
+    totalCount: number;
+    filteredCount: number;
+    search: string;
+    onSearch: (search: string) => void;
+    userPermissions: string[];
 }
 
 export default function ProductsTable({
@@ -65,40 +58,40 @@ export default function ProductsTable({
     filteredCount,
     search,
     onSearch,
-    userPermissions
+    userPermissions,
 }: ProductsTableProps) {
-    const [isModalOpen, setIsModalOpen] = useState(false)
-    const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
 
     const handleDelete = (productId: number, productName: string) => {
         Swal.fire({
-            title: "¿Estás seguro?",
+            title: '¿Estás seguro?',
             text: `Esta acción eliminará el producto ${productName} permanentemente`,
-            icon: "warning",
+            icon: 'warning',
             showCancelButton: true,
-            confirmButtonColor: "#3085d6",
-            cancelButtonColor: "#d33",
-            confirmButtonText: "Sí, eliminar!",
-            cancelButtonText: "Cancelar"
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Sí, eliminar!',
+            cancelButtonText: 'Cancelar',
         }).then((result) => {
             if (result.isConfirmed) {
                 router.delete(route('products.destroy', productId), {
                     onSuccess: () => {
                         Swal.fire({
-                            title: "Eliminado!",
-                            text: "El producto ha sido eliminado.",
-                            icon: "success",
+                            title: 'Eliminado!',
+                            text: 'El producto ha sido eliminado.',
+                            icon: 'success',
                             timer: 2200,
-                            showConfirmButton: false
+                            showConfirmButton: false,
                         });
                     },
                     onError: () => {
                         Swal.fire({
-                            title: "Error!",
-                            text: "No se pudo eliminar el producto.",
-                            icon: "error"
+                            title: 'Error!',
+                            text: 'No se pudo eliminar el producto.',
+                            icon: 'error',
                         });
-                    }
+                    },
                 });
             }
         });
@@ -122,9 +115,9 @@ export default function ProductsTable({
         if (price === null || price === undefined || isNaN(price)) {
             return '-';
         }
-        return new Intl.NumberFormat("es-CO", {
-            style: "currency",
-            currency: "COP",
+        return new Intl.NumberFormat('es-CO', {
+            style: 'currency',
+            currency: 'COP',
             minimumFractionDigits: 0,
             maximumFractionDigits: 0,
         }).format(price);
@@ -135,9 +128,8 @@ export default function ProductsTable({
         setIsModalOpen(true);
     };
 
-    const showActionsColumn = userPermissions.includes('Ver Productos') ||
-                              userPermissions.includes('Editar Productos') ||
-                              userPermissions.includes('Eliminar Productos');
+    const showActionsColumn =
+        userPermissions.includes('Ver Productos') || userPermissions.includes('Editar Productos') || userPermissions.includes('Eliminar Productos');
 
     return (
         <div className="space-y-3">
@@ -150,7 +142,7 @@ export default function ProductsTable({
                 />
             </div>
 
-            <div className="rounded-md bg-card shadow-lg shadow-black/10 dark:shadow-black/60 overflow-hidden">
+            <div className="bg-card overflow-hidden rounded-md shadow-lg shadow-black/10 dark:shadow-black/60">
                 <Table>
                     <TableHeader className="bg-gray-400 dark:bg-gray-700">
                         <TableRow>
@@ -169,39 +161,33 @@ export default function ProductsTable({
                             const stockStatus = getStockStatus(product.stock);
                             return (
                                 <TableRow key={product.id} className="hover:bg-gray-50 dark:hover:bg-gray-800/50">
-                                    <TableCell className="font-medium text-left">{product.code}</TableCell>
+                                    <TableCell className="text-left font-medium">{product.code}</TableCell>
                                     <TableCell className="text-left">
                                         {product.image_path ? (
-                                            <img
-                                                src={product.image_path}
-                                                alt={product.name}
-                                                className="h-12 w-12 object-cover rounded"
-                                            />
+                                            <img src={product.image_path} alt={product.name} className="h-12 w-12 rounded object-cover" />
                                         ) : (
                                             <span className="text-gray-500 dark:text-gray-400">Sin imagen</span>
                                         )}
                                     </TableCell>
-                                    <TableCell className="max-w-[200px] sm:max-w-[250px] w-48 text-left">
-                                        <div className="font-medium line-clamp-2 break-words">
-                                            {product.name}
-                                        </div>
+                                    <TableCell className="w-48 max-w-[200px] text-left sm:max-w-[250px]">
+                                        <div className="line-clamp-2 font-medium break-words">{product.name}</div>
                                     </TableCell>
                                     <TableCell className="text-left">
-                                        <span className="text-xs px-3 py-0.5 rounded-full bg-blue-600 text-white font-bold w-fit shadow-sm dark:bg-blue-700">
-                                            { product.category }
+                                        <span className="w-fit rounded-full bg-blue-600 px-3 py-0.5 text-xs font-bold text-white shadow-sm dark:bg-blue-700">
+                                            {product.category}
                                         </span>
                                     </TableCell>
                                     <TableCell className="text-left">
-                                        <span className={`inline-flex items-center gap-2 text-xs px-3 py-0.5 rounded-full ${stockStatus.color} w-fit shadow-sm`}>
+                                        <span
+                                            className={`inline-flex items-center gap-2 rounded-full px-3 py-0.5 text-xs ${stockStatus.color} w-fit shadow-sm`}
+                                        >
                                             <span className="font-bold">{product.stock}</span>
                                             <span>{stockStatus.label}</span>
                                         </span>
                                     </TableCell>
-                                    <TableCell className="text-left font-medium">
-                                        {formatPrice(product.sale_price)}
-                                    </TableCell>
-                                    <TableCell className="text-xs text-left">
-                                        <span className="text-xs px-3 py-0.5 rounded-full bg-zinc-600 text-white font-bold w-fit shadow-sm dark:bg-zinc-700">
+                                    <TableCell className="text-left font-medium">{formatPrice(product.sale_price)}</TableCell>
+                                    <TableCell className="text-left text-xs">
+                                        <span className="w-fit rounded-full bg-zinc-600 px-3 py-0.5 text-xs font-bold text-white shadow-sm dark:bg-zinc-700">
                                             {product.supplier || '-'}
                                         </span>
                                     </TableCell>
@@ -258,11 +244,7 @@ export default function ProductsTable({
                 </Table>
             </div>
 
-            <ProductModal
-                isOpen={isModalOpen}
-                onClose={() => setIsModalOpen(false)}
-                product={selectedProduct}
-            />
+            <ProductModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} product={selectedProduct} />
 
             <Pagination
                 data={products}
@@ -274,5 +256,5 @@ export default function ProductsTable({
                 searchRoute="products.search"
             />
         </div>
-    )
+    );
 }

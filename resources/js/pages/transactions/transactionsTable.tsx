@@ -1,18 +1,11 @@
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from "@/components/ui/table"
-import { Button } from "@/components/ui/button"
-import { IconActionButton } from "@/components/icon-action-button"
-import { Pencil, Download, Wallet } from "lucide-react"
-import { Pagination } from "@/components/ui/pagination"
-import SearchInput from "@/components/ui/search-input"
-import { PeriodFilter } from "@/components/period-filter"
-import { formatDate, formatTime } from "@/lib/format-datetime"
+import { IconActionButton } from '@/components/icon-action-button';
+import { PeriodFilter } from '@/components/period-filter';
+import { Button } from '@/components/ui/button';
+import { Pagination } from '@/components/ui/pagination';
+import SearchInput from '@/components/ui/search-input';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { formatDate, formatTime } from '@/lib/format-datetime';
+import { Download, Pencil, Wallet } from 'lucide-react';
 // import Swal from 'sweetalert2'
 // import { router } from "@inertiajs/react"
 
@@ -55,28 +48,28 @@ interface TransactionFilters {
 
 interface TransactionsTableProps {
     transactions: {
-        data: Transaction[]
-        links: LinkProps[]
-        from: number
+        data: Transaction[];
+        links: LinkProps[];
+        from: number;
         to: number;
-        total: number
-    }
-    categories: TransactionCategory[]
-    perPage: string
-    onPerPageChange: (perPage: string) => void
-    onEditTransaction: (transaction: Transaction) => void
-    totalCount: number
-    filteredCount: number
-    search: string
-    onSearch: (search: string) => void
-    onPeriodChange: (range: { date_from: string; date_to: string }) => void
+        total: number;
+    };
+    categories: TransactionCategory[];
+    perPage: string;
+    onPerPageChange: (perPage: string) => void;
+    onEditTransaction: (transaction: Transaction) => void;
+    totalCount: number;
+    filteredCount: number;
+    search: string;
+    onSearch: (search: string) => void;
+    onPeriodChange: (range: { date_from: string; date_to: string }) => void;
     totals: {
-        total_amount: number
-        total_count: number
-    }
-    userPermissions: string[]
-    extraFilters?: Record<string, string | undefined>
-    filters: TransactionFilters
+        total_amount: number;
+        total_count: number;
+    };
+    userPermissions: string[];
+    extraFilters?: Record<string, string | undefined>;
+    filters: TransactionFilters;
 }
 
 export default function TransactionsTable({
@@ -92,21 +85,18 @@ export default function TransactionsTable({
     userPermissions,
     extraFilters,
 }: TransactionsTableProps) {
-
     // console.log("Datos recibidos:", transactions.data);
 
     const formatAmount = (amount: number) => {
         return new Intl.NumberFormat('es-CO', {
             style: 'currency',
             currency: 'COP',
-            minimumFractionDigits: 0
+            minimumFractionDigits: 0,
         }).format(amount);
     };
 
     const getTypeColor = (type: 'Ingreso' | 'Gasto') => {
-        return type === 'Ingreso'
-            ? 'bg-emerald-600 dark:bg-emerald-700'
-            : 'bg-rose-600 dark:bg-rose-700';
+        return type === 'Ingreso' ? 'bg-emerald-600 dark:bg-emerald-700' : 'bg-rose-600 dark:bg-rose-700';
     };
 
     const handleExport = () => {
@@ -129,17 +119,14 @@ export default function TransactionsTable({
                     <PeriodFilter onChange={onPeriodChange} />
                 </div>
                 {userPermissions.includes('Exportar Transacciones') && (
-                    <Button
-                        onClick={handleExport}
-                        className="gap-2 bg-gray-500 text-white hover:bg-gray-600"
-                    >
+                    <Button onClick={handleExport} className="gap-2 bg-gray-500 text-white hover:bg-gray-600">
                         <Download className="h-4 w-4" />
                         Exportar
                     </Button>
                 )}
             </div>
 
-            <div className="rounded-md bg-card shadow-lg shadow-black/10 dark:shadow-black/60 overflow-hidden">
+            <div className="bg-card overflow-hidden rounded-md shadow-lg shadow-black/10 dark:shadow-black/60">
                 <Table>
                     <TableHeader className="bg-gray-400 dark:bg-gray-700">
                         <TableRow>
@@ -158,21 +145,19 @@ export default function TransactionsTable({
                         {transactions.data.map((transaction) => (
                             <TableRow key={transaction.id}>
                                 <TableCell>
-                                    <span className={`text-xs px-3 py-0.5 rounded-full ${getTypeColor(transaction.type)} text-white font-bold w-fit shadow-sm`}>
+                                    <span
+                                        className={`rounded-full px-3 py-0.5 text-xs ${getTypeColor(transaction.type)} w-fit font-bold text-white shadow-sm`}
+                                    >
                                         {transaction.type}
                                     </span>
                                 </TableCell>
                                 <TableCell>{transaction.category.name}</TableCell>
-                                <TableCell className="font-semibold">
-                                    {formatAmount(transaction.amount)}
-                                </TableCell>
+                                <TableCell className="font-semibold">{formatAmount(transaction.amount)}</TableCell>
                                 <TableCell>{transaction.payment_method}</TableCell>
                                 <TableCell>
                                     {formatDate(transaction.transaction_date)} - {formatTime(transaction.transaction_time)}
                                 </TableCell>
-                                <TableCell>
-                                    {transaction.invoice_number || 'N/A'}
-                                </TableCell>
+                                <TableCell>{transaction.invoice_number || 'N/A'}</TableCell>
                                 <TableCell className="max-w-xs">
                                     {transaction.description ? (
                                         <div className="truncate" title={transaction.description}>
@@ -234,5 +219,5 @@ export default function TransactionsTable({
                 extraFilters={extraFilters}
             />
         </div>
-    )
+    );
 }

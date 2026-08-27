@@ -1,17 +1,17 @@
-import { useEffect, useState } from 'react';
+import { ConfirmDialog } from '@/components/confirm-dialog';
+import { PageHeader } from '@/components/page-header';
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useLiveRefresh } from '@/hooks/use-live-refresh';
 import AppLayout from '@/layouts/app-layout';
-import { LinkProps, type BreadcrumbItem } from '@/types';
-import { Head, router, usePage } from '@inertiajs/react';
-import PurchaseOrdersTable from './purchaseOrdersTable';
-import PurchaseOrderForm from './purchaseOrderForm';
-import { Button } from '@/components/ui/button';
-import { PackageSearch, Plus } from 'lucide-react';
-import { PageHeader } from '@/components/page-header';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
-import { ConfirmDialog } from '@/components/confirm-dialog';
 import Swal from '@/lib/swal';
 import { buildPurchaseOrderMessage, openWhatsApp } from '@/lib/whatsapp';
+import { LinkProps, type BreadcrumbItem } from '@/types';
+import { Head, router, usePage } from '@inertiajs/react';
+import { PackageSearch, Plus } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import PurchaseOrderForm from './purchaseOrderForm';
+import PurchaseOrdersTable from './purchaseOrdersTable';
 
 interface PurchaseOrderItem {
     id: number;
@@ -76,18 +76,9 @@ interface PurchaseOrdersIndexProps {
     filteredCount: number;
 }
 
-const breadcrumbs: BreadcrumbItem[] = [
-    { title: 'Pedidos', href: '/purchase-orders' },
-];
+const breadcrumbs: BreadcrumbItem[] = [{ title: 'Pedidos', href: '/purchase-orders' }];
 
-export default function PurchaseOrdersIndex({
-    purchaseOrders,
-    suppliers,
-    products,
-    filters,
-    totalCount,
-    filteredCount,
-}: PurchaseOrdersIndexProps) {
+export default function PurchaseOrdersIndex({ purchaseOrders, suppliers, products, filters, totalCount, filteredCount }: PurchaseOrdersIndexProps) {
     const [isCreating, setIsCreating] = useState(false);
     const [editingOrder, setEditingOrder] = useState<PurchaseOrder | null>(null);
     const [isFormDirty, setIsFormDirty] = useState(false);
@@ -153,9 +144,7 @@ export default function PurchaseOrdersIndex({
         // a editarlo (nada de un botón "seguir con este" que invite a crear
         // un duplicado).
         const [firstItem, ...rest] = existing.items;
-        const itemsPreview = firstItem
-            ? `${firstItem.product_name}${rest.length > 0 ? ` y ${rest.length} más` : ''}`
-            : 'otros productos';
+        const itemsPreview = firstItem ? `${firstItem.product_name}${rest.length > 0 ? ` y ${rest.length} más` : ''}` : 'otros productos';
         Swal.fire({
             icon: 'info',
             title: 'Ya hay un pedido activo por stock bajo',
@@ -169,13 +158,20 @@ export default function PurchaseOrdersIndex({
     };
 
     const refreshTable = () => {
-        router.post(route('purchase-orders.search'), {
-            ...filters,
-            page: 1,
-        }, { preserveState: true, preserveScroll: true });
+        router.post(
+            route('purchase-orders.search'),
+            {
+                ...filters,
+                page: 1,
+            },
+            { preserveState: true, preserveScroll: true },
+        );
     };
 
-    const handleOrderCreated = (result?: { supplier: Supplier | null; items: { product_name: string; product_code: string; quantity_requested: number }[] }) => {
+    const handleOrderCreated = (result?: {
+        supplier: Supplier | null;
+        items: { product_name: string; product_code: string; quantity_requested: number }[];
+    }) => {
         closeForm();
         // Refresca la tabla en el lugar (mismo POST que ya usa la búsqueda/
         // filtros) en vez de dejar que el store() navegue a otra vista —
@@ -215,11 +211,15 @@ export default function PurchaseOrdersIndex({
     };
 
     const handleSearch = (search: string) => {
-        router.post(route('purchase-orders.search'), {
-            ...filters,
-            search,
-            page: 1,
-        }, { preserveState: true, preserveScroll: true });
+        router.post(
+            route('purchase-orders.search'),
+            {
+                ...filters,
+                search,
+                page: 1,
+            },
+            { preserveState: true, preserveScroll: true },
+        );
     };
 
     // El cambio de per_page ya lo maneja Pagination internamente (POST a
@@ -227,12 +227,16 @@ export default function PurchaseOrdersIndex({
     const handlePerPageChange = () => {};
 
     const handlePeriodChange = (range: { date_from?: string; date_to?: string }) => {
-        router.post(route('purchase-orders.search'), {
-            ...filters,
-            date_from: range.date_from ?? '',
-            date_to: range.date_to ?? '',
-            page: 1,
-        }, { preserveState: true, preserveScroll: true });
+        router.post(
+            route('purchase-orders.search'),
+            {
+                ...filters,
+                date_from: range.date_from ?? '',
+                date_to: range.date_to ?? '',
+                page: 1,
+            },
+            { preserveState: true, preserveScroll: true },
+        );
     };
 
     const hasMultiplePages = totalCount > Number(filters.per_page || 10);
@@ -241,11 +245,7 @@ export default function PurchaseOrdersIndex({
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Pedidos" />
             <div className="flex h-full flex-1 flex-col gap-4 rounded-xl p-4">
-                <PageHeader
-                    icon={PackageSearch}
-                    title="Pedidos"
-                    description="Órdenes de compra a proveedores para reabastecer stock."
-                >
+                <PageHeader icon={PackageSearch} title="Pedidos" description="Órdenes de compra a proveedores para reabastecer stock.">
                     {userPermissions.includes('Crear Pedidos') && (
                         <Button onClick={() => setIsCreating(true)} className="gap-1">
                             <Plus className="h-4 w-4" />
@@ -253,7 +253,9 @@ export default function PurchaseOrdersIndex({
                         </Button>
                     )}
                 </PageHeader>
-                <div className={`relative rounded-xl bg-card shadow-lg shadow-black/10 dark:shadow-black/60 overflow-hidden ${hasMultiplePages ? 'flex-1' : ''}`}>
+                <div
+                    className={`bg-card relative overflow-hidden rounded-xl shadow-lg shadow-black/10 dark:shadow-black/60 ${hasMultiplePages ? 'flex-1' : ''}`}
+                >
                     <div className="h-full px-6 py-4">
                         <PurchaseOrdersTable
                             purchaseOrders={purchaseOrders}
@@ -272,20 +274,22 @@ export default function PurchaseOrdersIndex({
                 </div>
             </div>
 
-            <Dialog open={isFormOpen} onOpenChange={(open) => { if (!open) attemptCloseForm(); }}>
-                <DialogContent
-                    className="max-h-[90vh] overflow-y-auto sm:max-w-5xl"
-                    onInteractOutside={(e) => e.preventDefault()}
-                >
+            <Dialog
+                open={isFormOpen}
+                onOpenChange={(open) => {
+                    if (!open) attemptCloseForm();
+                }}
+            >
+                <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-5xl" onInteractOutside={(e) => e.preventDefault()}>
                     <DialogHeader>
                         <DialogTitle>
                             {editingOrder
                                 ? `Editar Pedido: ${editingOrder.supplier?.name ?? 'Proveedor eliminado'} — ${editingOrder.created_at.slice(0, 10).split('-').reverse().join('-')}`
                                 : detectedCreateMode === 'alert-only'
-                                    ? 'Pedido Stock Bajo'
-                                    : detectedCreateMode === 'non-alert-only'
-                                        ? 'Pedido Nuevo'
-                                        : 'Nuevo Pedido'}
+                                  ? 'Pedido Stock Bajo'
+                                  : detectedCreateMode === 'non-alert-only'
+                                    ? 'Pedido Nuevo'
+                                    : 'Nuevo Pedido'}
                         </DialogTitle>
                         <DialogDescription>
                             {editingOrder

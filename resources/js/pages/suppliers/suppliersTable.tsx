@@ -1,37 +1,30 @@
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from "@/components/ui/table"
-import { Button } from "@/components/ui/button"
-import { IconActionButton } from "@/components/icon-action-button"
-import { StatusToggle } from "@/components/status-toggle"
-import { Pencil, Trash2, Phone, Smartphone, Download, Truck } from "lucide-react"
-import { Pagination } from "@/components/ui/pagination"
-import { router } from "@inertiajs/react"
+import { IconActionButton } from '@/components/icon-action-button';
+import { StatusToggle } from '@/components/status-toggle';
+import { Button } from '@/components/ui/button';
+import { Pagination } from '@/components/ui/pagination';
+import SearchInput from '@/components/ui/search-input';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import Swal from '@/lib/swal';
-import SearchInput from "@/components/ui/search-input"
+import { router } from '@inertiajs/react';
+import { Download, Pencil, Phone, Smartphone, Trash2, Truck } from 'lucide-react';
 
 interface Supplier {
-    id: number
-    name: string
-    representative: string | null
-    nit_number: number
-    nit_digit: string
-    phone: string | null
-    cellphone: string | null
-    address: string | null
-    email: string | null
-    description: string | null
-    products_count: number
-    main_contact: string
-    main_phone: string
-    is_active: boolean
-    created_at: string
-    updated_at: string
+    id: number;
+    name: string;
+    representative: string | null;
+    nit_number: number;
+    nit_digit: string;
+    phone: string | null;
+    cellphone: string | null;
+    address: string | null;
+    email: string | null;
+    description: string | null;
+    products_count: number;
+    main_contact: string;
+    main_phone: string;
+    is_active: boolean;
+    created_at: string;
+    updated_at: string;
 }
 
 interface LinkProps {
@@ -42,24 +35,24 @@ interface LinkProps {
 
 interface SuppliersTableProps {
     suppliers: {
-        data: Supplier[]
-        links: LinkProps[]
-        from: number
-        to: number
-        total: number
-    }
-    perPage: string
-    onPerPageChange: (value: string) => void
-    onEditSupplier: (supplier: Supplier) => void
-    totalCount: number
-    filteredCount: number
-    search: string
-    onSearch: (search: string) => void
-    userPermissions: string[]
+        data: Supplier[];
+        links: LinkProps[];
+        from: number;
+        to: number;
+        total: number;
+    };
+    perPage: string;
+    onPerPageChange: (value: string) => void;
+    onEditSupplier: (supplier: Supplier) => void;
+    totalCount: number;
+    filteredCount: number;
+    search: string;
+    onSearch: (search: string) => void;
+    userPermissions: string[];
     filters: {
         search?: string;
         per_page?: string;
-    }
+    };
 }
 
 export default function SuppliersTable({
@@ -72,7 +65,7 @@ export default function SuppliersTable({
     search,
     onSearch,
     userPermissions,
-    filters
+    filters,
 }: SuppliersTableProps) {
     const handleExport = () => {
         const params = new URLSearchParams();
@@ -83,33 +76,33 @@ export default function SuppliersTable({
 
     const handleDelete = (supplierId: number, supplierName: string) => {
         Swal.fire({
-            title: "¿Estás seguro?",
+            title: '¿Estás seguro?',
             text: `Esta acción eliminará el proveedor ${supplierName} permanentemente`,
-            icon: "warning",
+            icon: 'warning',
             showCancelButton: true,
-            confirmButtonColor: "#3085d6",
-            cancelButtonColor: "#d33",
-            confirmButtonText: "Sí, eliminar!",
-            cancelButtonText: "Cancelar"
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Sí, eliminar!',
+            cancelButtonText: 'Cancelar',
         }).then((result) => {
             if (result.isConfirmed) {
                 router.delete(route('suppliers.destroy', supplierId), {
                     onSuccess: () => {
                         Swal.fire({
-                            title: "Eliminado!",
-                            text: "El proveedor ha sido eliminado.",
-                            icon: "success",
+                            title: 'Eliminado!',
+                            text: 'El proveedor ha sido eliminado.',
+                            icon: 'success',
                             timer: 2200,
-                            showConfirmButton: false
+                            showConfirmButton: false,
                         });
                     },
                     onError: () => {
                         Swal.fire({
-                            title: "Error!",
-                            text: "No se pudo eliminar el proveedor.",
-                            icon: "error"
+                            title: 'Error!',
+                            text: 'No se pudo eliminar el proveedor.',
+                            icon: 'error',
                         });
-                    }
+                    },
                 });
             }
         });
@@ -165,8 +158,7 @@ export default function SuppliersTable({
                 )}
             </div>
 
-
-            <div className="rounded-md bg-card shadow-lg shadow-black/10 dark:shadow-black/60 overflow-hidden">
+            <div className="bg-card overflow-hidden rounded-md shadow-lg shadow-black/10 dark:shadow-black/60">
                 <Table>
                     <TableHeader className="bg-gray-400 dark:bg-gray-700">
                         <TableRow>
@@ -186,12 +178,8 @@ export default function SuppliersTable({
                                     <TableCell className="font-medium">{supplier.name}</TableCell>
                                     <TableCell>{supplier.representative || '-'}</TableCell>
                                     <TableCell className="font-mono">{`${supplier.nit_number}-${supplier.nit_digit}`}</TableCell>
-                                    <TableCell>
-                                        {renderPhones(supplier)}
-                                    </TableCell>
-                                    <TableCell className="max-w-[200px] truncate">
-                                        {supplier.email || '-'}
-                                    </TableCell>
+                                    <TableCell>{renderPhones(supplier)}</TableCell>
+                                    <TableCell className="max-w-[200px] truncate">{supplier.email || '-'}</TableCell>
                                     <TableCell>
                                         <StatusToggle
                                             id={supplier.id}
@@ -252,5 +240,5 @@ export default function SuppliersTable({
                 searchRoute="suppliers.search"
             />
         </div>
-    )
+    );
 }

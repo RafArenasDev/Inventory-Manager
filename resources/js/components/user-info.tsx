@@ -3,18 +3,17 @@ import { useInitials } from '@/hooks/use-initials';
 import { type User } from '@/types';
 import { usePage } from '@inertiajs/react';
 
-
 type Auth = {
     user: User;
     // Objeto { nombre_técnico: label }, compartido por HandleInertiaRequests —
     // ya trae el label real de cada rol, sin mapa propio que mantener.
     roles: Record<string, string>;
     permissions: string[];
-}
+};
 
 export function UserInfo({ user }: { user: User; showEmail?: boolean }) {
     const getInitials = useInitials();
-    const { auth } = (usePage().props as unknown as { auth: Auth });
+    const { auth } = usePage().props as unknown as { auth: Auth };
 
     const roleLabels = auth.roles || {};
     const firstRoleName = Object.keys(roleLabels)[0];

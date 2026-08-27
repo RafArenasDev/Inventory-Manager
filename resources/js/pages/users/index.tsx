@@ -1,15 +1,15 @@
-import { useState } from 'react';
-import AppLayout from '@/layouts/app-layout';
+import { ConfirmDialog } from '@/components/confirm-dialog';
+import { PageHeader } from '@/components/page-header';
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useLiveRefresh } from '@/hooks/use-live-refresh';
+import AppLayout from '@/layouts/app-layout';
 import { LinkProps, type BreadcrumbItem } from '@/types';
 import { Head, router, usePage } from '@inertiajs/react';
-import { Button } from '@/components/ui/button';
 import { Plus, Users } from 'lucide-react';
-import UsersTable from './usersTable';
+import { useState } from 'react';
 import UserForm from './usersForm';
-import { PageHeader } from '@/components/page-header';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
-import { ConfirmDialog } from '@/components/confirm-dialog';
+import UsersTable from './usersTable';
 
 interface User {
     id: number;
@@ -116,11 +116,7 @@ export default function UserIndex({ users, roles, filters, totalCount, filteredC
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Usuarios" />
             <div className="flex h-full flex-1 flex-col gap-4 rounded-xl p-4">
-                <PageHeader
-                    icon={Users}
-                    title="Usuarios"
-                    description="Gestiona las cuentas de acceso al sistema."
-                >
+                <PageHeader icon={Users} title="Usuarios" description="Gestiona las cuentas de acceso al sistema.">
                     {userPermissions.includes('Crear Usuarios') && (
                         <Button onClick={handleCreateUser} className="gap-1">
                             <Plus className="h-4 w-4" />
@@ -128,7 +124,9 @@ export default function UserIndex({ users, roles, filters, totalCount, filteredC
                         </Button>
                     )}
                 </PageHeader>
-                <div className={`relative rounded-xl bg-card shadow-lg shadow-black/10 dark:shadow-black/60 overflow-hidden ${hasMultiplePages ? 'flex-1' : ''}`}>
+                <div
+                    className={`bg-card relative overflow-hidden rounded-xl shadow-lg shadow-black/10 dark:shadow-black/60 ${hasMultiplePages ? 'flex-1' : ''}`}
+                >
                     <div className="h-full px-6 py-4">
                         <UsersTable
                             users={users}
@@ -146,17 +144,17 @@ export default function UserIndex({ users, roles, filters, totalCount, filteredC
                 </div>
             </div>
 
-            <Dialog open={isModalOpen} onOpenChange={(open) => { if (!open) attemptCloseForm(); }}>
-                <DialogContent
-                    className="max-h-[90vh] overflow-y-auto sm:max-w-lg"
-                    onInteractOutside={(e) => e.preventDefault()}
-                >
+            <Dialog
+                open={isModalOpen}
+                onOpenChange={(open) => {
+                    if (!open) attemptCloseForm();
+                }}
+            >
+                <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg" onInteractOutside={(e) => e.preventDefault()}>
                     <DialogHeader>
                         <DialogTitle>{isCreating ? 'Nuevo Usuario' : `Editar Usuario: ${editingUser?.name}`}</DialogTitle>
                         <DialogDescription>
-                            {isCreating
-                                ? 'Completa los datos para crear un nuevo usuario.'
-                                : 'Actualiza los datos del usuario.'}
+                            {isCreating ? 'Completa los datos para crear un nuevo usuario.' : 'Actualiza los datos del usuario.'}
                         </DialogDescription>
                     </DialogHeader>
                     {editingUser && (

@@ -1,12 +1,12 @@
-import { Head, useForm } from '@inertiajs/react';
-import { LoaderCircle, ArrowLeft } from 'lucide-react';
-import { FormEventHandler } from 'react';
-import Swal from '@/lib/swal';
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import AuthSplitLayout from '@/layouts/auth/auth-split-layout';
+import Swal from '@/lib/swal';
+import { Head, useForm } from '@inertiajs/react';
+import { ArrowLeft, LoaderCircle } from 'lucide-react';
+import { FormEventHandler } from 'react';
 
 export default function ForgotPassword() {
     const { data, setData, post, processing, errors } = useForm<Required<{ email: string }>>({
@@ -33,15 +33,12 @@ export default function ForgotPassword() {
                     });
                 }
             },
-            preserveScroll: true
+            preserveScroll: true,
         });
     };
 
     return (
-        <AuthSplitLayout
-            title="Recuperar contraseña"
-            description="Ingresa tu correo electrónico para recibir un enlace de recuperación"
-        >
+        <AuthSplitLayout title="Recuperar contraseña" description="Ingresa tu correo electrónico para recibir un enlace de recuperación">
             <Head title="Recuperar contraseña" />
 
             <div className="space-y-6">
@@ -65,11 +62,7 @@ export default function ForgotPassword() {
                     </div>
 
                     <div className="my-6 flex items-center justify-start">
-                        <Button
-                            className="w-full"
-                            disabled={processing}
-                            type="submit"
-                        >
+                        <Button className="w-full" disabled={processing} type="submit">
                             {processing && <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />}
                             Enviar enlace de recuperación
                         </Button>

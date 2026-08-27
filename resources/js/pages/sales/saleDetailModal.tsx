@@ -1,13 +1,7 @@
-import React from 'react';
-import {
-    Dialog,
-    DialogContent,
-    DialogTitle,
-    DialogDescription,
-} from '@/components/ui/dialog';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Button } from '@/components/ui/button';
 import { WhatsAppIcon } from '@/components/icons/whatsapp-icon';
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import Swal from '@/lib/swal';
 import { formatWhatsAppNumber, getWhatsAppGreeting } from '@/lib/whatsapp';
 
@@ -62,7 +56,9 @@ interface SaleDetailModalProps {
 }
 
 const formatCurrency = (value: number): string => {
-    return `$ ${Math.round(value).toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.')}`;
+    return `$ ${Math.round(value)
+        .toString()
+        .replace(/\B(?=(\d{3})+(?!\d))/g, '.')}`;
 };
 
 const formatDate = (dateString: string): string => {
@@ -85,8 +81,8 @@ export default function SaleDetailModal({ isOpen, onClose, sale, businessName }:
             window.open(link, '_blank');
 
             fetch(pdfUrl)
-                .then(response => response.blob())
-                .then(blob => {
+                .then((response) => response.blob())
+                .then((blob) => {
                     const url = window.URL.createObjectURL(blob);
                     const a = document.createElement('a');
                     a.href = url;
@@ -96,7 +92,7 @@ export default function SaleDetailModal({ isOpen, onClose, sale, businessName }:
                     a.remove();
                     window.URL.revokeObjectURL(url);
                 })
-                .catch(error => {
+                .catch((error) => {
                     console.error('Error downloading PDF:', error);
                     Swal.fire({
                         icon: 'error',
@@ -117,20 +113,16 @@ export default function SaleDetailModal({ isOpen, onClose, sale, businessName }:
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
-            <DialogContent className="sm:max-w-[800px] max-w-[95vw] max-h-[90vh] bg-card dark:border-gray-800 rounded-2xl p-0 shadow-2xl overflow-y-auto">
-                <div className="p-6 space-y-6">
+            <DialogContent className="bg-card max-h-[90vh] max-w-[95vw] overflow-y-auto rounded-2xl p-0 shadow-2xl sm:max-w-[800px] dark:border-gray-800">
+                <div className="space-y-6 p-6">
                     <div className="flex items-start justify-between gap-4">
                         <div>
-                            <DialogTitle className="text-xl font-bold text-gray-900 dark:text-gray-100">
-                                Venta: {sale.invoice_number}
-                            </DialogTitle>
+                            <DialogTitle className="text-xl font-bold text-gray-900 dark:text-gray-100">Venta: {sale.invoice_number}</DialogTitle>
                             <DialogDescription className="sr-only">
                                 Detalle completo de la venta {sale.invoice_number}: cliente, productos y totales.
                             </DialogDescription>
                             {sale.is_cancelled && (
-                                <span className="mt-2 inline-block rounded-full bg-red-500 px-4 py-1 text-sm font-semibold text-white">
-                                    ANULADA
-                                </span>
+                                <span className="mt-2 inline-block rounded-full bg-red-500 px-4 py-1 text-sm font-semibold text-white">ANULADA</span>
                             )}
                         </div>
                     </div>
@@ -150,7 +142,9 @@ export default function SaleDetailModal({ isOpen, onClose, sale, businessName }:
                                 <span className="font-medium text-gray-500 dark:text-gray-400">Documento:</span>
                                 <p className="text-gray-900 dark:text-gray-100">
                                     {sale.client?.document_number || '-'}
-                                    {sale.client?.document_type === 'NIT' && sale.client?.verification_digit && ` - ${sale.client.verification_digit}`}
+                                    {sale.client?.document_type === 'NIT' &&
+                                        sale.client?.verification_digit &&
+                                        ` - ${sale.client.verification_digit}`}
                                 </p>
                             </div>
                             <div>
@@ -252,7 +246,10 @@ export default function SaleDetailModal({ isOpen, onClose, sale, businessName }:
 
                     {sale.public_invoice_url && sale.client?.cellphone && (
                         <div className="flex justify-end">
-                            <Button onClick={handleSendToWhatsApp} className="gap-2 bg-[#25D366] text-white hover:bg-[#1DA851] dark:bg-[#25D366] dark:hover:bg-[#1DA851]">
+                            <Button
+                                onClick={handleSendToWhatsApp}
+                                className="gap-2 bg-[#25D366] text-white hover:bg-[#1DA851] dark:bg-[#25D366] dark:hover:bg-[#1DA851]"
+                            >
                                 <WhatsAppIcon className="h-4 w-4" />
                                 Enviar a WhatsApp
                             </Button>

@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Notifications;
 
 use Illuminate\Bus\Queueable;
@@ -36,7 +37,7 @@ class ResetPasswordNotification extends Notification
         return (new MailMessage)
             ->subject('Restablecer contraseña')
             ->view('emails.password_reset', [
-                'url'  => $resetUrl,
+                'url' => $resetUrl,
                 'name' => $notifiable->name ?? 'Usuario',
             ]);
     }

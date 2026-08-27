@@ -1,8 +1,8 @@
 import { usePage } from '@inertiajs/react';
 import { useEffect } from 'react';
 
-import Swal from '@/lib/swal';
 import { reserveAlertWindow } from '@/lib/alertSequencer';
+import Swal from '@/lib/swal';
 
 const DELAY_MS = 30000;
 const SWAL_TIMER_MS = 3500;

@@ -68,7 +68,7 @@ interface PaginationData {
 }
 
 interface PaginationProps {
-    data: PaginationData;  // Cambiado de 'products' a 'data'
+    data: PaginationData; // Cambiado de 'products' a 'data'
     perPage: string;
     onPerPageChange: (value: string) => void;
     totalCount: number;
@@ -78,13 +78,13 @@ interface PaginationProps {
 
 interface RolesTableProps {
     roles: {
-        data: Role[]
-        links: LinkProps[]
-        from: number
-        to: number
-        total: number
-    }
-    permissions: Permission[]
-    perPage: string
-    onPerPageChange: (value: string) => void
+        data: Role[];
+        links: LinkProps[];
+        from: number;
+        to: number;
+        total: number;
+    };
+    permissions: Permission[];
+    perPage: string;
+    onPerPageChange: (value: string) => void;
 }

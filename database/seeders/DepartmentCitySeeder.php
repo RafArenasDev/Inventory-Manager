@@ -1,4 +1,5 @@
 <?php
+
 namespace Database\Seeders;
 
 use App\Models\City;
@@ -17,7 +18,7 @@ class DepartmentCitySeeder extends Seeder
 
             foreach ($departments as $dept) {
                 $department = Department::create([
-                    'id'   => $dept['id'],
+                    'id' => $dept['id'],
                     'name' => $dept['name'],
                 ]);
 
@@ -27,8 +28,8 @@ class DepartmentCitySeeder extends Seeder
                     $cities = $cityResponse->json();
                     foreach ($cities as $city) {
                         City::create([
-                            'id'            => $city['id'],
-                            'name'          => $city['name'],
+                            'id' => $city['id'],
+                            'name' => $city['name'],
                             'department_id' => $department->id,
                         ]);
                     }

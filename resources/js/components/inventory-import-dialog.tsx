@@ -1,10 +1,10 @@
-import { useState } from 'react';
-import { router } from '@inertiajs/react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Download, Upload } from 'lucide-react';
-import Swal from '@/lib/swal';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { csrfHeader } from '@/lib/csrf';
+import Swal from '@/lib/swal';
+import { router } from '@inertiajs/react';
+import { Download, Upload } from 'lucide-react';
+import { useState } from 'react';
 
 interface PreviewRow {
     line: number;
@@ -59,7 +59,11 @@ export function InventoryImportDialog({ open, onOpenChange, purchaseOrderId }: I
             const data: PreviewResponse = await res.json();
             setPreview(data);
         } catch {
-            Swal.fire({ icon: 'error', title: 'No se pudo procesar el archivo', text: 'Verifica que sea un .xlsx o .csv con las columnas esperadas.' });
+            Swal.fire({
+                icon: 'error',
+                title: 'No se pudo procesar el archivo',
+                text: 'Verifica que sea un .xlsx o .csv con las columnas esperadas.',
+            });
         } finally {
             setUploading(false);
         }
@@ -68,16 +72,20 @@ export function InventoryImportDialog({ open, onOpenChange, purchaseOrderId }: I
     const handleConfirm = () => {
         if (!preview) return;
         setConfirming(true);
-        router.post(route('inventory-import.commit'), {
-            token: preview.token,
-            purchase_order_id: purchaseOrderId ?? null,
-        }, {
-            onSuccess: () => {
-                reset();
-                onOpenChange(false);
+        router.post(
+            route('inventory-import.commit'),
+            {
+                token: preview.token,
+                purchase_order_id: purchaseOrderId ?? null,
             },
-            onFinish: () => setConfirming(false),
-        });
+            {
+                onSuccess: () => {
+                    reset();
+                    onOpenChange(false);
+                },
+                onFinish: () => setConfirming(false),
+            },
+        );
     };
 
     return (
@@ -85,16 +93,14 @@ export function InventoryImportDialog({ open, onOpenChange, purchaseOrderId }: I
             <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-2xl">
                 <DialogHeader>
                     <DialogTitle>Carga masiva</DialogTitle>
-                    <DialogDescription>
-                        Sube un Excel/CSV para crear varios productos o registrar varios movimientos de una vez.
-                    </DialogDescription>
+                    <DialogDescription>Sube un Excel/CSV para crear varios productos o registrar varios movimientos de una vez.</DialogDescription>
                 </DialogHeader>
 
                 {!preview && (
                     <div className="space-y-4">
                         <a
                             href={route('inventory-import.template')}
-                            className="inline-flex items-center gap-1.5 text-sm text-primary hover:underline"
+                            className="text-primary inline-flex items-center gap-1.5 text-sm hover:underline"
                         >
                             <Download className="h-3.5 w-3.5" /> Descargar plantilla
                         </a>
@@ -103,11 +109,13 @@ export function InventoryImportDialog({ open, onOpenChange, purchaseOrderId }: I
                             type="file"
                             accept=".xlsx,.xls,.csv"
                             onChange={(e) => setFile(e.target.files?.[0] ?? null)}
-                            className="block w-full text-sm file:mr-3 file:rounded-md file:border-0 file:bg-primary file:px-3 file:py-2 file:text-primary-foreground file:cursor-pointer"
+                            className="file:bg-primary file:text-primary-foreground block w-full text-sm file:mr-3 file:cursor-pointer file:rounded-md file:border-0 file:px-3 file:py-2"
                         />
 
                         <div className="flex justify-end gap-2">
-                            <Button variant="outline" onClick={() => handleClose(false)}>Cancelar</Button>
+                            <Button variant="outline" onClick={() => handleClose(false)}>
+                                Cancelar
+                            </Button>
                             <Button onClick={handleUpload} disabled={!file || uploading} className="gap-1">
                                 <Upload className="h-4 w-4" /> {uploading ? 'Procesando...' : 'Ver vista previa'}
                             </Button>
@@ -118,16 +126,20 @@ export function InventoryImportDialog({ open, onOpenChange, purchaseOrderId }: I
                 {preview && (
                     <div className="space-y-4">
                         <div className="flex flex-wrap gap-3 text-sm">
-                            <span className="rounded-full bg-emerald-600 px-3 py-1 text-white">{preview.summary.create_product} productos nuevos</span>
+                            <span className="rounded-full bg-emerald-600 px-3 py-1 text-white">
+                                {preview.summary.create_product} productos nuevos
+                            </span>
                             <span className="rounded-full bg-sky-600 px-3 py-1 text-white">{preview.summary.update_stock} movimientos</span>
                             {preview.summary.errors > 0 && (
-                                <span className="rounded-full bg-rose-600 px-3 py-1 text-white">{preview.summary.errors} con error (se omitirán)</span>
+                                <span className="rounded-full bg-rose-600 px-3 py-1 text-white">
+                                    {preview.summary.errors} con error (se omitirán)
+                                </span>
                             )}
                         </div>
 
-                        <div className="max-h-80 overflow-y-auto rounded-md border border-input">
+                        <div className="border-input max-h-80 overflow-y-auto rounded-md border">
                             <table className="w-full text-sm">
-                                <thead className="bg-gray-400 dark:bg-gray-700 sticky top-0">
+                                <thead className="sticky top-0 bg-gray-400 dark:bg-gray-700">
                                     <tr>
                                         <th className="p-2 text-left">Fila</th>
                                         <th className="p-2 text-left">Código</th>
@@ -151,7 +163,9 @@ export function InventoryImportDialog({ open, onOpenChange, purchaseOrderId }: I
                         </div>
 
                         <div className="flex justify-end gap-2">
-                            <Button variant="outline" onClick={reset}>Volver a subir otro archivo</Button>
+                            <Button variant="outline" onClick={reset}>
+                                Volver a subir otro archivo
+                            </Button>
                             <Button
                                 onClick={handleConfirm}
                                 disabled={confirming || preview.summary.create_product + preview.summary.update_stock === 0}

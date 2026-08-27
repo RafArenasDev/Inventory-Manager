@@ -1,11 +1,11 @@
-import React, { useEffect, useState } from 'react';
-import { useForm } from '@inertiajs/react';
-import Swal from '@/lib/swal';
-import { csrfHeader } from '@/lib/csrf';
 import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { csrfHeader } from '@/lib/csrf';
+import Swal from '@/lib/swal';
+import { useForm } from '@inertiajs/react';
+import React, { useEffect, useState } from 'react';
 
 interface SupplierForForm {
     id?: number;
@@ -31,7 +31,15 @@ interface SupplierFormProps {
     onCreated?: (supplier: SupplierForForm & { id: number }) => void;
 }
 
-const SupplierForm: React.FC<SupplierFormProps> = ({ supplier, onCancel, onSaved, onDirtyChange, userPermissions, submitViaFetch = false, onCreated }) => {
+const SupplierForm: React.FC<SupplierFormProps> = ({
+    supplier,
+    onCancel,
+    onSaved,
+    onDirtyChange,
+    userPermissions,
+    submitViaFetch = false,
+    onCreated,
+}) => {
     const { data, setData, post, put, processing, errors, setError, reset, isDirty } = useForm({
         name: supplier?.name || '',
         representative: supplier?.representative || '',
@@ -92,23 +100,23 @@ const SupplierForm: React.FC<SupplierFormProps> = ({ supplier, onCancel, onSaved
             put(route('suppliers.update', supplier.id), {
                 onSuccess: () => {
                     Swal.fire({
-                        position: "center",
-                        icon: "success",
-                        title: "Proveedor actualizado correctamente",
+                        position: 'center',
+                        icon: 'success',
+                        title: 'Proveedor actualizado correctamente',
                         showConfirmButton: false,
-                        timer: 2200
+                        timer: 2200,
                     });
                     reset();
                     onSaved();
                 },
                 onError: () => {
                     Swal.fire({
-                        position: "center",
-                        icon: "error",
-                        title: "Error al actualizar el proveedor",
+                        position: 'center',
+                        icon: 'error',
+                        title: 'Error al actualizar el proveedor',
                         text: 'Verifica los datos ingresados.',
                         showConfirmButton: false,
-                        timer: 2200
+                        timer: 2200,
                     });
                 },
             });
@@ -135,11 +143,11 @@ const SupplierForm: React.FC<SupplierFormProps> = ({ supplier, onCancel, onSaved
                     }
                     const body = await res.json();
                     Swal.fire({
-                        position: "center",
-                        icon: "success",
-                        title: "Proveedor creado correctamente",
+                        position: 'center',
+                        icon: 'success',
+                        title: 'Proveedor creado correctamente',
                         showConfirmButton: false,
-                        timer: 2200
+                        timer: 2200,
                     });
                     reset();
                     onCreated?.(body.supplier);
@@ -147,50 +155,48 @@ const SupplierForm: React.FC<SupplierFormProps> = ({ supplier, onCancel, onSaved
                 })
                 .catch(() => {
                     Swal.fire({
-                        position: "center",
-                        icon: "error",
-                        title: "Error al crear el proveedor",
+                        position: 'center',
+                        icon: 'error',
+                        title: 'Error al crear el proveedor',
                         text: 'Verifica los datos ingresados.',
                         showConfirmButton: false,
-                        timer: 2200
+                        timer: 2200,
                     });
                 });
         } else {
             post(route('suppliers.store'), {
                 onSuccess: () => {
                     Swal.fire({
-                        position: "center",
-                        icon: "success",
-                        title: "Proveedor creado correctamente",
+                        position: 'center',
+                        icon: 'success',
+                        title: 'Proveedor creado correctamente',
                         showConfirmButton: false,
-                        timer: 2200
+                        timer: 2200,
                     });
                     reset();
                     onSaved();
                 },
                 onError: () => {
                     Swal.fire({
-                        position: "center",
-                        icon: "error",
-                        title: "Error al crear el proveedor",
+                        position: 'center',
+                        icon: 'error',
+                        title: 'Error al crear el proveedor',
                         text: 'Verifica los datos ingresados.',
                         showConfirmButton: false,
-                        timer: 2200
+                        timer: 2200,
                     });
                 },
             });
         }
     };
 
-    const canSubmit = supplier?.id
-        ? userPermissions.includes('Actualizar Proveedores')
-        : userPermissions.includes('Crear Proveedores');
+    const canSubmit = supplier?.id ? userPermissions.includes('Actualizar Proveedores') : userPermissions.includes('Crear Proveedores');
 
     return (
         <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                 <div>
-                    <Label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    <Label htmlFor="name" className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
                         Nombre del Proveedor *
                     </Label>
                     <Input
@@ -206,9 +212,7 @@ const SupplierForm: React.FC<SupplierFormProps> = ({ supplier, onCancel, onSaved
                 </div>
 
                 <div>
-                    <Label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                        NIT *
-                    </Label>
+                    <Label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">NIT *</Label>
                     <div className="flex items-center gap-2">
                         <Input
                             type="number"
@@ -242,7 +246,7 @@ const SupplierForm: React.FC<SupplierFormProps> = ({ supplier, onCancel, onSaved
                 </div>
 
                 <div className="md:col-span-2">
-                    <Label htmlFor="representative" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    <Label htmlFor="representative" className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
                         Representante Legal
                     </Label>
                     <Input
@@ -257,7 +261,7 @@ const SupplierForm: React.FC<SupplierFormProps> = ({ supplier, onCancel, onSaved
                 </div>
 
                 <div>
-                    <Label htmlFor="phone" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    <Label htmlFor="phone" className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
                         Teléfono Fijo
                     </Label>
                     <Input
@@ -272,7 +276,7 @@ const SupplierForm: React.FC<SupplierFormProps> = ({ supplier, onCancel, onSaved
                 </div>
 
                 <div>
-                    <Label htmlFor="cellphone" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    <Label htmlFor="cellphone" className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
                         Celular
                     </Label>
                     <Input
@@ -287,7 +291,7 @@ const SupplierForm: React.FC<SupplierFormProps> = ({ supplier, onCancel, onSaved
                 </div>
 
                 <div className="md:col-span-2">
-                    <Label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    <Label htmlFor="email" className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
                         Email
                     </Label>
                     <Input
@@ -302,7 +306,7 @@ const SupplierForm: React.FC<SupplierFormProps> = ({ supplier, onCancel, onSaved
                 </div>
 
                 <div className="md:col-span-2">
-                    <Label htmlFor="address" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    <Label htmlFor="address" className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
                         Dirección
                     </Label>
                     <Textarea
@@ -317,7 +321,7 @@ const SupplierForm: React.FC<SupplierFormProps> = ({ supplier, onCancel, onSaved
                 </div>
 
                 <div className="md:col-span-2">
-                    <Label htmlFor="description" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    <Label htmlFor="description" className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
                         Descripción
                     </Label>
                     <Textarea
@@ -332,21 +336,13 @@ const SupplierForm: React.FC<SupplierFormProps> = ({ supplier, onCancel, onSaved
                 </div>
             </div>
 
-            <div className="flex justify-end space-x-3 pt-4 border-t border-gray-200 dark:border-gray-700">
-                <Button
-                    type="button"
-                    onClick={onCancel}
-                    variant="outline"
-                    disabled={processing}
-                >
+            <div className="flex justify-end space-x-3 border-t border-gray-200 pt-4 dark:border-gray-700">
+                <Button type="button" onClick={onCancel} variant="outline" disabled={processing}>
                     Cancelar
                 </Button>
                 {canSubmit && (
-                    <Button
-                        type="submit"
-                        disabled={processing || !!nitNumberError || !!nitDigitError}
-                    >
-                        {processing ? 'Guardando...' : (supplier?.id ? 'Actualizar Proveedor' : 'Crear Proveedor')}
+                    <Button type="submit" disabled={processing || !!nitNumberError || !!nitDigitError}>
+                        {processing ? 'Guardando...' : supplier?.id ? 'Actualizar Proveedor' : 'Crear Proveedor'}
                     </Button>
                 )}
             </div>

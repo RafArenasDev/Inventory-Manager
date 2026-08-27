@@ -37,11 +37,11 @@ class ModuleSeeder extends Seeder
             Module::updateOrCreate(
                 ['key' => $module['key']],
                 [
-                    'label'     => $module['label'],
-                    'icon'      => $module['icon'],
-                    'route'     => $module['route'],
-                    'group'     => $module['group'],
-                    'order'     => $index,
+                    'label' => $module['label'],
+                    'icon' => $module['icon'],
+                    'route' => $module['route'],
+                    'group' => $module['group'],
+                    'order' => $index,
                     'is_active' => $module['is_active'] ?? true,
                 ]
             );

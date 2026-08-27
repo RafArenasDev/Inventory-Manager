@@ -1,7 +1,8 @@
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import {
     SidebarGroup,
-    SidebarGroupLabel,
     SidebarGroupContent,
+    SidebarGroupLabel,
     SidebarMenu,
     SidebarMenuButton,
     SidebarMenuItem,
@@ -9,11 +10,6 @@ import {
     SidebarMenuSubButton,
     SidebarMenuSubItem,
 } from '@/components/ui/sidebar';
-import {
-    Collapsible,
-    CollapsibleContent,
-    CollapsibleTrigger,
-} from '@/components/ui/collapsible';
 import { type NavItem } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
 import { ChevronRight } from 'lucide-react';
@@ -54,12 +50,7 @@ export function NavMain({ items = [] }: { items: NavItem[] }) {
         // Si el item tiene sub-items, renderizar como Collapsible
         if (item.items && item.items.length > 0) {
             return (
-                <Collapsible
-                    key={item.title}
-                    asChild
-                    defaultOpen={item.isActive}
-                    className="group/collapsible"
-                >
+                <Collapsible key={item.title} asChild defaultOpen={item.isActive} className="group/collapsible">
                     <SidebarMenuItem>
                         <CollapsibleTrigger asChild>
                             <SidebarMenuButton tooltip={{ children: item.title }}>
@@ -72,10 +63,7 @@ export function NavMain({ items = [] }: { items: NavItem[] }) {
                             <SidebarMenuSub>
                                 {item.items.map((subItem) => (
                                     <SidebarMenuSubItem key={subItem.title}>
-                                        <SidebarMenuSubButton
-                                            asChild
-                                            isActive={isPathActive(subItem.href)}
-                                        >
+                                        <SidebarMenuSubButton asChild isActive={isPathActive(subItem.href)}>
                                             <Link href={subItem.href || '#'} prefetch>
                                                 {subItem.icon && <subItem.icon />}
                                                 <span>{subItem.title}</span>
@@ -93,11 +81,7 @@ export function NavMain({ items = [] }: { items: NavItem[] }) {
         // Si no tiene sub-items, renderizar como item normal
         return (
             <SidebarMenuItem key={item.title}>
-                <SidebarMenuButton
-                    asChild
-                    isActive={isPathActive(item.href)}
-                    tooltip={{ children: item.title }}
-                >
+                <SidebarMenuButton asChild isActive={isPathActive(item.href)} tooltip={{ children: item.title }}>
                     <Link href={item.href || '#'} prefetch>
                         {item.icon && <item.icon />}
                         <span>{item.title}</span>

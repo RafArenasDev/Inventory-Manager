@@ -1,4 +1,5 @@
 <?php
+
 namespace Database\Seeders;
 
 use App\Models\CashRegister;
@@ -24,6 +25,7 @@ class CashRegisterSeeder extends Seeder
 
         if (! $admin) {
             \Log::warning('No existe el usuario admin; se omite CashRegisterSeeder.');
+
             return;
         }
 
@@ -61,19 +63,19 @@ class CashRegisterSeeder extends Seeder
             $difference = $closingAmount - $openingAmount;
 
             CashRegister::create([
-                'register_date'  => $registerDate->toDateString(),
-                'opened_by'      => $openedBy->id,
-                'closed_by'      => $closedBy->id,
+                'register_date' => $registerDate->toDateString(),
+                'opened_by' => $openedBy->id,
+                'closed_by' => $closedBy->id,
                 'opening_amount' => $openingAmount,
                 'closing_amount' => $closingAmount,
-                'total_sales'    => $salesTotal,
-                'total_income'   => $dayIncome,
+                'total_sales' => $salesTotal,
+                'total_income' => $dayIncome,
                 'total_expenses' => $dayExpenses,
-                'difference'     => $difference,
-                'opened_at'      => $registerDate->copy()->setTime(8, 0),
-                'closed_at'      => $registerDate->copy()->setTime(20, 0),
-                'is_closed'      => true,
-                'notes'          => null,
+                'difference' => $difference,
+                'opened_at' => $registerDate->copy()->setTime(8, 0),
+                'closed_at' => $registerDate->copy()->setTime(20, 0),
+                'is_closed' => true,
+                'notes' => null,
             ]);
         }
     }

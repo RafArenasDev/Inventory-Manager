@@ -1,27 +1,20 @@
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from "@/components/ui/table"
-import { IconActionButton } from "@/components/icon-action-button"
-import { StatusToggle } from "@/components/status-toggle"
-import { Pencil, Tags, Trash2 } from "lucide-react"
-import { Pagination } from "@/components/ui/pagination"
-import { router } from "@inertiajs/react"
+import { IconActionButton } from '@/components/icon-action-button';
+import { StatusToggle } from '@/components/status-toggle';
+import { Pagination } from '@/components/ui/pagination';
+import SearchInput from '@/components/ui/search-input';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import Swal from '@/lib/swal';
-import SearchInput from "@/components/ui/search-input"
+import { router } from '@inertiajs/react';
+import { Pencil, Tags, Trash2 } from 'lucide-react';
 
 interface Category {
-    id: number
-    name: string
-    description: string
-    created_at: string
-    updated_at: string
-    products_count?: number
-    is_active: boolean
+    id: number;
+    name: string;
+    description: string;
+    created_at: string;
+    updated_at: string;
+    products_count?: number;
+    is_active: boolean;
 }
 
 interface LinkProps {
@@ -32,20 +25,20 @@ interface LinkProps {
 
 interface CategoriesTableProps {
     categories: {
-        data: Category[]
-        links: LinkProps[]
-        from: number
-        to: number
-        total: number
-    }
-    perPage: string
-    onPerPageChange: () => void
-    onEditCategory: (category: Category) => void
-    totalCount: number
-    filteredCount: number
-    search: string
-    onSearch: (search: string) => void
-    userPermissions: string[]
+        data: Category[];
+        links: LinkProps[];
+        from: number;
+        to: number;
+        total: number;
+    };
+    perPage: string;
+    onPerPageChange: () => void;
+    onEditCategory: (category: Category) => void;
+    totalCount: number;
+    filteredCount: number;
+    search: string;
+    onSearch: (search: string) => void;
+    userPermissions: string[];
 }
 
 export default function CategoriesTable({
@@ -57,38 +50,37 @@ export default function CategoriesTable({
     filteredCount,
     search,
     onSearch,
-    userPermissions
+    userPermissions,
 }: CategoriesTableProps) {
-
     const handleDelete = (categoryId: number, categoryName: string) => {
         Swal.fire({
-            title: "¿Estás seguro?",
+            title: '¿Estás seguro?',
             text: `Esta acción eliminará la categoría ${categoryName} permanentemente`,
-            icon: "warning",
+            icon: 'warning',
             showCancelButton: true,
-            confirmButtonColor: "#3085d6",
-            cancelButtonColor: "#d33",
-            confirmButtonText: "Sí, eliminar!",
-            cancelButtonText: "Cancelar"
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Sí, eliminar!',
+            cancelButtonText: 'Cancelar',
         }).then((result) => {
             if (result.isConfirmed) {
                 router.delete(route('categories.destroy', categoryId), {
                     onSuccess: () => {
                         Swal.fire({
-                            title: "Eliminada!",
-                            text: "La categoría ha sido eliminada.",
-                            icon: "success",
+                            title: 'Eliminada!',
+                            text: 'La categoría ha sido eliminada.',
+                            icon: 'success',
                             timer: 2200,
-                            showConfirmButton: false
+                            showConfirmButton: false,
                         });
                     },
                     onError: () => {
                         Swal.fire({
-                            title: "Error!",
-                            text: "No se pudo eliminar la categoría.",
-                            icon: "error"
+                            title: 'Error!',
+                            text: 'No se pudo eliminar la categoría.',
+                            icon: 'error',
                         });
-                    }
+                    },
                 });
             }
         });
@@ -108,7 +100,7 @@ export default function CategoriesTable({
                 />
             </div>
 
-            <div className="rounded-md bg-card shadow-lg shadow-black/10 dark:shadow-black/60 overflow-hidden">
+            <div className="bg-card overflow-hidden rounded-md shadow-lg shadow-black/10 dark:shadow-black/60">
                 <Table>
                     <TableHeader className="bg-gray-400 dark:bg-gray-700">
                         <TableRow>
@@ -124,13 +116,11 @@ export default function CategoriesTable({
                             <TableRow key={category.id}>
                                 <TableCell className="font-medium">{category.name}</TableCell>
                                 <TableCell className="max-w-xs">
-                                    <span className="text-gray-600 dark:text-gray-400 line-clamp-2">
-                                        {category.description || 'Sin descripción'}
-                                    </span>
+                                    <span className="line-clamp-2 text-gray-600 dark:text-gray-400">{category.description || 'Sin descripción'}</span>
                                 </TableCell>
                                 <TableCell>
                                     <span
-                                        className={`inline-flex items-center justify-center px-2.5 py-0.5 rounded-full text-xs font-bold w-28 text-center shadow-sm ${
+                                        className={`inline-flex w-28 items-center justify-center rounded-full px-2.5 py-0.5 text-center text-xs font-bold shadow-sm ${
                                             category.products_count === 0
                                                 ? 'bg-rose-600 text-white dark:bg-rose-700'
                                                 : 'bg-emerald-600 text-white dark:bg-emerald-700'
@@ -203,5 +193,5 @@ export default function CategoriesTable({
                 searchRoute="categories.search"
             />
         </div>
-    )
+    );
 }

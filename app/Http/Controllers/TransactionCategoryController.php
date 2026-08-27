@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Http\Controllers;
 
 use App\Http\Requests\TransactionCategoryRequest;
@@ -32,7 +33,7 @@ class TransactionCategoryController extends Controller
         }
 
         // Count total and filtered
-        $totalCount    = TransactionCategory::count();
+        $totalCount = TransactionCategory::count();
         $filteredCount = $categoriesQuery->count();
 
         // Pagination
@@ -42,21 +43,21 @@ class TransactionCategoryController extends Controller
             $allCategories = $categoriesQuery->get();
 
             $categories = [
-                'data'     => $allCategories,
-                'total'    => $filteredCount,
+                'data' => $allCategories,
+                'total' => $filteredCount,
                 'per_page' => $perPage,
-                'from'     => 1,
-                'to'       => $filteredCount,
-                'links'    => [],
+                'from' => 1,
+                'to' => $filteredCount,
+                'links' => [],
             ];
         } else {
             $categories = $categoriesQuery->paginate($perPage)->withQueryString();
         }
 
         return Inertia::render('TransactionCategories/Index', [
-            'categories'    => $categories,
-            'filters'       => $request->only(['search', 'per_page', 'type']),
-            'totalCount'    => $totalCount,
+            'categories' => $categories,
+            'filters' => $request->only(['search', 'per_page', 'type']),
+            'totalCount' => $totalCount,
             'filteredCount' => $filteredCount,
         ]);
     }
@@ -75,11 +76,11 @@ class TransactionCategoryController extends Controller
     public function store(TransactionCategoryRequest $request): RedirectResponse
     {
         TransactionCategory::create([
-            'name'        => $request->name,
-            'type'        => $request->type,
+            'name' => $request->name,
+            'type' => $request->type,
             'description' => $request->description,
-            'is_active'   => true,
-            'is_system'   => false,
+            'is_active' => true,
+            'is_system' => false,
         ]);
 
         return redirect()->route('transaction-categories.index')
@@ -122,10 +123,10 @@ class TransactionCategoryController extends Controller
         }
 
         $transactionCategory->update([
-            'name'        => $request->name,
-            'type'        => $request->type,
+            'name' => $request->name,
+            'type' => $request->type,
             'description' => $request->description,
-            'is_active'   => $request->is_active ?? true,
+            'is_active' => $request->is_active ?? true,
         ]);
 
         return redirect()->route('transaction-categories.index')

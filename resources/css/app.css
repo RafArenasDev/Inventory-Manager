@@ -127,11 +127,11 @@
        se note sin tener que fijarse. */
     --sidebar: oklch(0.15 0 0);
     --sidebar-foreground: oklch(0.985 0 0);
-    --sidebar-primary: oklch(0.980 0 0);
+    --sidebar-primary: oklch(0.98 0 0);
     --sidebar-primary-foreground: oklch(0.985 0 0);
     --sidebar-accent: oklch(0.26 0 0);
     --sidebar-accent-foreground: oklch(0.985 0 0);
-    --sidebar-border: oklch(0.20 0 0);
+    --sidebar-border: oklch(0.2 0 0);
     --sidebar-ring: oklch(0.439 0 0);
 }
 

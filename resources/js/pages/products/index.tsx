@@ -1,16 +1,16 @@
-import { useState } from 'react';
-import AppLayout from '@/layouts/app-layout';
+import { ConfirmDialog } from '@/components/confirm-dialog';
+import { InventoryImportDialog } from '@/components/inventory-import-dialog';
+import { PageHeader } from '@/components/page-header';
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useLiveRefresh } from '@/hooks/use-live-refresh';
+import AppLayout from '@/layouts/app-layout';
 import { LinkProps, type BreadcrumbItem } from '@/types';
 import { Head, router, usePage } from '@inertiajs/react';
-import ProductsTable from './productsTable';
-import { Button } from '@/components/ui/button';
 import { Package, Plus, Upload } from 'lucide-react';
+import { useState } from 'react';
 import ProductForm from './productForm';
-import { PageHeader } from '@/components/page-header';
-import { InventoryImportDialog } from '@/components/inventory-import-dialog';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
-import { ConfirmDialog } from '@/components/confirm-dialog';
+import ProductsTable from './productsTable';
 
 interface Category {
     id: number;
@@ -85,14 +85,7 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
-export default function ProductIndex({
-    products,
-    categories,
-    suppliers,
-    filters,
-    totalCount,
-    filteredCount,
-}: ProductIndexProps) {
+export default function ProductIndex({ products, categories, suppliers, filters, totalCount, filteredCount }: ProductIndexProps) {
     useLiveRefresh(['inventory'], () => router.reload());
 
     const [isCreating, setIsCreating] = useState(false);
@@ -130,11 +123,7 @@ export default function ProductIndex({
         if (!userPermissions.includes('Editar Productos')) {
             return;
         }
-        const categoryIdRaw =
-            categories.find((cat) => cat.name === product.category)?.id ??
-            product.category_id ??
-            categories[0]?.id ??
-            0;
+        const categoryIdRaw = categories.find((cat) => cat.name === product.category)?.id ?? product.category_id ?? categories[0]?.id ?? 0;
         const categoryId = typeof categoryIdRaw === 'string' ? parseInt(categoryIdRaw, 10) : categoryIdRaw;
 
         setEditingProduct({
@@ -181,7 +170,7 @@ export default function ProductIndex({
             {
                 preserveState: true,
                 preserveScroll: true,
-            }
+            },
         );
     };
 
@@ -191,13 +180,9 @@ export default function ProductIndex({
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Productos" />
             <div className="flex h-full flex-1 flex-col gap-4 rounded-xl p-4">
-                <PageHeader
-                    icon={Package}
-                    title="Productos"
-                    description="Consulta y administra el inventario de productos."
-                >
+                <PageHeader icon={Package} title="Productos" description="Consulta y administra el inventario de productos.">
                     {userPermissions.includes('Crear Movimientos Inventario') && (
-                        <Button onClick={() => setIsImporting(true)} variant="outline" className="gap-1 bg-card hover:bg-card/70">
+                        <Button onClick={() => setIsImporting(true)} variant="outline" className="bg-card hover:bg-card/70 gap-1">
                             <Upload className="h-4 w-4" />
                             Carga Masiva
                         </Button>
@@ -209,34 +194,36 @@ export default function ProductIndex({
                         </Button>
                     )}
                 </PageHeader>
-                <div className={`relative rounded-xl bg-card shadow-lg shadow-black/10 dark:shadow-black/60 overflow-hidden ${hasMultiplePages ? 'flex-1' : ''}`}>
+                <div
+                    className={`bg-card relative overflow-hidden rounded-xl shadow-lg shadow-black/10 dark:shadow-black/60 ${hasMultiplePages ? 'flex-1' : ''}`}
+                >
                     <div className="h-full px-6 py-4">
-                    <ProductsTable
-                        products={products}
-                        perPage={filters.per_page || '10'}
-                        onPerPageChange={() => {}}
-                        onEditProduct={handleEditProduct}
-                        totalCount={totalCount}
-                        filteredCount={filteredCount}
-                        search={filters.search || ''}
-                        onSearch={handleSearch}
-                        userPermissions={userPermissions}
-                    />
+                        <ProductsTable
+                            products={products}
+                            perPage={filters.per_page || '10'}
+                            onPerPageChange={() => {}}
+                            onEditProduct={handleEditProduct}
+                            totalCount={totalCount}
+                            filteredCount={filteredCount}
+                            search={filters.search || ''}
+                            onSearch={handleSearch}
+                            userPermissions={userPermissions}
+                        />
                     </div>
                 </div>
             </div>
 
-            <Dialog open={isModalOpen} onOpenChange={(open) => { if (!open) attemptCloseForm(); }}>
-                <DialogContent
-                    className="max-h-[90vh] overflow-y-auto sm:max-w-2xl"
-                    onInteractOutside={(e) => e.preventDefault()}
-                >
+            <Dialog
+                open={isModalOpen}
+                onOpenChange={(open) => {
+                    if (!open) attemptCloseForm();
+                }}
+            >
+                <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl" onInteractOutside={(e) => e.preventDefault()}>
                     <DialogHeader>
                         <DialogTitle>{isCreating ? 'Nuevo Producto' : `Editar Producto: ${editingProduct?.name}`}</DialogTitle>
                         <DialogDescription>
-                            {isCreating
-                                ? 'Completa los datos para registrar un nuevo producto.'
-                                : 'Actualiza los datos del producto.'}
+                            {isCreating ? 'Completa los datos para registrar un nuevo producto.' : 'Actualiza los datos del producto.'}
                         </DialogDescription>
                     </DialogHeader>
                     {editingProduct && (

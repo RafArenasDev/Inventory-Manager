@@ -1,8 +1,7 @@
+import Swal from '@/lib/swal';
 import { Head, useForm } from '@inertiajs/react';
 import { LoaderCircle } from 'lucide-react';
-import { FormEventHandler } from 'react';
-import { useEffect } from 'react';
-import Swal from '@/lib/swal';
+import { FormEventHandler, useEffect } from 'react';
 
 import TextLink from '@/components/text-link';
 import { Button } from '@/components/ui/button';
@@ -23,7 +22,7 @@ export default function VerifyEmail({ status }: { status?: string }) {
                     timerProgressBar: true,
                     showConfirmButton: false,
                     toast: true,
-                    position: 'top-end'
+                    position: 'top-end',
                 });
             },
             onError: () => {
@@ -35,9 +34,9 @@ export default function VerifyEmail({ status }: { status?: string }) {
                     timerProgressBar: true,
                     showConfirmButton: false,
                     toast: true,
-                    position: 'top-end'
+                    position: 'top-end',
                 });
-            }
+            },
         });
     };
 
@@ -52,7 +51,7 @@ export default function VerifyEmail({ status }: { status?: string }) {
                 timerProgressBar: true,
                 showConfirmButton: false,
                 toast: true,
-                position: 'top-end'
+                position: 'top-end',
             });
         }
     }, [status]);

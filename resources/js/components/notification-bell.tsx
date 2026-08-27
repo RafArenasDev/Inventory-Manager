@@ -1,11 +1,11 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
-import { Bell } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import { StockAlertModal } from '@/components/stock-alert-modal';
+import { Button } from '@/components/ui/button';
+import { useLiveRefresh } from '@/hooks/use-live-refresh';
+import { waitForAlertQueue } from '@/lib/alertSequencer';
 import { playAlertBeep } from '@/lib/sound';
 import Swal from '@/lib/swal';
-import { waitForAlertQueue } from '@/lib/alertSequencer';
-import { useLiveRefresh } from '@/hooks/use-live-refresh';
+import { Bell } from 'lucide-react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 type StockTier = 'advertencia' | 'critico' | 'agotado';
 
@@ -98,87 +98,82 @@ export function NotificationBell() {
 
     const fetchAlerts = useCallback(async () => {
         try {
-                const res = await fetch(route('notifications.low-stock-by-provider'));
-                if (!res.ok) return;
-                const data = await res.json();
-                const groups: SupplierGroup[] = data.groups || [];
+            const res = await fetch(route('notifications.low-stock-by-provider'));
+            if (!res.ok) return;
+            const data = await res.json();
+            const groups: SupplierGroup[] = data.groups || [];
 
-                const uncoveredGroups = groups.filter((g) => g.products.some((p) => isRelevant(p) && !p.has_active_order));
-                const uncoveredProducts = uncoveredGroups.flatMap((g) => g.products.filter((p) => isRelevant(p) && !p.has_active_order));
+            const uncoveredGroups = groups.filter((g) => g.products.some((p) => isRelevant(p) && !p.has_active_order));
+            const uncoveredProducts = uncoveredGroups.flatMap((g) => g.products.filter((p) => isRelevant(p) && !p.has_active_order));
 
-                const criticalGroups = groups.filter((g) => g.products.some((p) => p.tier === 'critico' || p.tier === 'agotado'));
-                const warningGroups = groups.filter((g) => g.products.some((p) => p.tier === 'advertencia'));
+            const criticalGroups = groups.filter((g) => g.products.some((p) => p.tier === 'critico' || p.tier === 'agotado'));
+            const warningGroups = groups.filter((g) => g.products.some((p) => p.tier === 'advertencia'));
 
-                if (criticalGroups.length > 0) {
-                    setBellState('critical');
-                    setSupplierCount(criticalGroups.length);
-                } else if (warningGroups.length > 0) {
-                    setBellState('warning');
-                    setSupplierCount(warningGroups.length);
+            if (criticalGroups.length > 0) {
+                setBellState('critical');
+                setSupplierCount(criticalGroups.length);
+            } else if (warningGroups.length > 0) {
+                setBellState('warning');
+                setSupplierCount(warningGroups.length);
+            } else {
+                setBellState('clear');
+                setSupplierCount(0);
+            }
+
+            // Throttle por producto: cada uno vuelve a "elegible" recién
+            // a las 2h de su último aviso — mismo ciclo para el
+            // SweetAlert de resumen y para la notificación nativa, así
+            // que ambos se repiten juntos mientras la alerta siga activa
+            // (no solo la primera vez del día).
+            const now = Date.now();
+            const memory = notifiedRef.current;
+            const next: Record<number, number> = {};
+            const toNotify: AlertProduct[] = [];
+
+            uncoveredProducts.forEach((p) => {
+                const lastNotified = memory[p.id];
+                if (!lastNotified || now - lastNotified >= REMINDER_INTERVAL_MS) {
+                    toNotify.push(p);
+                    next[p.id] = now;
                 } else {
-                    setBellState('clear');
-                    setSupplierCount(0);
+                    next[p.id] = lastNotified;
                 }
+            });
+            // Los que ya no están bajos (se resolvieron o ya tienen
+            // pedido) se sueltan: si vuelven a bajar más adelante, se
+            // tratan como una alerta nueva.
+            notifiedRef.current = next;
+            saveJSON(NOTIFIED_STATE_KEY, next);
 
-                // Throttle por producto: cada uno vuelve a "elegible" recién
-                // a las 2h de su último aviso — mismo ciclo para el
-                // SweetAlert de resumen y para la notificación nativa, así
-                // que ambos se repiten juntos mientras la alerta siga activa
-                // (no solo la primera vez del día).
-                const now = Date.now();
-                const memory = notifiedRef.current;
-                const next: Record<number, number> = {};
-                const toNotify: AlertProduct[] = [];
+            if (toNotify.length > 0) {
+                const hasAgotado = toNotify.some((p) => p.tier === 'agotado');
 
-                uncoveredProducts.forEach((p) => {
-                    const lastNotified = memory[p.id];
-                    if (!lastNotified || now - lastNotified >= REMINDER_INTERVAL_MS) {
-                        toNotify.push(p);
-                        next[p.id] = now;
-                    } else {
-                        next[p.id] = lastNotified;
-                    }
-                });
-                // Los que ya no están bajos (se resolvieron o ya tienen
-                // pedido) se sueltan: si vuelven a bajar más adelante, se
-                // tratan como una alerta nueva.
-                notifiedRef.current = next;
-                saveJSON(NOTIFIED_STATE_KEY, next);
-
-                if (toNotify.length > 0) {
-                    const hasAgotado = toNotify.some((p) => p.tier === 'agotado');
-
-                    if ('Notification' in window && Notification.permission === 'granted' && isWithinBusinessHours()) {
-                        const notification = new Notification(
-                            hasAgotado ? 'Productos agotados' : 'Stock crítico',
-                            {
-                                body: toNotify.length === 1
-                                    ? `${toNotify[0].name} — sin pedido activo`
-                                    : `${toNotify.length} productos sin pedido activo`,
-                                tag: 'inventory-pos-stock-alert',
-                            }
-                        );
-                        notification.onclick = () => window.focus();
-                    }
-
-                    // Espera a que termine cualquier aviso con prioridad
-                    // (p.ej. el de caja automática) antes de mostrar el
-                    // resumen de stock, para que no aparezcan casi juntos.
-                    waitForAlertQueue().then(() => {
-                        playAlertBeep();
-                        Swal.fire({
-                            icon: 'warning',
-                            title: hasAgotado ? 'Hay productos agotados' : 'Hay stock crítico',
-                            text: `${uncoveredProducts.length} producto${uncoveredProducts.length === 1 ? '' : 's'} con stock bajo en ${uncoveredGroups.length} proveedor${uncoveredGroups.length === 1 ? '' : 'es'}, sin pedido activo.`,
-                            timer: 8000,
-                            timerProgressBar: true,
-                            confirmButtonColor: '#059669',
-                            confirmButtonText: 'Ver alertas',
-                        }).then((result) => {
-                            if (result.isConfirmed) setIsModalOpen(true);
-                        });
+                if ('Notification' in window && Notification.permission === 'granted' && isWithinBusinessHours()) {
+                    const notification = new Notification(hasAgotado ? 'Productos agotados' : 'Stock crítico', {
+                        body: toNotify.length === 1 ? `${toNotify[0].name} — sin pedido activo` : `${toNotify.length} productos sin pedido activo`,
+                        tag: 'inventory-pos-stock-alert',
                     });
+                    notification.onclick = () => window.focus();
                 }
+
+                // Espera a que termine cualquier aviso con prioridad
+                // (p.ej. el de caja automática) antes de mostrar el
+                // resumen de stock, para que no aparezcan casi juntos.
+                waitForAlertQueue().then(() => {
+                    playAlertBeep();
+                    Swal.fire({
+                        icon: 'warning',
+                        title: hasAgotado ? 'Hay productos agotados' : 'Hay stock crítico',
+                        text: `${uncoveredProducts.length} producto${uncoveredProducts.length === 1 ? '' : 's'} con stock bajo en ${uncoveredGroups.length} proveedor${uncoveredGroups.length === 1 ? '' : 'es'}, sin pedido activo.`,
+                        timer: 8000,
+                        timerProgressBar: true,
+                        confirmButtonColor: '#059669',
+                        confirmButtonText: 'Ver alertas',
+                    }).then((result) => {
+                        if (result.isConfirmed) setIsModalOpen(true);
+                    });
+                });
+            }
         } catch {
             // silencioso: no bloquear la UI por un fallo de red puntual
         }
@@ -206,22 +201,17 @@ export function NotificationBell() {
         bellState === 'critical'
             ? '!size-5 animate-pulse fill-rose-600 text-rose-600 drop-shadow-[0_0_6px_rgba(244,63,94,0.9)]'
             : bellState === 'warning'
-                ? '!size-5 fill-amber-500 text-amber-500 drop-shadow-[0_0_6px_rgba(245,158,11,0.85)]'
-                // Sin alertas: color neutro que sigue el tema (claro/oscuro)
+              ? '!size-5 fill-amber-500 text-amber-500 drop-shadow-[0_0_6px_rgba(245,158,11,0.85)]'
+              : // Sin alertas: color neutro que sigue el tema (claro/oscuro)
                 // en vez de un tono fijo — mismo token que el resto de la UI
                 // usa para texto secundario.
-                : '!size-5 text-muted-foreground opacity-80 group-hover:opacity-100';
+                '!size-5 text-muted-foreground opacity-80 group-hover:opacity-100';
 
     const badgeClass = bellState === 'critical' ? 'bg-rose-600 ring-rose-400/50' : 'bg-amber-500 ring-amber-300/50';
 
     return (
         <>
-            <Button
-                variant="ghost"
-                size="icon"
-                className="group relative h-9 w-9 cursor-pointer"
-                onClick={() => setIsModalOpen(true)}
-            >
+            <Button variant="ghost" size="icon" className="group relative h-9 w-9 cursor-pointer" onClick={() => setIsModalOpen(true)}>
                 <Bell className={bellIconClass} />
                 {bellState !== 'clear' && supplierCount > 0 && (
                     <span
@@ -232,11 +222,7 @@ export function NotificationBell() {
                 )}
             </Button>
 
-            <StockAlertModal
-                open={isModalOpen}
-                onOpenChange={setIsModalOpen}
-                onOrderCreated={fetchAlerts}
-            />
+            <StockAlertModal open={isModalOpen} onOpenChange={setIsModalOpen} onOrderCreated={fetchAlerts} />
         </>
     );
 }

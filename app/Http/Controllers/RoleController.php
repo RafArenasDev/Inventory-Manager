@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Http\Controllers;
 
 use App\Http\Requests\RoleRequest;
@@ -28,7 +29,7 @@ class RoleController extends Controller
         }
 
         // Count total and filtered permissions
-        $totalCount    = $rolesQuery->count();
+        $totalCount = $rolesQuery->count();
         $filteredCount = $rolesQuery->count();
 
         // Pagination (topada a 200 para evitar cargas desmedidas)
@@ -37,15 +38,15 @@ class RoleController extends Controller
         $roles = $rolesQuery->paginate($perPage)->withQueryString();
         $roles->getCollection()->transform(function ($role) {
             return [
-                'id'          => $role->id,
-                'name'        => $role->name,
-                'label'       => $role->label,
+                'id' => $role->id,
+                'name' => $role->name,
+                'label' => $role->label,
                 'description' => $role->description,
                 'permissions' => $role->permissions->map(function ($permission) {
                     return [
-                        'id'     => $permission->id,
-                        'name'   => $permission->name,
-                        'label'  => $permission->label,
+                        'id' => $permission->id,
+                        'name' => $permission->name,
+                        'label' => $permission->label,
                         'module' => $permission->module,
                     ];
                 })->toArray(),
@@ -53,12 +54,12 @@ class RoleController extends Controller
         });
 
         return Inertia::render('roles/index', [
-            'roles'          => $roles,
-            'permissions'    => Permission::get(['id', 'name', 'label', 'module']),
+            'roles' => $roles,
+            'permissions' => Permission::get(['id', 'name', 'label', 'module']),
             'catalogModules' => Module::where('is_active', true)->orderBy('order')->get(['id', 'key', 'label']),
-            'filters'        => $request->only(['search', 'per_page']),
-            'totalCount'     => $totalCount,
-            'filteredCount'  => $filteredCount,
+            'filters' => $request->only(['search', 'per_page']),
+            'totalCount' => $totalCount,
+            'filteredCount' => $filteredCount,
         ]);
     }
 
@@ -68,11 +69,11 @@ class RoleController extends Controller
     public function store(RoleRequest $request): RedirectResponse
     {
         $role = Role::create([
-            'name'        => $request->name,
-            'label'       => $request->label,
+            'name' => $request->name,
+            'label' => $request->label,
             'description' => $request->description,
-            'is_active'   => true,  // Siempre activo
-            'guard_name'  => 'web', // Siempre web
+            'is_active' => true,  // Siempre activo
+            'guard_name' => 'web', // Siempre web
         ]);
 
         $role->syncPermissions($request->input('permissions', []));
@@ -87,11 +88,11 @@ class RoleController extends Controller
     {
         $role = Role::findOrFail($id);
         $role->update([
-            'name'        => $request->name,
-            'label'       => $request->label,
+            'name' => $request->name,
+            'label' => $request->label,
             'description' => $request->description,
-            'is_active'   => true,  // Siempre activo
-            'guard_name'  => 'web', // Siempre web
+            'is_active' => true,  // Siempre activo
+            'guard_name' => 'web', // Siempre web
         ]);
 
         $role->syncPermissions($request->input('permissions', []));
@@ -106,8 +107,10 @@ class RoleController extends Controller
     {
         if ($role) {
             $role->delete();
+
             return redirect()->route('roles.index')->with('success', 'Rol eliminado correctamente.');
         }
+
         return redirect()->back()->with('error', 'Error al eliminar el rol.');
     }
 }

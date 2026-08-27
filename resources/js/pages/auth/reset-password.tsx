@@ -1,15 +1,15 @@
+import Swal from '@/lib/swal';
 import { Head, useForm } from '@inertiajs/react';
 import { LoaderCircle, Wand2 } from 'lucide-react';
 import { FormEventHandler } from 'react';
-import Swal from '@/lib/swal';
 
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { PasswordInput } from '@/components/ui/password-input';
-import { generateSecurePassword } from '@/lib/generate-password';
 import AuthSplitLayout from '@/layouts/auth/auth-split-layout';
+import { generateSecurePassword } from '@/lib/generate-password';
 
 interface ResetPasswordProps {
     token: string;
@@ -47,11 +47,11 @@ export default function ResetPassword({ token, email }: ResetPasswordProps) {
             onSuccess: () => {
                 // Alerta interactiva de CONTRASEÑA RESTABLECIDA (ORIGINAL)
                 Swal.fire({
-                    title: "¡Contraseña restablecida!",
-                    icon: "success",
-                    text: "Tu contraseña ha sido actualizada exitosamente. Puedes iniciar sesión con tu nueva contraseña.",
+                    title: '¡Contraseña restablecida!',
+                    icon: 'success',
+                    text: 'Tu contraseña ha sido actualizada exitosamente. Puedes iniciar sesión con tu nueva contraseña.',
                     draggable: true,
-                    confirmButtonText: 'Continuar'
+                    confirmButtonText: 'Continuar',
                 }).then((result) => {
                     if (result.isConfirmed) {
                         // Redirigir al login cuando haga clic en "Iniciar sesión"
@@ -76,22 +76,19 @@ export default function ResetPassword({ token, email }: ResetPasswordProps) {
                 }
                 if (errors.token) {
                     Swal.fire({
-                        title: "Enlace inválido",
-                        icon: "error",
-                        text: "El enlace de recuperación ha expirado o es inválido. Solicita un nuevo enlace.",
+                        title: 'Enlace inválido',
+                        icon: 'error',
+                        text: 'El enlace de recuperación ha expirado o es inválido. Solicita un nuevo enlace.',
                         draggable: true,
-                        confirmButtonText: 'OK'
+                        confirmButtonText: 'OK',
                     });
                 }
-            }
+            },
         });
     };
 
     return (
-        <AuthSplitLayout
-            title="Restablecer contraseña"
-            description="Ingresa tu nueva contraseña"
-        >
+        <AuthSplitLayout title="Restablecer contraseña" description="Ingresa tu nueva contraseña">
             <Head title="Restablecer contraseña" />
 
             {/* noValidate: una sola vía de validación (borde rojo +
@@ -140,9 +137,7 @@ export default function ResetPassword({ token, email }: ResetPasswordProps) {
                             className={errors.password ? 'ring-1 ring-red-500' : ''}
                             minLength={12}
                         />
-                        <p className="text-xs text-muted-foreground">
-                            Mínimo 12 caracteres, con mayúsculas, minúsculas, números y símbolos.
-                        </p>
+                        <p className="text-muted-foreground text-xs">Mínimo 12 caracteres, con mayúsculas, minúsculas, números y símbolos.</p>
                         <InputError message={errors.password} />
                     </div>
 
@@ -159,11 +154,7 @@ export default function ResetPassword({ token, email }: ResetPasswordProps) {
                         <InputError message={errors.password_confirmation} />
                     </div>
 
-                    <Button
-                        type="submit"
-                        className="w-full"
-                        disabled={processing}
-                    >
+                    <Button type="submit" className="w-full" disabled={processing}>
                         {processing ? (
                             <>
                                 <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />

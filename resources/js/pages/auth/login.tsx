@@ -1,8 +1,7 @@
+import Swal from '@/lib/swal';
 import { Head, useForm } from '@inertiajs/react';
 import { LoaderCircle } from 'lucide-react';
-import { FormEventHandler } from 'react';
-import { useEffect } from 'react';
-import Swal from '@/lib/swal';
+import { FormEventHandler, useEffect } from 'react';
 
 import InputError from '@/components/input-error';
 import TextLink from '@/components/text-link';
@@ -48,7 +47,7 @@ export default function Login({ status, canResetPassword = true }: LoginProps) {
                         showConfirmButton: false,
                     });
                 }
-            }
+            },
         });
     };
 
@@ -58,11 +57,11 @@ export default function Login({ status, canResetPassword = true }: LoginProps) {
             if (status.includes('Enlace de recuperación')) {
                 // MENSAJE DEL FORGOT-PASSWORD
                 Swal.fire({
-                    title: "¡Enlace enviado!",
-                    icon: "success",
+                    title: '¡Enlace enviado!',
+                    icon: 'success',
                     text: status,
                     draggable: true,
-                    confirmButtonText: 'OK'
+                    confirmButtonText: 'OK',
                 }).then((result) => {
                     if (result.isConfirmed) {
                         // console.log('Enlace enviado - listo para login');
@@ -71,30 +70,30 @@ export default function Login({ status, canResetPassword = true }: LoginProps) {
             } else if (status.includes('Se cerró la caja')) {
                 // MENSAJE DE AUTOCIERRE DE CAJA AL CERRAR SESIÓN
                 Swal.fire({
-                    title: "Caja cerrada automáticamente",
-                    icon: "info",
+                    title: 'Caja cerrada automáticamente',
+                    icon: 'info',
                     text: status,
                     draggable: true,
-                    confirmButtonText: 'Entendido'
+                    confirmButtonText: 'Entendido',
                 });
             } else if (status.includes('inconveniente con tu sesión')) {
                 // MENSAJE DE DESACTIVACIÓN DE CUENTA CON SESIÓN YA ABIERTA —
                 // deliberadamente genérico y con tono de incidente técnico,
                 // no de sanción: el usuario no debe sentir que lo echaron.
                 Swal.fire({
-                    title: "Lo sentimos",
-                    icon: "info",
+                    title: 'Lo sentimos',
+                    icon: 'info',
                     text: status,
                     draggable: true,
-                    confirmButtonText: 'Entendido'
+                    confirmButtonText: 'Entendido',
                 });
             } else if (status.includes('contraseña fue actualizada')) {
                 // MENSAJE DE CAMBIO DE CONTRASEÑA DESDE EL PERFIL — distinto
                 // del reset por correo (abajo): acá el usuario SÍ sabía su
                 // contraseña actual y la cambió, no la olvidó/recuperó.
                 Swal.fire({
-                    title: "¡Contraseña actualizada!",
-                    icon: "success",
+                    title: '¡Contraseña actualizada!',
+                    icon: 'success',
                     text: status,
                     timer: 2500,
                     showConfirmButton: false,
@@ -102,8 +101,8 @@ export default function Login({ status, canResetPassword = true }: LoginProps) {
             } else if (status.includes('Contraseña restablecida')) {
                 // MENSAJE DEL RESET-PASSWORD — se cierra solo, no requiere clic.
                 Swal.fire({
-                    title: "¡Contraseña restablecida!",
-                    icon: "success",
+                    title: '¡Contraseña restablecida!',
+                    icon: 'success',
                     text: status,
                     timer: 2500,
                     showConfirmButton: false,
@@ -116,21 +115,18 @@ export default function Login({ status, canResetPassword = true }: LoginProps) {
             } else {
                 // Mensaje genérico
                 Swal.fire({
-                    title: "¡Link enviado exitosamente!",
-                    icon: "success",
+                    title: '¡Link enviado exitosamente!',
+                    icon: 'success',
                     text: status,
                     draggable: true,
-                    confirmButtonText: 'OK'
+                    confirmButtonText: 'OK',
                 });
             }
         }
     }, [status]);
 
     return (
-        <AuthSplitLayout
-            title="Inicia sesión en tu cuenta"
-            description="Ingresa tu correo electrónico y contraseña para iniciar sesión"
-        >
+        <AuthSplitLayout title="Inicia sesión en tu cuenta" description="Ingresa tu correo electrónico y contraseña para iniciar sesión">
             <Head title="Iniciar sesión" />
 
             {/* noValidate: el navegador tiene su propia burbuja nativa para
@@ -186,7 +182,7 @@ export default function Login({ status, canResetPassword = true }: LoginProps) {
                         {canResetPassword && (
                             <TextLink
                                 href={route('password.request')}
-                                className="text-sm text-primary hover:text-primary/80"
+                                className="text-primary hover:text-primary/80 text-sm"
                                 tabIndex={status ? 5 : 5}
                             >
                                 ¿Olvidaste tu contraseña?
@@ -194,21 +190,14 @@ export default function Login({ status, canResetPassword = true }: LoginProps) {
                         )}
                     </div>
 
-                    <Button
-                        type="submit"
-                        className="w-full"
-                        tabIndex={status ? 6 : 4}
-                        disabled={processing}
-                    >
+                    <Button type="submit" className="w-full" tabIndex={status ? 6 : 4} disabled={processing}>
                         {processing && <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />}
                         Iniciar sesión
                     </Button>
                 </div>
             </form>
 
-            <p className="mt-8 text-center text-xs text-muted-foreground">
-                © 2025–2026 RafArenasDev
-            </p>
+            <p className="text-muted-foreground mt-8 text-center text-xs">© 2025–2026 RafArenasDev</p>
         </AuthSplitLayout>
     );
 }

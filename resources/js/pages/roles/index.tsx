@@ -1,37 +1,37 @@
-import { useState } from 'react';
-import AppLayout from '@/layouts/app-layout';
+import { ConfirmDialog } from '@/components/confirm-dialog';
+import { PageHeader } from '@/components/page-header';
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useLiveRefresh } from '@/hooks/use-live-refresh';
+import AppLayout from '@/layouts/app-layout';
 import { LinkProps, type BreadcrumbItem } from '@/types';
 import { Head, router, usePage } from '@inertiajs/react';
-import RolesTable from './rolesTable';
-import { Button } from '@/components/ui/button';
 import { Plus, Shield } from 'lucide-react';
+import { useState } from 'react';
 import RoleForm from './roleForm';
-import { PageHeader } from '@/components/page-header';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
-import { ConfirmDialog } from '@/components/confirm-dialog';
+import RolesTable from './rolesTable';
 
 interface Permission {
-    id: number
-    name: string
-    label: string
-    module: string
+    id: number;
+    name: string;
+    label: string;
+    module: string;
 }
 
 interface Role {
-    id: number
-    name: string
-    label: string
-    description: string
-    permissions: Permission[]
-    created_at: string
-    updated_at: string
+    id: number;
+    name: string;
+    label: string;
+    description: string;
+    permissions: Permission[];
+    created_at: string;
+    updated_at: string;
 }
 
 interface CatalogModule {
-    id: number
-    key: string
-    label: string
+    id: number;
+    key: string;
+    label: string;
 }
 
 interface RoleForForm {
@@ -44,20 +44,20 @@ interface RoleForForm {
 
 interface RoleIndexProps {
     roles: {
-        data: Role[]
-        links: LinkProps[]
-        from: number
-        to: number
-        total: number
-    }
-    permissions: Permission[]
-    catalogModules: CatalogModule[]
+        data: Role[];
+        links: LinkProps[];
+        from: number;
+        to: number;
+        total: number;
+    };
+    permissions: Permission[];
+    catalogModules: CatalogModule[];
     filters: {
-        search?: string
-        per_page?: string
-    }
-    totalCount: number
-    filteredCount: number
+        search?: string;
+        per_page?: string;
+    };
+    totalCount: number;
+    filteredCount: number;
 }
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -112,14 +112,18 @@ export default function RoleIndex({ roles, permissions, catalogModules, filters,
     };
 
     const handleSearch = (search: string) => {
-        router.post(route('roles.search'), {
-            ...filters,
-            search,
-            page: 1
-        }, {
-            preserveState: true,
-            preserveScroll: true
-        });
+        router.post(
+            route('roles.search'),
+            {
+                ...filters,
+                search,
+                page: 1,
+            },
+            {
+                preserveState: true,
+                preserveScroll: true,
+            },
+        );
     };
 
     const hasMultiplePages = totalCount > Number(filters.per_page || 10);
@@ -128,11 +132,7 @@ export default function RoleIndex({ roles, permissions, catalogModules, filters,
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Roles y Permisos" />
             <div className="flex h-full flex-1 flex-col gap-4 rounded-xl p-4">
-                <PageHeader
-                    icon={Shield}
-                    title="Roles y Permisos"
-                    description="Define los roles disponibles y los permisos asociados a cada módulo."
-                >
+                <PageHeader icon={Shield} title="Roles y Permisos" description="Define los roles disponibles y los permisos asociados a cada módulo.">
                     {userPermissions.includes('Crear Roles y Permisos') && (
                         <Button onClick={handleCreateRole} className="gap-1">
                             <Plus className="h-4 w-4" />
@@ -140,16 +140,18 @@ export default function RoleIndex({ roles, permissions, catalogModules, filters,
                         </Button>
                     )}
                 </PageHeader>
-                <div className={`relative rounded-xl bg-card shadow-lg shadow-black/10 dark:shadow-black/60 overflow-hidden ${hasMultiplePages ? 'flex-1' : ''}`}>
+                <div
+                    className={`bg-card relative overflow-hidden rounded-xl shadow-lg shadow-black/10 dark:shadow-black/60 ${hasMultiplePages ? 'flex-1' : ''}`}
+                >
                     <div className="h-full px-6 py-4">
                         <RolesTable
                             roles={roles}
-                            perPage={filters.per_page || "10"}
-                            onPerPageChange={() => { }}
+                            perPage={filters.per_page || '10'}
+                            onPerPageChange={() => {}}
                             onEditRole={handleEditRole}
                             totalCount={totalCount}
                             filteredCount={filteredCount}
-                            search={filters.search || ""}
+                            search={filters.search || ''}
                             onSearch={handleSearch}
                             userPermissions={userPermissions}
                         />
@@ -157,17 +159,20 @@ export default function RoleIndex({ roles, permissions, catalogModules, filters,
                 </div>
             </div>
 
-            <Dialog open={isModalOpen} onOpenChange={(open) => { if (!open) attemptCloseForm(); }}>
+            <Dialog
+                open={isModalOpen}
+                onOpenChange={(open) => {
+                    if (!open) attemptCloseForm();
+                }}
+            >
                 <DialogContent
-                    className="max-h-[90vh] w-[95vw] flex flex-col overflow-hidden sm:max-w-3xl lg:max-w-5xl xl:max-w-6xl"
+                    className="flex max-h-[90vh] w-[95vw] flex-col overflow-hidden sm:max-w-3xl lg:max-w-5xl xl:max-w-6xl"
                     onInteractOutside={(e) => e.preventDefault()}
                 >
                     <DialogHeader className="shrink-0">
                         <DialogTitle>{isCreating ? 'Nuevo Rol' : `Editar Rol: ${editingRole?.label}`}</DialogTitle>
                         <DialogDescription>
-                            {isCreating
-                                ? 'Completa los datos y selecciona los permisos del nuevo rol.'
-                                : 'Actualiza los datos y permisos del rol.'}
+                            {isCreating ? 'Completa los datos y selecciona los permisos del nuevo rol.' : 'Actualiza los datos y permisos del rol.'}
                         </DialogDescription>
                     </DialogHeader>
                     {editingRole && (

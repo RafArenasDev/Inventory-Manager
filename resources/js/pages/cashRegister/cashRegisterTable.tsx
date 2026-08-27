@@ -1,17 +1,10 @@
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from "@/components/ui/table";
-import { Button } from "@/components/ui/button";
-import { Download, Landmark } from "lucide-react";
-import { Pagination } from "@/components/ui/pagination";
-import SearchInput from "@/components/ui/search-input";
-import { PeriodFilter } from "@/components/period-filter";
-import { formatDateTime } from "@/lib/format-datetime";
+import { PeriodFilter } from '@/components/period-filter';
+import { Button } from '@/components/ui/button';
+import { Pagination } from '@/components/ui/pagination';
+import SearchInput from '@/components/ui/search-input';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { formatDateTime } from '@/lib/format-datetime';
+import { Download, Landmark } from 'lucide-react';
 
 interface CashRegister {
     id: number;
@@ -117,7 +110,7 @@ export default function CashRegisterTable({
                     </Button>
                 )}
             </div>
-            <div className="rounded-md bg-card shadow-lg shadow-black/10 dark:shadow-black/60 overflow-hidden">
+            <div className="bg-card overflow-hidden rounded-md shadow-lg shadow-black/10 dark:shadow-black/60">
                 <Table>
                     <TableHeader className="bg-gray-400 dark:bg-gray-700">
                         <TableRow>
@@ -143,19 +136,28 @@ export default function CashRegisterTable({
                                 <TableCell>{formatCurrency(cashRegister.other_income)}</TableCell>
                                 <TableCell>{formatCurrency(cashRegister.total_expenses)}</TableCell>
                                 <TableCell>{cashRegister.is_closed ? formatCurrency(cashRegister.closing_amount) : '-'}</TableCell>
-                                <TableCell className={
-                                    !cashRegister.is_closed ? '' :
-                                        cashRegister.difference > 0 ? 'text-emerald-600 font-semibold' :
-                                            cashRegister.difference < 0 ? 'text-rose-600 font-semibold' : ''
-                                }>
+                                <TableCell
+                                    className={
+                                        !cashRegister.is_closed
+                                            ? ''
+                                            : cashRegister.difference > 0
+                                              ? 'font-semibold text-emerald-600'
+                                              : cashRegister.difference < 0
+                                                ? 'font-semibold text-rose-600'
+                                                : ''
+                                    }
+                                >
                                     {cashRegister.is_closed ? formatDifference(cashRegister.difference) : '-'}
                                 </TableCell>
                                 <TableCell>{cashRegister.notes || '-'}</TableCell>
                                 <TableCell>
-                                    <span className={`inline-flex items-center justify-center px-2.5 py-0.5 text-xs font-bold rounded-full w-20 text-center shadow-sm ${cashRegister.is_closed
-                                            ? 'bg-rose-600 text-white dark:bg-rose-700'
-                                            : 'bg-emerald-600 text-white dark:bg-emerald-700'
-                                        }`}>
+                                    <span
+                                        className={`inline-flex w-20 items-center justify-center rounded-full px-2.5 py-0.5 text-center text-xs font-bold shadow-sm ${
+                                            cashRegister.is_closed
+                                                ? 'bg-rose-600 text-white dark:bg-rose-700'
+                                                : 'bg-emerald-600 text-white dark:bg-emerald-700'
+                                        }`}
+                                    >
                                         {cashRegister.is_closed ? 'Cerrada' : 'Abierta'}
                                     </span>
                                 </TableCell>

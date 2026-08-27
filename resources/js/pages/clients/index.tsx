@@ -1,16 +1,16 @@
-import { useState } from 'react';
-import AppLayout from '@/layouts/app-layout';
+import { ConfirmDialog } from '@/components/confirm-dialog';
+import { PageHeader } from '@/components/page-header';
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useLiveRefresh } from '@/hooks/use-live-refresh';
+import AppLayout from '@/layouts/app-layout';
 import { LinkProps, type BreadcrumbItem } from '@/types';
 import { Head, router, usePage } from '@inertiajs/react';
-import { Button } from '@/components/ui/button';
 import { Plus, Users } from 'lucide-react';
-import ClientsTable from './clientsTable';
+import { useState } from 'react';
 import ClientDetailModal from './clientDetailModal';
 import ClientForm from './clientForm';
-import { PageHeader } from '@/components/page-header';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
-import { ConfirmDialog } from '@/components/confirm-dialog';
+import ClientsTable from './clientsTable';
 
 interface Client {
     id: number;
@@ -80,14 +80,7 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
-export default function ClientIndex({
-    clients,
-    filters,
-    totalCount,
-    filteredCount,
-    departments = [],
-    cities = [],
-}: ClientIndexProps) {
+export default function ClientIndex({ clients, filters, totalCount, filteredCount, departments = [], cities = [] }: ClientIndexProps) {
     useLiveRefresh(['clients'], () => router.reload());
 
     const [isCreating, setIsCreating] = useState(false);
@@ -170,7 +163,7 @@ export default function ClientIndex({
             {
                 preserveState: true,
                 preserveScroll: true,
-            }
+            },
         );
     };
 
@@ -181,11 +174,7 @@ export default function ClientIndex({
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Clientes" />
             <div className="flex h-full flex-1 flex-col gap-4 rounded-xl p-4">
-                <PageHeader
-                    icon={Users}
-                    title="Clientes"
-                    description="Administra la información de tus clientes."
-                >
+                <PageHeader icon={Users} title="Clientes" description="Administra la información de tus clientes.">
                     {userPermissions.includes('Crear Clientes') && (
                         <Button onClick={handleCreateClient} className="gap-1">
                             <Plus className="h-4 w-4" />
@@ -193,7 +182,9 @@ export default function ClientIndex({
                         </Button>
                     )}
                 </PageHeader>
-                <div className={`relative rounded-xl bg-card shadow-lg shadow-black/10 dark:shadow-black/60 overflow-hidden ${hasMultiplePages ? 'flex-1' : ''}`}>
+                <div
+                    className={`bg-card relative overflow-hidden rounded-xl shadow-lg shadow-black/10 dark:shadow-black/60 ${hasMultiplePages ? 'flex-1' : ''}`}
+                >
                     <div className="h-full px-6 py-4">
                         <ClientsTable
                             clients={clients || defaultClients}
@@ -209,24 +200,20 @@ export default function ClientIndex({
                         />
                     </div>
                 </div>
-                <ClientDetailModal
-                    isOpen={!!viewingClient}
-                    onClose={() => setViewingClient(null)}
-                    client={viewingClient}
-                />
+                <ClientDetailModal isOpen={!!viewingClient} onClose={() => setViewingClient(null)} client={viewingClient} />
             </div>
 
-            <Dialog open={isModalOpen} onOpenChange={(open) => { if (!open) attemptCloseForm(); }}>
-                <DialogContent
-                    className="max-h-[90vh] overflow-y-auto sm:max-w-lg"
-                    onInteractOutside={(e) => e.preventDefault()}
-                >
+            <Dialog
+                open={isModalOpen}
+                onOpenChange={(open) => {
+                    if (!open) attemptCloseForm();
+                }}
+            >
+                <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg" onInteractOutside={(e) => e.preventDefault()}>
                     <DialogHeader>
                         <DialogTitle>{isCreating ? 'Nuevo Cliente' : `Editar Cliente: ${editingClient?.name}`}</DialogTitle>
                         <DialogDescription>
-                            {isCreating
-                                ? 'Completa los datos para registrar un nuevo cliente.'
-                                : 'Actualiza los datos del cliente.'}
+                            {isCreating ? 'Completa los datos para registrar un nuevo cliente.' : 'Actualiza los datos del cliente.'}
                         </DialogDescription>
                     </DialogHeader>
                     {editingClient && (

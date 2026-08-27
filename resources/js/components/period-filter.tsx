@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState } from 'react';
 import { Filter } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
 
 import { Button } from '@/components/ui/button';
 import { Combobox, ComboboxContent, ComboboxEmpty, ComboboxInput, ComboboxItem, ComboboxList } from '@/components/ui/combobox';
@@ -12,8 +12,18 @@ interface Option {
 }
 
 const MESES: Option[] = [
-    'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
-    'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre',
+    'Enero',
+    'Febrero',
+    'Marzo',
+    'Abril',
+    'Mayo',
+    'Junio',
+    'Julio',
+    'Agosto',
+    'Septiembre',
+    'Octubre',
+    'Noviembre',
+    'Diciembre',
 ].map((label, i) => ({ value: i + 1, label }));
 
 const now = new Date();
@@ -70,7 +80,7 @@ export function PeriodFilter({ onChange }: PeriodFilterProps) {
                 {/* h-9 explícito: size="sm" da h-8 (32px), 4px menos que el
                     input de búsqueda (h-9, 36px) — quedaban desalineados
                     en la misma fila. */}
-                <Button variant="outline" size="sm" className="h-9 shrink-0 gap-2 bg-card hover:bg-card/70">
+                <Button variant="outline" size="sm" className="bg-card hover:bg-card/70 h-9 shrink-0 gap-2">
                     <Filter className="h-4 w-4" />
                     {monthLabel} {year}
                 </Button>
@@ -78,7 +88,7 @@ export function PeriodFilter({ onChange }: PeriodFilterProps) {
             <PopoverContent className="w-auto p-4">
                 <div className="flex flex-wrap items-end gap-3">
                     <div className="grid gap-1">
-                        <Label className="text-xs text-muted-foreground">Año</Label>
+                        <Label className="text-muted-foreground text-xs">Año</Label>
                         <Combobox
                             items={YEARS}
                             itemToStringLabel={(o: Option) => o.label}
@@ -89,13 +99,19 @@ export function PeriodFilter({ onChange }: PeriodFilterProps) {
                             <ComboboxInput className="w-28" />
                             <ComboboxContent className="bg-card">
                                 <ComboboxEmpty>Sin resultados.</ComboboxEmpty>
-                                <ComboboxList>{(option: Option) => <ComboboxItem key={option.value} value={option}>{option.label}</ComboboxItem>}</ComboboxList>
+                                <ComboboxList>
+                                    {(option: Option) => (
+                                        <ComboboxItem key={option.value} value={option}>
+                                            {option.label}
+                                        </ComboboxItem>
+                                    )}
+                                </ComboboxList>
                             </ComboboxContent>
                         </Combobox>
                     </div>
 
                     <div className="grid gap-1">
-                        <Label className="text-xs text-muted-foreground">Mes</Label>
+                        <Label className="text-muted-foreground text-xs">Mes</Label>
                         <Combobox
                             items={MESES}
                             itemToStringLabel={(o: Option) => o.label}
@@ -106,7 +122,13 @@ export function PeriodFilter({ onChange }: PeriodFilterProps) {
                             <ComboboxInput className="w-36" />
                             <ComboboxContent className="bg-card">
                                 <ComboboxEmpty>Sin resultados.</ComboboxEmpty>
-                                <ComboboxList>{(option: Option) => <ComboboxItem key={option.value} value={option}>{option.label}</ComboboxItem>}</ComboboxList>
+                                <ComboboxList>
+                                    {(option: Option) => (
+                                        <ComboboxItem key={option.value} value={option}>
+                                            {option.label}
+                                        </ComboboxItem>
+                                    )}
+                                </ComboboxList>
                             </ComboboxContent>
                         </Combobox>
                     </div>
@@ -115,8 +137,11 @@ export function PeriodFilter({ onChange }: PeriodFilterProps) {
                 {!isCurrentPeriod && (
                     <button
                         type="button"
-                        onClick={() => { setYear(currentYear); setMonth(currentMonth); }}
-                        className="mt-3 text-xs text-muted-foreground underline-offset-2 hover:text-foreground hover:underline"
+                        onClick={() => {
+                            setYear(currentYear);
+                            setMonth(currentMonth);
+                        }}
+                        className="text-muted-foreground hover:text-foreground mt-3 text-xs underline-offset-2 hover:underline"
                     >
                         Volver al mes actual
                     </button>

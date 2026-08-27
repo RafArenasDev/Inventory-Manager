@@ -1,12 +1,12 @@
 // Modified roleForm.tsx
-import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { useForm } from '@inertiajs/react';
-import Swal from '@/lib/swal';
 import { Button } from '@/components/ui/button';
-import { Checkbox } from "@/components/ui/checkbox"
-import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import Swal from '@/lib/swal';
+import { useForm } from '@inertiajs/react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 
 interface Permission {
     id: number;
@@ -41,30 +41,22 @@ interface RoleFormProps {
     userPermissions: string[];
 }
 
-const RoleForm: React.FC<RoleFormProps> = ({
-    role,
-    onCancel,
-    onSaved,
-    onDirtyChange,
-    permissions,
-    catalogModules,
-    userPermissions,
-}) => {
+const RoleForm: React.FC<RoleFormProps> = ({ role, onCancel, onSaved, onDirtyChange, permissions, catalogModules, userPermissions }) => {
     // Cada módulo solo muestra sus propios permisos reales (algunos módulos
     // tienen acciones particulares, ej. Caja tiene Abrir/Cerrar, Finanzas tiene
     // Cancelar Transacciones) en vez de un catálogo genérico de acciones.
     const permissionsByModule = useMemo(() => {
         const map = new Map<number, Permission[]>();
         catalogModules.forEach((module) => {
-            map.set(module.id, permissions.filter((p) => p.module === module.label));
+            map.set(
+                module.id,
+                permissions.filter((p) => p.module === module.label),
+            );
         });
         return map;
     }, [permissions, catalogModules]);
 
-    const initialPermissionIds = useMemo(
-        () => new Set((role?.permissions ?? []).map((p) => p.id)),
-        [role]
-    );
+    const initialPermissionIds = useMemo(() => new Set((role?.permissions ?? []).map((p) => p.id)), [role]);
 
     const { data, setData, post, put, processing, errors, reset, isDirty } = useForm({
         name: role?.name || '',
@@ -142,23 +134,23 @@ const RoleForm: React.FC<RoleFormProps> = ({
             put(route('roles.update', role.id), {
                 onSuccess: () => {
                     Swal.fire({
-                        position: "center",
-                        icon: "success",
-                        title: "Rol actualizado correctamente",
+                        position: 'center',
+                        icon: 'success',
+                        title: 'Rol actualizado correctamente',
                         showConfirmButton: false,
-                        timer: 2200
+                        timer: 2200,
                     });
                     reset();
                     onSaved();
                 },
                 onError: () => {
                     Swal.fire({
-                        position: "center",
-                        icon: "error",
-                        title: "Error al actualizar el rol",
+                        position: 'center',
+                        icon: 'error',
+                        title: 'Error al actualizar el rol',
                         text: 'Verifica los datos ingresados.',
                         showConfirmButton: false,
-                        timer: 2200
+                        timer: 2200,
                     });
                 },
             });
@@ -166,39 +158,37 @@ const RoleForm: React.FC<RoleFormProps> = ({
             post(route('roles.store'), {
                 onSuccess: () => {
                     Swal.fire({
-                        position: "center",
-                        icon: "success",
-                        title: "Rol creado correctamente",
+                        position: 'center',
+                        icon: 'success',
+                        title: 'Rol creado correctamente',
                         showConfirmButton: false,
-                        timer: 2200
+                        timer: 2200,
                     });
                     reset();
                     onSaved();
                 },
                 onError: () => {
                     Swal.fire({
-                        position: "center",
-                        icon: "error",
-                        title: "Error al crear el rol",
+                        position: 'center',
+                        icon: 'error',
+                        title: 'Error al crear el rol',
                         text: 'Verifica los datos ingresados.',
                         showConfirmButton: false,
-                        timer: 2200
+                        timer: 2200,
                     });
                 },
             });
         }
     };
 
-    const canSubmit = role?.id
-        ? userPermissions.includes('Actualizar Roles y Permisos')
-        : userPermissions.includes('Crear Roles y Permisos');
+    const canSubmit = role?.id ? userPermissions.includes('Actualizar Roles y Permisos') : userPermissions.includes('Crear Roles y Permisos');
 
     return (
-        <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0 gap-6">
+        <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col gap-6">
             {/* Información básica */}
-            <div className="space-y-4 shrink-0">
+            <div className="shrink-0 space-y-4">
                 <div>
-                    <Label htmlFor="label" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    <Label htmlFor="label" className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
                         Nombre del Rol *
                     </Label>
                     <Input
@@ -214,7 +204,7 @@ const RoleForm: React.FC<RoleFormProps> = ({
                 </div>
 
                 <div>
-                    <Label htmlFor="description" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    <Label htmlFor="description" className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
                         Descripción
                     </Label>
                     <Textarea
@@ -223,7 +213,7 @@ const RoleForm: React.FC<RoleFormProps> = ({
                         value={data.description}
                         onChange={(e) => setData('description', e.target.value)}
                         rows={1}
-                        className="w-full min-h-[42px] resize-none overflow-hidden"
+                        className="min-h-[42px] w-full resize-none overflow-hidden"
                         placeholder="Descripción del rol (opcional)"
                     />
                     {errors.description && <p className="mt-1 text-sm text-red-600">{errors.description}</p>}
@@ -235,20 +225,18 @@ const RoleForm: React.FC<RoleFormProps> = ({
             </div>
 
             {/* Selección de Permisos */}
-            <div className="flex flex-col flex-1 min-h-0 gap-3">
-                <div className="flex items-center justify-between gap-2 shrink-0">
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                        Permisos por Módulo
-                    </label>
+            <div className="flex min-h-0 flex-1 flex-col gap-3">
+                <div className="flex shrink-0 items-center justify-between gap-2">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Permisos por Módulo</label>
                     <button
                         type="button"
                         onClick={handleToggleAllGlobal}
-                        className="text-sm text-blue-600 dark:text-blue-400 hover:underline font-medium whitespace-nowrap"
+                        className="text-sm font-medium whitespace-nowrap text-blue-600 hover:underline dark:text-blue-400"
                     >
                         {allGloballySelected ? 'Desmarcar todo' : 'Marcar todo'}
                     </button>
                 </div>
-                <div className="divide-y divide-gray-200 dark:divide-gray-700 border border-gray-200 dark:border-gray-700 rounded-md flex-1 min-h-0 overflow-y-auto p-1.5">
+                <div className="min-h-0 flex-1 divide-y divide-gray-200 overflow-y-auto rounded-md border border-gray-200 p-1.5 dark:divide-gray-700 dark:border-gray-700">
                     {catalogModules.map((module) => {
                         const modulePermissions = permissionsByModule.get(module.id) ?? [];
                         if (modulePermissions.length === 0) return null;
@@ -259,18 +247,16 @@ const RoleForm: React.FC<RoleFormProps> = ({
                         return (
                             <div key={module.id} className="p-4">
                                 {/* Título del módulo */}
-                                <div className="flex items-center justify-between gap-2 mb-3">
-                                    <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">
-                                        {module.label}
-                                    </span>
-                                    <div className="flex items-center gap-2 text-xs shrink-0">
-                                        <span className="text-gray-500 dark:text-gray-400 whitespace-nowrap">
+                                <div className="mb-3 flex items-center justify-between gap-2">
+                                    <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">{module.label}</span>
+                                    <div className="flex shrink-0 items-center gap-2 text-xs">
+                                        <span className="whitespace-nowrap text-gray-500 dark:text-gray-400">
                                             {selectedCount}/{modulePermissions.length}
                                         </span>
                                         <button
                                             type="button"
                                             onClick={() => handleToggleAllInModule(modulePermissions, allSelected)}
-                                            className="text-blue-600 dark:text-blue-400 hover:underline font-medium whitespace-nowrap"
+                                            className="font-medium whitespace-nowrap text-blue-600 hover:underline dark:text-blue-400"
                                         >
                                             {allSelected ? 'Quitar todos' : 'Marcar todos'}
                                         </button>
@@ -285,7 +271,7 @@ const RoleForm: React.FC<RoleFormProps> = ({
                                             <label
                                                 key={permission.id}
                                                 htmlFor={`permission-${permission.id}`}
-                                                className="inline-flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300 cursor-pointer"
+                                                className="inline-flex cursor-pointer items-center gap-2 text-sm text-gray-700 dark:text-gray-300"
                                             >
                                                 <Checkbox
                                                     id={`permission-${permission.id}`}
@@ -304,21 +290,13 @@ const RoleForm: React.FC<RoleFormProps> = ({
             </div>
 
             {/* Botones de acción */}
-            <div className="flex justify-end space-x-3 pt-4 border-t border-gray-200 dark:border-gray-700 shrink-0">
-                <Button
-                    type="button"
-                    onClick={onCancel}
-                    variant="outline"
-                    disabled={processing}
-                >
+            <div className="flex shrink-0 justify-end space-x-3 border-t border-gray-200 pt-4 dark:border-gray-700">
+                <Button type="button" onClick={onCancel} variant="outline" disabled={processing}>
                     Cancelar
                 </Button>
                 {canSubmit && (
-                    <Button
-                        type="submit"
-                        disabled={processing}
-                    >
-                        {processing ? 'Guardando...' : (role?.id ? 'Actualizar Rol' : 'Crear Rol')}
+                    <Button type="submit" disabled={processing}>
+                        {processing ? 'Guardando...' : role?.id ? 'Actualizar Rol' : 'Crear Rol'}
                     </Button>
                 )}
             </div>

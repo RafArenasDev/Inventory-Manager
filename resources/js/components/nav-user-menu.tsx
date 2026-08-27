@@ -1,6 +1,6 @@
-import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { PasswordModal } from '@/components/password-modal';
 import { ProfileModal } from '@/components/profile-modal';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { UserInfo } from '@/components/user-info';
 import { UserMenuContent } from '@/components/user-menu-content';
 import { type SharedData } from '@/types';
@@ -24,17 +24,17 @@ export function NavUserMenu() {
                 <DropdownMenuTrigger asChild>
                     <button
                         type="button"
-                        className="flex items-center gap-2 rounded-lg px-2 py-1.5 transition-colors hover:bg-accent hover:text-accent-foreground data-[state=open]:bg-accent data-[state=open]:text-accent-foreground"
+                        className="hover:bg-accent hover:text-accent-foreground data-[state=open]:bg-accent data-[state=open]:text-accent-foreground flex items-center gap-2 rounded-lg px-2 py-1.5 transition-colors"
                     >
                         <UserInfo user={auth.user} />
-                        <ChevronDown className="size-4 text-muted-foreground" />
+                        <ChevronDown className="text-muted-foreground size-4" />
                     </button>
                 </DropdownMenuTrigger>
                 {/* bg-header (no el bg-popover por defecto): este menú
                     cuelga directo del header, tiene que leerse como parte
                     de esa misma superficie, no como una card flotante de
                     otro tono. */}
-                <DropdownMenuContent className="w-56 rounded-lg bg-header" align="end" side="bottom">
+                <DropdownMenuContent className="bg-header w-56 rounded-lg" align="end" side="bottom">
                     <UserMenuContent onOpenProfile={() => setProfileOpen(true)} onOpenPassword={() => setPasswordOpen(true)} />
                 </DropdownMenuContent>
             </DropdownMenu>

@@ -1,14 +1,14 @@
-import React, { useEffect, useState } from 'react';
-import Swal from '@/lib/swal';
-import { router, usePage } from '@inertiajs/react';
 import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
-import { Textarea } from '@/components/ui/textarea';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
-import { Plus, Minus, Trash2 } from "lucide-react";
+import { Textarea } from '@/components/ui/textarea';
+import Swal from '@/lib/swal';
+import { router, usePage } from '@inertiajs/react';
+import { Minus, Plus, Trash2 } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
 import ClientForm from '../clients/clientForm';
 
 interface SaleItem {
@@ -102,12 +102,14 @@ interface SaleFormProps {
 }
 
 const formatCurrency = (value: number): string => {
-    return `$ ${Math.round(value).toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.')}`;
+    return `$ ${Math.round(value)
+        .toString()
+        .replace(/\B(?=(\d{3})+(?!\d))/g, '.')}`;
 };
 
 const InfoField: React.FC<{ label: string; value?: string | number | null; className?: string }> = ({ label, value, className }) => (
     <div className={`min-w-0 ${className || ''}`}>
-        <p className="text-[10px] font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">{label}</p>
+        <p className="text-[10px] font-medium tracking-wide text-gray-500 uppercase dark:text-gray-400">{label}</p>
         <p
             className="truncate text-sm text-gray-900 dark:text-gray-100"
             title={value !== undefined && value !== null && value !== '' ? String(value) : undefined}
@@ -123,7 +125,7 @@ const SaleForm: React.FC<SaleFormProps> = ({ sale, onCancel, onSaved, onDirtyCha
     // lo que desalinea sale_date respecto a sale_time (que sí usaba hora local)
     // cerca de la medianoche UTC (7pm-12am hora Bogotá), registrando ventas
     // con la fecha del día siguiente.
-    const now = new Date(new Date().toLocaleString("en-US", { timeZone: "America/Bogota" }));
+    const now = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Bogota' }));
     const initialData: SaleFormData = {
         client_id: sale?.client_id ?? null,
         client_document_number: sale?.client_document_number ?? '',
@@ -150,19 +152,18 @@ const SaleForm: React.FC<SaleFormProps> = ({ sale, onCancel, onSaved, onDirtyCha
     const [clientNotFound, setClientNotFound] = useState(false);
 
     useEffect(() => {
-        setFormData(prev => ({ ...prev, items: selectedItems }));
+        setFormData((prev) => ({ ...prev, items: selectedItems }));
     }, [selectedItems]);
 
     useEffect(() => {
         onDirtyChange?.(selectedItems.length > 0 || formData.client_id !== null);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [selectedItems, formData.client_id, onDirtyChange]);
 
     const handleClientInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value;
-        setFormData(prev => ({ ...prev, client_document_number: value }));
+        setFormData((prev) => ({ ...prev, client_document_number: value }));
         if (value) {
-            setFilteredClients(clients.filter(c => c.document_number?.toString().startsWith(value)));
+            setFilteredClients(clients.filter((c) => c.document_number?.toString().startsWith(value)));
         } else {
             setFilteredClients([]);
         }
@@ -171,7 +172,7 @@ const SaleForm: React.FC<SaleFormProps> = ({ sale, onCancel, onSaved, onDirtyCha
 
     const handleSelectClient = (client: Client) => {
         const document_number = client.document_number?.toString() || '';
-        setFormData(prev => ({
+        setFormData((prev) => ({
             ...prev,
             client_document_number: document_number,
             client_id: client.id,
@@ -182,25 +183,25 @@ const SaleForm: React.FC<SaleFormProps> = ({ sale, onCancel, onSaved, onDirtyCha
 
     const handleClientSearch = () => {
         const document_number = formData.client_document_number || '';
-        const client = clients.find(c => c.document_number?.toString() === document_number);
+        const client = clients.find((c) => c.document_number?.toString() === document_number);
 
         if (client) {
-            setFormData(prev => ({
+            setFormData((prev) => ({
                 ...prev,
                 client_id: client.id,
             }));
             setClientNotFound(false);
         } else {
-            setFormData(prev => ({
+            setFormData((prev) => ({
                 ...prev,
                 client_id: null,
             }));
             setClientNotFound(true);
             Swal.fire({
-                position: "center",
-                icon: "info",
-                title: "Cliente no registrado",
-                text: "Para continuar con la venta, debe crear el cliente primero.",
+                position: 'center',
+                icon: 'info',
+                title: 'Cliente no registrado',
+                text: 'Para continuar con la venta, debe crear el cliente primero.',
                 showConfirmButton: false,
                 timer: 3000,
             });
@@ -210,7 +211,7 @@ const SaleForm: React.FC<SaleFormProps> = ({ sale, onCancel, onSaved, onDirtyCha
     };
 
     const handleClientCreated = (newClient: Client) => {
-        setFormData(prev => ({
+        setFormData((prev) => ({
             ...prev,
             client_document_number: newClient.document_number?.toString() || '',
             client_id: newClient.id,
@@ -219,10 +220,10 @@ const SaleForm: React.FC<SaleFormProps> = ({ sale, onCancel, onSaved, onDirtyCha
         setClientNotFound(false);
 
         // Actualizar la lista de clients localmente con los datos completos
-        if (!clients.find(c => c.id === newClient.id)) {
+        if (!clients.find((c) => c.id === newClient.id)) {
             // Buscar los nombres del departamento y ciudad en las listas disponibles
-            const department = departments.find(d => d.id === newClient.department_id);
-            const city = cities.find(c => c.id === newClient.city_id);
+            const department = departments.find((d) => d.id === newClient.department_id);
+            const city = cities.find((c) => c.id === newClient.city_id);
 
             const clientWithRelations: Client = {
                 ...newClient,
@@ -234,10 +235,10 @@ const SaleForm: React.FC<SaleFormProps> = ({ sale, onCancel, onSaved, onDirtyCha
         }
 
         Swal.fire({
-            position: "center",
-            icon: "success",
-            title: "Cliente creado exitosamente",
-            text: "Ya puede continuar con el registro de la venta.",
+            position: 'center',
+            icon: 'success',
+            title: 'Cliente creado exitosamente',
+            text: 'Ya puede continuar con el registro de la venta.',
             showConfirmButton: false,
             timer: 2000,
         });
@@ -252,7 +253,7 @@ const SaleForm: React.FC<SaleFormProps> = ({ sale, onCancel, onSaved, onDirtyCha
         const value = e.target.value;
         setProductSearch(value);
         if (value) {
-            setFilteredProducts(products.filter(p => p.code.toLowerCase().startsWith(value.toLowerCase())));
+            setFilteredProducts(products.filter((p) => p.code.toLowerCase().startsWith(value.toLowerCase())));
         } else {
             setFilteredProducts([]);
         }
@@ -265,24 +266,27 @@ const SaleForm: React.FC<SaleFormProps> = ({ sale, onCancel, onSaved, onDirtyCha
 
     const handleProductSearch = () => {
         const code = productSearch.trim();
-        const product = products.find(p => p.code.toLowerCase() === code.toLowerCase());
+        const product = products.find((p) => p.code.toLowerCase() === code.toLowerCase());
         if (product && product.stock > 0) {
-            setSelectedItems(prev => [...prev, {
-                product_id: product.id,
-                product_code: product.code,
-                product_name: product.name,
-                quantity: 1,
-                price_at_sale: product.sale_price || 0,
-                item_discount: 0,
-            }]);
+            setSelectedItems((prev) => [
+                ...prev,
+                {
+                    product_id: product.id,
+                    product_code: product.code,
+                    product_name: product.name,
+                    quantity: 1,
+                    price_at_sale: product.sale_price || 0,
+                    item_discount: 0,
+                },
+            ]);
             setProductSearch('');
             setFilteredProducts([]);
         } else {
             Swal.fire({
-                position: "center",
-                icon: "error",
-                title: "Producto no encontrado",
-                text: product ? "Producto sin stock disponible." : "Código de producto no válido.",
+                position: 'center',
+                icon: 'error',
+                title: 'Producto no encontrado',
+                text: product ? 'Producto sin stock disponible.' : 'Código de producto no válido.',
                 showConfirmButton: false,
                 timer: 2200,
             });
@@ -290,15 +294,15 @@ const SaleForm: React.FC<SaleFormProps> = ({ sale, onCancel, onSaved, onDirtyCha
     };
 
     const handleRemoveItem = (index: number) => {
-        setSelectedItems(prev => prev.filter((_, i) => i !== index));
+        setSelectedItems((prev) => prev.filter((_, i) => i !== index));
     };
 
     const handleUpdateQuantity = (index: number, delta: number) => {
-        setSelectedItems(prevItems => {
+        setSelectedItems((prevItems) => {
             const newItems = [...prevItems];
             const item = newItems[index];
             const newQuantity = item.quantity + delta;
-            const product = products.find(p => p.id === item.product_id);
+            const product = products.find((p) => p.id === item.product_id);
 
             if (newQuantity >= 1 && product && newQuantity <= product.stock) {
                 newItems[index] = { ...item, quantity: newQuantity };
@@ -311,7 +315,7 @@ const SaleForm: React.FC<SaleFormProps> = ({ sale, onCancel, onSaved, onDirtyCha
     const handleDiscountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value;
         const parsedValue = value === '' ? 0 : parseFloat(value.replace(/^0+/, '')) || 0;
-        setFormData(prev => ({ ...prev, discount: parsedValue }));
+        setFormData((prev) => ({ ...prev, discount: parsedValue }));
     };
 
     const calculateItemTotal = (item: SaleItem) => {
@@ -329,7 +333,7 @@ const SaleForm: React.FC<SaleFormProps> = ({ sale, onCancel, onSaved, onDirtyCha
     const { totalWithoutTax, totalWithDiscount, totalPaid, discountAmount } = calculateTotals();
 
     useEffect(() => {
-        setFormData(prev => ({
+        setFormData((prev) => ({
             ...prev,
             total_without_tax: totalWithoutTax,
             total_with_discount: totalWithDiscount,
@@ -344,10 +348,10 @@ const SaleForm: React.FC<SaleFormProps> = ({ sale, onCancel, onSaved, onDirtyCha
 
         if (selectedItems.length === 0) {
             Swal.fire({
-                position: "center",
-                icon: "error",
-                title: "Error en los items",
-                text: "Debe agregar al menos un item a la venta.",
+                position: 'center',
+                icon: 'error',
+                title: 'Error en los items',
+                text: 'Debe agregar al menos un item a la venta.',
                 showConfirmButton: false,
                 timer: 2200,
             });
@@ -355,13 +359,13 @@ const SaleForm: React.FC<SaleFormProps> = ({ sale, onCancel, onSaved, onDirtyCha
             return;
         }
 
-        const invalidItems = selectedItems.some(item => item.product_id === 0 || !products.some(p => p.id === item.product_id));
+        const invalidItems = selectedItems.some((item) => item.product_id === 0 || !products.some((p) => p.id === item.product_id));
         if (invalidItems) {
             Swal.fire({
-                position: "center",
-                icon: "error",
-                title: "Error en los items",
-                text: "Todos los items deben tener un producto válido seleccionado.",
+                position: 'center',
+                icon: 'error',
+                title: 'Error en los items',
+                text: 'Todos los items deben tener un producto válido seleccionado.',
                 showConfirmButton: false,
                 timer: 2200,
             });
@@ -377,7 +381,7 @@ const SaleForm: React.FC<SaleFormProps> = ({ sale, onCancel, onSaved, onDirtyCha
             discount: formData.discount,
             payment_method: formData.payment_method,
             notes: formData.notes || '',
-            items: selectedItems.map(item => ({
+            items: selectedItems.map((item) => ({
                 product_id: item.product_id,
                 quantity: item.quantity,
                 price_at_sale: item.price_at_sale,
@@ -395,21 +399,25 @@ const SaleForm: React.FC<SaleFormProps> = ({ sale, onCancel, onSaved, onDirtyCha
             data: dataToSend,
             onSuccess: () => {
                 Swal.fire({
-                    position: "center",
-                    icon: "success",
-                    title: "Venta registrada correctamente",
+                    position: 'center',
+                    icon: 'success',
+                    title: 'Venta registrada correctamente',
                     showConfirmButton: false,
                     timer: 2200,
                 });
                 setFormData(initialData);
-                if (onSaved) { onSaved(); } else { onCancel(); }
+                if (onSaved) {
+                    onSaved();
+                } else {
+                    onCancel();
+                }
             },
             onError: (err) => {
                 setErrors(err);
                 Swal.fire({
-                    position: "center",
-                    icon: "error",
-                    title: "Error al registrar la venta",
+                    position: 'center',
+                    icon: 'error',
+                    title: 'Error al registrar la venta',
                     text: 'Verifica los datos ingresados.',
                     showConfirmButton: false,
                     timer: 2200,
@@ -421,14 +429,14 @@ const SaleForm: React.FC<SaleFormProps> = ({ sale, onCancel, onSaved, onDirtyCha
 
     const canSubmit = userPermissions.includes('Crear Ventas');
 
-    const selectedClient = formData.client_id ? clients.find(c => c.id === formData.client_id) : null;
+    const selectedClient = formData.client_id ? clients.find((c) => c.id === formData.client_id) : null;
     const isNequi = formData.payment_method === 'Nequi';
 
     return (
         <>
-            <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0 gap-4">
+            <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col gap-4">
                 {/* Información del Cliente */}
-                <div className="space-y-2 shrink-0">
+                <div className="shrink-0 space-y-2">
                     <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">Información del Cliente</h3>
                     <div className="relative max-w-md">
                         <div className="flex space-x-2">
@@ -451,11 +459,11 @@ const SaleForm: React.FC<SaleFormProps> = ({ sale, onCancel, onSaved, onDirtyCha
                             </Button>
                         </div>
                         {filteredClients.length > 0 && (
-                            <ul className="absolute z-10 w-full bg-background text-foreground border border-input max-h-60 overflow-auto rounded-md shadow-lg mt-1">
+                            <ul className="bg-background text-foreground border-input absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md border shadow-lg">
                                 {filteredClients.map((c) => (
                                     <li
                                         key={c.id}
-                                        className="px-3 py-2 hover:bg-accent hover:text-accent-foreground cursor-pointer"
+                                        className="hover:bg-accent hover:text-accent-foreground cursor-pointer px-3 py-2"
                                         onClick={() => handleSelectClient(c)}
                                     >
                                         {c.document_number} - {c.name}
@@ -464,7 +472,7 @@ const SaleForm: React.FC<SaleFormProps> = ({ sale, onCancel, onSaved, onDirtyCha
                             </ul>
                         )}
                         {clientNotFound && (
-                            <div className="mt-2 p-2 bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-900 rounded-md">
+                            <div className="mt-2 rounded-md border border-blue-200 bg-blue-50 p-2 dark:border-blue-900 dark:bg-blue-950/40">
                                 <p className="text-sm text-blue-800 dark:text-blue-300">
                                     Cliente no encontrado. Se abrirá el formulario para crear uno nuevo.
                                 </p>
@@ -472,7 +480,7 @@ const SaleForm: React.FC<SaleFormProps> = ({ sale, onCancel, onSaved, onDirtyCha
                         )}
                     </div>
                     {selectedClient && (
-                        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-x-4 gap-y-2 rounded-md border border-gray-200 dark:border-gray-800 p-2.5">
+                        <div className="grid grid-cols-2 gap-x-4 gap-y-2 rounded-md border border-gray-200 p-2.5 sm:grid-cols-3 lg:grid-cols-5 dark:border-gray-800">
                             <InfoField label="Tipo Doc." value={selectedClient.document_type} />
                             <InfoField label="N° Documento" value={selectedClient.document_number} />
                             <InfoField label="Nombre" value={selectedClient.name} />
@@ -480,36 +488,35 @@ const SaleForm: React.FC<SaleFormProps> = ({ sale, onCancel, onSaved, onDirtyCha
                             <InfoField label="Teléfono" value={selectedClient.phone} />
                             <InfoField label="Celular" value={selectedClient.cellphone} />
                             <InfoField label="Dirección" value={selectedClient.address} />
-                            <InfoField
-                                label="Ciudad / Depto."
-                                value={`${selectedClient.city || '-'}, ${selectedClient.department || '-'}`}
-                            />
-                            {selectedClient.document_type === 'NIT' && (
-                                <InfoField label="Dígito Verif." value={selectedClient.verification_digit} />
-                            )}
+                            <InfoField label="Ciudad / Depto." value={`${selectedClient.city || '-'}, ${selectedClient.department || '-'}`} />
+                            {selectedClient.document_type === 'NIT' && <InfoField label="Dígito Verif." value={selectedClient.verification_digit} />}
                         </div>
                     )}
                     {errors.client_id && <p className="text-sm text-red-600">{errors.client_id}</p>}
                 </div>
 
                 {/* Detalles de la Venta */}
-                <div className="space-y-2 shrink-0">
+                <div className="shrink-0 space-y-2">
                     <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">Detalles de la Venta</h3>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                         <div>
-                            <Label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                                Método de Pago *
-                            </Label>
-                            <div className="flex items-center gap-2.5 h-[34px]">
-                                <span className={`text-sm ${!isNequi ? 'font-semibold text-gray-900 dark:text-gray-100' : 'text-gray-400 dark:text-gray-500'}`}>
+                            <Label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Método de Pago *</Label>
+                            <div className="flex h-[34px] items-center gap-2.5">
+                                <span
+                                    className={`text-sm ${!isNequi ? 'font-semibold text-gray-900 dark:text-gray-100' : 'text-gray-400 dark:text-gray-500'}`}
+                                >
                                     Efectivo
                                 </span>
                                 <Switch
                                     id="payment_method"
                                     checked={isNequi}
-                                    onCheckedChange={(checked) => setFormData(prev => ({ ...prev, payment_method: checked ? 'Nequi' : 'Efectivo' }))}
+                                    onCheckedChange={(checked) =>
+                                        setFormData((prev) => ({ ...prev, payment_method: checked ? 'Nequi' : 'Efectivo' }))
+                                    }
                                 />
-                                <span className={`text-sm ${isNequi ? 'font-semibold text-gray-900 dark:text-gray-100' : 'text-gray-400 dark:text-gray-500'}`}>
+                                <span
+                                    className={`text-sm ${isNequi ? 'font-semibold text-gray-900 dark:text-gray-100' : 'text-gray-400 dark:text-gray-500'}`}
+                                >
                                     Nequi
                                 </span>
                             </div>
@@ -517,7 +524,7 @@ const SaleForm: React.FC<SaleFormProps> = ({ sale, onCancel, onSaved, onDirtyCha
                         </div>
 
                         <div>
-                            <Label htmlFor="discount" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                            <Label htmlFor="discount" className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
                                 Descuento Total (%)
                             </Label>
                             <Input
@@ -538,15 +545,15 @@ const SaleForm: React.FC<SaleFormProps> = ({ sale, onCancel, onSaved, onDirtyCha
                     </div>
 
                     <div>
-                        <Label htmlFor="notes" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                        <Label htmlFor="notes" className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
                             Notas
                         </Label>
                         <Textarea
                             id="notes"
                             value={formData.notes || ''}
-                            onChange={(e) => setFormData(prev => ({ ...prev, notes: e.target.value }))}
+                            onChange={(e) => setFormData((prev) => ({ ...prev, notes: e.target.value }))}
                             rows={1}
-                            className="w-full min-h-0"
+                            className="min-h-0 w-full"
                             placeholder="Notas adicionales (opcional)"
                         />
                         {errors.notes && <p className="mt-1 text-sm text-red-600">{errors.notes}</p>}
@@ -554,7 +561,7 @@ const SaleForm: React.FC<SaleFormProps> = ({ sale, onCancel, onSaved, onDirtyCha
                 </div>
 
                 {/* Items de la Venta — única zona con scroll */}
-                <div className="flex flex-col flex-1 min-h-[150px] gap-2">
+                <div className="flex min-h-[150px] flex-1 flex-col gap-2">
                     <div className="shrink-0 space-y-2">
                         <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">Items de la Venta</h3>
                         <div className="relative max-w-md">
@@ -577,11 +584,11 @@ const SaleForm: React.FC<SaleFormProps> = ({ sale, onCancel, onSaved, onDirtyCha
                                 </Button>
                             </div>
                             {filteredProducts.length > 0 && (
-                                <ul className="absolute z-10 w-full bg-background text-foreground border border-input max-h-60 overflow-auto rounded-md shadow-lg mt-1">
+                                <ul className="bg-background text-foreground border-input absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md border shadow-lg">
                                     {filteredProducts.map((p) => (
                                         <li
                                             key={p.id}
-                                            className="px-3 py-2 hover:bg-accent hover:text-accent-foreground cursor-pointer"
+                                            className="hover:bg-accent hover:text-accent-foreground cursor-pointer px-3 py-2"
                                             onClick={() => handleSelectProduct(p)}
                                         >
                                             {p.code} - {p.name}
@@ -591,10 +598,10 @@ const SaleForm: React.FC<SaleFormProps> = ({ sale, onCancel, onSaved, onDirtyCha
                             )}
                         </div>
                     </div>
-                    <div className="flex flex-col flex-1 min-h-0 rounded-md border border-gray-200 dark:border-gray-800 overflow-hidden">
-                        <div className="flex-1 min-h-0 overflow-y-auto p-1.5">
+                    <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-md border border-gray-200 dark:border-gray-800">
+                        <div className="min-h-0 flex-1 overflow-y-auto p-1.5">
                             <Table>
-                                <TableHeader className="bg-gray-100 dark:bg-white/[0.04] sticky top-0">
+                                <TableHeader className="sticky top-0 bg-gray-100 dark:bg-white/[0.04]">
                                     <TableRow>
                                         <TableHead>Código</TableHead>
                                         <TableHead>Producto</TableHead>
@@ -628,19 +635,14 @@ const SaleForm: React.FC<SaleFormProps> = ({ sale, onCancel, onSaved, onDirtyCha
                                                         variant="outline"
                                                         size="icon"
                                                         onClick={() => handleUpdateQuantity(index, 1)}
-                                                        disabled={item.quantity >= (products.find(p => p.id === item.product_id)?.stock || 0)}
+                                                        disabled={item.quantity >= (products.find((p) => p.id === item.product_id)?.stock || 0)}
                                                     >
                                                         <Plus className="h-4 w-4" />
                                                     </Button>
                                                 </div>
                                             </TableCell>
                                             <TableCell className="text-right">
-                                                <Button
-                                                    type="button"
-                                                    variant="destructive"
-                                                    size="icon"
-                                                    onClick={() => handleRemoveItem(index)}
-                                                >
+                                                <Button type="button" variant="destructive" size="icon" onClick={() => handleRemoveItem(index)}>
                                                     <Trash2 className="h-4 w-4" />
                                                 </Button>
                                             </TableCell>
@@ -648,7 +650,7 @@ const SaleForm: React.FC<SaleFormProps> = ({ sale, onCancel, onSaved, onDirtyCha
                                     ))}
                                     {selectedItems.length === 0 && (
                                         <TableRow>
-                                            <TableCell colSpan={6} className="text-center py-4 text-gray-500 dark:text-gray-400">
+                                            <TableCell colSpan={6} className="py-4 text-center text-gray-500 dark:text-gray-400">
                                                 No hay items agregados. Ingrese un código de producto arriba.
                                             </TableCell>
                                         </TableRow>
@@ -661,7 +663,7 @@ const SaleForm: React.FC<SaleFormProps> = ({ sale, onCancel, onSaved, onDirtyCha
                 </div>
 
                 {/* Totales */}
-                <div className="space-y-0.5 p-2.5 bg-gray-50 dark:bg-white/[0.03] rounded-lg shrink-0">
+                <div className="shrink-0 space-y-0.5 rounded-lg bg-gray-50 p-2.5 dark:bg-white/[0.03]">
                     <div className="flex justify-between text-sm">
                         <span className="font-medium">Subtotal:</span>
                         <span>{formatCurrency(totalWithoutTax)}</span>
@@ -670,27 +672,19 @@ const SaleForm: React.FC<SaleFormProps> = ({ sale, onCancel, onSaved, onDirtyCha
                         <span className="font-medium">Descuento ({formData.discount}%):</span>
                         <span className="text-red-600">-{formatCurrency(discountAmount)}</span>
                     </div>
-                    <div className="flex justify-between text-lg font-bold border-t border-gray-200 dark:border-gray-800 pt-1.5">
+                    <div className="flex justify-between border-t border-gray-200 pt-1.5 text-lg font-bold dark:border-gray-800">
                         <span>Total a Pagar:</span>
                         <span className="text-green-600 dark:text-green-500">{formatCurrency(totalPaid)}</span>
                     </div>
                 </div>
 
                 {/* Botones de acción */}
-                <div className="flex justify-end space-x-3 pt-3 border-t border-gray-200 dark:border-gray-800 shrink-0">
-                    <Button
-                        type="button"
-                        onClick={onCancel}
-                        variant="outline"
-                        disabled={processing}
-                    >
+                <div className="flex shrink-0 justify-end space-x-3 border-t border-gray-200 pt-3 dark:border-gray-800">
+                    <Button type="button" onClick={onCancel} variant="outline" disabled={processing}>
                         Cancelar
                     </Button>
                     {canSubmit && (
-                        <Button
-                            type="submit"
-                            disabled={processing || selectedItems.length === 0}
-                        >
+                        <Button type="submit" disabled={processing || selectedItems.length === 0}>
                             {processing ? 'Guardando...' : 'Crear Venta'}
                         </Button>
                     )}
@@ -698,16 +692,16 @@ const SaleForm: React.FC<SaleFormProps> = ({ sale, onCancel, onSaved, onDirtyCha
             </form>
 
             {/* Modal para crear cliente */}
-            <Dialog open={showClientModal} onOpenChange={(open) => { if (!open) handleCancelClientModal(); }}>
-                <DialogContent
-                    className="max-h-[90vh] overflow-y-auto sm:max-w-lg"
-                    onInteractOutside={(e) => e.preventDefault()}
-                >
+            <Dialog
+                open={showClientModal}
+                onOpenChange={(open) => {
+                    if (!open) handleCancelClientModal();
+                }}
+            >
+                <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg" onInteractOutside={(e) => e.preventDefault()}>
                     <DialogHeader>
                         <DialogTitle>Nuevo Cliente</DialogTitle>
-                        <DialogDescription>
-                            Completa los datos para registrar el cliente y continuar con la venta.
-                        </DialogDescription>
+                        <DialogDescription>Completa los datos para registrar el cliente y continuar con la venta.</DialogDescription>
                     </DialogHeader>
                     {showClientModal && (
                         <ClientForm

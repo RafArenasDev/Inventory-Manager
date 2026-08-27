@@ -1,8 +1,8 @@
-import * as SwitchPrimitive from '@radix-ui/react-switch';
 import { router } from '@inertiajs/react';
+import * as SwitchPrimitive from '@radix-ui/react-switch';
 
-import { cn } from '@/lib/utils';
 import Swal from '@/lib/swal';
+import { cn } from '@/lib/utils';
 
 interface StatusToggleProps {
     id: number;
@@ -91,7 +91,7 @@ export function StatusToggle({
                             icon: 'error',
                         });
                     },
-                }
+                },
             );
         });
     };
@@ -104,21 +104,14 @@ export function StatusToggle({
                 disabled={disabled}
                 aria-label={`${isActive ? 'Desactivar' : 'Activar'} ${useArticle ? entityLabel + ' ' : ''}${entityName}`}
                 className={cn(
-                    'peer inline-flex h-4 w-7 shrink-0 items-center rounded-full border-2 border-transparent shadow-xs transition-colors outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50',
-                    'data-[state=checked]:bg-emerald-600 data-[state=unchecked]:bg-rose-600'
+                    'peer focus-visible:ring-ring/50 inline-flex h-4 w-7 shrink-0 items-center rounded-full border-2 border-transparent shadow-xs transition-colors outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50',
+                    'data-[state=checked]:bg-emerald-600 data-[state=unchecked]:bg-rose-600',
                 )}
             >
-                <SwitchPrimitive.Thumb
-                    className="pointer-events-none block size-3 rounded-full bg-white shadow-md ring-0 transition-transform data-[state=checked]:translate-x-3 data-[state=unchecked]:translate-x-0"
-                />
+                <SwitchPrimitive.Thumb className="pointer-events-none block size-3 rounded-full bg-white shadow-md ring-0 transition-transform data-[state=checked]:translate-x-3 data-[state=unchecked]:translate-x-0" />
             </SwitchPrimitive.Root>
-            <span
-                className={cn(
-                    'text-xs font-bold',
-                    isActive ? 'text-emerald-600 dark:text-emerald-500' : 'text-rose-600 dark:text-rose-500'
-                )}
-            >
-                {isActive ? (feminine ? 'Activa' : 'Activo') : (feminine ? 'Inactiva' : 'Inactivo')}
+            <span className={cn('text-xs font-bold', isActive ? 'text-emerald-600 dark:text-emerald-500' : 'text-rose-600 dark:text-rose-500')}>
+                {isActive ? (feminine ? 'Activa' : 'Activo') : feminine ? 'Inactiva' : 'Inactivo'}
             </span>
         </div>
     );

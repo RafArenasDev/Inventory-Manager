@@ -1,4 +1,5 @@
 <?php
+
 namespace Database\Seeders;
 
 use App\Models\Category;
@@ -143,33 +144,34 @@ class ProductSeeder extends Seeder
 
             if (! $category) {
                 \Log::warning("Categoría {$productData['category_name']} no encontrada para el producto {$productData['code']}. Saltando producto y movimiento.");
+
                 continue;
             }
 
             $priceWithoutTax = (int) round($productData['price_without_tax'] ?? $productData['unit_price'] ?? 0);
-            $priceWithTax    = (int) round($productData['price_with_tax'] ?? $productData['unit_price'] ?? 0);
-            $salePrice       = (int) round($productData['sale_price'] ?? $productData['unit_price'] ?? 0);
-            $ivaValue        = $priceWithTax - $priceWithoutTax;
+            $priceWithTax = (int) round($productData['price_with_tax'] ?? $productData['unit_price'] ?? 0);
+            $salePrice = (int) round($productData['sale_price'] ?? $productData['unit_price'] ?? 0);
+            $ivaValue = $priceWithTax - $priceWithoutTax;
 
             $product = Product::create([
-                'code'                => $productData['code'],
-                'category_id'         => $category->id,
-                'name'                => $productData['name'],
-                'description'         => $productData['description'] ?? null,
-                'price_without_tax'   => $priceWithoutTax,
-                'price_with_tax'      => $priceWithTax,
-                'iva_value'           => $ivaValue,
-                'sale_price'          => $salePrice,
-                'supplier_id'         => $productData['supplier'] ?? null,
-                'stock'               => $productData['stock'] ?? 0,
-                'image_path'          => null,
+                'code' => $productData['code'],
+                'category_id' => $category->id,
+                'name' => $productData['name'],
+                'description' => $productData['description'] ?? null,
+                'price_without_tax' => $priceWithoutTax,
+                'price_with_tax' => $priceWithTax,
+                'iva_value' => $ivaValue,
+                'sale_price' => $salePrice,
+                'supplier_id' => $productData['supplier'] ?? null,
+                'stock' => $productData['stock'] ?? 0,
+                'image_path' => null,
                 'initial_movement_id' => null,
             ]);
 
             if ($product && ($productData['stock'] ?? 0) > 0) {
                 $movementDate = Carbon::now();
-                $note         = null;
-                $supplierId   = $productData['supplier'] ?? null;
+                $note = null;
+                $supplierId = $productData['supplier'] ?? null;
 
                 switch ($supplierId) {
                     case 1:
@@ -182,17 +184,17 @@ class ProductSeeder extends Seeder
 
                     case 2:
                         $movementDate = Carbon::create(2026, 5, 20);
-                        $note         = 'Compra inicial GlobalTech Distribuciones';
+                        $note = 'Compra inicial GlobalTech Distribuciones';
                         break;
 
                     case 3:
                         $movementDate = Carbon::create(2026, 6, 2);
-                        $note         = 'Compra inicial Andina Componentes';
+                        $note = 'Compra inicial Andina Componentes';
                         break;
 
                     case 4:
                         $movementDate = Carbon::create(2026, 6, 10);
-                        $note         = 'Compra inicial Conectividad y Redes del Eje';
+                        $note = 'Compra inicial Conectividad y Redes del Eje';
                         break;
 
                     default:
@@ -201,12 +203,12 @@ class ProductSeeder extends Seeder
                 }
 
                 $movement = InventoryMovement::create([
-                    'product_id'  => $product->id,
+                    'product_id' => $product->id,
                     'supplier_id' => $supplierId,
-                    'type'        => 'Entrada',
-                    'quantity'    => $productData['stock'],
-                    'date'        => $movementDate->toDateString(),
-                    'notes'       => $note,
+                    'type' => 'Entrada',
+                    'quantity' => $productData['stock'],
+                    'date' => $movementDate->toDateString(),
+                    'notes' => $note,
                 ]);
 
                 $product->update(['initial_movement_id' => $movement->id]);

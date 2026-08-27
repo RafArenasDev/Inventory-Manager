@@ -1,13 +1,13 @@
-import { useEffect, useMemo, useState } from 'react';
-import { router } from '@inertiajs/react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
-import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from '@/components/ui/accordion';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { Pencil, Truck } from 'lucide-react';
 import { IconActionButton } from '@/components/icon-action-button';
 import { WhatsAppIcon } from '@/components/icons/whatsapp-icon';
-import PurchaseOrderForm from '@/pages/purchaseOrders/purchaseOrderForm';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { buildPurchaseOrderMessage, openWhatsApp } from '@/lib/whatsapp';
+import PurchaseOrderForm from '@/pages/purchaseOrders/purchaseOrderForm';
+import { router } from '@inertiajs/react';
+import { Pencil, Truck } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
 
 type StockTier = 'advertencia' | 'critico' | 'agotado';
 
@@ -68,7 +68,10 @@ interface DraftItem {
     quantity_requested: number;
 }
 
-const formatCOP = (value: number): string => `$ ${Math.round(value).toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.')}`;
+const formatCOP = (value: number): string =>
+    `$ ${Math.round(value)
+        .toString()
+        .replace(/\B(?=(\d{3})+(?!\d))/g, '.')}`;
 const formatDate = (value: string): string => value.slice(0, 10).split('-').reverse().join('-');
 
 const TIER_BADGE: Record<StockTier, string> = {
@@ -121,17 +124,11 @@ export function StockAlertModal({ open, onOpenChange, onOrderCreated }: StockAle
     // Un proveedor sale de "Alertas" apenas todos sus productos bajos quedan
     // cubiertos por un pedido activo — ahí ya no hace falta pedir nada más,
     // solo queda revisarlo/editarlo desde "Resumen".
-    const alertGroups = useMemo(
-        () => groups.filter((g) => g.products.some((p) => !p.has_active_order)),
-        [groups]
-    );
+    const alertGroups = useMemo(() => groups.filter((g) => g.products.some((p) => !p.has_active_order)), [groups]);
     // Un proveedor puede tener más de un pedido activo a la vez (por
     // productos distintos) — se aplana a una lista de {supplier, order} para
     // mostrar una tarjeta por pedido, no por proveedor.
-    const activeOrderCards = useMemo(
-        () => groups.flatMap((g) => g.active_orders.map((order) => ({ supplier: g.supplier, order }))),
-        [groups]
-    );
+    const activeOrderCards = useMemo(() => groups.flatMap((g) => g.active_orders.map((order) => ({ supplier: g.supplier, order }))), [groups]);
 
     // Pestaña por defecto: si queda algo por pedir, ahí es donde hace falta
     // actuar; si no, el Resumen es lo único relevante para mostrar.
@@ -172,28 +169,21 @@ export function StockAlertModal({ open, onOpenChange, onOrderCreated }: StockAle
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent
-                className="flex max-h-[85vh] flex-col sm:max-w-5xl"
-                onInteractOutside={(e) => e.preventDefault()}
-            >
+            <DialogContent className="flex max-h-[85vh] flex-col sm:max-w-5xl" onInteractOutside={(e) => e.preventDefault()}>
                 <DialogHeader className="shrink-0">
                     <DialogTitle>Alertas de Stock Bajo</DialogTitle>
-                    <DialogDescription>
-                        Productos agotados o en nivel crítico, agrupados por proveedor.
-                    </DialogDescription>
+                    <DialogDescription>Productos agotados o en nivel crítico, agrupados por proveedor.</DialogDescription>
                 </DialogHeader>
 
-                {loading && <p className="py-8 text-center text-sm text-muted-foreground">Cargando...</p>}
+                {loading && <p className="text-muted-foreground py-8 text-center text-sm">Cargando...</p>}
 
                 {!loading && groups.length === 0 && (
-                    <p className="py-8 text-center text-sm text-muted-foreground">
-                        No hay productos con stock bajo en este momento.
-                    </p>
+                    <p className="text-muted-foreground py-8 text-center text-sm">No hay productos con stock bajo en este momento.</p>
                 )}
 
                 {!loading && groups.length > 0 && (
                     <Tabs value={tab} onValueChange={(v) => setTab(v as 'alertas' | 'resumen')} className="flex min-h-0 flex-1 flex-col">
-                        {(alertGroups.length > 0 && activeOrderCards.length > 0) && (
+                        {alertGroups.length > 0 && activeOrderCards.length > 0 && (
                             <TabsList className="w-fit shrink-0">
                                 <TabsTrigger value="alertas">Alertas ({alertGroups.length})</TabsTrigger>
                                 <TabsTrigger value="resumen">Resumen ({activeOrderCards.length})</TabsTrigger>
@@ -202,26 +192,32 @@ export function StockAlertModal({ open, onOpenChange, onOrderCreated }: StockAle
 
                         {alertGroups.length > 0 && (
                             <TabsContent value="alertas" className="min-h-0 flex-1 overflow-y-auto p-1.5">
-                                <p className="mb-2 text-sm text-muted-foreground">Expande un proveedor para armar y enviar el pedido.</p>
+                                <p className="text-muted-foreground mb-2 text-sm">Expande un proveedor para armar y enviar el pedido.</p>
                                 <Accordion type="single" collapsible className="w-full">
                                     {alertGroups.map((group) => {
                                         const uncovered = group.products.filter((p) => !p.has_active_order);
-                                        const tierCounts = uncovered.reduce((acc, p) => {
-                                            acc[p.tier] = (acc[p.tier] ?? 0) + 1;
-                                            return acc;
-                                        }, {} as Partial<Record<StockTier, number>>);
+                                        const tierCounts = uncovered.reduce(
+                                            (acc, p) => {
+                                                acc[p.tier] = (acc[p.tier] ?? 0) + 1;
+                                                return acc;
+                                            },
+                                            {} as Partial<Record<StockTier, number>>,
+                                        );
 
                                         return (
                                             <AccordionItem key={group.supplier.id} value={String(group.supplier.id)}>
                                                 <AccordionTrigger className="hover:no-underline">
                                                     <div className="flex flex-1 flex-wrap items-center justify-between gap-2 pr-2">
                                                         <div className="flex items-center gap-2 font-medium">
-                                                            <Truck className="h-4 w-4 text-muted-foreground" />
+                                                            <Truck className="text-muted-foreground h-4 w-4" />
                                                             {group.supplier.name}
                                                         </div>
                                                         <div className="flex flex-wrap items-center gap-1.5">
                                                             {TIER_ORDER.filter((tier) => tierCounts[tier]).map((tier) => (
-                                                                <span key={tier} className={`rounded-full px-2 py-0.5 text-xs font-semibold ${TIER_BADGE[tier]}`}>
+                                                                <span
+                                                                    key={tier}
+                                                                    className={`rounded-full px-2 py-0.5 text-xs font-semibold ${TIER_BADGE[tier]}`}
+                                                                >
                                                                     {tierCounts[tier]} {TIER_LABEL[tier]}
                                                                 </span>
                                                             ))}
@@ -255,7 +251,8 @@ export function StockAlertModal({ open, onOpenChange, onOrderCreated }: StockAle
                                     <div className="space-y-3">
                                         <div className="flex items-center justify-between">
                                             <h3 className="text-sm font-semibold">
-                                                Editar Pedido: {editingOrder.supplier?.name ?? 'Proveedor eliminado'} — {formatDate(editingOrder.created_at)}
+                                                Editar Pedido: {editingOrder.supplier?.name ?? 'Proveedor eliminado'} —{' '}
+                                                {formatDate(editingOrder.created_at)}
                                             </h3>
                                         </div>
                                         <PurchaseOrderForm
@@ -271,16 +268,19 @@ export function StockAlertModal({ open, onOpenChange, onOrderCreated }: StockAle
                                     </div>
                                 ) : (
                                     <div className="space-y-2">
-                                        <p className="mb-1 text-xs text-muted-foreground/70">Pedidos activos — lo que ya se solicitó y sigue pendiente de llegar. Un proveedor puede tener más de uno: un pedido por alertas de stock bajo y otro pedido nuevo, por ejemplo.</p>
+                                        <p className="text-muted-foreground/70 mb-1 text-xs">
+                                            Pedidos activos — lo que ya se solicitó y sigue pendiente de llegar. Un proveedor puede tener más de uno:
+                                            un pedido por alertas de stock bajo y otro pedido nuevo, por ejemplo.
+                                        </p>
                                         {activeOrderCards.map(({ supplier, order }) => {
                                             const hasAnyPrice = order.items.some((i) => i.unit_cost !== null);
                                             const total = order.items.reduce((sum, i) => sum + (i.unit_cost ?? 0) * i.quantity_requested, 0);
 
                                             return (
-                                                <div key={order.id} className="rounded-lg border border-input p-4">
+                                                <div key={order.id} className="border-input rounded-lg border p-4">
                                                     <div className="flex flex-wrap items-center justify-between gap-3">
                                                         <div className="flex items-center gap-2 font-medium">
-                                                            <Truck className="h-4 w-4 text-muted-foreground" />
+                                                            <Truck className="text-muted-foreground h-4 w-4" />
                                                             {supplier.name}
                                                         </div>
                                                         <IconActionButton
@@ -292,16 +292,21 @@ export function StockAlertModal({ open, onOpenChange, onOrderCreated }: StockAle
                                                             <Pencil className="size-3.5" />
                                                         </IconActionButton>
                                                     </div>
-                                                    <div className="mt-2 space-y-1 text-sm text-muted-foreground">
+                                                    <div className="text-muted-foreground mt-2 space-y-1 text-sm">
                                                         {order.items.map((item) => (
                                                             <div key={item.id} className="flex items-center justify-between">
-                                                                <span>{item.product_name} <span className="text-xs">({item.product_code})</span> x{item.quantity_requested}</span>
-                                                                {item.unit_cost !== null && <span>{formatCOP(item.unit_cost * item.quantity_requested)}</span>}
+                                                                <span>
+                                                                    {item.product_name} <span className="text-xs">({item.product_code})</span> x
+                                                                    {item.quantity_requested}
+                                                                </span>
+                                                                {item.unit_cost !== null && (
+                                                                    <span>{formatCOP(item.unit_cost * item.quantity_requested)}</span>
+                                                                )}
                                                             </div>
                                                         ))}
                                                     </div>
                                                     {hasAnyPrice && (
-                                                        <div className="mt-2 flex items-center justify-between border-t border-input pt-2 text-sm font-semibold">
+                                                        <div className="border-input mt-2 flex items-center justify-between border-t pt-2 text-sm font-semibold">
                                                             <span>Total</span>
                                                             <span>{formatCOP(total)}</span>
                                                         </div>

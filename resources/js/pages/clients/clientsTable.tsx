@@ -1,18 +1,11 @@
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from '@/components/ui/table';
 import { IconActionButton } from '@/components/icon-action-button';
 import { StatusToggle } from '@/components/status-toggle';
-import { Pencil, Trash2, Phone, Smartphone, Users, Eye } from 'lucide-react';
-import { router } from '@inertiajs/react';
 import { Pagination } from '@/components/ui/pagination';
 import SearchInput from '@/components/ui/search-input';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import Swal from '@/lib/swal';
+import { router } from '@inertiajs/react';
+import { Eye, Pencil, Phone, Smartphone, Trash2, Users } from 'lucide-react';
 
 interface Client {
     id: number;
@@ -103,7 +96,8 @@ export default function ClientsTable({
         });
     };
 
-    const showActionsColumn = userPermissions.includes('Editar Clientes') || userPermissions.includes('Eliminar Clientes') || userPermissions.includes('Ver Clientes');
+    const showActionsColumn =
+        userPermissions.includes('Editar Clientes') || userPermissions.includes('Eliminar Clientes') || userPermissions.includes('Ver Clientes');
 
     const renderPhones = (client: Client) => {
         const hasPhone = client.phone && client.phone.trim() !== '';
@@ -142,7 +136,7 @@ export default function ClientsTable({
                 />
             </div>
 
-            <div className="rounded-md bg-card shadow-lg shadow-black/10 dark:shadow-black/60 overflow-hidden">
+            <div className="bg-card overflow-hidden rounded-md shadow-lg shadow-black/10 dark:shadow-black/60">
                 <Table>
                     <TableHeader className="bg-gray-400 dark:bg-gray-700">
                         <TableRow>

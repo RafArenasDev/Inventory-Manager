@@ -1,15 +1,15 @@
-import { useState } from 'react';
-import AppLayout from '@/layouts/app-layout';
+import { ConfirmDialog } from '@/components/confirm-dialog';
+import { PageHeader } from '@/components/page-header';
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useLiveRefresh } from '@/hooks/use-live-refresh';
+import AppLayout from '@/layouts/app-layout';
 import { BreadcrumbItem } from '@/types';
 import { Head, router, usePage } from '@inertiajs/react';
-import CashRegisterTable from './cashRegisterTable';
-import { Button } from '@/components/ui/button';
 import { Clock, Lock, Wallet } from 'lucide-react';
+import { useState } from 'react';
 import CashRegisterForm from './cashRegisterForm';
-import { PageHeader } from '@/components/page-header';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
-import { ConfirmDialog } from '@/components/confirm-dialog';
+import CashRegisterTable from './cashRegisterTable';
 
 interface CashRegister {
     id: number;
@@ -65,17 +65,9 @@ interface CashRegisterIndexProps {
     todayRegister: CashRegister | null;
 }
 
-const breadcrumbs: BreadcrumbItem[] = [
-    { title: 'Caja', href: '/cash-register' },
-];
+const breadcrumbs: BreadcrumbItem[] = [{ title: 'Caja', href: '/cash-register' }];
 
-export default function CashRegisterIndex({
-    cashRegisters,
-    filters,
-    totalCount,
-    filteredCount,
-    todayRegister,
-}: CashRegisterIndexProps) {
+export default function CashRegisterIndex({ cashRegisters, filters, totalCount, filteredCount, todayRegister }: CashRegisterIndexProps) {
     useLiveRefresh(['finance'], () => router.reload());
 
     const [isCreating, setIsCreating] = useState(false);
@@ -120,11 +112,15 @@ export default function CashRegisterIndex({
     };
 
     const handleSearch = (search: string) => {
-        router.post(route('cash-register.search'), {
-            ...filters,
-            search,
-            page: 1,
-        }, { preserveState: true, preserveScroll: true });
+        router.post(
+            route('cash-register.search'),
+            {
+                ...filters,
+                search,
+                page: 1,
+            },
+            { preserveState: true, preserveScroll: true },
+        );
     };
 
     // El cambio de per_page ya lo maneja Pagination internamente (POST a
@@ -132,12 +128,16 @@ export default function CashRegisterIndex({
     const handlePerPageChange = () => {};
 
     const handlePeriodChange = (range: { date_from?: string; date_to?: string }) => {
-        router.post(route('cash-register.search'), {
-            ...filters,
-            date_from: range.date_from ?? '',
-            date_to: range.date_to ?? '',
-            page: 1,
-        }, { preserveState: true, preserveScroll: true });
+        router.post(
+            route('cash-register.search'),
+            {
+                ...filters,
+                date_from: range.date_from ?? '',
+                date_to: range.date_to ?? '',
+                page: 1,
+            },
+            { preserveState: true, preserveScroll: true },
+        );
     };
 
     const hasMultiplePages = totalCount > Number(filters.per_page || 10);
@@ -146,11 +146,7 @@ export default function CashRegisterIndex({
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Caja" />
             <div className="flex h-full flex-1 flex-col gap-4 rounded-xl p-4">
-                <PageHeader
-                    icon={Wallet}
-                    title="Cajas"
-                    description="Controla la apertura y cierre de caja de cada jornada."
-                >
+                <PageHeader icon={Wallet} title="Cajas" description="Controla la apertura y cierre de caja de cada jornada.">
                     {userPermissions.includes('Crear Caja') && !todayRegister && (
                         <Button onClick={handleCreateCashRegister} className="gap-1 bg-emerald-600 text-white hover:bg-emerald-700">
                             <Clock className="h-4 w-4" /> Abrir Caja
@@ -162,7 +158,9 @@ export default function CashRegisterIndex({
                         </Button>
                     )}
                 </PageHeader>
-                <div className={`relative rounded-xl bg-card shadow-lg shadow-black/10 dark:shadow-black/60 overflow-hidden ${hasMultiplePages ? 'flex-1' : ''}`}>
+                <div
+                    className={`bg-card relative overflow-hidden rounded-xl shadow-lg shadow-black/10 dark:shadow-black/60 ${hasMultiplePages ? 'flex-1' : ''}`}
+                >
                     <div className="h-full px-6 py-4">
                         <CashRegisterTable
                             cashRegisters={cashRegisters}
@@ -180,17 +178,17 @@ export default function CashRegisterIndex({
                 </div>
             </div>
 
-            <Dialog open={isModalOpen} onOpenChange={(open) => { if (!open) attemptCloseForm(); }}>
-                <DialogContent
-                    className="max-h-[90vh] overflow-y-auto sm:max-w-lg"
-                    onInteractOutside={(e) => e.preventDefault()}
-                >
+            <Dialog
+                open={isModalOpen}
+                onOpenChange={(open) => {
+                    if (!open) attemptCloseForm();
+                }}
+            >
+                <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg" onInteractOutside={(e) => e.preventDefault()}>
                     <DialogHeader>
                         <DialogTitle>{isCreating ? 'Abrir Caja' : `Cerrar Caja: ${editingCashRegister?.register_date ?? ''}`}</DialogTitle>
                         <DialogDescription>
-                            {isCreating
-                                ? 'Abre la caja para iniciar la jornada.'
-                                : 'Registra el cierre de caja de la jornada.'}
+                            {isCreating ? 'Abre la caja para iniciar la jornada.' : 'Registra el cierre de caja de la jornada.'}
                         </DialogDescription>
                     </DialogHeader>
                     {editingCashRegister && (

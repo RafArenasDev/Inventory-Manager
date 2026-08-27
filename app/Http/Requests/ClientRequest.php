@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
@@ -14,8 +15,8 @@ class ClientRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'document_type'      => 'required|in:CC,TI,CE,Pasaporte,NIT',
-            'document_number'    => [
+            'document_type' => 'required|in:CC,TI,CE,Pasaporte,NIT',
+            'document_number' => [
                 'required',
                 Rule::when(in_array($this->document_type, ['CC', 'TI', 'NIT']), 'integer'),
                 Rule::when(in_array($this->document_type, ['CE', 'Pasaporte']), 'string|max:255'),
@@ -28,13 +29,13 @@ class ClientRequest extends FormRequest
                 'max:9',
                 Rule::requiredIf($this->document_type === 'NIT'),
             ],
-            'name'               => 'required|string|max:255',
-            'department_id'      => 'nullable|integer',
-            'city_id'            => 'nullable|integer',
-            'phone'              => 'nullable|string|max:20',
-            'cellphone'          => 'nullable|string|max:20',
-            'address'            => 'nullable|string',
-            'email'              => 'nullable|email',
+            'name' => 'required|string|max:255',
+            'department_id' => 'nullable|integer',
+            'city_id' => 'nullable|integer',
+            'phone' => 'nullable|string|max:20',
+            'cellphone' => 'nullable|string|max:20',
+            'address' => 'nullable|string',
+            'email' => 'nullable|email',
         ];
     }
 }

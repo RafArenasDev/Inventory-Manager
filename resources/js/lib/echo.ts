@@ -1,6 +1,6 @@
+import { csrfHeader } from '@/lib/csrf';
 import Echo from 'laravel-echo';
 import Pusher from 'pusher-js';
-import { csrfHeader } from '@/lib/csrf';
 
 declare global {
     interface Window {

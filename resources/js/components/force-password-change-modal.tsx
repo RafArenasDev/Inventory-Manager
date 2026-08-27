@@ -1,17 +1,12 @@
-import React, { useRef } from 'react';
-import { useForm, usePage } from '@inertiajs/react';
-import {
-    Dialog,
-    DialogContent,
-    DialogTitle,
-    DialogDescription,
-} from '@/components/ui/dialog';
+import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { PasswordInput } from '@/components/ui/password-input';
-import InputError from '@/components/input-error';
 import { generateSecurePassword } from '@/lib/generate-password';
+import { useForm, usePage } from '@inertiajs/react';
 import { Wand2 } from 'lucide-react';
+import React, { useRef } from 'react';
 
 export default function ForcePasswordChangeModal() {
     const { auth } = usePage().props as unknown as { auth: { user: { must_change_password?: boolean } | null } };
@@ -55,13 +50,11 @@ export default function ForcePasswordChangeModal() {
             <DialogContent
                 onInteractOutside={(e) => e.preventDefault()}
                 onEscapeKeyDown={(e) => e.preventDefault()}
-                className="sm:max-w-[450px] max-w-[95vw] bg-card dark:border-gray-800 rounded-2xl p-0 shadow-2xl [&>button]:hidden"
+                className="bg-card max-w-[95vw] rounded-2xl p-0 shadow-2xl sm:max-w-[450px] dark:border-gray-800 [&>button]:hidden"
             >
-                <div className="p-6 space-y-4">
+                <div className="space-y-4 p-6">
                     <div>
-                        <DialogTitle className="text-xl font-bold text-gray-900 dark:text-gray-100">
-                            Cambia tu contraseña
-                        </DialogTitle>
+                        <DialogTitle className="text-xl font-bold text-gray-900 dark:text-gray-100">Cambia tu contraseña</DialogTitle>
                         <DialogDescription className="text-sm text-gray-600 dark:text-gray-400">
                             Por seguridad, debes establecer una nueva contraseña antes de continuar.
                         </DialogDescription>

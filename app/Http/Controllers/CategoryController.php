@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Http\Controllers;
 
 use App\Http\Requests\CategoryRequest;
@@ -25,8 +26,8 @@ class CategoryController extends Controller
             });
         }
 
-                                                    // Conteo total y filtrado
-        $totalCount    = Category::count();         // total sin filtros
+        // Conteo total y filtrado
+        $totalCount = Category::count();         // total sin filtros
         $filteredCount = $categoriesQuery->count(); // total después de filtros
 
         // Paginación
@@ -35,38 +36,38 @@ class CategoryController extends Controller
         if ($perPage === -1) {
             $allCategories = $categoriesQuery->get()->map(function ($category) {
                 return [
-                    'id'             => $category->id,
-                    'name'           => $category->name,
-                    'description'    => $category->description,
+                    'id' => $category->id,
+                    'name' => $category->name,
+                    'description' => $category->description,
                     'products_count' => $category->products_count,
-                    'is_active'      => $category->is_active,
+                    'is_active' => $category->is_active,
                 ];
             });
 
             $categoriesQuery = [
-                'data'     => $allCategories,
-                'total'    => $filteredCount,
+                'data' => $allCategories,
+                'total' => $filteredCount,
                 'per_page' => $perPage,
-                'from'     => 1,
-                'to'       => $filteredCount,
+                'from' => 1,
+                'to' => $filteredCount,
             ];
         } else {
             $categoriesQuery = $categoriesQuery->paginate($perPage)->withQueryString();
             $categoriesQuery->getCollection()->transform(function ($category) {
                 return [
-                    'id'             => $category->id,
-                    'name'           => $category->name,
-                    'description'    => $category->description,
+                    'id' => $category->id,
+                    'name' => $category->name,
+                    'description' => $category->description,
                     'products_count' => $category->products_count,
-                    'is_active'      => $category->is_active,
+                    'is_active' => $category->is_active,
                 ];
             });
         }
 
         return Inertia::render('categories/index', [
-            'categories'    => $categoriesQuery,
-            'filters'       => $request->only(['search', 'per_page']),
-            'totalCount'    => $totalCount,
+            'categories' => $categoriesQuery,
+            'filters' => $request->only(['search', 'per_page']),
+            'totalCount' => $totalCount,
             'filteredCount' => $filteredCount,
         ]);
     }
@@ -81,12 +82,12 @@ class CategoryController extends Controller
 
         if ($existingCategory) {
             return redirect()->back()->with('error',
-                'Ya existe una categoría con el nombre "' . $request->name . '"'
+                'Ya existe una categoría con el nombre "'.$request->name.'"'
             );
         }
 
         $category = Category::create([
-            'name'        => $request->name,
+            'name' => $request->name,
             'description' => $request->description,
         ]);
 
@@ -109,11 +110,11 @@ class CategoryController extends Controller
 
         if ($existingCategory) {
             return redirect()->back()->with('error',
-                'Ya existe otra categoría con el nombre "' . $request->name . '"'
+                'Ya existe otra categoría con el nombre "'.$request->name.'"'
             );
         }
 
-        $category->name        = $request->name;
+        $category->name = $request->name;
         $category->description = $request->description;
 
         $category->save();
@@ -129,7 +130,7 @@ class CategoryController extends Controller
         // Verificar si la categoría tiene productos asociados
         if ($category->products()->count() > 0) {
             return redirect()->back()->with('error',
-                'No se puede eliminar la categoría "' . $category->name .
+                'No se puede eliminar la categoría "'.$category->name.
                 '" porque tiene productos asociados.'
             );
         }

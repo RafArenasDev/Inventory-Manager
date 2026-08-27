@@ -1,10 +1,12 @@
 <?php
+
 namespace Database\Seeders;
 
 use App\Models\Transaction;
 use App\Models\TransactionCategory;
 use App\Models\User;
 use Carbon\Carbon;
+use Faker\Factory;
 use Illuminate\Database\Seeder;
 
 class TransactionSeeder extends Seeder
@@ -16,11 +18,12 @@ class TransactionSeeder extends Seeder
      */
     public function run(): void
     {
-        $faker = \Faker\Factory::create('es_CO');
+        $faker = Factory::create('es_CO');
         $admin = User::where('email', 'admin@admin.com')->first();
 
         if (! $admin) {
             \Log::warning('No existe el usuario admin; se omite TransactionSeeder.');
+
             return;
         }
 
@@ -88,16 +91,16 @@ class TransactionSeeder extends Seeder
             }
 
             Transaction::create([
-                'user_id'                 => $admin->id,
-                'type'                    => $entry['type'],
+                'user_id' => $admin->id,
+                'type' => $entry['type'],
                 'transaction_category_id' => $category->id,
-                'amount'                  => $entry['amount'],
-                'transaction_date'        => $entry['date']->toDateString(),
-                'transaction_time'        => sprintf('%02d:%02d:00', $faker->numberBetween(8, 17), $faker->numberBetween(0, 59)),
-                'payment_method'          => $faker->randomElement(['Efectivo', 'Nequi']),
-                'invoice_number'          => null,
-                'description'             => $entry['category'],
-                'notes'                   => null,
+                'amount' => $entry['amount'],
+                'transaction_date' => $entry['date']->toDateString(),
+                'transaction_time' => sprintf('%02d:%02d:00', $faker->numberBetween(8, 17), $faker->numberBetween(0, 59)),
+                'payment_method' => $faker->randomElement(['Efectivo', 'Nequi']),
+                'invoice_number' => null,
+                'description' => $entry['category'],
+                'notes' => null,
             ]);
         }
     }

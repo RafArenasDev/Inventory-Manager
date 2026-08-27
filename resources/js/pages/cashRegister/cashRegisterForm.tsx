@@ -1,9 +1,9 @@
-import React, { useEffect } from 'react';
-import { useForm } from '@inertiajs/react';
-import Swal from '@/lib/swal';
 import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import Swal from '@/lib/swal';
+import { useForm } from '@inertiajs/react';
+import React, { useEffect } from 'react';
 
 interface CashRegisterForForm {
     id?: number;
@@ -20,13 +20,7 @@ interface CashRegisterFormProps {
     userPermissions: string[];
 }
 
-const CashRegisterForm: React.FC<CashRegisterFormProps> = ({
-    cashRegister,
-    onCancel,
-    onSaved,
-    onDirtyChange,
-    userPermissions,
-}) => {
+const CashRegisterForm: React.FC<CashRegisterFormProps> = ({ cashRegister, onCancel, onSaved, onDirtyChange, userPermissions }) => {
     const { data, setData, post, put, processing, errors, reset, isDirty } = useForm({
         notes: '',
     });
@@ -44,11 +38,11 @@ const CashRegisterForm: React.FC<CashRegisterFormProps> = ({
                 preserveScroll: true,
                 onSuccess: () => {
                     Swal.fire({
-                        position: "center",
-                        icon: "success",
-                        title: "Caja cerrada correctamente",
+                        position: 'center',
+                        icon: 'success',
+                        title: 'Caja cerrada correctamente',
                         showConfirmButton: false,
-                        timer: 2200
+                        timer: 2200,
                     });
                     reset();
                     onSaved();
@@ -56,9 +50,9 @@ const CashRegisterForm: React.FC<CashRegisterFormProps> = ({
                 onError: (errors) => {
                     console.log('Errores al cerrar caja:', errors);
                     Swal.fire({
-                        position: "center",
-                        icon: "error",
-                        title: "Error al cerrar la caja",
+                        position: 'center',
+                        icon: 'error',
+                        title: 'Error al cerrar la caja',
                         text: Object.values(errors).join('\n'),
                         showConfirmButton: true,
                     });
@@ -70,11 +64,11 @@ const CashRegisterForm: React.FC<CashRegisterFormProps> = ({
                 preserveScroll: true,
                 onSuccess: () => {
                     Swal.fire({
-                        position: "center",
-                        icon: "success",
-                        title: "Caja abierta correctamente",
+                        position: 'center',
+                        icon: 'success',
+                        title: 'Caja abierta correctamente',
                         showConfirmButton: false,
-                        timer: 2200
+                        timer: 2200,
                     });
                     reset();
                     onSaved();
@@ -82,9 +76,9 @@ const CashRegisterForm: React.FC<CashRegisterFormProps> = ({
                 onError: (errors) => {
                     console.log('Errores al abrir caja:', errors);
                     Swal.fire({
-                        position: "center",
-                        icon: "error",
-                        title: "Error al abrir la caja",
+                        position: 'center',
+                        icon: 'error',
+                        title: 'Error al abrir la caja',
                         text: Object.values(errors).join('\n'),
                         showConfirmButton: true,
                     });
@@ -95,38 +89,36 @@ const CashRegisterForm: React.FC<CashRegisterFormProps> = ({
 
     const isCreating = !cashRegister?.id;
 
-    const canSubmit = isCreating
-        ? userPermissions.includes('Crear Caja')
-        : userPermissions.includes('Actualizar Caja');
+    const canSubmit = isCreating ? userPermissions.includes('Crear Caja') : userPermissions.includes('Actualizar Caja');
 
     return (
-            <form onSubmit={handleSubmit} className="space-y-6">
-                <div className="space-y-4">
-                    <div>
-                        <Label htmlFor="notes" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                            Notas
-                        </Label>
-                        <Textarea
-                            id="notes"
-                            value={data.notes}
-                            onChange={(e) => setData('notes', e.target.value)}
-                            className="w-full"
-                            placeholder="Notas opcionales..."
-                        />
-                        {errors.notes && <p className="mt-1 text-sm text-red-600">{errors.notes}</p>}
-                    </div>
+        <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="space-y-4">
+                <div>
+                    <Label htmlFor="notes" className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                        Notas
+                    </Label>
+                    <Textarea
+                        id="notes"
+                        value={data.notes}
+                        onChange={(e) => setData('notes', e.target.value)}
+                        className="w-full"
+                        placeholder="Notas opcionales..."
+                    />
+                    {errors.notes && <p className="mt-1 text-sm text-red-600">{errors.notes}</p>}
                 </div>
-                <div className="flex justify-end space-x-3 pt-4 border-t border-gray-200 dark:border-gray-700">
-                    <Button type="button" onClick={onCancel} variant="outline" disabled={processing}>
-                        Cancelar
+            </div>
+            <div className="flex justify-end space-x-3 border-t border-gray-200 pt-4 dark:border-gray-700">
+                <Button type="button" onClick={onCancel} variant="outline" disabled={processing}>
+                    Cancelar
+                </Button>
+                {canSubmit && (
+                    <Button type="submit" disabled={processing}>
+                        {processing ? 'Guardando...' : isCreating ? 'Abrir Caja' : 'Cerrar Caja'}
                     </Button>
-                    {canSubmit && (
-                        <Button type="submit" disabled={processing}>
-                            {processing ? 'Guardando...' : (isCreating ? 'Abrir Caja' : 'Cerrar Caja')}
-                        </Button>
-                    )}
-                </div>
-            </form>
+                )}
+            </div>
+        </form>
     );
 };
 

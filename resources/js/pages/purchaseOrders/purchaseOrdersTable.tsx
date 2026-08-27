@@ -1,22 +1,15 @@
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from "@/components/ui/table";
-import { Button } from "@/components/ui/button";
-import { IconActionButton } from "@/components/icon-action-button";
-import { Download, Eye, PackageCheck, PackageSearch, Pencil } from "lucide-react";
-import { Pagination } from "@/components/ui/pagination";
-import SearchInput from "@/components/ui/search-input";
-import { PeriodFilter } from "@/components/period-filter";
-import { PurchaseOrderDetailModal } from "./purchaseOrderDetailModal";
-import { router } from "@inertiajs/react";
-import { useState } from "react";
-import Swal from "@/lib/swal";
-import { formatDateTime } from "@/lib/format-datetime";
+import { IconActionButton } from '@/components/icon-action-button';
+import { PeriodFilter } from '@/components/period-filter';
+import { Button } from '@/components/ui/button';
+import { Pagination } from '@/components/ui/pagination';
+import SearchInput from '@/components/ui/search-input';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { formatDateTime } from '@/lib/format-datetime';
+import Swal from '@/lib/swal';
+import { router } from '@inertiajs/react';
+import { Download, Eye, PackageCheck, PackageSearch, Pencil } from 'lucide-react';
+import { useState } from 'react';
+import { PurchaseOrderDetailModal } from './purchaseOrderDetailModal';
 
 interface PurchaseOrderItem {
     id: number;
@@ -76,7 +69,10 @@ const STATUS_BADGE: Record<PurchaseOrder['status'], string> = {
     Cancelado: 'bg-rose-600 dark:bg-rose-700',
 };
 
-const formatCOP = (value: number): string => `$ ${Math.round(value).toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.')}`;
+const formatCOP = (value: number): string =>
+    `$ ${Math.round(value)
+        .toString()
+        .replace(/\B(?=(\d{3})+(?!\d))/g, '.')}`;
 
 // Referencia interna, no una cotización — se calcula con el precio ya
 // registrado en cada producto al momento de armar el pedido.
@@ -116,156 +112,168 @@ export default function PurchaseOrdersTable({
             cancelButtonText: 'Todavía no',
         }).then((result) => {
             if (!result.isConfirmed) return;
-            router.post(route('purchase-orders.receive', order.id), {}, {
-                preserveScroll: true,
-                onSuccess: () => {
-                    Swal.fire({ icon: 'success', title: 'Pedido recibido — stock actualizado.', timer: 2200, showConfirmButton: false });
+            router.post(
+                route('purchase-orders.receive', order.id),
+                {},
+                {
+                    preserveScroll: true,
+                    onSuccess: () => {
+                        Swal.fire({ icon: 'success', title: 'Pedido recibido — stock actualizado.', timer: 2200, showConfirmButton: false });
+                    },
                 },
-            });
+            );
         });
     };
 
     return (
         <>
-        <div className="space-y-3">
-            <div className="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
-                <div className="flex flex-col gap-2 sm:min-w-0 sm:flex-1 sm:flex-row sm:items-center">
-                    <SearchInput
-                        placeholder="Buscar por proveedor o notas..."
-                        searchValue={search}
-                        onSearch={onSearch}
-                        className="w-full sm:max-w-lg"
-                    />
-                    <PeriodFilter onChange={onPeriodChange} />
+            <div className="space-y-3">
+                <div className="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
+                    <div className="flex flex-col gap-2 sm:min-w-0 sm:flex-1 sm:flex-row sm:items-center">
+                        <SearchInput
+                            placeholder="Buscar por proveedor o notas..."
+                            searchValue={search}
+                            onSearch={onSearch}
+                            className="w-full sm:max-w-lg"
+                        />
+                        <PeriodFilter onChange={onPeriodChange} />
+                    </div>
+                    {userPermissions.includes('Exportar Pedidos') && (
+                        <Button
+                            size="sm"
+                            onClick={handleExport}
+                            title="Exportar pedidos a Excel"
+                            className="gap-2 bg-gray-500 text-white hover:bg-gray-600"
+                        >
+                            <Download className="h-4 w-4" />
+                            Exportar Excel
+                        </Button>
+                    )}
                 </div>
-                {userPermissions.includes('Exportar Pedidos') && (
-                    <Button
-                        size="sm"
-                        onClick={handleExport}
-                        title="Exportar pedidos a Excel"
-                        className="gap-2 bg-gray-500 text-white hover:bg-gray-600"
-                    >
-                        <Download className="h-4 w-4" />
-                        Exportar Excel
-                    </Button>
-                )}
-            </div>
 
-            <div className="rounded-md bg-card shadow-lg shadow-black/10 dark:shadow-black/60 overflow-hidden">
-                <Table>
-                    <TableHeader className="bg-gray-400 dark:bg-gray-700">
-                        <TableRow>
-                            <TableHead>Proveedor</TableHead>
-                            <TableHead>Origen</TableHead>
-                            <TableHead>Productos</TableHead>
-                            <TableHead>Total</TableHead>
-                            <TableHead>Estado</TableHead>
-                            <TableHead>Solicitado</TableHead>
-                            <TableHead>Recibido</TableHead>
-                            <TableHead className="text-right">Acciones</TableHead>
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        {purchaseOrders.data.map((order) => (
-                            <TableRow key={order.id}>
-                                <TableCell className="font-medium">{order.supplier?.name ?? 'Proveedor eliminado'}</TableCell>
-                                <TableCell>
-                                    <span className={`inline-flex items-center justify-center px-2.5 py-0.5 text-xs font-bold rounded-full text-white shadow-sm ${order.is_low_stock_order ? 'bg-indigo-600 dark:bg-indigo-700' : 'bg-sky-600 dark:bg-sky-700'}`}>
-                                        {order.is_low_stock_order ? 'Stock Bajo' : 'Pedido Nuevo'}
-                                    </span>
-                                </TableCell>
-                                <TableCell>{order.items.length} producto{order.items.length === 1 ? '' : 's'}</TableCell>
-                                <TableCell className="text-muted-foreground">
-                                    {(() => {
-                                        const total = approxTotal(order);
-                                        return total !== null ? formatCOP(total) : '-';
-                                    })()}
-                                </TableCell>
-                                <TableCell>
-                                    <span className={`inline-flex items-center justify-center px-2.5 py-0.5 text-xs font-bold rounded-full text-white shadow-sm ${STATUS_BADGE[order.status]}`}>
-                                        {order.status}
-                                    </span>
-                                </TableCell>
-                                <TableCell>
-                                    <div className="text-xs font-medium">{order.requested_by ?? '-'}</div>
-                                    <div className="text-xs text-muted-foreground">{formatDateTime(order.created_at)}</div>
-                                </TableCell>
-                                <TableCell>
-                                    {order.received_by ? (
-                                        <>
-                                            <div className="text-xs font-medium">{order.received_by}</div>
-                                            {order.received_at && (
-                                                <div className="text-xs text-muted-foreground">{formatDateTime(order.received_at)}</div>
-                                            )}
-                                        </>
-                                    ) : (
-                                        <span className="text-muted-foreground">-</span>
-                                    )}
-                                </TableCell>
-                                <TableCell className="text-right">
-                                    <div className="flex justify-end gap-2">
-                                        <IconActionButton
-                                            variant="ghost"
-                                            onClick={() => setViewingOrder(order)}
-                                            className="text-sky-600 hover:bg-sky-100 hover:text-sky-700 dark:text-sky-500 dark:hover:bg-sky-950/40 dark:hover:text-sky-400"
-                                            label="Ver detalle del pedido"
-                                        >
-                                            <Eye className="size-3.5" />
-                                        </IconActionButton>
-                                        {userPermissions.includes('Actualizar Pedidos') && order.status === 'Solicitado' && (
-                                            <IconActionButton
-                                                variant="ghost"
-                                                onClick={() => onEdit(order)}
-                                                className="text-amber-600 hover:bg-amber-100 hover:text-amber-700 dark:text-amber-500 dark:hover:bg-amber-950/40 dark:hover:text-amber-400"
-                                                label="Editar pedido"
-                                            >
-                                                <Pencil className="size-3.5" />
-                                            </IconActionButton>
-                                        )}
-                                        {userPermissions.includes('Actualizar Pedidos') && order.status === 'Solicitado' && (
-                                            <IconActionButton
-                                                variant="ghost"
-                                                onClick={() => handleReceive(order)}
-                                                className="text-emerald-600 hover:bg-emerald-100 hover:text-emerald-700 dark:text-emerald-500 dark:hover:bg-emerald-950/40 dark:hover:text-emerald-400"
-                                                label="Registrar recepción completa"
-                                            >
-                                                <PackageCheck className="size-3.5" />
-                                            </IconActionButton>
-                                        )}
-                                    </div>
-                                </TableCell>
-                            </TableRow>
-                        ))}
-                        {purchaseOrders.data.length === 0 && (
+                <div className="bg-card overflow-hidden rounded-md shadow-lg shadow-black/10 dark:shadow-black/60">
+                    <Table>
+                        <TableHeader className="bg-gray-400 dark:bg-gray-700">
                             <TableRow>
-                                <TableCell colSpan={8} className="h-24 text-center text-gray-500 dark:text-gray-400">
-                                    <div className="flex flex-col items-center justify-center gap-2">
-                                        <PackageSearch className="h-8 w-8 text-gray-400 dark:text-gray-500" />
-                                        <span className="text-sm font-medium">No se encontraron pedidos</span>
-                                    </div>
-                                </TableCell>
+                                <TableHead>Proveedor</TableHead>
+                                <TableHead>Origen</TableHead>
+                                <TableHead>Productos</TableHead>
+                                <TableHead>Total</TableHead>
+                                <TableHead>Estado</TableHead>
+                                <TableHead>Solicitado</TableHead>
+                                <TableHead>Recibido</TableHead>
+                                <TableHead className="text-right">Acciones</TableHead>
                             </TableRow>
-                        )}
-                    </TableBody>
-                </Table>
+                        </TableHeader>
+                        <TableBody>
+                            {purchaseOrders.data.map((order) => (
+                                <TableRow key={order.id}>
+                                    <TableCell className="font-medium">{order.supplier?.name ?? 'Proveedor eliminado'}</TableCell>
+                                    <TableCell>
+                                        <span
+                                            className={`inline-flex items-center justify-center rounded-full px-2.5 py-0.5 text-xs font-bold text-white shadow-sm ${order.is_low_stock_order ? 'bg-indigo-600 dark:bg-indigo-700' : 'bg-sky-600 dark:bg-sky-700'}`}
+                                        >
+                                            {order.is_low_stock_order ? 'Stock Bajo' : 'Pedido Nuevo'}
+                                        </span>
+                                    </TableCell>
+                                    <TableCell>
+                                        {order.items.length} producto{order.items.length === 1 ? '' : 's'}
+                                    </TableCell>
+                                    <TableCell className="text-muted-foreground">
+                                        {(() => {
+                                            const total = approxTotal(order);
+                                            return total !== null ? formatCOP(total) : '-';
+                                        })()}
+                                    </TableCell>
+                                    <TableCell>
+                                        <span
+                                            className={`inline-flex items-center justify-center rounded-full px-2.5 py-0.5 text-xs font-bold text-white shadow-sm ${STATUS_BADGE[order.status]}`}
+                                        >
+                                            {order.status}
+                                        </span>
+                                    </TableCell>
+                                    <TableCell>
+                                        <div className="text-xs font-medium">{order.requested_by ?? '-'}</div>
+                                        <div className="text-muted-foreground text-xs">{formatDateTime(order.created_at)}</div>
+                                    </TableCell>
+                                    <TableCell>
+                                        {order.received_by ? (
+                                            <>
+                                                <div className="text-xs font-medium">{order.received_by}</div>
+                                                {order.received_at && (
+                                                    <div className="text-muted-foreground text-xs">{formatDateTime(order.received_at)}</div>
+                                                )}
+                                            </>
+                                        ) : (
+                                            <span className="text-muted-foreground">-</span>
+                                        )}
+                                    </TableCell>
+                                    <TableCell className="text-right">
+                                        <div className="flex justify-end gap-2">
+                                            <IconActionButton
+                                                variant="ghost"
+                                                onClick={() => setViewingOrder(order)}
+                                                className="text-sky-600 hover:bg-sky-100 hover:text-sky-700 dark:text-sky-500 dark:hover:bg-sky-950/40 dark:hover:text-sky-400"
+                                                label="Ver detalle del pedido"
+                                            >
+                                                <Eye className="size-3.5" />
+                                            </IconActionButton>
+                                            {userPermissions.includes('Actualizar Pedidos') && order.status === 'Solicitado' && (
+                                                <IconActionButton
+                                                    variant="ghost"
+                                                    onClick={() => onEdit(order)}
+                                                    className="text-amber-600 hover:bg-amber-100 hover:text-amber-700 dark:text-amber-500 dark:hover:bg-amber-950/40 dark:hover:text-amber-400"
+                                                    label="Editar pedido"
+                                                >
+                                                    <Pencil className="size-3.5" />
+                                                </IconActionButton>
+                                            )}
+                                            {userPermissions.includes('Actualizar Pedidos') && order.status === 'Solicitado' && (
+                                                <IconActionButton
+                                                    variant="ghost"
+                                                    onClick={() => handleReceive(order)}
+                                                    className="text-emerald-600 hover:bg-emerald-100 hover:text-emerald-700 dark:text-emerald-500 dark:hover:bg-emerald-950/40 dark:hover:text-emerald-400"
+                                                    label="Registrar recepción completa"
+                                                >
+                                                    <PackageCheck className="size-3.5" />
+                                                </IconActionButton>
+                                            )}
+                                        </div>
+                                    </TableCell>
+                                </TableRow>
+                            ))}
+                            {purchaseOrders.data.length === 0 && (
+                                <TableRow>
+                                    <TableCell colSpan={8} className="h-24 text-center text-gray-500 dark:text-gray-400">
+                                        <div className="flex flex-col items-center justify-center gap-2">
+                                            <PackageSearch className="h-8 w-8 text-gray-400 dark:text-gray-500" />
+                                            <span className="text-sm font-medium">No se encontraron pedidos</span>
+                                        </div>
+                                    </TableCell>
+                                </TableRow>
+                            )}
+                        </TableBody>
+                    </Table>
+                </div>
+
+                <Pagination
+                    data={purchaseOrders}
+                    perPage={perPage}
+                    onPerPageChange={onPerPageChange}
+                    totalCount={totalCount}
+                    filteredCount={filteredCount}
+                    search={search}
+                    searchRoute="purchase-orders.search"
+                    extraFilters={extraFilters}
+                />
             </div>
 
-            <Pagination
-                data={purchaseOrders}
-                perPage={perPage}
-                onPerPageChange={onPerPageChange}
-                totalCount={totalCount}
-                filteredCount={filteredCount}
-                search={search}
-                searchRoute="purchase-orders.search"
-                extraFilters={extraFilters}
+            <PurchaseOrderDetailModal
+                order={viewingOrder}
+                onOpenChange={(open) => {
+                    if (!open) setViewingOrder(null);
+                }}
             />
-        </div>
-
-        <PurchaseOrderDetailModal
-            order={viewingOrder}
-            onOpenChange={(open) => { if (!open) setViewingOrder(null); }}
-        />
         </>
     );
 }

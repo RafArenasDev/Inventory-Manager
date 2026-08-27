@@ -23,7 +23,7 @@ export default function AuthSplitLayout({ children, title, description }: PropsW
             {/* Form */}
             <div className="flex w-full max-w-sm flex-col items-center justify-center gap-6 lg:h-full lg:max-w-none lg:p-8">
                 <div className="flex flex-col items-center gap-2 text-center">
-                    <h1 className="text-2xl font-bold tracking-tight font-sans">{title}</h1>
+                    <h1 className="font-sans text-2xl font-bold tracking-tight">{title}</h1>
                     <p className="text-muted-foreground text-sm text-balance">{description}</p>
                 </div>
                 <div className="w-full sm:w-[350px]">{children}</div>

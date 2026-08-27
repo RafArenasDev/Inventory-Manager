@@ -1,15 +1,15 @@
-import { useState } from 'react';
-import AppLayout from '@/layouts/app-layout';
+import { ConfirmDialog } from '@/components/confirm-dialog';
+import { PageHeader } from '@/components/page-header';
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useLiveRefresh } from '@/hooks/use-live-refresh';
+import AppLayout from '@/layouts/app-layout';
 import { LinkProps, type BreadcrumbItem } from '@/types';
 import { Head, router, usePage } from '@inertiajs/react';
-import TransactionsTable from './transactionsTable';
-import { Button } from '@/components/ui/button';
 import { DollarSign, Plus } from 'lucide-react';
+import { useState } from 'react';
 import TransactionForm from './transactionForm';
-import { PageHeader } from '@/components/page-header';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
-import { ConfirmDialog } from '@/components/confirm-dialog';
+import TransactionsTable from './transactionsTable';
 
 interface TransactionCategory {
     id: number;
@@ -80,14 +80,7 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
-export default function TransactionsPage({
-    transactions,
-    categories,
-    filters,
-    totals,
-    totalCount,
-    filteredCount,
-}: TransactionsPageProps) {
+export default function TransactionsPage({ transactions, categories, filters, totals, totalCount, filteredCount }: TransactionsPageProps) {
     useLiveRefresh(['finance'], () => router.reload());
 
     const [isCreating, setIsCreating] = useState(false);
@@ -104,7 +97,7 @@ export default function TransactionsPage({
         // Hora de Bogotá explícita: `toISOString()` da la fecha en UTC, lo que
         // desalinea transaction_date respecto a la hora local cerca de la
         // medianoche UTC (7pm-12am hora Bogotá).
-        const now = new Date(new Date().toLocaleString("en-US", { timeZone: "America/Bogota" }));
+        const now = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Bogota' }));
         setEditingTransaction({
             type: '' as 'Ingreso' | 'Gasto',
             transaction_category_id: 0,
@@ -130,7 +123,7 @@ export default function TransactionsPage({
             payment_method: transaction.payment_method,
             description: transaction.description,
             notes: transaction.notes,
-            invoice_number: transaction.invoice_number
+            invoice_number: transaction.invoice_number,
         });
         setIsCreating(false);
     };
@@ -151,14 +144,18 @@ export default function TransactionsPage({
     };
 
     const handleSearch = (search: string) => {
-        router.post(route('transactions.search'), {
-            ...filters,
-            search,
-            page: 1
-        }, {
-            preserveState: true,
-            preserveScroll: true
-        });
+        router.post(
+            route('transactions.search'),
+            {
+                ...filters,
+                search,
+                page: 1,
+            },
+            {
+                preserveState: true,
+                preserveScroll: true,
+            },
+        );
     };
 
     // El cambio de per_page ya lo maneja Pagination internamente (POST a
@@ -166,15 +163,19 @@ export default function TransactionsPage({
     const handlePerPageChange = () => {};
 
     const handlePeriodChange = (range: { date_from?: string; date_to?: string }) => {
-        router.post(route('transactions.search'), {
-            ...filters,
-            date_from: range.date_from ?? '',
-            date_to: range.date_to ?? '',
-            page: 1,
-        }, {
-            preserveState: true,
-            preserveScroll: true,
-        });
+        router.post(
+            route('transactions.search'),
+            {
+                ...filters,
+                date_from: range.date_from ?? '',
+                date_to: range.date_to ?? '',
+                page: 1,
+            },
+            {
+                preserveState: true,
+                preserveScroll: true,
+            },
+        );
     };
 
     const hasMultiplePages = totalCount > Number(filters.per_page || 10);
@@ -184,11 +185,7 @@ export default function TransactionsPage({
             <Head title="Finanzas" />
 
             <div className="flex h-full flex-1 flex-col gap-4 rounded-xl p-4">
-                <PageHeader
-                    icon={DollarSign}
-                    title="Finanzas"
-                    description="Registra los ingresos y gastos del negocio."
-                >
+                <PageHeader icon={DollarSign} title="Finanzas" description="Registra los ingresos y gastos del negocio.">
                     {userPermissions.includes('Crear Finanzas') && (
                         <Button onClick={handleCreateTransaction} className="gap-1">
                             <Plus className="h-4 w-4" />
@@ -196,17 +193,19 @@ export default function TransactionsPage({
                         </Button>
                     )}
                 </PageHeader>
-                <div className={`relative rounded-xl bg-card shadow-lg shadow-black/10 dark:shadow-black/60 overflow-hidden ${hasMultiplePages ? 'flex-1' : ''}`}>
+                <div
+                    className={`bg-card relative overflow-hidden rounded-xl shadow-lg shadow-black/10 dark:shadow-black/60 ${hasMultiplePages ? 'flex-1' : ''}`}
+                >
                     <div className="h-full px-6 py-4">
                         <TransactionsTable
                             transactions={transactions}
                             categories={categories}
-                            perPage={filters.per_page || "10"}
+                            perPage={filters.per_page || '10'}
                             onPerPageChange={handlePerPageChange}
                             onEditTransaction={handleEditTransaction}
                             totalCount={totalCount}
                             filteredCount={filteredCount}
-                            search={filters.search || ""}
+                            search={filters.search || ''}
                             onSearch={handleSearch}
                             onPeriodChange={handlePeriodChange}
                             totals={totals}
@@ -218,17 +217,17 @@ export default function TransactionsPage({
                 </div>
             </div>
 
-            <Dialog open={isModalOpen} onOpenChange={(open) => { if (!open) attemptCloseForm(); }}>
-                <DialogContent
-                    className="max-h-[90vh] overflow-y-auto sm:max-w-2xl"
-                    onInteractOutside={(e) => e.preventDefault()}
-                >
+            <Dialog
+                open={isModalOpen}
+                onOpenChange={(open) => {
+                    if (!open) attemptCloseForm();
+                }}
+            >
+                <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl" onInteractOutside={(e) => e.preventDefault()}>
                     <DialogHeader>
                         <DialogTitle>{isCreating ? 'Nueva Transacción' : `Editar Transacción: #${editingTransaction?.id}`}</DialogTitle>
                         <DialogDescription>
-                            {isCreating
-                                ? 'Completa los datos para registrar una nueva transacción.'
-                                : 'Actualiza los datos de la transacción.'}
+                            {isCreating ? 'Completa los datos para registrar una nueva transacción.' : 'Actualiza los datos de la transacción.'}
                         </DialogDescription>
                     </DialogHeader>
                     {editingTransaction && (

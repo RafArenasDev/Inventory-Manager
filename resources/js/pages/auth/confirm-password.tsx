@@ -1,7 +1,7 @@
+import Swal from '@/lib/swal';
 import { Head, useForm } from '@inertiajs/react';
 import { LoaderCircle } from 'lucide-react';
 import { FormEventHandler } from 'react';
-import Swal from '@/lib/swal';
 
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
@@ -28,10 +28,10 @@ export default function ConfirmPassword() {
                         timerProgressBar: true,
                         showConfirmButton: false,
                         toast: true,
-                        position: 'top-end'
+                        position: 'top-end',
                     });
                 }
-            }
+            },
         });
     };
 

@@ -1,19 +1,12 @@
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from '@/components/ui/table';
 import { IconActionButton } from '@/components/icon-action-button';
 import { StatusToggle } from '@/components/status-toggle';
-import { Pencil, Trash2, Users as UsersIcon } from 'lucide-react';
-import { router, usePage } from '@inertiajs/react';
 import { Pagination } from '@/components/ui/pagination';
 import SearchInput from '@/components/ui/search-input';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import Swal from '@/lib/swal';
 import { type SharedData } from '@/types';
+import { router, usePage } from '@inertiajs/react';
+import { Pencil, Trash2, Users as UsersIcon } from 'lucide-react';
 
 interface User {
     id: number;
@@ -121,7 +114,7 @@ export default function UsersTable({
                 />
             </div>
 
-            <div className="rounded-md bg-card shadow-lg shadow-black/10 dark:shadow-black/60 overflow-hidden">
+            <div className="bg-card overflow-hidden rounded-md shadow-lg shadow-black/10 dark:shadow-black/60">
                 <Table>
                     <TableHeader className="bg-gray-400 dark:bg-gray-700">
                         <TableRow>
@@ -145,14 +138,14 @@ export default function UsersTable({
                                                 return (
                                                     <span
                                                         key={roleName}
-                                                        className="text-xs px-3 py-0.5 rounded-full bg-blue-600 text-white font-bold w-fit min-w-[100px] text-center shadow-sm dark:bg-blue-700"
+                                                        className="w-fit min-w-[100px] rounded-full bg-blue-600 px-3 py-0.5 text-center text-xs font-bold text-white shadow-sm dark:bg-blue-700"
                                                     >
                                                         {roleLabel}
                                                     </span>
                                                 );
                                             })
                                         ) : (
-                                            <span className="text-xs px-3 py-0.5 rounded-full bg-gray-200 text-gray-800 font-medium w-fit min-w-[100px] text-center shadow-sm dark:bg-gray-600 dark:text-gray-200">
+                                            <span className="w-fit min-w-[100px] rounded-full bg-gray-200 px-3 py-0.5 text-center text-xs font-medium text-gray-800 shadow-sm dark:bg-gray-600 dark:text-gray-200">
                                                 Sin rol
                                             </span>
                                         )}

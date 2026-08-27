@@ -1,18 +1,18 @@
-import { useState, useEffect } from 'react';
-import AppLayout from '@/layouts/app-layout';
-import { useLiveRefresh } from '@/hooks/use-live-refresh';
-import { LinkProps, type BreadcrumbItem } from '@/types';
-import { Head, router, usePage } from '@inertiajs/react';
-import SalesTable from './salesTable';
-import { Button } from '@/components/ui/button';
-import { Plus, ShoppingCart } from 'lucide-react';
-import SaleForm from './saleForm';
-import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
-import { SaleModal } from '../saleModal';
-import SaleDetailModal, { type Sale as SaleDetail } from './saleDetailModal';
 import { ConfirmDialog } from '@/components/confirm-dialog';
 import { PageHeader } from '@/components/page-header';
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
+import { useLiveRefresh } from '@/hooks/use-live-refresh';
+import AppLayout from '@/layouts/app-layout';
 import Swal from '@/lib/swal';
+import { LinkProps, type BreadcrumbItem } from '@/types';
+import { Head, router, usePage } from '@inertiajs/react';
+import { Plus, ShoppingCart } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { SaleModal } from '../saleModal';
+import SaleDetailModal, { type Sale as SaleDetail } from './saleDetailModal';
+import SaleForm from './saleForm';
+import SalesTable from './salesTable';
 
 interface SaleItem {
     id: number;
@@ -28,7 +28,19 @@ interface SaleItem {
 interface Sale {
     id: number;
     invoice_number: string;
-    client?: { id: number; name: string; document_number: string; department?: string; city?: string; document_type: string; verification_digit?: number; email?: string; phone?: string; cellphone?: string; address?: string };
+    client?: {
+        id: number;
+        name: string;
+        document_number: string;
+        department?: string;
+        city?: string;
+        document_type: string;
+        verification_digit?: number;
+        email?: string;
+        phone?: string;
+        cellphone?: string;
+        address?: string;
+    };
     user: { id: number; name: string };
     sale_date: string;
     sale_time: string;
@@ -168,14 +180,18 @@ export default function SaleIndex({ sales, products, clients, departments, citie
     };
 
     const handleSearch = (search: string) => {
-        router.post(route('sales.search'), {
-            ...filters,
-            search,
-            page: 1,
-        }, {
-            preserveState: true,
-            preserveScroll: true,
-        });
+        router.post(
+            route('sales.search'),
+            {
+                ...filters,
+                search,
+                page: 1,
+            },
+            {
+                preserveState: true,
+                preserveScroll: true,
+            },
+        );
     };
 
     // El cambio de per_page ya lo maneja Pagination internamente (POST a
@@ -183,15 +199,19 @@ export default function SaleIndex({ sales, products, clients, departments, citie
     const handlePerPageChange = () => {};
 
     const handlePeriodChange = (range: { date_from?: string; date_to?: string }) => {
-        router.post(route('sales.search'), {
-            ...filters,
-            date_from: range.date_from ?? '',
-            date_to: range.date_to ?? '',
-            page: 1,
-        }, {
-            preserveState: true,
-            preserveScroll: true,
-        });
+        router.post(
+            route('sales.search'),
+            {
+                ...filters,
+                date_from: range.date_from ?? '',
+                date_to: range.date_to ?? '',
+                page: 1,
+            },
+            {
+                preserveState: true,
+                preserveScroll: true,
+            },
+        );
     };
 
     const handleViewInvoice = (url: string) => {
@@ -226,11 +246,7 @@ export default function SaleIndex({ sales, products, clients, departments, citie
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Ventas" />
             <div className="flex h-full flex-1 flex-col gap-4 rounded-xl p-4">
-                <PageHeader
-                    icon={ShoppingCart}
-                    title="Ventas"
-                    description="Historial y gestión de todas las ventas registradas."
-                >
+                <PageHeader icon={ShoppingCart} title="Ventas" description="Historial y gestión de todas las ventas registradas.">
                     {userPermissions.includes('Crear Ventas') && (
                         <Button onClick={handleCreateSale} className="gap-1">
                             <Plus className="h-4 w-4" />
@@ -238,7 +254,9 @@ export default function SaleIndex({ sales, products, clients, departments, citie
                         </Button>
                     )}
                 </PageHeader>
-                <div className={`relative rounded-xl bg-card shadow-lg shadow-black/10 dark:shadow-black/60 overflow-hidden ${hasMultiplePages ? 'flex-1' : ''}`}>
+                <div
+                    className={`bg-card relative overflow-hidden rounded-xl shadow-lg shadow-black/10 dark:shadow-black/60 ${hasMultiplePages ? 'flex-1' : ''}`}
+                >
                     <div className="h-full px-6 py-4">
                         <SalesTable
                             sales={sales}
@@ -261,7 +279,9 @@ export default function SaleIndex({ sales, products, clients, departments, citie
 
             <SaleModal
                 open={isCreating}
-                onOpenChange={(open) => { if (!open) attemptCloseForm(); }}
+                onOpenChange={(open) => {
+                    if (!open) attemptCloseForm();
+                }}
             >
                 {isCreating && (
                     <SaleForm
@@ -277,12 +297,7 @@ export default function SaleIndex({ sales, products, clients, departments, citie
                 )}
             </SaleModal>
 
-            <SaleDetailModal
-                isOpen={isDetailModalOpen}
-                onClose={() => setIsDetailModalOpen(false)}
-                sale={detailSale}
-                businessName={businessName}
-            />
+            <SaleDetailModal isOpen={isDetailModalOpen} onClose={() => setIsDetailModalOpen(false)} sale={detailSale} businessName={businessName} />
 
             <ConfirmDialog
                 open={showDiscardConfirm}
@@ -295,17 +310,15 @@ export default function SaleIndex({ sales, products, clients, departments, citie
             />
 
             <Dialog open={isInvoiceModalOpen} onOpenChange={setIsInvoiceModalOpen}>
-                <DialogContent
-                    className="sm:max-w-[550px] max-w-[95vw] max-h-[95vh] bg-card rounded-2xl p-0 shadow-2xl"
-                >
-                    <div className="p-6 space-y-4">
+                <DialogContent className="bg-card max-h-[95vh] max-w-[95vw] rounded-2xl p-0 shadow-2xl sm:max-w-[550px]">
+                    <div className="space-y-4 p-6">
                         <DialogTitle className="text-xl font-bold text-gray-900 dark:text-gray-100">
                             Factura #{currentInvoiceUrl ? currentInvoiceUrl.split('/').pop()?.replace('invoice_', '').replace('.pdf', '') : ''}
                         </DialogTitle>
                         <div className="relative">
                             <iframe
                                 src={currentInvoiceUrl}
-                                className="w-full h-[60vh] rounded-lg border border-gray-200 dark:border-gray-700"
+                                className="h-[60vh] w-full rounded-lg border border-gray-200 dark:border-gray-700"
                                 title="Factura PDF"
                             />
                         </div>

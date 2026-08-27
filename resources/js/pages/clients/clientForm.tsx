@@ -1,11 +1,11 @@
-import React, { useEffect, useState } from 'react';
-import { useForm } from '@inertiajs/react';
-import Swal from '@/lib/swal';
 import { Button } from '@/components/ui/button';
+import { Combobox, ComboboxContent, ComboboxEmpty, ComboboxInput, ComboboxItem, ComboboxList } from '@/components/ui/combobox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Combobox, ComboboxContent, ComboboxEmpty, ComboboxInput, ComboboxItem, ComboboxList } from '@/components/ui/combobox';
+import Swal from '@/lib/swal';
+import { useForm } from '@inertiajs/react';
 import axios from 'axios';
+import React, { useEffect, useState } from 'react';
 
 // Interface unificada - id es requerido para Client
 interface Client {
@@ -123,7 +123,11 @@ const ClientForm: React.FC<ClientFormProps> = ({ client, onCancel, onSaved, onDi
                         timer: 2200,
                     });
                     reset();
-                    if (onSaved) { onSaved(); } else { onCancel(); }
+                    if (onSaved) {
+                        onSaved();
+                    } else {
+                        onCancel();
+                    }
                 },
                 onError: () => {
                     Swal.fire({
@@ -138,7 +142,8 @@ const ClientForm: React.FC<ClientFormProps> = ({ client, onCancel, onSaved, onDi
             });
         } else {
             // Usar quickStore para creación rápida desde ventas
-            axios.post(route('clients.quickStore'), data)
+            axios
+                .post(route('clients.quickStore'), data)
                 .then((response) => {
                     Swal.fire({
                         position: 'center',
@@ -172,39 +177,37 @@ const ClientForm: React.FC<ClientFormProps> = ({ client, onCancel, onSaved, onDi
 
     const isEditing = !!client?.id;
 
-    const canSubmit = isEditing
-        ? userPermissions.includes('Editar Clientes')
-        : userPermissions.includes('Crear Clientes');
+    const canSubmit = isEditing ? userPermissions.includes('Editar Clientes') : userPermissions.includes('Crear Clientes');
 
     return (
         <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-4">
-            <div>
-                <Label htmlFor="document_type" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Tipo de Documento *
-                </Label>
-                <Combobox
-                    items={DOCUMENT_TYPES}
-                    value={data.document_type || null}
-                    onValueChange={(value: string | null) => setData('document_type', value ?? '')}
-                >
-                    <ComboboxInput placeholder="Seleccione tipo de documento" className="w-full" />
-                    <ComboboxContent>
-                        <ComboboxEmpty>No se encontraron resultados.</ComboboxEmpty>
-                        <ComboboxList>
-                            {(type: string) => (
-                                <ComboboxItem key={type} value={type}>
-                                    {type}
-                                </ComboboxItem>
-                            )}
-                        </ComboboxList>
-                    </ComboboxContent>
-                </Combobox>
-                {errors.document_type && <p className="mt-1 text-sm text-red-600">{errors.document_type}</p>}
-            </div>
+                <div>
+                    <Label htmlFor="document_type" className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                        Tipo de Documento *
+                    </Label>
+                    <Combobox
+                        items={DOCUMENT_TYPES}
+                        value={data.document_type || null}
+                        onValueChange={(value: string | null) => setData('document_type', value ?? '')}
+                    >
+                        <ComboboxInput placeholder="Seleccione tipo de documento" className="w-full" />
+                        <ComboboxContent>
+                            <ComboboxEmpty>No se encontraron resultados.</ComboboxEmpty>
+                            <ComboboxList>
+                                {(type: string) => (
+                                    <ComboboxItem key={type} value={type}>
+                                        {type}
+                                    </ComboboxItem>
+                                )}
+                            </ComboboxList>
+                        </ComboboxContent>
+                    </Combobox>
+                    {errors.document_type && <p className="mt-1 text-sm text-red-600">{errors.document_type}</p>}
+                </div>
 
                 <div>
-                    <Label htmlFor="document_number" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    <Label htmlFor="document_number" className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
                         Número de Documento *
                     </Label>
                     <Input
@@ -221,7 +224,7 @@ const ClientForm: React.FC<ClientFormProps> = ({ client, onCancel, onSaved, onDi
 
                 {data.document_type === 'NIT' && (
                     <div>
-                        <Label htmlFor="verification_digit" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                        <Label htmlFor="verification_digit" className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
                             Dígito de Verificación
                         </Label>
                         <Input
@@ -237,7 +240,7 @@ const ClientForm: React.FC<ClientFormProps> = ({ client, onCancel, onSaved, onDi
                 )}
 
                 <div>
-                    <Label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    <Label htmlFor="name" className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
                         Nombre *
                     </Label>
                     <Input
@@ -252,14 +255,14 @@ const ClientForm: React.FC<ClientFormProps> = ({ client, onCancel, onSaved, onDi
                 </div>
 
                 <div>
-                    <Label htmlFor="department_id" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    <Label htmlFor="department_id" className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
                         Departamento
                     </Label>
                     <Combobox
                         items={departments}
                         itemToStringLabel={(d: Department) => d.name}
                         itemToStringValue={(d: Department) => d.id.toString()}
-                        value={departments.find(d => d.id === data.department_id) ?? null}
+                        value={departments.find((d) => d.id === data.department_id) ?? null}
                         onValueChange={(d: Department | null) => setData('department_id', d ? d.id : '')}
                     >
                         <ComboboxInput placeholder="Seleccione un departamento" className="w-full" />
@@ -278,14 +281,14 @@ const ClientForm: React.FC<ClientFormProps> = ({ client, onCancel, onSaved, onDi
                 </div>
 
                 <div>
-                    <Label htmlFor="city_id" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    <Label htmlFor="city_id" className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
                         Ciudad
                     </Label>
                     <Combobox
                         items={availableCities}
                         itemToStringLabel={(c: City) => c.name}
                         itemToStringValue={(c: City) => c.id.toString()}
-                        value={availableCities.find(c => c.id === data.city_id) ?? null}
+                        value={availableCities.find((c) => c.id === data.city_id) ?? null}
                         onValueChange={(c: City | null) => setData('city_id', c ? c.id : '')}
                         disabled={!availableCities.length}
                     >
@@ -305,7 +308,7 @@ const ClientForm: React.FC<ClientFormProps> = ({ client, onCancel, onSaved, onDi
                 </div>
 
                 <div>
-                    <Label htmlFor="address" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    <Label htmlFor="address" className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
                         Dirección
                     </Label>
                     <Input
@@ -319,7 +322,7 @@ const ClientForm: React.FC<ClientFormProps> = ({ client, onCancel, onSaved, onDi
                 </div>
 
                 <div>
-                    <Label htmlFor="phone" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    <Label htmlFor="phone" className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
                         Teléfono
                     </Label>
                     <Input
@@ -333,7 +336,7 @@ const ClientForm: React.FC<ClientFormProps> = ({ client, onCancel, onSaved, onDi
                 </div>
 
                 <div>
-                    <Label htmlFor="cellphone" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    <Label htmlFor="cellphone" className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
                         Celular
                     </Label>
                     <Input
@@ -347,7 +350,7 @@ const ClientForm: React.FC<ClientFormProps> = ({ client, onCancel, onSaved, onDi
                 </div>
 
                 <div>
-                    <Label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    <Label htmlFor="email" className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
                         Email
                     </Label>
                     <Input
@@ -362,7 +365,7 @@ const ClientForm: React.FC<ClientFormProps> = ({ client, onCancel, onSaved, onDi
                 </div>
             </div>
 
-            <div className="flex justify-end space-x-3 pt-4 border-t border-gray-300 dark:border-gray-600">
+            <div className="flex justify-end space-x-3 border-t border-gray-300 pt-4 dark:border-gray-600">
                 <Button type="button" onClick={onCancel} variant="outline" disabled={processing}>
                     Cancelar
                 </Button>
