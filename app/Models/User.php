@@ -29,6 +29,8 @@ class User extends Authenticatable
         'password',
         'must_change_password',
         'is_active',
+        'failed_login_attempts',
+        'security_locked_at',
     ];
 
     /**
@@ -53,6 +55,8 @@ class User extends Authenticatable
             'password' => 'hashed',
             'must_change_password' => 'boolean',
             'is_active' => 'boolean',
+            'failed_login_attempts' => 'integer',
+            'security_locked_at' => 'datetime',
         ];
     }
 

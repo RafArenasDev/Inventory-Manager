@@ -52,13 +52,15 @@ export default function ResetPassword({ token, email }: ResetPasswordProps) {
             // VALIDACIONES DE CAMPOS como en Login
             onFinish: () => reset('password', 'password_confirmation'),
             onError: (errors) => {
+                // El detalle específico ya lo muestra InputError debajo de
+                // cada campo — este aviso es solo la notificación genérica,
+                // sin repetir texto, y se cierra solo.
                 if (errors.email || errors.password || errors.password_confirmation) {
                     Swal.fire({
-                        title: "Error en los datos",
-                        icon: "error",
-                        text: 'Por favor, verifica que todos los campos estén completos y correctos.',
-                        draggable: true,
-                        confirmButtonText: 'OK'
+                        icon: 'error',
+                        title: 'Error al restablecer la contraseña',
+                        timer: 2200,
+                        showConfirmButton: false,
                     });
                 }
                 if (errors.token) {
@@ -81,7 +83,9 @@ export default function ResetPassword({ token, email }: ResetPasswordProps) {
         >
             <Head title="Restablecer contraseña" />
 
-            <form className="flex flex-col gap-6" onSubmit={submit}>
+            {/* noValidate: una sola vía de validación (borde rojo +
+                InputError debajo), nunca la burbuja nativa del navegador. */}
+            <form className="flex flex-col gap-6" onSubmit={submit} noValidate>
                 {/* Token hidden */}
                 <input type="hidden" name="token" value={data.token} />
 
@@ -91,7 +95,6 @@ export default function ResetPassword({ token, email }: ResetPasswordProps) {
                         <Input
                             id="email"
                             type="email"
-                            required
                             autoComplete="email"
                             value={data.email}
                             readOnly
@@ -107,7 +110,6 @@ export default function ResetPassword({ token, email }: ResetPasswordProps) {
                         <Input
                             id="password"
                             type="password"
-                            required
                             autoComplete="new-password"
                             value={data.password}
                             autoFocus
@@ -123,7 +125,6 @@ export default function ResetPassword({ token, email }: ResetPasswordProps) {
                         <Input
                             id="password_confirmation"
                             type="password"
-                            required
                             autoComplete="new-password"
                             value={data.password_confirmation}
                             onChange={(e) => setData('password_confirmation', e.target.value)}

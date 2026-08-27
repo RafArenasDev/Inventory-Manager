@@ -19,12 +19,17 @@ Route::middleware('guest')->group(function () {
     Route::get('login', [AuthenticatedSessionController::class, 'create'])
         ->name('login');
 
-    Route::post('login', [AuthenticatedSessionController::class, 'store']);
+    // Freno adicional por IP (aparte del bloqueo por cuenta de LoginRequest):
+    // sin esto, alguien podría rotar entre muchos correos distintos desde la
+    // misma IP sin que el contador de ninguna cuenta individual se active.
+    Route::post('login', [AuthenticatedSessionController::class, 'store'])
+        ->middleware('throttle:20,1');
 
     Route::get('forgot-password', [PasswordResetLinkController::class, 'create'])
         ->name('password.request');
 
     Route::post('forgot-password', [PasswordResetLinkController::class, 'store'])
+        ->middleware('throttle:10,1')
         ->name('password.email');
 
     Route::get('reset-password/{token}', [NewPasswordController::class, 'create'])

@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
@@ -29,13 +30,13 @@ class NewPasswordController extends Controller
     /**
      * Manejar una solicitud de nueva contraseña entrante.
      *
-     * @throws \Illuminate\Validation\ValidationException
+     * @throws ValidationException
      */
     public function store(Request $request): RedirectResponse
     {
         $request->validate([
-            'token'    => 'required',
-            'email'    => 'required|email',
+            'token' => 'required',
+            'email' => 'required|email',
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
         ]);
 
@@ -46,8 +47,13 @@ class NewPasswordController extends Controller
             $request->only('email', 'password', 'password_confirmation', 'token'),
             function ($user) use ($request) {
                 $user->forceFill([
-                    'password'       => Hash::make($request->password),
+                    'password' => Hash::make($request->password),
                     'remember_token' => Str::random(60),
+                    // Restablecer la contraseña es la única salida del
+                    // bloqueo duro por seguridad — limpiar también el
+                    // contador para que no vuelva a bloquearse de inmediato.
+                    'failed_login_attempts' => 0,
+                    'security_locked_at' => null,
                 ])->save();
 
                 event(new PasswordReset($user));

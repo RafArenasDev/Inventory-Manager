@@ -2,13 +2,14 @@ import { Head, useForm } from '@inertiajs/react';
 import { LoaderCircle, ArrowLeft } from 'lucide-react';
 import { FormEventHandler } from 'react';
 import Swal from '@/lib/swal';
+import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import AuthSplitLayout from '@/layouts/auth/auth-split-layout';
 
 export default function ForgotPassword() {
-    const { data, setData, post, processing } = useForm<Required<{ email: string }>>({
+    const { data, setData, post, processing, errors } = useForm<Required<{ email: string }>>({
         email: '',
     });
 
@@ -20,13 +21,15 @@ export default function ForgotPassword() {
                 setData('email', '');
             },
             onError: (errors) => {
+                // El detalle específico (correo no registrado) ya lo muestra
+                // InputError debajo del campo — este aviso es solo el
+                // genérico, sin repetir texto, y se cierra solo.
                 if (errors.email) {
                     Swal.fire({
-                        title: "Correo no encontrado",
-                        icon: "error",
-                        text: 'El correo electrónico ingresado no está registrado en la aplicación. Contacta al administrador si necesitas acceso.',
-                        draggable: true,
-                        confirmButtonText: 'OK'
+                        icon: 'error',
+                        title: 'Error al enviar el enlace',
+                        timer: 2200,
+                        showConfirmButton: false,
                     });
                 }
             },
@@ -42,22 +45,23 @@ export default function ForgotPassword() {
             <Head title="Recuperar contraseña" />
 
             <div className="space-y-6">
-                <form onSubmit={submit}>
+                {/* noValidate: una sola vía de validación (borde rojo +
+                    InputError debajo), nunca la burbuja nativa del navegador. */}
+                <form onSubmit={submit} noValidate>
                     <div className="grid gap-2">
                         <Label htmlFor="email">Correo electrónico</Label>
                         <Input
                             id="email"
                             type="email"
                             name="email"
-                            required
                             autoComplete="email"
                             value={data.email}
                             autoFocus
                             onChange={(e) => setData('email', e.target.value)}
                             placeholder="correo@ejemplo.com"
-                            className=""
+                            className={errors.email ? 'ring-1 ring-red-500' : ''}
                         />
-                        {/* <InputError message={formErrors.email} /> */}
+                        <InputError message={errors.email} />
                     </div>
 
                     <div className="my-6 flex items-center justify-start">
