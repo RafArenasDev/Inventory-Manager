@@ -13,12 +13,18 @@ return [
     |
     */
 
-    'name'            => env('APP_NAME', 'Inventory Manager'),
+    'name' => env('APP_NAME', 'Inventory Manager'),
+
+    // Ruta pública (dentro de public/) al logo mostrado en los correos del
+    // sistema (reset de contraseña, bienvenida). Configurable por instancia
+    // — este mismo código se reusa para negocios distintos (el propio y el
+    // de otros clientes), cada uno con su logo y APP_NAME propios.
+    'logo' => env('APP_LOGO', '/logo-icon.png'),
 
     // Mostrada en el pie de la sidebar y del login. v1.0.0 se etiqueta
     // (`git tag`) cuando el módulo de Pedidos + rediseño de alertas quede
     // funcionando — ver REFACTOR-PLAN.md punto 12.1 para el roadmap completo.
-    'version'         => env('APP_VERSION', '1.0.0'),
+    'version' => env('APP_VERSION', '1.0.0'),
 
     /*
     |--------------------------------------------------------------------------
@@ -31,7 +37,7 @@ return [
     |
     */
 
-    'env'             => env('APP_ENV', 'production'),
+    'env' => env('APP_ENV', 'production'),
 
     /*
     |--------------------------------------------------------------------------
@@ -44,7 +50,7 @@ return [
     |
     */
 
-    'debug'           => (bool) env('APP_DEBUG', false),
+    'debug' => (bool) env('APP_DEBUG', false),
 
     /*
     |--------------------------------------------------------------------------
@@ -58,7 +64,7 @@ return [
     */
 
     // 'url'             => env('APP_URL', 'http://localhost:8000'),
-    'url'             => env('APP_URL', 'http: //inventory.local'),
+    'url' => env('APP_URL', 'http: //inventory.local'),
 
     /*
     |--------------------------------------------------------------------------
@@ -71,7 +77,7 @@ return [
     |
     */
 
-    'timezone'        => 'America/Bogota',
+    'timezone' => 'America/Bogota',
 
     /*
     |--------------------------------------------------------------------------
@@ -84,11 +90,11 @@ return [
     |
     */
 
-    'locale'          => env('APP_LOCALE', 'es'),
+    'locale' => env('APP_LOCALE', 'es'),
 
     'fallback_locale' => env('APP_FALLBACK_LOCALE', 'es'),
 
-    'faker_locale'    => env('APP_FAKER_LOCALE', 'ES_CO'),
+    'faker_locale' => env('APP_FAKER_LOCALE', 'ES_CO'),
 
     /*
     |--------------------------------------------------------------------------
@@ -101,12 +107,12 @@ return [
     |
     */
 
-    'cipher'          => 'AES-256-CBC',
+    'cipher' => 'AES-256-CBC',
 
-    'key'             => env('APP_KEY'),
+    'key' => env('APP_KEY'),
 
-    'previous_keys'   => [
-         ...array_filter(
+    'previous_keys' => [
+        ...array_filter(
             explode(',', env('APP_PREVIOUS_KEYS', ''))
         ),
     ],
@@ -124,9 +130,9 @@ return [
     |
     */
 
-    'maintenance'     => [
+    'maintenance' => [
         'driver' => env('APP_MAINTENANCE_DRIVER', 'file'),
-        'store'  => env('APP_MAINTENANCE_STORE', 'database'),
+        'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
 
 ];

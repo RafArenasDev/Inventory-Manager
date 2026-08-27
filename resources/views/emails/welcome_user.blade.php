@@ -156,6 +156,12 @@
                                 <div class="header">
                                     <a href="{{ config('app.url') }}" style="text-decoration: none;">
                                         <div class="logo-wrapper">
+                                            {{-- Incrustado como adjunto (cid:), no enlazado por URL — así se ve
+                                                siempre, sin depender de que el dominio sea alcanzable desde
+                                                afuera (Gmail no puede cargar imágenes de un .test local). --}}
+                                            <img src="{{ $message->embed(public_path(config('app.logo'))) }}" alt="{{ config('app.name') }}"
+                                                width="56" height="56"
+                                                style="display: block; margin: 0 auto 12px auto; border-radius: 8px;">
                                             <span class="logo-main">{{ config('app.name') }}</span>
                                         </div>
                                     </a>

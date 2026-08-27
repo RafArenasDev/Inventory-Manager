@@ -63,7 +63,7 @@ class NewPasswordController extends Controller
         // Si la contraseña se restableció exitosamente, redirigiremos al usuario de vuelta a
         // la vista de login con mensaje de CONTRASEÑA RESTABLECIDA
         if ($status == Password::PASSWORD_RESET) {
-            return to_route('login')->with('status', 'Puedes iniciar sesión con tu nueva contraseña.');
+            return to_route('login')->with('status', 'Contraseña restablecida. Ya puedes iniciar sesión con tu nueva contraseña.');
         }
 
         throw ValidationException::withMessages([

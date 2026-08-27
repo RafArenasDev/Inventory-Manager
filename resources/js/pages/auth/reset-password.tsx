@@ -1,5 +1,5 @@
 import { Head, useForm } from '@inertiajs/react';
-import { LoaderCircle } from 'lucide-react';
+import { LoaderCircle, Wand2 } from 'lucide-react';
 import { FormEventHandler } from 'react';
 import Swal from '@/lib/swal';
 
@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { PasswordInput } from '@/components/ui/password-input';
+import { generateSecurePassword } from '@/lib/generate-password';
 import AuthSplitLayout from '@/layouts/auth/auth-split-layout';
 
 interface ResetPasswordProps {
@@ -29,6 +30,15 @@ export default function ResetPassword({ token, email }: ResetPasswordProps) {
         password: '',
         password_confirmation: '',
     });
+
+    const handleGeneratePassword = () => {
+        const generated = generateSecurePassword();
+        setData((current) => ({
+            ...current,
+            password: generated,
+            password_confirmation: generated,
+        }));
+    };
 
     const submit: FormEventHandler = (e) => {
         e.preventDefault();
@@ -107,7 +117,19 @@ export default function ResetPassword({ token, email }: ResetPasswordProps) {
                     </div>
 
                     <div className="grid gap-2">
-                        <Label htmlFor="password">Nueva contraseña</Label>
+                        <div className="flex items-center justify-between">
+                            <Label htmlFor="password">Nueva contraseña</Label>
+                            <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                onClick={handleGeneratePassword}
+                                className="h-auto gap-1 px-2 py-1 text-xs text-blue-600 hover:bg-blue-100 hover:text-blue-700 dark:text-blue-500 dark:hover:bg-blue-950/40 dark:hover:text-blue-400"
+                            >
+                                <Wand2 className="h-3 w-3" />
+                                Generar contraseña
+                            </Button>
+                        </div>
                         <PasswordInput
                             id="password"
                             autoComplete="new-password"
@@ -116,7 +138,11 @@ export default function ResetPassword({ token, email }: ResetPasswordProps) {
                             onChange={(e) => setData('password', e.target.value)}
                             placeholder="Nueva contraseña"
                             className={errors.password ? 'ring-1 ring-red-500' : ''}
+                            minLength={12}
                         />
+                        <p className="text-xs text-muted-foreground">
+                            Mínimo 12 caracteres, con mayúsculas, minúsculas, números y símbolos.
+                        </p>
                         <InputError message={errors.password} />
                     </div>
 

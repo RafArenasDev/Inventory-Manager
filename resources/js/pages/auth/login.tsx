@@ -89,31 +89,28 @@ export default function Login({ status, canResetPassword = true }: LoginProps) {
                     confirmButtonText: 'Entendido'
                 });
             } else if (status.includes('contraseña fue actualizada')) {
-                // MENSAJE DE CAMBIO DE CONTRASEÑA DESDE EL PERFIL (no el
-                // reset por correo, que ya tiene su propio mensaje abajo).
+                // MENSAJE DE CAMBIO DE CONTRASEÑA DESDE EL PERFIL — distinto
+                // del reset por correo (abajo): acá el usuario SÍ sabía su
+                // contraseña actual y la cambió, no la olvidó/recuperó.
                 Swal.fire({
                     title: "¡Contraseña actualizada!",
                     icon: "success",
                     text: status,
-                    draggable: true,
-                    confirmButtonText: 'Continuar'
+                    timer: 2500,
+                    showConfirmButton: false,
                 });
             } else if (status.includes('Contraseña restablecida')) {
-                // MENSAJE DEL RESET-PASSWORD
+                // MENSAJE DEL RESET-PASSWORD — se cierra solo, no requiere clic.
                 Swal.fire({
                     title: "¡Contraseña restablecida!",
                     icon: "success",
                     text: status,
-                    draggable: true,
-                    confirmButtonText: 'Continuar'
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        // console.log('Contraseña restablecida - listo para login');
-                        // Enfocar el campo de email
-                        const emailInput = document.getElementById('email') as HTMLInputElement;
-                        if (emailInput) {
-                            emailInput.focus();
-                        }
+                    timer: 2500,
+                    showConfirmButton: false,
+                }).then(() => {
+                    const emailInput = document.getElementById('email') as HTMLInputElement;
+                    if (emailInput) {
+                        emailInput.focus();
                     }
                 });
             } else {
