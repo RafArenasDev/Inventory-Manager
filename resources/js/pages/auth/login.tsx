@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { PasswordInput } from '@/components/ui/password-input';
 import AuthSplitLayout from '@/layouts/auth/auth-split-layout';
 
 type LoginForm = {
@@ -150,9 +151,8 @@ export default function Login({ status, canResetPassword = true }: LoginProps) {
 
                     <div className="grid gap-2">
                         <Label htmlFor="password">Contraseña</Label>
-                        <Input
+                        <PasswordInput
                             id="password"
-                            type="password"
                             tabIndex={status ? 3 : 2}
                             autoComplete="current-password"
                             value={data.password}

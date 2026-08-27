@@ -4,6 +4,7 @@ import Swal from '@/lib/swal';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
+import { PasswordInput } from '@/components/ui/password-input';
 import { Combobox, ComboboxContent, ComboboxEmpty, ComboboxInput, ComboboxItem, ComboboxList } from '@/components/ui/combobox';
 import { Wand2 } from 'lucide-react';
 
@@ -186,8 +187,7 @@ const UserForm: React.FC<UserFormProps> = ({ user, roles, onCancel, onSaved, onD
                             Generar contraseña
                         </Button>
                     </div>
-                    <Input
-                        type="password"
+                    <PasswordInput
                         id="password"
                         value={data.password}
                         onChange={(e) => setData('password', e.target.value)}
@@ -209,8 +209,7 @@ const UserForm: React.FC<UserFormProps> = ({ user, roles, onCancel, onSaved, onD
                     >
                         Confirmar Contraseña {passwordRequired ? '*' : '(opcional)'}
                     </Label>
-                    <Input
-                        type="password"
+                    <PasswordInput
                         id="confirm_password"
                         value={data.confirm_password}
                         onChange={(e) => setData('confirm_password', e.target.value)}

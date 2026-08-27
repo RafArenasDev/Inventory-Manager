@@ -4,8 +4,8 @@ import { FormEventHandler, useEffect, useRef } from 'react';
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { PasswordInput } from '@/components/ui/password-input';
 import Swal from '@/lib/swal';
 
 interface PasswordModalProps {
@@ -71,12 +71,11 @@ export function PasswordModal({ open, onOpenChange }: PasswordModalProps) {
                 <form onSubmit={submit} className="space-y-4">
                     <div className="grid gap-2">
                         <Label htmlFor="current_password">Contraseña actual</Label>
-                        <Input
+                        <PasswordInput
                             id="current_password"
                             ref={currentPasswordInput}
                             value={data.current_password}
                             onChange={(e) => setData('current_password', e.target.value)}
-                            type="password"
                             className="w-full"
                             autoComplete="current-password"
                             placeholder="Contraseña actual"
@@ -86,12 +85,11 @@ export function PasswordModal({ open, onOpenChange }: PasswordModalProps) {
 
                     <div className="grid gap-2">
                         <Label htmlFor="password">Nueva contraseña</Label>
-                        <Input
+                        <PasswordInput
                             id="password"
                             ref={passwordInput}
                             value={data.password}
                             onChange={(e) => setData('password', e.target.value)}
-                            type="password"
                             className="w-full"
                             autoComplete="new-password"
                             placeholder="Nueva contraseña"
@@ -102,11 +100,10 @@ export function PasswordModal({ open, onOpenChange }: PasswordModalProps) {
 
                     <div className="grid gap-2">
                         <Label htmlFor="password_confirmation">Confirmar contraseña</Label>
-                        <Input
+                        <PasswordInput
                             id="password_confirmation"
                             value={data.password_confirmation}
                             onChange={(e) => setData('password_confirmation', e.target.value)}
-                            type="password"
                             className="w-full"
                             autoComplete="new-password"
                             placeholder="Confirmar contraseña"

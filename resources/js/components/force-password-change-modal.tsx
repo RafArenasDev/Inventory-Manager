@@ -8,7 +8,7 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { Input } from '@/components/ui/input';
+import { PasswordInput } from '@/components/ui/password-input';
 import InputError from '@/components/input-error';
 
 export default function ForcePasswordChangeModal() {
@@ -58,9 +58,8 @@ export default function ForcePasswordChangeModal() {
                     <form onSubmit={handleSubmit} className="space-y-4">
                         <div className="grid gap-2">
                             <Label htmlFor="fpc-current-password">Contraseña actual</Label>
-                            <Input
+                            <PasswordInput
                                 id="fpc-current-password"
-                                type="password"
                                 value={data.current_password}
                                 onChange={(e) => setData('current_password', e.target.value)}
                                 autoComplete="current-password"
@@ -71,10 +70,9 @@ export default function ForcePasswordChangeModal() {
 
                         <div className="grid gap-2">
                             <Label htmlFor="fpc-password">Nueva contraseña</Label>
-                            <Input
+                            <PasswordInput
                                 id="fpc-password"
                                 ref={passwordInput}
-                                type="password"
                                 value={data.password}
                                 onChange={(e) => setData('password', e.target.value)}
                                 autoComplete="new-password"
@@ -87,9 +85,8 @@ export default function ForcePasswordChangeModal() {
 
                         <div className="grid gap-2">
                             <Label htmlFor="fpc-password-confirmation">Confirmar contraseña</Label>
-                            <Input
+                            <PasswordInput
                                 id="fpc-password-confirmation"
-                                type="password"
                                 value={data.password_confirmation}
                                 onChange={(e) => setData('password_confirmation', e.target.value)}
                                 autoComplete="new-password"
