@@ -6,7 +6,8 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { PasswordInput } from '@/components/ui/password-input';
-import Swal from '@/lib/swal';
+import { generateSecurePassword } from '@/lib/generate-password';
+import { Wand2 } from 'lucide-react';
 
 interface PasswordModalProps {
     open: boolean;
@@ -31,22 +32,23 @@ export function PasswordModal({ open, onOpenChange }: PasswordModalProps) {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [open]);
 
+    const handleGeneratePassword = () => {
+        const generated = generateSecurePassword();
+        setData((current) => ({
+            ...current,
+            password: generated,
+            password_confirmation: generated,
+        }));
+    };
+
     const submit: FormEventHandler = (e) => {
         e.preventDefault();
 
         put(route('password.update'), {
             preserveScroll: true,
-            onSuccess: () => {
-                reset();
-                Swal.fire({
-                    position: 'center',
-                    icon: 'success',
-                    title: 'Contraseña actualizada correctamente',
-                    showConfirmButton: false,
-                    timer: 2000,
-                });
-                onOpenChange(false);
-            },
+            // Sin onSuccess propio: el backend cierra la sesión y redirige a
+            // /login, que ya muestra su propio aviso de éxito — un Swal acá
+            // solo alcanzaría a parpadear mientras la página cambia.
             onError: (formErrors) => {
                 if (formErrors.password) {
                     reset('password', 'password_confirmation');
@@ -84,7 +86,19 @@ export function PasswordModal({ open, onOpenChange }: PasswordModalProps) {
                     </div>
 
                     <div className="grid gap-2">
-                        <Label htmlFor="password">Nueva contraseña</Label>
+                        <div className="flex items-center justify-between">
+                            <Label htmlFor="password">Nueva contraseña</Label>
+                            <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                onClick={handleGeneratePassword}
+                                className="h-auto gap-1 px-2 py-1 text-xs text-blue-600 hover:bg-blue-100 hover:text-blue-700 dark:text-blue-500 dark:hover:bg-blue-950/40 dark:hover:text-blue-400"
+                            >
+                                <Wand2 className="h-3 w-3" />
+                                Generar contraseña
+                            </Button>
+                        </div>
                         <PasswordInput
                             id="password"
                             ref={passwordInput}

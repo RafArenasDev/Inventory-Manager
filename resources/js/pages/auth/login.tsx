@@ -88,6 +88,16 @@ export default function Login({ status, canResetPassword = true }: LoginProps) {
                     draggable: true,
                     confirmButtonText: 'Entendido'
                 });
+            } else if (status.includes('contraseña fue actualizada')) {
+                // MENSAJE DE CAMBIO DE CONTRASEÑA DESDE EL PERFIL (no el
+                // reset por correo, que ya tiene su propio mensaje abajo).
+                Swal.fire({
+                    title: "¡Contraseña actualizada!",
+                    icon: "success",
+                    text: status,
+                    draggable: true,
+                    confirmButtonText: 'Continuar'
+                });
             } else if (status.includes('Contraseña restablecida')) {
                 // MENSAJE DEL RESET-PASSWORD
                 Swal.fire({

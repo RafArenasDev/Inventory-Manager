@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Settings;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules\Password;
 use Inertia\Inertia;
@@ -35,6 +36,17 @@ class PasswordController extends Controller
             'must_change_password' => false,
         ]);
 
-        return back();
+        // Cambiar la propia contraseña invalida la sesión actual a propósito
+        // — es la práctica correcta (no dejar sesiones viejas con la clave
+        // anterior aún "confiadas") y evita el bug de terminar en una vista
+        // vieja: ahora siempre aterriza en login con un aviso claro.
+        Auth::guard('web')->logout();
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+
+        return to_route('login')->with(
+            'status',
+            'Tu contraseña fue actualizada. Por favor inicia sesión de nuevo.'
+        );
     }
 }

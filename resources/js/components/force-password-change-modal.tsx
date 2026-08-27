@@ -10,6 +10,8 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { PasswordInput } from '@/components/ui/password-input';
 import InputError from '@/components/input-error';
+import { generateSecurePassword } from '@/lib/generate-password';
+import { Wand2 } from 'lucide-react';
 
 export default function ForcePasswordChangeModal() {
     const { auth } = usePage().props as unknown as { auth: { user: { must_change_password?: boolean } | null } };
@@ -22,11 +24,21 @@ export default function ForcePasswordChangeModal() {
         password_confirmation: '',
     });
 
+    const handleGeneratePassword = () => {
+        const generated = generateSecurePassword();
+        setData((current) => ({
+            ...current,
+            password: generated,
+            password_confirmation: generated,
+        }));
+    };
+
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         put(route('password.update'), {
             preserveScroll: true,
-            onSuccess: () => reset(),
+            // Sin onSuccess: el backend cierra la sesión y redirige a
+            // /login con su propio aviso.
             onError: (errs) => {
                 if (errs.password) {
                     reset('password', 'password_confirmation');
@@ -69,7 +81,19 @@ export default function ForcePasswordChangeModal() {
                         </div>
 
                         <div className="grid gap-2">
-                            <Label htmlFor="fpc-password">Nueva contraseña</Label>
+                            <div className="flex items-center justify-between">
+                                <Label htmlFor="fpc-password">Nueva contraseña</Label>
+                                <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={handleGeneratePassword}
+                                    className="h-auto gap-1 px-2 py-1 text-xs text-blue-600 hover:bg-blue-100 hover:text-blue-700 dark:text-blue-500 dark:hover:bg-blue-950/40 dark:hover:text-blue-400"
+                                >
+                                    <Wand2 className="h-3 w-3" />
+                                    Generar contraseña
+                                </Button>
+                            </div>
                             <PasswordInput
                                 id="fpc-password"
                                 ref={passwordInput}
