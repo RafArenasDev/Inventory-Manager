@@ -202,8 +202,43 @@ simple de arreglar el bloqueador de `ilike` es reemplazarlo por un patrón
 driver en cada búsqueda. Es un cambio acotado (12 archivos, mismo patrón
 en cada uno), no una reescritura.
 
-**No implementado todavía** — queda para cuando el usuario decida
-abordarlo, con este análisis ya hecho para no repetir la investigación.
+**Actualización — implementado la misma noche:** el usuario autorizó
+hacerlo si salía rápido. Se resolvió con `Builder::whereLike()`/
+`orWhereLike()`, **nativo de Laravel 12** (no hacía falta escribirlo a
+mano) — cada grammar (`MySqlGrammar`, `PostgresGrammar`, `SQLiteGrammar`)
+ya lo implementa por su cuenta: `ilike` en Postgres, `like` plano en
+MySQL/SQLite. Reemplazadas las 42 apariciones en los 12 controllers.
+
+Dos intentos antes de llegar a esto:
+1. Un macro casero con `LOWER(columna) LIKE LOWER(?)` vía `whereRaw` —
+   roto: Postgres no tiene `lower(bigint)`, y `SaleController` busca por
+   `id` numérico. Se detectó probando con consultas de solo lectura
+   contra la BD local (sin tocar datos).
+2. Un macro casero replicando el comportamiento de Postgres (auto-cast a
+   `::text` solo cuando el operador es `ilike`/`like`) — funcionaba en
+   teoría, pero **Laravel 12 ya trae un método nativo `whereLike()`** con
+   ese mismo nombre; los métodos nativos de PHP siempre ganan sobre un
+   macro con el mismo nombre, así que mi macro nunca se ejecutaba y el
+   nativo (con otra firma, sin el wrapping `%...%` automático) corría en
+   su lugar — halló el bug comparando el SQL/bindings generados.
+
+Fix final: usar el `whereLike()` nativo tal cual, pasando el valor ya
+envuelto en `%...%` en cada call site (igual que antes con `ilike`).
+Verificado con consultas de solo lectura: columna de texto (`name`),
+columna numérica (`sales.id`) y el caso combinado con varios
+`orWhereLike` encadenados — los tres devuelven el SQL/resultados
+esperados en Postgres. No se pudo probar contra un MySQL real en esta
+sesión (no hay instancia a mano), pero la implementación es la misma que
+usa el propio framework para MySQL, no código nuestro.
+
+**También encontrado de paso, más urgente:** la migración de
+`security_locked_at`/`failed_login_attempts` de la sesión de seguridad
+se había hecho editando `create_users_table.php` (ya desplegada en
+Render) en vez de una migración incremental — es casi seguro la causa de
+los correos de "deploy failed" que llegaron toda la noche. Revertido el
+edit, agregada una migración incremental nueva, verificado con
+`migrate:fresh --seed` en local. Actualizada la memoria del proceso de
+migraciones para dejar esta excepción documentada.
 
 ### 2. Nuevo pendiente: auditoría de validaciones en TODOS los formularios de la app
 
