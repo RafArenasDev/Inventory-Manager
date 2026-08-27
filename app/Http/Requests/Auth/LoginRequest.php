@@ -2,7 +2,9 @@
 
 namespace App\Http\Requests\Auth;
 
+use App\Models\User;
 use Illuminate\Auth\Events\Lockout;
+use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\RateLimiter;
@@ -22,7 +24,7 @@ class LoginRequest extends FormRequest
     /**
      * Get the validation rules that apply to the request.
      *
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
+     * @return array<string, ValidationRule|array<mixed>|string>
      */
     public function rules(): array
     {
@@ -35,25 +37,39 @@ class LoginRequest extends FormRequest
     /**
      * Attempt to authenticate the request's credentials.
      *
-     * @throws \Illuminate\Validation\ValidationException
+     * @throws ValidationException
      */
     public function authenticate(): void
     {
         $this->ensureIsNotRateLimited();
 
+        // Se busca el usuario aparte (en vez de solo Auth::attempt) para
+        // poder devolver un mensaje específico por campo — email no
+        // registrado, cuenta inactiva o contraseña incorrecta — en vez del
+        // mensaje ambiguo por defecto de Laravel. Es una decisión consciente
+        // para esta app interna de pocos usuarios conocidos, no una app
+        // pública donde conviene ocultar si un correo existe.
+        $user = User::where('email', $this->string('email'))->first();
+
+        if (! $user) {
+            RateLimiter::hit($this->throttleKey());
+
+            throw ValidationException::withMessages([
+                'email' => 'No encontramos una cuenta con este correo electrónico.',
+            ]);
+        }
+
+        if (! $user->is_active) {
+            throw ValidationException::withMessages([
+                'email' => 'Tu cuenta está inactiva. Comunícate con el administrador del sistema.',
+            ]);
+        }
+
         if (! Auth::attempt($this->only('email', 'password'), $this->boolean('remember'))) {
             RateLimiter::hit($this->throttleKey());
 
             throw ValidationException::withMessages([
-                'email' => __('auth.failed'),
-            ]);
-        }
-
-        if (! Auth::user()->is_active) {
-            Auth::logout();
-
-            throw ValidationException::withMessages([
-                'email' => 'Tu cuenta está inactiva. Comunícate con el administrador del sistema.',
+                'password' => 'La contraseña ingresada es incorrecta.',
             ]);
         }
 
@@ -63,7 +79,7 @@ class LoginRequest extends FormRequest
     /**
      * Ensure the login request is not rate limited.
      *
-     * @throws \Illuminate\Validation\ValidationException
+     * @throws ValidationException
      */
     public function ensureIsNotRateLimited(): void
     {

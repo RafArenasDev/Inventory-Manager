@@ -42,7 +42,7 @@ export default function Login({ status, canResetPassword = true }: LoginProps) {
                 if (errors.email || errors.password) {
                     Swal.fire({
                         icon: 'error',
-                        title: 'Error',
+                        title: 'Error al iniciar sesión',
                         timer: 2200,
                         showConfirmButton: false,
                     });
@@ -125,14 +125,18 @@ export default function Login({ status, canResetPassword = true }: LoginProps) {
         >
             <Head title="Iniciar sesión" />
 
-            <form className="flex flex-col gap-6" onSubmit={submit}>
+            {/* noValidate: el navegador tiene su propia burbuja nativa para
+                "required"/"type=email" que no se puede estilar — queremos
+                UNA sola vía de validación (borde rojo + InputError debajo),
+                nunca esa burbuja del sistema operativo. Laravel igual valida
+                ambos campos como requeridos en el servidor. */}
+            <form className="flex flex-col gap-6" onSubmit={submit} noValidate>
                 <div className="grid gap-6">
                     <div className="grid gap-2">
                         <Label htmlFor="email">Correo electrónico</Label>
                         <Input
                             id="email"
                             type="email"
-                            required
                             autoFocus={!status} // Solo autofocus si no hay status
                             tabIndex={status ? 2 : 1}
                             autoComplete="email"
@@ -149,7 +153,6 @@ export default function Login({ status, canResetPassword = true }: LoginProps) {
                         <Input
                             id="password"
                             type="password"
-                            required
                             tabIndex={status ? 3 : 2}
                             autoComplete="current-password"
                             value={data.password}
