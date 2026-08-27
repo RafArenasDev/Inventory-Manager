@@ -24,7 +24,7 @@ class RoleController extends Controller
         if ($request->filled('search')) {
             $search = $request->search;
             $rolesQuery->where(function ($query) use ($search) {
-                $query->where('label', 'ilike', "%{$search}%");
+                $query->whereLike('label', "%{$search}%");
             });
         }
 

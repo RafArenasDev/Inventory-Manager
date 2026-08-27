@@ -30,8 +30,8 @@ class SupplierController extends Controller
         if ($request->filled('search')) {
             $search = $request->search;
             $suppliersQuery->where(function ($query) use ($search) {
-                $query->where('name', 'ilike', "%{$search}%")
-                    ->orWhere('representative', 'ilike', "%{$search}%")
+                $query->whereLike('name', "%{$search}%")
+                    ->orWhereLike('representative', "%{$search}%")
                     ->orWhereRaw("CONCAT(nit_number, '-', nit_digit) LIKE ?", ["%{$search}%"]);
             });
         }
@@ -167,10 +167,10 @@ class SupplierController extends Controller
         if ($request->filled('search')) {
             $search = $request->search;
             $suppliersQuery->where(function ($query) use ($search) {
-                $query->where('name', 'ilike', "%{$search}%")
-                    ->orWhere('representative', 'ilike', "%{$search}%")
-                    ->orWhere('nit_number', 'ilike', "%{$search}%")
-                    ->orWhere('email', 'ilike', "%{$search}%");
+                $query->whereLike('name', "%{$search}%")
+                    ->orWhereLike('representative', "%{$search}%")
+                    ->orWhereLike('nit_number', "%{$search}%")
+                    ->orWhereLike('email', "%{$search}%");
             });
         }
 

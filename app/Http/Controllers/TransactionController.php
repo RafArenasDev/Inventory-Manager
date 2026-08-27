@@ -30,8 +30,8 @@ class TransactionController extends Controller
         if ($request->filled('search')) {
             $search = $request->search;
             $transactionsQuery->where(function ($query) use ($search) {
-                $query->where('description', 'ilike', "%{$search}%")
-                    ->orWhere('invoice_number', 'ilike', "%{$search}%");
+                $query->whereLike('description', "%{$search}%")
+                    ->orWhereLike('invoice_number', "%{$search}%");
             });
         }
 

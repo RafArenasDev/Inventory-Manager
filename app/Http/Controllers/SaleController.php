@@ -40,10 +40,10 @@ class SaleController extends Controller
             $search = $request->search;
             $salesQuery->where(function ($query) use ($search) {
                 $query->whereHas('client', function ($q) use ($search) {
-                    $q->where('name', 'ilike', "%{$search}%")
-                        ->orWhere('document_number', 'ilike', "%{$search}%");
-                })->orWhere('id', 'ilike', "%{$search}%")
-                    ->orWhere('invoice_number', 'ilike', "%{$search}%");
+                    $q->whereLike('name', "%{$search}%")
+                        ->orWhereLike('document_number', "%{$search}%");
+                })->orWhereLike('id', "%{$search}%")
+                    ->orWhereLike('invoice_number', "%{$search}%");
             });
         }
 
@@ -334,10 +334,10 @@ class SaleController extends Controller
             $search = $request->search;
             $salesQuery->where(function ($query) use ($search) {
                 $query->whereHas('client', function ($q) use ($search) {
-                    $q->where('name', 'ilike', "%{$search}%")
-                        ->orWhere('document_number', 'ilike', "%{$search}%");
-                })->orWhere('id', 'ilike', "%{$search}%")
-                    ->orWhere('invoice_number', 'ilike', "%{$search}%");
+                    $q->whereLike('name', "%{$search}%")
+                        ->orWhereLike('document_number', "%{$search}%");
+                })->orWhereLike('id', "%{$search}%")
+                    ->orWhereLike('invoice_number', "%{$search}%");
             });
         }
 

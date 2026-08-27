@@ -22,8 +22,8 @@ class ClientController extends Controller
         if ($request->filled('search')) {
             $search = $request->search;
             $clientsQuery->where(function ($query) use ($search) {
-                $query->where('name', 'ilike', "%{$search}%")
-                    ->orWhere('document_number', 'ilike', "%{$search}%");
+                $query->whereLike('name', "%{$search}%")
+                    ->orWhereLike('document_number', "%{$search}%");
             });
         }
 

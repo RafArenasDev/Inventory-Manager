@@ -28,13 +28,13 @@ class InventoryMovementController extends Controller
         if ($request->filled('search')) {
             $search = $request->search;
             $movementsQuery->where(function ($query) use ($search) {
-                $query->where('notes', 'ilike', "%{$search}%")
+                $query->whereLike('notes', "%{$search}%")
                     ->orWhereHas('product', function ($q) use ($search) {
-                        $q->where('name', 'ilike', "%{$search}%")
-                            ->orWhere('code', 'ilike', "%{$search}%");
+                        $q->whereLike('name', "%{$search}%")
+                            ->orWhereLike('code', "%{$search}%");
                     })
                     ->orWhereHas('supplier', function ($q) use ($search) {
-                        $q->where('name', 'ilike', "%{$search}%");
+                        $q->whereLike('name', "%{$search}%");
                     });
             });
         }
@@ -269,13 +269,13 @@ class InventoryMovementController extends Controller
         if ($request->filled('search')) {
             $search = $request->search;
             $movementsQuery->where(function ($query) use ($search) {
-                $query->where('notes', 'ilike', "%{$search}%")
+                $query->whereLike('notes', "%{$search}%")
                     ->orWhereHas('product', function ($q) use ($search) {
-                        $q->where('name', 'ilike', "%{$search}%")
-                            ->orWhere('code', 'ilike', "%{$search}%");
+                        $q->whereLike('name', "%{$search}%")
+                            ->orWhereLike('code', "%{$search}%");
                     })
                     ->orWhereHas('supplier', function ($q) use ($search) {
-                        $q->where('name', 'ilike', "%{$search}%");
+                        $q->whereLike('name', "%{$search}%");
                     });
             });
         }
