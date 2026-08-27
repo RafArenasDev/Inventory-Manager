@@ -129,26 +129,56 @@ indique:
   Gmail, síncrono, sin cola) — confirmado que el correo llega, con logo
   (ahora incrustado) y nombre de la app correctos.
 
+## Cierre de CI (más tarde en la misma noche)
+
+`git push` empezó a llegar con dos correos de GitHub Actions fallando
+(`tests` y `linter`). Diagnosticado con logs reales, no adivinado:
+
+- **`linter` (job `quality`)**: `npm run lint` tenía 2 errores reales de
+  ESLint preexistentes, sin relación con los cambios de la noche —
+  `children` sin usar en `combobox.tsx` (destructuring intencional para
+  excluirlo del spread) y un import muerto de `axios` en `salesTable.tsx`.
+  Arreglados los dos. De paso se corrió `npm run format` + `pint` sobre
+  **todo** el proyecto por primera vez (113 archivos, commit de estilo
+  separado, sin cambios de comportamiento — verificado con `tsc`/`build`).
+- **`tests` (job `ci`)**: corría `phpunit` en cada push sin ningún
+  servicio de base de datos (ni MySQL ni Postgres) — fallaba siempre por
+  eso, no por diferencias de motor. Pasado a `workflow_dispatch` (disparo
+  manual), mismo criterio que StockPro, porque los tests están en pausa
+  durante el MVP.
+- Guardado en memoria el checklist completo a correr antes de cada commit
+  (pint, `npm run lint`, `npm run format`, tsc, build, `php -l`) — antes
+  solo corría una parte de esto.
+- **Pendiente real, mencionado por el usuario pero sin definir todavía:**
+  Render (producción) usa MySQL, el entorno local usa Postgres — el
+  usuario quiere una forma de soportar los dos motores dinámicamente, o
+  mantener una versión aparte para MySQL (para el despliegue del negocio
+  de su tío, que corre MySQL local). **No se diseñó ni se tocó nada de
+  esto todavía** — es una decisión de arquitectura aparte, no algo que
+  arreglara el fix de CI de hoy.
+
 ## Pendiente para retomar mañana
 
-1. **Revisar y commitear** los 8 archivos de la sección "sin commitear" de
-   arriba (o pedir cambios primero) — el usuario dijo explícitamente que
-   frenara los commits porque "tenemos que corregir algo luego", **sin
-   especificar qué** — quedó sin aclarar cuál es ese algo pendiente.
+1. **Confirmar qué era "lo que hay que corregir luego"** que el usuario
+   mencionó al pedir frenar los commits — nunca se aclaró explícitamente;
+   es posible que se refiriera al CI (ya resuelto) o a otra cosa.
 2. **Nombre de la cuenta admin**: en algún momento de la sesión el nombre
    de `rafarenas.dev@gmail.com` apareció como "Rafael J. Arenas" en vez de
    "Rafael Arenas" (probablemente autofill de Chrome abriendo y enviando
    el modal de Perfil solo). Se le preguntó al usuario si fue intencional
-   o si había que revertirlo — **quedó sin responder**.
-3. Confirmar visualmente en Gmail (o el cliente de correo real) que el
-   logo incrustado se ve bien — el envío de prueba con `$message->embed()`
-   no tiró error, pero no hay confirmación visual todavía.
-4. Cuando exista una segunda instancia real de esta app para el negocio
+   o si había que revertirlo — **quedó sin responder, sigue así en la
+   BD**.
+3. **Diseñar el soporte MySQL/Postgres** (dinámico según entorno, o
+   versión separada para el negocio del tío) — recién mencionado, sin
+   definir alcance ni enfoque todavía.
+4. Confirmado visualmente por el usuario que el logo incrustado se ve
+   bien en Gmail — ✅ hecho, sin pendiente.
+5. Cuando exista una segunda instancia real de esta app para el negocio
    del tío del usuario, configurar `APP_NAME` y `APP_LOGO` propios en su
    `.env` — el código ya está listo para eso, falta solo la configuración
    del lado de esa instancia (no aplica a este repo).
-5. Del roadmap general (`REFACTOR-PLAN.md`), sigue sin tocarse esta
+6. Del roadmap general (`REFACTOR-PLAN.md`), sigue sin tocarse esta
    sesión: refactor a componentes reutilizables (punto 11), modales "Ver"
    (punto 1), auditoría de modo claro, responsive en viewport angosto,
    catálogos en BD, PWA — nada de esto se abordó hoy, la sesión fue
-   enteramente de login/seguridad/branding.
+   enteramente de login/seguridad/branding/CI.
