@@ -157,28 +157,99 @@ indique:
   esto todavía** — es una decisión de arquitectura aparte, no algo que
   arreglara el fix de CI de hoy.
 
-## Pendiente para retomar mañana
+## Cerrado por el usuario (ya no está pendiente)
 
-1. **Confirmar qué era "lo que hay que corregir luego"** que el usuario
-   mencionó al pedir frenar los commits — nunca se aclaró explícitamente;
-   es posible que se refiriera al CI (ya resuelto) o a otra cosa.
-2. **Nombre de la cuenta admin**: en algún momento de la sesión el nombre
-   de `rafarenas.dev@gmail.com` apareció como "Rafael J. Arenas" en vez de
-   "Rafael Arenas" (probablemente autofill de Chrome abriendo y enviando
-   el modal de Perfil solo). Se le preguntó al usuario si fue intencional
-   o si había que revertirlo — **quedó sin responder, sigue así en la
-   BD**.
-3. **Diseñar el soporte MySQL/Postgres** (dinámico según entorno, o
-   versión separada para el negocio del tío) — recién mencionado, sin
-   definir alcance ni enfoque todavía.
-4. Confirmado visualmente por el usuario que el logo incrustado se ve
-   bien en Gmail — ✅ hecho, sin pendiente.
-5. Cuando exista una segunda instancia real de esta app para el negocio
-   del tío del usuario, configurar `APP_NAME` y `APP_LOGO` propios en su
-   `.env` — el código ya está listo para eso, falta solo la configuración
-   del lado de esa instancia (no aplica a este repo).
-6. Del roadmap general (`REFACTOR-PLAN.md`), sigue sin tocarse esta
-   sesión: refactor a componentes reutilizables (punto 11), modales "Ver"
-   (punto 1), auditoría de modo claro, responsive en viewport angosto,
-   catálogos en BD, PWA — nada de esto se abordó hoy, la sesión fue
-   enteramente de login/seguridad/branding/CI.
+- "Lo que había que corregir luego" al frenar los commits **era el CI de
+  GitHub** — ya resuelto (ver sección de arriba).
+- El nombre "Rafael J. Arenas" fue una prueba del propio usuario, ya
+  corregido por él — no hace falta tocar nada.
+- Logo incrustado en los correos — confirmado visualmente por el usuario
+  en Gmail, se ve bien.
+
+## Panorama completo para decidir próximos pasos (pedido explícito del usuario, 2026-08-26 tarde/noche)
+
+### 1. MySQL (Render + negocio del tío) vs Postgres (local) — análisis
+
+El usuario preguntó si conviene soportar los dos motores dinámicamente en
+el mismo código, o mantener una versión aparte solo para MySQL (para el
+despliegue del tío, que corre MySQL local).
+
+**Hallazgo concreto:** 12 controllers usan el operador `ilike` en las
+búsquedas (`CashRegisterController`, `CategoryController`,
+`ClientController`, `InventoryMovementController`, `ProductController`,
+`PurchaseOrderController`, `RoleController`, `SaleController`,
+`SupplierController`, `TransactionCategoryController`,
+`TransactionController`, `UserController`). `ILIKE` es sintaxis
+**exclusiva de Postgres** — en MySQL tira error de sintaxis SQL. Este es
+el único bloqueador real y concreto encontrado para correr el mismo
+código en los dos motores tal cual está hoy.
+
+El resto del código ya es portable: `DashboardController` ya rama por
+`DB::connection()->getDriverName()` para las funciones de fecha
+(pgsql/sqlite/mysql), y la auditoría de Postgres de la sesión del
+2026-08-05 (punto 12.5 de `REFACTOR-PLAN.md`) ya revisó a fondo que no
+queda sintaxis específica de motor en migraciones/seeders.
+
+**Recomendación:** unificar en un solo código es viable y es lo correcto
+a largo plazo — mantener dos versiones separadas del mismo software
+diverge con el tiempo (cada fix hay que aplicarlo dos veces, es un
+antipatrón clásico), y ya existe la costumbre en este proyecto de
+configurar diferencias por entorno (`.env`) en vez de por rama de código
+(mismo espíritu que `APP_NAME`/`APP_LOGO` de esta sesión). La forma más
+simple de arreglar el bloqueador de `ilike` es reemplazarlo por un patrón
+100% portable: `whereRaw('LOWER(columna) LIKE LOWER(?)', ["%$termino%"])`
+— funciona igual en MySQL, Postgres y SQLite, sin necesidad de detectar el
+driver en cada búsqueda. Es un cambio acotado (12 archivos, mismo patrón
+en cada uno), no una reescritura.
+
+**No implementado todavía** — queda para cuando el usuario decida
+abordarlo, con este análisis ya hecho para no repetir la investigación.
+
+### 2. Nuevo pendiente: auditoría de validaciones en TODOS los formularios de la app
+
+El usuario pidió explícitamente extender el patrón de login/reset-password
+(sin `required`/burbuja nativa del navegador, `InputError` claro debajo de
+cada campo con borde rojo, sin alertas redundantes, mensajes específicos
+por campo) a **toda la app**, no solo auth. Formularios de negocio
+detectados (11, fuera de los de auth ya corregidos):
+
+`cashRegisterForm.tsx`, `categoryForm.tsx`, `clientForm.tsx`,
+`inventoryMovementForm.tsx`, `productForm.tsx`, `purchaseOrderForm.tsx`,
+`roleForm.tsx`, `saleForm.tsx`, `supplierForm.tsx`,
+`transactionForm.tsx`, `usersForm.tsx`.
+
+Para cada uno habría que revisar: atributos `required` nativos (quitar +
+`noValidate` en el `<form>`), que cada FormRequest de backend tenga
+mensajes claros en español (ya cubierto en general por
+`lang/es/validation.php`, pero revisar mensajes custom existentes), y que
+no haya alertas SweetAlert duplicando el texto que ya muestra
+`InputError`. **No implementado todavía** — es una tarea acotada pero
+repetitiva (11 archivos con el mismo patrón).
+
+### 3. Roadmap general — `REFACTOR-PLAN.md` (todo lo que sigue sin tocar)
+
+Documento fechado 2026-08-07, sin actualizar desde entonces salvo por el
+módulo de Pedidos, tiempo real y la sesión de hoy (ninguno de los dos
+estaba en este plan original). Pendientes reales listados ahí, en el
+orden que el propio doc sugiere:
+
+1. **Refactor a componentes reutilizables** (`DataTable`/`ResourceTable`,
+   `ResourceModal` genéricos) — con 11 módulos repitiendo el mismo patrón
+   a mano, incluido Pedidos.
+2. **Modales "Ver" (show)** para Usuarios, Proveedores, Categorías,
+   Movimientos de Inventario y Finanzas.
+3. **Auditoría de modo claro** — tonos emerald/rose/amber/zinc, popover de
+   filtros, badges de Pedidos/alertas — verificado mayormente en tema
+   oscuro hasta ahora.
+4. **Responsive real en viewport angosto** (375px) — nunca se pudo
+   auditar de forma confiable con navegador automatizado, hace falta con
+   el navegador real del usuario.
+5. **Catálogos en BD** para tipos de movimiento de inventario y métodos de
+   pago (el Combobox que los mostraría ya está listo).
+6. **PWA instalable** — no depende de nada de lo anterior, se puede hacer
+   en paralelo.
+7. **WhatsApp automatizado** (Baileys + Render) — pausado a propósito,
+   solo retomar si el usuario lo pide explícitamente de nuevo.
+8. **Calidad de código general** — tests en pausa durante el MVP, revisión
+   de nombres/tipos pendiente (fuera de esto: el checklist de pre-commit
+   ya se resolvió hoy, ver arriba).
