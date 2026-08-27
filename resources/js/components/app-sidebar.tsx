@@ -58,9 +58,11 @@ export function AppSidebar() {
     return (
         <Sidebar collapsible="icon" variant="inset">
             {/* Mismo divisor que separa la versión en el footer (border-sidebar-border)
-                — acá marca el límite entre el logo y la navegación, con aire
-                de sobra a los dos lados para que no quede todo pegado. */}
-            <SidebarHeader className="border-b border-sidebar-border pb-3">
+                — acá marca el límite entre el logo y la navegación. Altura fija
+                h-16 = misma altura exacta que el header principal (app-sidebar-header),
+                para que las dos líneas queden a la misma altura de la pantalla en
+                vez de verse disparejas. */}
+            <SidebarHeader className="h-16 justify-center border-b border-sidebar-border p-2">
                 <SidebarMenu>
                     <SidebarMenuItem>
                         <SidebarMenuButton size="lg" asChild tooltip="Inventory Manager">

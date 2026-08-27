@@ -27,7 +27,7 @@ class EnsureUserIsActive
 
             return redirect()->route('login')->with(
                 'status',
-                'Tu sesión fue cerrada. Por favor comunícate con el administrador del sistema.'
+                'Tuvimos un inconveniente con tu sesión y tuvimos que cerrarla. Por favor comunícate con el administrador del sistema.'
             );
         }
 

@@ -35,20 +35,16 @@ export default function Login({ status, canResetPassword = true }: LoginProps) {
         post(route('login'), {
             onFinish: () => reset('password'),
             onError: (errors) => {
-                if (errors.email?.toLowerCase().includes('inactiva')) {
+                // El detalle específico (credenciales inválidas, cuenta
+                // inactiva, etc.) ya lo muestra InputError debajo de cada
+                // campo — este aviso es solo la notificación genérica de
+                // "algo falló", sin repetir el texto, y se cierra solo.
+                if (errors.email || errors.password) {
                     Swal.fire({
-                        title: 'Cuenta inactiva',
-                        icon: 'warning',
-                        text: 'Tu cuenta ha sido desactivada. Comunícate con el administrador del sistema para más información.',
-                        confirmButtonText: 'Entendido',
-                        draggable: true,
-                    });
-                } else if (errors.email || errors.password) {
-                    Swal.fire({
-                        title: "Error al iniciar sesión",
-                        icon: "error",
-                        text: 'Verifica tu correo electrónico y contraseña.',
-                        draggable: true
+                        icon: 'error',
+                        title: 'Error',
+                        timer: 2200,
+                        showConfirmButton: false,
                     });
                 }
             }
@@ -80,12 +76,13 @@ export default function Login({ status, canResetPassword = true }: LoginProps) {
                     draggable: true,
                     confirmButtonText: 'Entendido'
                 });
-            } else if (status.includes('Tu sesión fue cerrada')) {
+            } else if (status.includes('inconveniente con tu sesión')) {
                 // MENSAJE DE DESACTIVACIÓN DE CUENTA CON SESIÓN YA ABIERTA —
-                // deliberadamente genérico, sin explicar el motivo.
+                // deliberadamente genérico y con tono de incidente técnico,
+                // no de sanción: el usuario no debe sentir que lo echaron.
                 Swal.fire({
-                    title: "Sesión cerrada",
-                    icon: "warning",
+                    title: "Lo sentimos",
+                    icon: "info",
                     text: status,
                     draggable: true,
                     confirmButtonText: 'Entendido'

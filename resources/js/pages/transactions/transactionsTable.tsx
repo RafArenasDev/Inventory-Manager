@@ -119,7 +119,7 @@ export default function TransactionsTable({
     return (
         <div className="space-y-3">
             <div className="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
-                <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                <div className="flex flex-col gap-2 sm:min-w-0 sm:flex-1 sm:flex-row sm:items-center">
                     <SearchInput
                         placeholder="Buscar por descripción o referencia..."
                         searchValue={search}
