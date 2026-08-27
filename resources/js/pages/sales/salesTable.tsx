@@ -1,21 +1,13 @@
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from "@/components/ui/table"
-import { Button } from "@/components/ui/button"
-import { IconActionButton } from "@/components/icon-action-button"
-import { Ban, Printer, Eye, Download, Receipt } from "lucide-react"
-import { Pagination } from "@/components/ui/pagination"
-import { router } from "@inertiajs/react"
-import axios from "axios"
+import { IconActionButton } from '@/components/icon-action-button';
+import { PeriodFilter } from '@/components/period-filter';
+import { Button } from '@/components/ui/button';
+import { Pagination } from '@/components/ui/pagination';
+import SearchInput from '@/components/ui/search-input';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { formatDate } from '@/lib/format-datetime';
 import Swal from '@/lib/swal';
-import SearchInput from "@/components/ui/search-input"
-import { PeriodFilter } from "@/components/period-filter"
-import { formatDate } from "@/lib/format-datetime"
+import { router } from '@inertiajs/react';
+import { Ban, Download, Eye, Printer, Receipt } from 'lucide-react';
 
 interface SaleItem {
     id: number;
@@ -94,7 +86,9 @@ interface SalesTableProps {
 }
 
 const formatCurrency = (value: number): string => {
-    return `$ ${Math.round(value).toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.')}`;
+    return `$ ${Math.round(value)
+        .toString()
+        .replace(/\B(?=(\d{3})+(?!\d))/g, '.')}`;
 };
 
 export default function SalesTable({
@@ -114,34 +108,38 @@ export default function SalesTable({
 }: SalesTableProps) {
     const handleCancel = (sale: Sale) => {
         Swal.fire({
-            title: "¿Estás seguro?",
+            title: '¿Estás seguro?',
             text: `Esta acción anulará la venta ${sale.invoice_number}`,
-            icon: "warning",
+            icon: 'warning',
             showCancelButton: true,
-            confirmButtonColor: "#3085d6",
-            cancelButtonColor: "#d33",
-            confirmButtonText: "Sí, anular!",
-            cancelButtonText: "Cancelar",
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Sí, anular!',
+            cancelButtonText: 'Cancelar',
         }).then((result) => {
             if (result.isConfirmed) {
-                router.post(route('sales.cancel', sale.id), {}, {
-                    onSuccess: () => {
-                        Swal.fire({
-                            title: "Anulada!",
-                            text: "La venta ha sido anulada.",
-                            icon: "success",
-                            timer: 2200,
-                            showConfirmButton: false,
-                        });
+                router.post(
+                    route('sales.cancel', sale.id),
+                    {},
+                    {
+                        onSuccess: () => {
+                            Swal.fire({
+                                title: 'Anulada!',
+                                text: 'La venta ha sido anulada.',
+                                icon: 'success',
+                                timer: 2200,
+                                showConfirmButton: false,
+                            });
+                        },
+                        onError: () => {
+                            Swal.fire({
+                                title: 'Error!',
+                                text: 'No se pudo anular la venta.',
+                                icon: 'error',
+                            });
+                        },
                     },
-                    onError: () => {
-                        Swal.fire({
-                            title: "Error!",
-                            text: "No se pudo anular la venta.",
-                            icon: "error",
-                        });
-                    },
-                });
+                );
             }
         });
     };
@@ -153,7 +151,7 @@ export default function SalesTable({
         window.open(exportUrl, '_blank');
     };
 
-    const showActionsColumn = userPermissions.includes('Eliminar Ventas') || sales.data.some(sale => sale.public_invoice_url);
+    const showActionsColumn = userPermissions.includes('Eliminar Ventas') || sales.data.some((sale) => sale.public_invoice_url);
 
     return (
         <div className="space-y-3">
@@ -180,8 +178,7 @@ export default function SalesTable({
                 )}
             </div>
 
-
-            <div className="rounded-md bg-card shadow-lg shadow-black/10 dark:shadow-black/60 overflow-hidden">
+            <div className="bg-card overflow-hidden rounded-md shadow-lg shadow-black/10 dark:shadow-black/60">
                 <Table>
                     <TableHeader className="bg-gray-400 dark:bg-gray-700">
                         <TableRow>
@@ -206,11 +203,11 @@ export default function SalesTable({
                                 <TableCell>{sale.items.length}</TableCell>
                                 <TableCell>
                                     {sale.is_cancelled ? (
-                                        <span className="text-xs px-3 py-0.5 rounded-full bg-rose-600 text-white font-bold w-fit shadow-sm dark:bg-rose-700">
+                                        <span className="w-fit rounded-full bg-rose-600 px-3 py-0.5 text-xs font-bold text-white shadow-sm dark:bg-rose-700">
                                             Anulada
                                         </span>
                                     ) : (
-                                        <span className="text-xs px-3 py-0.5 rounded-full bg-emerald-600 text-white font-bold w-fit shadow-sm dark:bg-emerald-700">
+                                        <span className="w-fit rounded-full bg-emerald-600 px-3 py-0.5 text-xs font-bold text-white shadow-sm dark:bg-emerald-700">
                                             Activa
                                         </span>
                                     )}
