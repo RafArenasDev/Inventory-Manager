@@ -19,14 +19,6 @@ return new class extends Migration
             $table->string('password');
             $table->boolean('must_change_password')->default(false);
             $table->boolean('is_active')->default(true);
-            // Contador persistente de intentos fallidos de login (no se
-            // resetea con la ventana del RateLimiter en caché) — dirige la
-            // espera progresiva y, al llegar al tope, el bloqueo duro de abajo.
-            $table->unsignedTinyInteger('failed_login_attempts')->default(0);
-            // Bloqueo duro tras un ataque sostenido: mientras esté seteado,
-            // el login se rechaza aunque la contraseña sea correcta — solo
-            // se libera restableciendo la contraseña por correo.
-            $table->timestamp('security_locked_at')->nullable();
             $table->rememberToken();
             $table->timestamps();
         });
