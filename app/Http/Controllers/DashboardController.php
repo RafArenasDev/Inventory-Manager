@@ -2,13 +2,16 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\CashRegister;
 use App\Models\Category;
 use App\Models\City;
 use App\Models\Client;
 use App\Models\Department;
 use App\Models\InventoryMovement;
 use App\Models\Product;
+use App\Models\PurchaseOrder;
 use App\Models\PurchaseOrderItem;
+use App\Models\Role;
 use App\Models\Sale;
 use App\Models\Supplier;
 use App\Models\Transaction;
@@ -114,6 +117,10 @@ class DashboardController extends Controller
                 'movimientos' => InventoryMovement::count(),
                 'categorias' => Category::count(),
                 'productos' => Product::count(),
+                'roles' => Role::count(),
+                'pedidos' => PurchaseOrder::count(),
+                'caja' => CashRegister::count(),
+                'finanzas' => Transaction::count(),
             ],
             'financials' => $financials,
             'charts' => [

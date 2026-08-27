@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import AppLayout from '@/layouts/app-layout';
+import { useLiveRefresh } from '@/hooks/use-live-refresh';
 import { LinkProps, type BreadcrumbItem } from '@/types';
 import { Head, router, usePage } from '@inertiajs/react';
 import ProductsTable from './productsTable';
@@ -92,6 +93,8 @@ export default function ProductIndex({
     totalCount,
     filteredCount,
 }: ProductIndexProps) {
+    useLiveRefresh(['inventory'], () => router.reload());
+
     const [isCreating, setIsCreating] = useState(false);
     const [isImporting, setIsImporting] = useState(false);
     const [editingProduct, setEditingProduct] = useState<ProductForForm | null>(null);
@@ -207,7 +210,7 @@ export default function ProductIndex({
                     )}
                 </PageHeader>
                 <div className={`relative rounded-xl bg-card shadow-lg shadow-black/10 dark:shadow-black/60 overflow-hidden ${hasMultiplePages ? 'flex-1' : ''}`}>
-                    <div className={`h-full ${hasMultiplePages ? 'px-6 py-4' : 'p-6'}`}>
+                    <div className="h-full px-6 py-4">
                     <ProductsTable
                         products={products}
                         perPage={filters.per_page || '10'}

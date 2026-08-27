@@ -21,6 +21,12 @@
     --color-card: var(--card);
     --color-card-foreground: var(--card-foreground);
 
+    /* Tono propio del header superior — antes reutilizaba --card y en modo
+       oscuro quedaba idéntico a la card de las tablas, sin diferencia
+       perceptible entre "la barra de arriba" y "el contenido". En claro
+       sigue siendo exactamente --card (nadie pidió tocar ese tema). */
+    --color-header: var(--header);
+
     --color-popover: var(--popover);
     --color-popover-foreground: var(--popover-foreground);
 
@@ -86,6 +92,9 @@
     --foreground: oklch(0.145 0 0);
     --card: oklch(1 0 0);
     --card-foreground: oklch(0.145 0 0);
+    /* En claro el header sigue viéndose igual que la card (nadie pidió
+       tocar ese tema) — el tono propio solo aplica en .dark, más abajo. */
+    --header: var(--card);
     --popover: oklch(1 0 0);
     --popover-foreground: oklch(0.145 0 0);
     --primary: oklch(0.205 0 0);
@@ -110,31 +119,38 @@
     /* La sidebar siempre usa el tono oscuro, sin importar el tema
        claro/oscuro de la app — es "chrome" de navegación, no contenido, y
        así el resaltado del item activo tiene contraste real (antes, en
-       tema claro, sidebar y highlight eran casi el mismo blanco). Se
-       sube un poco de oklch(0.100) a oklch(0.15) porque en tema oscuro
-       quedaba casi idéntica al fondo (oklch(0) puro) — ahora se
-       distingue tanto del fondo oscuro como del canvas claro. */
+       tema claro, sidebar y highlight eran casi el mismo blanco).
+       oklch(0.15) queda deliberadamente por ENCIMA del header (0.09) y
+       muy por encima del fondo (0.04) — ver la escalera completa en
+       .dark: fondo (0.04) < header (0.09) < sidebar (0.15) < card (0.18)
+       < muted (0.22). Pasos de 0.05-0.06, pensados para que la diferencia
+       se note sin tener que fijarse. */
     --sidebar: oklch(0.15 0 0);
     --sidebar-foreground: oklch(0.985 0 0);
     --sidebar-primary: oklch(0.980 0 0);
     --sidebar-primary-foreground: oklch(0.985 0 0);
-    --sidebar-accent: oklch(0.24 0 0);
+    --sidebar-accent: oklch(0.26 0 0);
     --sidebar-accent-foreground: oklch(0.985 0 0);
-    --sidebar-border: oklch(0.22 0 0);
+    --sidebar-border: oklch(0.20 0 0);
     --sidebar-ring: oklch(0.439 0 0);
 }
 
 .dark {
-    /* Antes background era negro absoluto (0) y card oklch(0.145) — muy
-       cerca uno del otro y, sobre todo, casi idéntico a la sidebar fija
-       (0.100), que quedaba "fundida" con el módulo detrás. Se sube el
-       canvas a 0.08 (negro suave, no OLED) para dejar aire debajo de la
-       sidebar (0.15) y de las card (0.16). */
-    --background: oklch(0.08 0 0);
+    /* Escalera de profundidad en modo oscuro — pasos grandes (0.05-0.06 de
+       lightness, no 0.01-0.03) para que la diferencia sea obvia incluso
+       con baja visión, no algo que solo se note mirando de cerca en un
+       monitor calibrado:
+         fondo (0.04) < header (0.09) < sidebar (0.15, fija en :root)
+           < card/tabla (0.18) < muted (0.22, sin tocar)
+       La sidebar queda deliberadamente MÁS CLARA que el header (no al
+       revés) — es el panel de navegación, tiene que leerse como una
+       superficie propia, no como una franja oscura pegada al fondo. */
+    --background: oklch(0.04 0 0);
     --foreground: oklch(0.985 0 0);
-    --card: oklch(0.16 0 0);
+    --card: oklch(0.18 0 0);
     --card-foreground: oklch(0.985 0 0);
-    --popover: oklch(0.16 0 0);
+    --header: oklch(0.09 0 0);
+    --popover: oklch(0.18 0 0);
     --popover-foreground: oklch(0.985 0 0);
     --primary: oklch(0.985 0 0);
     --primary-foreground: oklch(0.205 0 0);
@@ -165,4 +181,15 @@
     body {
         @apply bg-background text-foreground;
     }
+}
+
+/* Cuando un Swal se dispara con un Dialog de Radix abierto (p.ej. dentro del
+   acordeón de pedidos), Radix pone pointer-events:none en <body> para
+   bloquear el fondo — el popup de SweetAlert2 vive en su propio portal
+   fuera del Dialog, así que hereda ese "none" y no se puede cerrar aunque
+   se vea encima. Se reactiva explícitamente y se sube por delante de
+   cualquier z-index de Radix. */
+.swal2-container {
+    z-index: 99999 !important;
+    pointer-events: auto !important;
 }

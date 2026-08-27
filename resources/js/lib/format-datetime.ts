@@ -28,7 +28,15 @@ export function formatTime(value: string | null | undefined): string {
     const date = new Date(value);
     if (isNaN(date.getTime())) return '-';
 
-    return date.toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit', hour12: true });
+    // A mano en vez de Intl: el locale es-CO devuelve "a. m."/"p. m." en
+    // minúscula y con puntos — acá siempre sale "AM"/"PM" en mayúscula, sin
+    // importar el navegador.
+    const hours24 = date.getHours();
+    const minutes = date.getMinutes();
+    const period = hours24 >= 12 ? 'PM' : 'AM';
+    const hours12 = hours24 % 12 || 12;
+
+    return `${String(hours12).padStart(2, '0')}:${String(minutes).padStart(2, '0')} ${period}`;
 }
 
 export function formatDateTime(value: string | null | undefined): string {

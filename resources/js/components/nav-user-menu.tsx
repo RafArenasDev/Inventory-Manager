@@ -30,7 +30,11 @@ export function NavUserMenu() {
                         <ChevronDown className="size-4 text-muted-foreground" />
                     </button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-56 rounded-lg" align="end" side="bottom">
+                {/* bg-header (no el bg-popover por defecto): este menú
+                    cuelga directo del header, tiene que leerse como parte
+                    de esa misma superficie, no como una card flotante de
+                    otro tono. */}
+                <DropdownMenuContent className="w-56 rounded-lg bg-header" align="end" side="bottom">
                     <UserMenuContent onOpenProfile={() => setProfileOpen(true)} onOpenPassword={() => setPasswordOpen(true)} />
                 </DropdownMenuContent>
             </DropdownMenu>

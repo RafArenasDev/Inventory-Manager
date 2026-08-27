@@ -1,12 +1,16 @@
 <?php
+
 namespace App\Models;
 
+use App\Models\Concerns\BroadcastsModelChanges;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class CashRegister extends Model
 {
-    use HasFactory;
+    use BroadcastsModelChanges, HasFactory;
+
+    protected $broadcastChannelName = 'finance';
 
     protected $fillable = [
         'register_date',
@@ -25,16 +29,16 @@ class CashRegister extends Model
     ];
 
     protected $casts = [
-        'register_date'  => 'date',
+        'register_date' => 'date',
         'opening_amount' => 'integer',
         'closing_amount' => 'integer',
-        'total_sales'    => 'integer',
-        'total_income'   => 'integer',
+        'total_sales' => 'integer',
+        'total_income' => 'integer',
         'total_expenses' => 'integer',
-        'difference'     => 'integer',
-        'opened_at'      => 'datetime',
-        'closed_at'      => 'datetime',
-        'is_closed'      => 'boolean',
+        'difference' => 'integer',
+        'opened_at' => 'datetime',
+        'closed_at' => 'datetime',
+        'is_closed' => 'boolean',
     ];
 
     public function openedBy()
@@ -74,12 +78,12 @@ class CashRegister extends Model
     // Formatos
     public function getFormattedOpeningAmountAttribute()
     {
-        return '$' . number_format($this->opening_amount, 0, ',', '.');
+        return '$'.number_format($this->opening_amount, 0, ',', '.');
     }
 
     public function getFormattedClosingAmountAttribute()
     {
-        return '$' . number_format($this->closing_amount ?? 0, 0, ',', '.');
+        return '$'.number_format($this->closing_amount ?? 0, 0, ',', '.');
     }
 
     public function getFormattedDifferenceAttribute()
@@ -88,7 +92,7 @@ class CashRegister extends Model
             return null;
         }
         $sign = $this->difference >= 0 ? '+' : '';
-        return $sign . '$' . number_format($this->difference, 0, ',', '.');
-    }
 
+        return $sign.'$'.number_format($this->difference, 0, ',', '.');
+    }
 }

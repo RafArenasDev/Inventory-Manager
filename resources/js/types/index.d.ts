@@ -25,6 +25,14 @@ export interface NavItem {
     group?: string | null;
 }
 
+export interface SidebarModule {
+    key: string;
+    label: string;
+    icon: string | null;
+    route: string | null;
+    group: string | null;
+}
+
 export interface SharedData {
     name: string;
     appVersion: string;

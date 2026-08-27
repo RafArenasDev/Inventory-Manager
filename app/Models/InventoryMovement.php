@@ -1,20 +1,24 @@
 <?php
+
 namespace App\Models;
 
+use App\Models\Concerns\BroadcastsModelChanges;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class InventoryMovement extends Model
 {
-    use HasFactory;
+    use BroadcastsModelChanges, HasFactory;
+
+    protected $broadcastChannelName = 'inventory';
 
     protected $fillable = [
         'product_id', 'supplier_id', 'purchase_order_id', 'type', 'quantity', 'date', 'notes', 'cancelled_at',
     ];
 
     protected $casts = [
-        'date'         => 'date',
-        'quantity'     => 'integer',
+        'date' => 'date',
+        'quantity' => 'integer',
         'cancelled_at' => 'datetime',
     ];
 

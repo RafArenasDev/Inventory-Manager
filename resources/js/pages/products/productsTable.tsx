@@ -146,7 +146,7 @@ export default function ProductsTable({
                     placeholder="Buscar por código, nombre o proveedor..."
                     searchValue={search}
                     onSearch={onSearch}
-                    className="w-full sm:max-w-md"
+                    className="w-full sm:max-w-lg"
                 />
             </div>
 

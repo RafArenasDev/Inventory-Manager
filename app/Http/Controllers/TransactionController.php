@@ -229,7 +229,7 @@ class TransactionController extends Controller
             $sheet->setCellValue('D'.$row, $transaction->amount); // Guardar como número para poder sumar
             $sheet->setCellValue('E'.$row, $transaction->payment_method ?? '');
             $sheet->setCellValue('F'.$row, $transaction->transaction_date ? date('d/m/Y', strtotime($transaction->transaction_date)) : '');
-            $sheet->setCellValue('G'.$row, $transaction->transaction_time ? date('h:i a', strtotime($transaction->transaction_time)) : '');
+            $sheet->setCellValue('G'.$row, $transaction->transaction_time ? date('h:i A', strtotime($transaction->transaction_time)) : '');
             $sheet->setCellValue('H'.$row, $transaction->invoice_number ?? ($transaction->sale->invoice_number ?? ''));
             $sheet->setCellValue('I'.$row, $transaction->description ?? '');
             $sheet->setCellValue('J'.$row, $transaction->notes ?? '');

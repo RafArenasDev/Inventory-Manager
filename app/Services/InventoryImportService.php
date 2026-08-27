@@ -6,6 +6,7 @@ use App\Models\Category;
 use App\Models\InventoryMovement;
 use App\Models\Product;
 use App\Models\PurchaseOrder;
+use App\Models\PurchaseOrderItem;
 use App\Models\Supplier;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
@@ -82,6 +83,7 @@ class InventoryImportService
                 $validated = $this->validateRow($row, $index + 2, $categoriesByName, $suppliersByName, $productsByCode);
                 if (! empty($validated['errors'])) {
                     $skipped++;
+
                     continue;
                 }
 
@@ -133,7 +135,7 @@ class InventoryImportService
                 }
 
                 if ($purchaseOrderId) {
-                    $item = \App\Models\PurchaseOrderItem::where('purchase_order_id', $purchaseOrderId)
+                    $item = PurchaseOrderItem::where('purchase_order_id', $purchaseOrderId)
                         ->where('product_id', $product->id)
                         ->first();
                     if ($item) {
@@ -145,7 +147,7 @@ class InventoryImportService
             if ($purchaseOrderId) {
                 $order = PurchaseOrder::with('items')->find($purchaseOrderId);
                 if ($order && $order->isFullyReceived() && $order->status !== 'Recibido') {
-                    $order->update(['status' => 'Recibido', 'received_at' => now()]);
+                    $order->update(['status' => 'Recibido', 'received_at' => now(), 'received_by' => auth()->id()]);
                 }
             }
         });

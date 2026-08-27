@@ -12,7 +12,12 @@ export function PageHeader({ icon: Icon, title, description, children }: PageHea
     return (
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center gap-3">
-                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-border bg-muted/50 text-foreground">
+                {/* Relleno invertido a propósito: bg-foreground/text-background
+                    da negro-sobre-blanco en claro y blanco-sobre-negro en
+                    oscuro — mismo contraste fuerte en los dos temas, sin
+                    depender de un color fijo que en uno de los dos se
+                    apague. */}
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-foreground text-background">
                     <Icon className="h-5 w-5" />
                 </div>
                 <div>

@@ -22,6 +22,19 @@ return new class extends Migration
             $table->text('notes')->nullable();
             $table->date('expected_at')->nullable();
             $table->timestamp('received_at')->nullable();
+            $table->foreignId('received_by')->nullable()->constrained('users')->onDelete('set null');
+            // Fija en la creación (no se recalcula al editar): si algún ítem
+            // pedido estaba en alerta de stock bajo en ese momento, es un
+            // pedido "por alertas" — el selector de productos de ese pedido
+            // (crear y editar) solo ofrece productos en alerta. Uno "normal"
+            // solo ofrece productos sin alerta. Mantiene los dos carriles
+            // separados: alertas para reponer lo que falta, normal para
+            // pedir más de algo que ya está bien.
+            $table->boolean('is_low_stock_order')->default(false);
+            // Quién hizo el último cambio de productos/notas/proveedor vía
+            // "Editar Pedido" — separado de requested_by (quién lo creó) y
+            // received_by (quién lo recibió). Null si nunca se editó.
+            $table->foreignId('updated_by')->nullable()->constrained('users')->onDelete('set null');
             $table->timestamps();
 
             $table->index('status');

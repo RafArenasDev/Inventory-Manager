@@ -67,7 +67,10 @@ export function PeriodFilter({ onChange }: PeriodFilterProps) {
     return (
         <Popover>
             <PopoverTrigger asChild>
-                <Button variant="outline" size="sm" className="shrink-0 gap-2 bg-card hover:bg-card/70">
+                {/* h-9 explícito: size="sm" da h-8 (32px), 4px menos que el
+                    input de búsqueda (h-9, 36px) — quedaban desalineados
+                    en la misma fila. */}
+                <Button variant="outline" size="sm" className="h-9 shrink-0 gap-2 bg-card hover:bg-card/70">
                     <Filter className="h-4 w-4" />
                     {monthLabel} {year}
                 </Button>
@@ -84,7 +87,7 @@ export function PeriodFilter({ onChange }: PeriodFilterProps) {
                             onValueChange={(o: Option | null) => o && setYear(o.value)}
                         >
                             <ComboboxInput className="w-28" />
-                            <ComboboxContent>
+                            <ComboboxContent className="bg-card">
                                 <ComboboxEmpty>Sin resultados.</ComboboxEmpty>
                                 <ComboboxList>{(option: Option) => <ComboboxItem key={option.value} value={option}>{option.label}</ComboboxItem>}</ComboboxList>
                             </ComboboxContent>
@@ -101,7 +104,7 @@ export function PeriodFilter({ onChange }: PeriodFilterProps) {
                             onValueChange={(o: Option | null) => o && setMonth(o.value)}
                         >
                             <ComboboxInput className="w-36" />
-                            <ComboboxContent>
+                            <ComboboxContent className="bg-card">
                                 <ComboboxEmpty>Sin resultados.</ComboboxEmpty>
                                 <ComboboxList>{(option: Option) => <ComboboxItem key={option.value} value={option}>{option.label}</ComboboxItem>}</ComboboxList>
                             </ComboboxContent>

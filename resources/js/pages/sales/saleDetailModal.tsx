@@ -9,6 +9,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Button } from '@/components/ui/button';
 import { WhatsAppIcon } from '@/components/icons/whatsapp-icon';
 import Swal from '@/lib/swal';
+import { formatWhatsAppNumber, getWhatsAppGreeting } from '@/lib/whatsapp';
 
 export interface SaleItem {
     id: number;
@@ -72,27 +73,12 @@ const formatDate = (dateString: string): string => {
     return `${day}/${month}/${year}`;
 };
 
-const formatWhatsAppNumber = (rawNumber: string): string => {
-    const digits = rawNumber.replace(/\D/g, '');
-    if (digits.length === 10 && digits.startsWith('3')) {
-        return `57${digits}`;
-    }
-    return digits;
-};
-
 export default function SaleDetailModal({ isOpen, onClose, sale, businessName }: SaleDetailModalProps) {
     if (!sale) return null;
 
     const handleSendToWhatsApp = () => {
         if (sale.client?.cellphone && sale.public_invoice_url) {
-            const bogotaTime = new Date().toLocaleString('en-US', { timeZone: 'America/Bogota', hour: 'numeric', hour12: false });
-            const hour = parseInt(bogotaTime);
-            let greeting = 'Buenas noches';
-            if (hour < 12) {
-                greeting = 'Buenos días';
-            } else if (hour < 18) {
-                greeting = 'Buenas tardes';
-            }
+            const greeting = getWhatsAppGreeting();
             const pdfUrl = `${window.location.origin}${sale.public_invoice_url}`;
             const message = encodeURIComponent(`${greeting}, de parte de ${businessName}. ¡Aquí está su recibo de pago adjunto!`);
             const link = `https://wa.me/${formatWhatsAppNumber(sale.client.cellphone)}?text=${message}`;

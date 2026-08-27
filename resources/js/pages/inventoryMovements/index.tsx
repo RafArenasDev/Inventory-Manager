@@ -7,6 +7,7 @@ import { ClipboardList, Plus, Upload } from 'lucide-react';
 import InventoryMovementsTable from './inventoryMovementsTable';
 import InventoryMovementForm from './inventoryMovementForm';
 import { PageHeader } from '@/components/page-header';
+import { useLiveRefresh } from '@/hooks/use-live-refresh';
 import { InventoryImportDialog } from '@/components/inventory-import-dialog';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { ConfirmDialog } from '@/components/confirm-dialog';
@@ -90,6 +91,8 @@ export default function InventoryMovementsIndex({
   totalCount,
   filteredCount,
 }: InventoryMovementIndexProps) {
+  useLiveRefresh(['inventory'], () => router.reload());
+
   const [isCreating, setIsCreating] = useState(false);
   const [isImporting, setIsImporting] = useState(false);
   const [editingMovement, setEditingMovement] = useState<InventoryMovementForForm | null>(null);
@@ -197,7 +200,7 @@ export default function InventoryMovementsIndex({
           )}
         </PageHeader>
         <div className={`relative rounded-xl bg-card shadow-lg shadow-black/10 dark:shadow-black/60 overflow-hidden ${hasMultiplePages ? 'flex-1' : ''}`}>
-          <div className={`h-full ${hasMultiplePages ? 'px-6 py-4' : 'p-6'}`}>
+          <div className="h-full px-6 py-4">
             <InventoryMovementsTable
               movements={movements}
               products={products}

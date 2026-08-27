@@ -104,7 +104,7 @@ export default function CategoriesTable({
                     placeholder="Buscar por nombre de categoría..."
                     searchValue={search}
                     onSearch={onSearch}
-                    className="w-full sm:max-w-md"
+                    className="w-full sm:max-w-lg"
                 />
             </div>
 

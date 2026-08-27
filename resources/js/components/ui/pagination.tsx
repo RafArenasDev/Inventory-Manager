@@ -71,6 +71,8 @@ export const Pagination = ({
                     <p>
                         Mostrando <b>{filteredCount}</b> resultado{filteredCount !== 1 && 's'} filtrado{filteredCount !== 1 && 's'} de <b>{totalCount}</b> registro{totalCount !== 1 ? 's' : ''}
                     </p>
+                ) : data.total === 0 ? (
+                    <p>No hay registros para mostrar</p>
                 ) : (
                     <p>
                         Mostrando <b>{data.from}</b> a <b>{data.to}</b> de <b>{data.total}</b> registro{data.total !== 1 ? 's' : ''}
@@ -152,7 +154,7 @@ export const Pagination = ({
                     onValueChange={(value: string | null) => value && handlePerPageChange(value)}
                 >
                     <ComboboxInput placeholder={perPage} className="w-[70px] text-xs sm:w-[90px] sm:text-sm" />
-                    <ComboboxContent>
+                    <ComboboxContent className="bg-card">
                         <ComboboxEmpty>No se encontraron resultados.</ComboboxEmpty>
                         <ComboboxList>
                             {(option: string) => (

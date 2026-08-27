@@ -1,12 +1,16 @@
 <?php
+
 namespace App\Models;
 
+use App\Models\Concerns\BroadcastsModelChanges;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class PurchaseOrderItem extends Model
 {
-    use HasFactory;
+    use BroadcastsModelChanges, HasFactory;
+
+    protected $broadcastChannelName = 'purchase-orders';
 
     protected $fillable = [
         'purchase_order_id',
@@ -18,8 +22,8 @@ class PurchaseOrderItem extends Model
 
     protected $casts = [
         'quantity_requested' => 'integer',
-        'quantity_received'  => 'integer',
-        'unit_cost'          => 'integer',
+        'quantity_received' => 'integer',
+        'unit_cost' => 'integer',
     ];
 
     public function purchaseOrder()

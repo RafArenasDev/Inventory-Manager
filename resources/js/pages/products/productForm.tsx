@@ -656,7 +656,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
 
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Proveedor
+              Proveedor *
             </label>
             <Combobox
               items={suppliers}
@@ -665,7 +665,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
               value={suppliers.find(s => s.id.toString() === data.supplier_id?.toString()) ?? null}
               onValueChange={(s: Supplier | null) => setData('supplier_id', s ? s.id.toString() : '')}
             >
-              <ComboboxInput placeholder="Seleccionar proveedor" showClear className="w-full" />
+              <ComboboxInput placeholder="Seleccionar proveedor" className="w-full" />
               <ComboboxContent>
                 <ComboboxEmpty>No se encontraron proveedores.</ComboboxEmpty>
                 <ComboboxList>

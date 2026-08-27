@@ -175,9 +175,9 @@ class InventoryMovementController extends Controller
         }
 
         if ($purchaseOrder->isFullyReceived() && $purchaseOrder->status !== 'Recibido') {
-            $purchaseOrder->update(['status' => 'Recibido', 'received_at' => now()]);
+            $purchaseOrder->update(['status' => 'Recibido', 'received_at' => now(), 'received_by' => auth()->id()]);
         } elseif (! $purchaseOrder->isFullyReceived() && $purchaseOrder->status === 'Recibido') {
-            $purchaseOrder->update(['status' => 'Solicitado', 'received_at' => null]);
+            $purchaseOrder->update(['status' => 'Solicitado', 'received_at' => null, 'received_by' => null]);
         }
     }
 

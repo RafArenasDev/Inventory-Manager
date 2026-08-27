@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\SupplierRequest;
 use App\Models\Supplier;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -72,7 +73,7 @@ class SupplierController extends Controller
     /**
      * Summary of store
      */
-    public function store(SupplierRequest $request): RedirectResponse
+    public function store(SupplierRequest $request): RedirectResponse|JsonResponse
     {
         $supplier = Supplier::create([
             'name' => $request->name,
@@ -86,6 +87,14 @@ class SupplierController extends Controller
             'description' => $request->description,
             'is_active' => true,
         ]);
+
+        // Creación rápida desde fuera del módulo de Proveedores (p.ej. el
+        // combobox "crear proveedor" del modal de alertas de stock): sin
+        // header de Inertia, se responde JSON en vez de redirigir, para no
+        // sacar al usuario de donde estaba.
+        if (! $request->header('X-Inertia')) {
+            return response()->json(['supplier' => $supplier]);
+        }
 
         return redirect()->route('suppliers.index')->with('success', 'Proveedor creado correctamente.');
     }

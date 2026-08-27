@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import AppLayout from '@/layouts/app-layout';
+import { useLiveRefresh } from '@/hooks/use-live-refresh';
 import { LinkProps, type BreadcrumbItem } from '@/types';
 import { Head, router, usePage } from '@inertiajs/react';
 import SuppliersTable from './suppliersTable';
@@ -67,6 +68,8 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 export default function SupplierIndex({ suppliers, filters, totalCount, filteredCount }: SupplierIndexProps) {
+    useLiveRefresh(['inventory'], () => router.reload());
+
     const [isCreating, setIsCreating] = useState(false);
     const [editingSupplier, setEditingSupplier] = useState<SupplierForForm | null>(null);
     const [isFormDirty, setIsFormDirty] = useState(false);
@@ -152,7 +155,7 @@ export default function SupplierIndex({ suppliers, filters, totalCount, filtered
                     )}
                 </PageHeader>
                 <div className={`relative rounded-xl bg-card shadow-lg shadow-black/10 dark:shadow-black/60 overflow-hidden ${hasMultiplePages ? 'flex-1' : ''}`}>
-                    <div className={`h-full ${hasMultiplePages ? 'px-6 py-4' : 'p-6'}`}>
+                    <div className="h-full px-6 py-4">
                         <SuppliersTable
                             suppliers={suppliers}
                             filters={filters}

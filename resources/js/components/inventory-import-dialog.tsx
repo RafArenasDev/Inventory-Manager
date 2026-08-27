@@ -4,6 +4,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Button } from '@/components/ui/button';
 import { Download, Upload } from 'lucide-react';
 import Swal from '@/lib/swal';
+import { csrfHeader } from '@/lib/csrf';
 
 interface PreviewRow {
     line: number;
@@ -52,7 +53,7 @@ export function InventoryImportDialog({ open, onOpenChange, purchaseOrderId }: I
             const res = await fetch(route('inventory-import.preview'), {
                 method: 'POST',
                 body: formData,
-                headers: { 'X-CSRF-TOKEN': (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content },
+                headers: csrfHeader(),
             });
             if (!res.ok) throw new Error('No se pudo leer el archivo.');
             const data: PreviewResponse = await res.json();

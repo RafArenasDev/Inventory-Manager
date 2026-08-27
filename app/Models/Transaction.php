@@ -1,12 +1,16 @@
 <?php
+
 namespace App\Models;
 
+use App\Models\Concerns\BroadcastsModelChanges;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Transaction extends Model
 {
-    use HasFactory;
+    use BroadcastsModelChanges, HasFactory;
+
+    protected $broadcastChannelName = 'finance';
 
     protected $fillable = [
         'transaction_category_id',
@@ -25,7 +29,7 @@ class Transaction extends Model
     protected $casts = [
         'transaction_date' => 'date',
         'transaction_time' => 'datetime:H:i:s',
-        'amount'           => 'integer',
+        'amount' => 'integer',
     ];
 
     public function category()
@@ -66,7 +70,7 @@ class Transaction extends Model
     // Accesor para formato de monto
     public function getFormattedAmountAttribute()
     {
-        return '$' . number_format($this->amount, 0, ',', '.');
+        return '$'.number_format($this->amount, 0, ',', '.');
     }
 
     // Accesor para tipo con color

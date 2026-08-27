@@ -1,12 +1,16 @@
 <?php
+
 namespace App\Models;
 
+use App\Models\Concerns\BroadcastsModelChanges;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class SaleItem extends Model
 {
-    use HasFactory;
+    use BroadcastsModelChanges, HasFactory;
+
+    protected $broadcastChannelName = 'sales';
 
     protected $fillable = [
         'sale_id',

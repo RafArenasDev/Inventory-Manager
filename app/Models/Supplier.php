@@ -1,13 +1,17 @@
 <?php
+
 namespace App\Models;
 
+use App\Models\Concerns\BroadcastsModelChanges;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
 
 class Supplier extends Model
 {
-    use HasFactory;
+    use BroadcastsModelChanges, HasFactory;
+
+    protected $broadcastChannelName = 'inventory';
 
     protected $fillable = [
         'name',
@@ -23,14 +27,14 @@ class Supplier extends Model
     ];
 
     protected $casts = [
-        'is_active'  => 'boolean',
+        'is_active' => 'boolean',
         'nit_number' => 'integer',
-        'nit_digit'  => 'string',
+        'nit_digit' => 'string',
     ];
 
     public function getNitAttribute()
     {
-        return $this->nit_number . '-' . $this->nit_digit;
+        return $this->nit_number.'-'.$this->nit_digit;
     }
 
     public function products()

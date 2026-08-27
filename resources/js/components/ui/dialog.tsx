@@ -55,7 +55,18 @@ function DialogContent({
       <DialogPrimitive.Content
         data-slot="dialog-content"
         className={cn(
-          "bg-background data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 fixed top-[50%] left-[50%] z-50 grid w-full max-w-[calc(100%-2rem)] translate-x-[-50%] translate-y-[-50%] gap-4 rounded-lg border p-6 shadow-lg duration-200 sm:max-w-lg",
+          // "width" (no "max-w") en la base, sin prefijo de breakpoint, para
+          // que el margen de 2rem se respete SIEMPRE — incluso en pantallas
+          // medianas donde ya aplica el sm:max-w-* de cada modal. Con
+          // "max-w-[calc(100%-2rem)]" ese tope se perdía apenas se cruzaba
+          // el breakpoint "sm" (640px) porque el max-w-* del caller pesaba
+          // más en la cascada y el modal quedaba pegado a los bordes de la
+          // pantalla, sin verse el fondo con blur detrás. "width" y
+          // "max-width" son propiedades distintas: esta siempre fija el
+          // ancho preferido, y el max-w-* de cada modal (sm:max-w-lg acá,
+          // o sm:max-w-4xl/5xl en los que lo overridean) sigue actuando
+          // como techo para pantallas grandes.
+          "bg-background data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 fixed top-[50%] left-[50%] z-50 grid w-[calc(100%-2rem)] translate-x-[-50%] translate-y-[-50%] gap-4 rounded-lg border p-6 shadow-lg duration-200 sm:max-w-lg",
           className
         )}
         {...props}

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useForm } from '@inertiajs/react';
 import Swal from '@/lib/swal';
+import { csrfHeader } from '@/lib/csrf';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
@@ -25,10 +26,13 @@ interface SupplierFormProps {
     onSaved: () => void;
     onDirtyChange?: (isDirty: boolean) => void;
     userPermissions: string[];
+    /** Crea por fetch/JSON en vez de un visit de Inertia — evita navegar fuera de donde se abrió el form (p.ej. desde el combobox "crear proveedor" del modal de alertas de stock). Solo aplica al crear, no al editar. */
+    submitViaFetch?: boolean;
+    onCreated?: (supplier: SupplierForForm & { id: number }) => void;
 }
 
-const SupplierForm: React.FC<SupplierFormProps> = ({ supplier, onCancel, onSaved, onDirtyChange, userPermissions }) => {
-    const { data, setData, post, put, processing, errors, reset, isDirty } = useForm({
+const SupplierForm: React.FC<SupplierFormProps> = ({ supplier, onCancel, onSaved, onDirtyChange, userPermissions, submitViaFetch = false, onCreated }) => {
+    const { data, setData, post, put, processing, errors, setError, reset, isDirty } = useForm({
         name: supplier?.name || '',
         representative: supplier?.representative || '',
         nit_number: supplier?.nit_number?.toString() || '',
@@ -108,6 +112,49 @@ const SupplierForm: React.FC<SupplierFormProps> = ({ supplier, onCancel, onSaved
                     });
                 },
             });
+        } else if (submitViaFetch) {
+            fetch(route('suppliers.store'), {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Accept: 'application/json',
+                    ...csrfHeader(),
+                },
+                body: JSON.stringify(data),
+            })
+                .then(async (res) => {
+                    if (!res.ok) {
+                        const body = await res.json().catch(() => null);
+                        if (res.status === 422 && body?.errors) {
+                            Object.entries(body.errors as Record<string, string[]>).forEach(([field, messages]) => {
+                                setError(field as keyof typeof data, messages[0]);
+                            });
+                            return;
+                        }
+                        throw new Error('request failed');
+                    }
+                    const body = await res.json();
+                    Swal.fire({
+                        position: "center",
+                        icon: "success",
+                        title: "Proveedor creado correctamente",
+                        showConfirmButton: false,
+                        timer: 2200
+                    });
+                    reset();
+                    onCreated?.(body.supplier);
+                    onSaved();
+                })
+                .catch(() => {
+                    Swal.fire({
+                        position: "center",
+                        icon: "error",
+                        title: "Error al crear el proveedor",
+                        text: 'Verifica los datos ingresados.',
+                        showConfirmButton: false,
+                        timer: 2200
+                    });
+                });
         } else {
             post(route('suppliers.store'), {
                 onSuccess: () => {

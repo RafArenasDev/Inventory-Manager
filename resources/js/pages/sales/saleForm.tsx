@@ -592,7 +592,7 @@ const SaleForm: React.FC<SaleFormProps> = ({ sale, onCancel, onSaved, onDirtyCha
                         </div>
                     </div>
                     <div className="flex flex-col flex-1 min-h-0 rounded-md border border-gray-200 dark:border-gray-800 overflow-hidden">
-                        <div className="flex-1 min-h-0 overflow-y-auto">
+                        <div className="flex-1 min-h-0 overflow-y-auto p-1.5">
                             <Table>
                                 <TableHeader className="bg-gray-100 dark:bg-white/[0.04] sticky top-0">
                                     <TableRow>

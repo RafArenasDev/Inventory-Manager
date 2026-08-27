@@ -115,7 +115,7 @@ export default function RolesTable({
                     placeholder="Buscar por nombre..."
                     searchValue={search}
                     onSearch={onSearch}
-                    className="w-full sm:max-w-md"
+                    className="w-full sm:max-w-lg"
                 />
             </div>
 

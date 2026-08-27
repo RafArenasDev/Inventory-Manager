@@ -1,12 +1,16 @@
 <?php
+
 namespace App\Models;
 
+use App\Models\Concerns\BroadcastsModelChanges;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Sale extends Model
 {
-    use HasFactory;
+    use BroadcastsModelChanges, HasFactory;
+
+    protected $broadcastChannelName = 'sales';
 
     protected $fillable = [
         'invoice_number',
@@ -27,8 +31,8 @@ class Sale extends Model
 
     protected $casts = [
         'is_cancelled' => 'boolean',
-        'sale_date'    => 'date',
-        'sale_time'    => 'datetime:H:i:s',
+        'sale_date' => 'date',
+        'sale_time' => 'datetime:H:i:s',
     ];
 
     public function client()
@@ -59,7 +63,7 @@ class Sale extends Model
             return 'A-000001';
         }
 
-        $parts  = explode('-', $lastSale->invoice_number);
+        $parts = explode('-', $lastSale->invoice_number);
         $letter = $parts[0];
         $number = intval($parts[1]);
 
@@ -74,6 +78,6 @@ class Sale extends Model
             $number++;
         }
 
-        return $letter . '-' . str_pad($number, 6, '0', STR_PAD_LEFT);
+        return $letter.'-'.str_pad($number, 6, '0', STR_PAD_LEFT);
     }
 }

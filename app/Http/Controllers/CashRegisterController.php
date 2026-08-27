@@ -91,10 +91,14 @@ class CashRegisterController extends Controller
         try {
             $this->openRegisterForToday(auth()->id(), $request->notes ?? '');
 
-            // Calcular props actualizados como en index
-            $updatedRequest = new Request; // Filtros por defecto
-
-            return $this->index($updatedRequest)->with('success', 'Caja abierta correctamente.');
+            // redirect() en vez de devolver $this->index() directo: Inertia
+            // fija la URL del navegador en la de la petición que respondió
+            // (POST /cash-register), no en la página que en realidad se ve.
+            // Con un redirect de verdad, la URL queda correcta en
+            // /cash-register — si no, cualquier refresco posterior (F5,
+            // sincronización en tiempo real) termina pegado ahí y revienta
+            // porque esa ruta no acepta GET.
+            return redirect()->route('cash-register.index')->with('success', 'Caja abierta correctamente.');
         } catch (\Exception $e) {
             Log::error('Error al abrir caja: '.$e->getMessage());
 
@@ -119,9 +123,21 @@ class CashRegisterController extends Controller
 
     private function openRegisterForToday(?int $openedBy, string $notes = ''): CashRegister
     {
-        $totalIncome = Transaction::where('type', 'Ingreso')->sum('amount');
-        $totalExpenses = Transaction::where('type', 'Gasto')->sum('amount');
-        $openingAmount = max(0, $totalIncome - $totalExpenses);
+        // El saldo de apertura es el cierre de la última caja cerrada — así
+        // se abre exactamente donde quedó el efectivo la vez anterior. Solo
+        // si nunca hubo una caja cerrada (negocio nuevo) se calcula desde el
+        // histórico de transacciones como respaldo.
+        $lastClosingAmount = CashRegister::whereNotNull('closing_amount')
+            ->orderByDesc('register_date')
+            ->value('closing_amount');
+
+        if ($lastClosingAmount !== null) {
+            $openingAmount = $lastClosingAmount;
+        } else {
+            $totalIncome = Transaction::where('type', 'Ingreso')->sum('amount');
+            $totalExpenses = Transaction::where('type', 'Gasto')->sum('amount');
+            $openingAmount = max(0, $totalIncome - $totalExpenses);
+        }
 
         return CashRegister::create([
             'register_date' => today(),
@@ -186,6 +202,26 @@ class CashRegisterController extends Controller
         return $register->fresh();
     }
 
+    /**
+     * Endpoint liviano para el watcher del frontend (poll periódico
+     * mientras la sesión sigue activa, sin recargar props de toda la app en
+     * cada tick): si ya pasó la hora de cierre y la caja de hoy sigue
+     * abierta, avisa para que se pueda ofrecer cerrarla ahí mismo, sin
+     * esperar a que el usuario cierre sesión.
+     */
+    public function status()
+    {
+        config(['app.timezone' => 'America/Bogota']);
+        date_default_timezone_set('America/Bogota');
+
+        $register = CashRegister::where('register_date', today())->where('is_closed', false)->first();
+
+        return response()->json([
+            'open_register_id' => $register?->id,
+            'past_close_time' => now()->format('H:i') >= self::BUSINESS_CLOSE,
+        ]);
+    }
+
     public function update(CashRegisterCloseRequest $request, CashRegister $cashRegister)
     {
         if ($cashRegister->is_closed) {
@@ -195,10 +231,10 @@ class CashRegisterController extends Controller
         try {
             $this->closeRegister($cashRegister, auth()->id(), $request->notes);
 
-            // Calcular props actualizados como en index
-            $updatedRequest = new Request; // Filtros por defecto
-
-            return $this->index($updatedRequest)->with('success', 'Caja cerrada correctamente.');
+            // Mismo motivo que en store(): redirect real para que la URL
+            // del navegador quede en /cash-register, no pegada en el
+            // /cash-register/{id} del PUT.
+            return redirect()->route('cash-register.index')->with('success', 'Caja cerrada correctamente.');
         } catch (\Exception $e) {
             Log::error('Error al cerrar caja: '.$e->getMessage());
 
@@ -327,10 +363,10 @@ class CashRegisterController extends Controller
             'opened_at' => $register->opened_at,
             'closed_at' => $register->closed_at,
             'opened_at_formatted' => $register->opened_at
-                ? $register->opened_at->format('d/m/Y - h:i a')
+                ? $register->opened_at->format('d/m/Y - h:i A')
                 : null,
             'closed_at_formatted' => $register->closed_at
-                ? $register->closed_at->format('d/m/Y - h:i a')
+                ? $register->closed_at->format('d/m/Y - h:i A')
                 : null,
             'is_closed' => $register->is_closed,
             'notes' => $register->notes ?? '',

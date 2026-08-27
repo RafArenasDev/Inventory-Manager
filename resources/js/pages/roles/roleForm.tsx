@@ -248,7 +248,7 @@ const RoleForm: React.FC<RoleFormProps> = ({
                         {allGloballySelected ? 'Desmarcar todo' : 'Marcar todo'}
                     </button>
                 </div>
-                <div className="divide-y divide-gray-200 dark:divide-gray-700 border border-gray-200 dark:border-gray-700 rounded-md flex-1 min-h-0 overflow-y-auto">
+                <div className="divide-y divide-gray-200 dark:divide-gray-700 border border-gray-200 dark:border-gray-700 rounded-md flex-1 min-h-0 overflow-y-auto p-1.5">
                     {catalogModules.map((module) => {
                         const modulePermissions = permissionsByModule.get(module.id) ?? [];
                         if (modulePermissions.length === 0) return null;

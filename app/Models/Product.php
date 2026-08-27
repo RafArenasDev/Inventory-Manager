@@ -1,13 +1,17 @@
 <?php
+
 namespace App\Models;
 
+use App\Models\Concerns\BroadcastsModelChanges;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
 
 class Product extends Model
 {
-    use HasFactory;
+    use BroadcastsModelChanges, HasFactory;
+
+    protected $broadcastChannelName = 'inventory';
 
     protected $fillable = [
         'code', 'category_id', 'name', 'description',
@@ -17,10 +21,10 @@ class Product extends Model
 
     protected $casts = [
         'price_without_tax' => 'integer',
-        'price_with_tax'    => 'integer',
-        'iva_value'         => 'integer',
-        'sale_price'        => 'integer',
-        'stock'             => 'integer',
+        'price_with_tax' => 'integer',
+        'iva_value' => 'integer',
+        'sale_price' => 'integer',
+        'stock' => 'integer',
     ];
 
     public function category()
