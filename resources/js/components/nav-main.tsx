@@ -17,32 +17,10 @@ import {
 import { type NavItem } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
 import { ChevronRight } from 'lucide-react';
-import { useState } from 'react';
-
-const GROUP_STATE_KEY = 'inventory_pos_sidebar_groups_v1';
-
-function loadGroupState(): Record<string, boolean> {
-    try {
-        const raw = localStorage.getItem(GROUP_STATE_KEY);
-        return raw ? JSON.parse(raw) : {};
-    } catch {
-        return {};
-    }
-}
-
-function saveGroupState(state: Record<string, boolean>) {
-    try {
-        localStorage.setItem(GROUP_STATE_KEY, JSON.stringify(state));
-    } catch {
-        // localStorage no disponible (modo privado, etc.) — solo se pierde
-        // la memoria de abierto/cerrado, no es crítico.
-    }
-}
 
 export function NavMain({ items = [] }: { items: NavItem[] }) {
     const page = usePage();
     const currentPath = page.url.split('?')[0];
-    const [openGroups, setOpenGroups] = useState<Record<string, boolean>>(() => loadGroupState());
 
     // Coincidencia por prefijo de path (no URL exacta): navegar dentro del
     // mismo módulo (búsqueda vía /modulo/search, paginación, /modulo/5/edit,
@@ -51,14 +29,6 @@ export function NavMain({ items = [] }: { items: NavItem[] }) {
         if (!href || href === '#') return false;
         if (href === '/') return currentPath === '/';
         return currentPath === href || currentPath.startsWith(`${href}/`);
-    };
-
-    const toggleGroup = (group: string) => {
-        setOpenGroups((prev) => {
-            const next = { ...prev, [group]: !(prev[group] ?? true) };
-            saveGroupState(next);
-            return next;
-        });
     };
 
     // Agrupa preservando el orden de llegada: los ítems sin `group` (hoy
@@ -140,32 +110,21 @@ export function NavMain({ items = [] }: { items: NavItem[] }) {
     return (
         <>
             {ungrouped.length > 0 && (
-                <SidebarGroup className="px-2 py-0">
+                <SidebarGroup className="px-2 pt-3 pb-0">
                     <SidebarMenu>{ungrouped.map(renderItem)}</SidebarMenu>
                 </SidebarGroup>
             )}
-            {groupOrder.map((group) => {
-                const isOpen = openGroups[group] ?? true;
-                return (
-                    <Collapsible key={group} open={isOpen} onOpenChange={() => toggleGroup(group)}>
-                        <SidebarGroup className="px-2 py-0">
-                            <CollapsibleTrigger asChild>
-                                <SidebarGroupLabel className="cursor-pointer select-none hover:text-sidebar-foreground">
-                                    {group}
-                                    <ChevronRight
-                                        className={`ml-auto size-3.5 transition-transform duration-200 ${isOpen ? 'rotate-90' : ''}`}
-                                    />
-                                </SidebarGroupLabel>
-                            </CollapsibleTrigger>
-                            <CollapsibleContent>
-                                <SidebarGroupContent>
-                                    <SidebarMenu>{groupedItems[group].map(renderItem)}</SidebarMenu>
-                                </SidebarGroupContent>
-                            </CollapsibleContent>
-                        </SidebarGroup>
-                    </Collapsible>
-                );
-            })}
+            {/* Grupos estáticos a propósito: el usuario pidió explícitamente
+                que hacer click en el nombre de un grupo NO colapse/guarde
+                nada — son títulos de sección, no controles. */}
+            {groupOrder.map((group) => (
+                <SidebarGroup key={group} className="px-2 py-0">
+                    <SidebarGroupLabel>{group}</SidebarGroupLabel>
+                    <SidebarGroupContent>
+                        <SidebarMenu>{groupedItems[group].map(renderItem)}</SidebarMenu>
+                    </SidebarGroupContent>
+                </SidebarGroup>
+            ))}
         </>
     );
 }

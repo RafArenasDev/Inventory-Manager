@@ -20,7 +20,7 @@ Route::get('/', function () {
     return redirect()->route('login');
 })->name('home');
 
-Route::middleware(['auth', 'verified'])->group(function () {
+Route::middleware(['auth', 'verified', 'active'])->group(function () {
 
     Route::get('/dashboard', [DashboardController::class, 'index'])
         ->middleware(['auth', 'verified'])
@@ -350,6 +350,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/export', [CashRegisterController::class, 'export'])
             ->name('cash-register.export')
             ->middleware('permission:Exportar Caja');
+        Route::get('/status', [CashRegisterController::class, 'status'])
+            ->name('cash-register.status')
+            ->middleware('permission:Ver Caja');
     });
 
 });

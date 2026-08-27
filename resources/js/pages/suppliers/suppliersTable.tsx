@@ -145,12 +145,12 @@ export default function SuppliersTable({
 
     return (
         <div className="space-y-3">
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
                 <SearchInput
                     placeholder="Buscar por nombre, representante o NIT..."
                     searchValue={search}
                     onSearch={onSearch}
-                    className="w-full sm:max-w-md"
+                    className="w-full sm:max-w-lg"
                 />
                 {userPermissions.includes('Exportar Proveedores') && (
                     <Button

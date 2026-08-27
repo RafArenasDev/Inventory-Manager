@@ -95,13 +95,13 @@ export default function CashRegisterTable({
 
     return (
         <div className="space-y-3">
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                <div className="flex w-full items-center gap-2 sm:max-w-md">
+            <div className="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
                     <SearchInput
                         placeholder="Buscar por usuario o notas..."
                         searchValue={search}
                         onSearch={onSearch}
-                        className="min-w-0 flex-1"
+                        className="w-full sm:max-w-lg"
                     />
                     <PeriodFilter onChange={onPeriodChange} />
                 </div>

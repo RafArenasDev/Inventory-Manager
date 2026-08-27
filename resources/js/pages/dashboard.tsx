@@ -1,6 +1,6 @@
-import { Users, Package, Tags, ShoppingCart, ArrowUpRight, ArrowDownRight, Truck, ClipboardList, TrendingUp, Download, LayoutGrid } from 'lucide-react';
+import { ShoppingCart, ArrowUpRight, ArrowDownRight, TrendingUp, Download, LayoutGrid } from 'lucide-react';
 import AppLayout from '@/layouts/app-layout';
-import { type BreadcrumbItem } from '@/types';
+import { type BreadcrumbItem, type SidebarModule } from '@/types';
 import { Head, router, usePage } from '@inertiajs/react';
 import { useState, useEffect, useRef } from 'react';
 import * as Chart from 'chart.js';
@@ -10,6 +10,61 @@ import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { PageHeader } from '@/components/page-header';
 import { ConfirmDialog } from '@/components/confirm-dialog';
+import { resolveIcon } from '@/lib/icon-map';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+
+// Color por módulo para las tarjetas de acceso directo — una entrada por
+// cada `key` de ModuleSeeder. Un módulo nuevo sin color acá cae en el
+// gris por defecto (ver MODULE_CARD_COLOR abajo), no rompe nada.
+const MODULE_CARD_COLOR: Record<string, string> = {
+    users: 'from-blue-600 to-blue-700',
+    roles: 'from-violet-600 to-violet-700',
+    categories: 'from-cyan-600 to-cyan-700',
+    products: 'from-orange-600 to-orange-700',
+    suppliers: 'from-teal-600 to-teal-700',
+    'inventory-movements': 'from-indigo-600 to-indigo-700',
+    'purchase-orders': 'from-amber-600 to-amber-700',
+    sales: 'from-emerald-600 to-emerald-700',
+    clients: 'from-green-600 to-green-700',
+    'cash-register': 'from-rose-600 to-rose-700',
+    transactions: 'from-sky-600 to-sky-700',
+};
+
+// Todas las tarjetas muestran un contador — mapea cada módulo a su
+// conteo en `stats`. Un módulo nuevo sin entrada acá simplemente no
+// muestra número (no rompe el layout).
+const MODULE_STATS_KEY: Partial<Record<string, keyof DashboardProps['stats']>> = {
+    users: 'usuarios',
+    roles: 'roles',
+    suppliers: 'proveedores',
+    clients: 'clientes',
+    products: 'productos',
+    categories: 'categorias',
+    'inventory-movements': 'movimientos',
+    'purchase-orders': 'pedidos',
+    sales: 'ventas',
+    'cash-register': 'caja',
+    transactions: 'finanzas',
+};
+
+// "Roles y Permisos" es el nombre real del permiso/módulo (debe coincidir
+// con `Ver ${module.label}`), pero en la tarjeta angosta del dashboard se
+// ve mejor acortado — solo cambia lo que se muestra, no el permiso.
+const MODULE_CARD_TITLE: Record<string, string> = {
+    roles: 'Roles',
+    'inventory-movements': 'Movimientos',
+};
+
+// Tailwind necesita las clases completas y literales en el código para
+// generarlas — de ahí el mapa en vez de un template string con el
+// número. Fuerza SIEMPRE una sola fila en pantallas grandes (según
+// cuántos módulos vea este usuario), que es lo que evita el scroll
+// vertical del dashboard en desktop.
+const GRID_COLS_CLASS: Record<number, string> = {
+    1: 'lg:grid-cols-1', 2: 'lg:grid-cols-2', 3: 'lg:grid-cols-3', 4: 'lg:grid-cols-4',
+    5: 'lg:grid-cols-5', 6: 'lg:grid-cols-6', 7: 'lg:grid-cols-7', 8: 'lg:grid-cols-8',
+    9: 'lg:grid-cols-9', 10: 'lg:grid-cols-10', 11: 'lg:grid-cols-11', 12: 'lg:grid-cols-12',
+};
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -88,6 +143,10 @@ interface DashboardProps {
         movimientos: number;
         categorias: number;
         productos: number;
+        roles: number;
+        pedidos: number;
+        caja: number;
+        finanzas: number;
     };
     financials: Record<Period, {
         sales: { amount: number; count: number; growth: number };
@@ -125,7 +184,7 @@ export default function Dashboard({
     type Auth = {
         permissions: string[];
     };
-    const { auth } = usePage().props as unknown as { auth: Auth };
+    const { auth, modules } = usePage().props as unknown as { auth: Auth; modules: SidebarModule[] };
     const userPermissions = auth.permissions;
 
     const [period, setPeriod] = useState<Period>('diario');
@@ -140,19 +199,24 @@ export default function Dashboard({
     const chartInstanceRef = useRef<Chart.Chart | null>(null);
     const pieInstanceRef = useRef<Chart.Chart | null>(null);
 
-    const allStatCards = [
-        { title: 'Usuarios', value: stats.usuarios, icon: Users, color: 'from-blue-600 to-blue-700', route: '/users', permission: 'Ver Usuarios' },
-        { title: 'Proveedores', value: stats.proveedores, icon: Truck, color: 'from-teal-600 to-teal-700', route: '/suppliers', permission: 'Ver Proveedores' },
-        { title: 'Clientes', value: stats.clientes, icon: Users, color: 'from-green-600 to-green-700', route: '/clients', permission: 'Ver Clientes' },
-        { title: 'Productos', value: stats.productos, icon: Package, color: 'from-orange-600 to-orange-700', route: '/products', permission: 'Ver Productos' },
-        { title: 'Categorías', value: stats.categorias, icon: Tags, color: 'from-cyan-600 to-cyan-700', route: '/categories', permission: 'Ver Categorías' },
-        { title: 'Movimientos', value: stats.movimientos, icon: ClipboardList, color: 'from-indigo-600 to-indigo-700', route: '/inventory-movements', permission: 'Ver Movimientos Inventario' },
-        { title: 'Ventas', value: stats.ventas, icon: ShoppingCart, color: 'from-emerald-600 to-emerald-700', route: '/sales', permission: 'Ver Ventas' },
-    ];
-
-    const statCards = allStatCards.filter(card =>
-        !card.permission || userPermissions.includes(card.permission)
-    );
+    // Una tarjeta por cada módulo al que el usuario tenga acceso — misma
+    // fuente (`modules`, compartida por Inertia) y misma regla de permiso
+    // ("Ver {label}") que usa la sidebar, así nunca quedan desincronizados.
+    const statCards = (modules ?? [])
+        .filter((module) => module.key !== 'dashboard')
+        .filter((module) => userPermissions.includes(`Ver ${module.label}`))
+        .map((module) => {
+            const statsKey = MODULE_STATS_KEY[module.key];
+            return {
+                key: module.key,
+                title: MODULE_CARD_TITLE[module.key] ?? module.label,
+                fullName: module.label,
+                value: statsKey ? stats[statsKey] : null,
+                icon: resolveIcon(module.icon),
+                color: MODULE_CARD_COLOR[module.key] ?? 'from-slate-600 to-slate-700',
+                route: module.route ?? '#',
+            };
+        });
 
     const calculateFinancialTotals = () => {
         let totalIngresos = 0;
@@ -354,14 +418,16 @@ export default function Dashboard({
             <Head title="Dashboard" />
             <div className="flex h-full flex-1 flex-col gap-4 rounded-xl p-4">
                 <PageHeader icon={LayoutGrid} title="Dashboard" description="Inventario • Ventas • Reportes">
-                    <Button
-                        onClick={handleOpenSaleModal}
-                        size="sm"
-                        className="gap-2 bg-green-700 text-white hover:bg-green-800"
-                    >
-                        <ShoppingCart className="w-4 h-4" />
-                        Nueva Venta
-                    </Button>
+                    {userPermissions.includes('Crear Ventas') && (
+                        <Button
+                            onClick={handleOpenSaleModal}
+                            size="sm"
+                            className="gap-2 bg-green-700 text-white hover:bg-green-800"
+                        >
+                            <ShoppingCart className="w-4 h-4" />
+                            Nueva Venta
+                        </Button>
+                    )}
 
                     {userPermissions.includes('Exportar Dashboard') && (
                         <DropdownMenu>
@@ -392,26 +458,38 @@ export default function Dashboard({
                     )}
                 </PageHeader>
 
-                {/* Stats Cards */}
-                <div className={`grid grid-cols-2 sm:grid-cols-3 gap-2 ${statCards.length === 7 ? 'lg:grid-cols-7' : statCards.length === 6 ? 'lg:grid-cols-6' : statCards.length === 5 ? 'lg:grid-cols-5' : 'lg:grid-cols-4'}`}>
-                    {statCards.map((stat, index) => {
+                {/* Stats Cards — una por módulo accesible para este usuario.
+                    Ancho de columna dinámico según cuántos módulos vea este
+                    usuario, para que SIEMPRE quepan en una sola fila en
+                    pantallas grandes (nada de scroll vertical acá). Ícono +
+                    nombre apilados a la izquierda, contador centrado a la
+                    derecha — dos "columnas", no tres filas — mismo alto que
+                    la tarjeta original de una sola línea. */}
+                <div className={`grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4 ${GRID_COLS_CLASS[statCards.length] ?? 'lg:grid-cols-6'}`}>
+                    {statCards.map((stat) => {
                         const Icon = stat.icon;
                         return (
-                            <button
-                                key={index}
-                                onClick={() => handleNavigate(stat.route)}
-                                className={`relative rounded-lg overflow-hidden transition-all duration-300 hover:scale-105 hover:shadow-xl cursor-pointer bg-gradient-to-br ${stat.color} px-3 py-2 flex items-center justify-between gap-2 text-left`}
-                            >
-                                <div className="flex items-center gap-2 min-w-0">
-                                    <Icon className="w-4 h-4 text-white shrink-0" />
-                                    <p className="text-xs font-medium text-white/90 truncate">
-                                        {stat.title}
-                                    </p>
-                                </div>
-                                <p className="text-base font-bold text-white shrink-0">
-                                    {stat.value.toLocaleString()}
-                                </p>
-                            </button>
+                            <Tooltip key={stat.key}>
+                                <TooltipTrigger asChild>
+                                    <button
+                                        onClick={() => handleNavigate(stat.route)}
+                                        className={`relative rounded-lg overflow-hidden transition-all duration-300 hover:scale-105 hover:shadow-xl cursor-pointer bg-gradient-to-br ${stat.color} px-3 py-2 flex items-center justify-between gap-2 text-left`}
+                                    >
+                                        <div className="flex min-w-0 flex-col gap-0.5">
+                                            <Icon className="h-4 w-4 text-white shrink-0" />
+                                            <p className="truncate text-xs font-semibold leading-none text-white">
+                                                {stat.title}
+                                            </p>
+                                        </div>
+                                        {stat.value !== null && (
+                                            <span className="shrink-0 text-xs font-bold text-white">
+                                                {stat.value.toLocaleString()}
+                                            </span>
+                                        )}
+                                    </button>
+                                </TooltipTrigger>
+                                <TooltipContent>{stat.fullName}</TooltipContent>
+                            </Tooltip>
                         );
                     })}
                 </div>

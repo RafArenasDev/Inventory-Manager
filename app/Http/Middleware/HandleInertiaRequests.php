@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Http\Middleware;
 
 use App\Models\Module;
@@ -40,26 +41,29 @@ class HandleInertiaRequests extends Middleware
         [$message, $author] = str(Inspiring::quotes()->random())->explode('-');
 
         return [
-             ...parent::share($request),
-            'name'        => config('app.name'),
-            'appVersion'  => config('app.version'),
-            'quote'       => ['message' => trim($message), 'author' => trim($author)],
-            'auth'        => [
-                'user'        => $request->user(),
-                'roles'       => fn()       => $request->user()?->roles->pluck('name'),
-                'permissions' => fn() => $request->user()?->getAllPermissions()->pluck('name'),
+            ...parent::share($request),
+            'name' => config('app.name'),
+            'appVersion' => config('app.version'),
+            'quote' => ['message' => trim($message), 'author' => trim($author)],
+            'auth' => [
+                'user' => $request->user(),
+                // Objeto { nombre_técnico: label }, no solo el nombre — así el
+                // frontend puede mostrar el label sin mantener un mapa propio
+                // que se desactualiza cada vez que se crea un rol nuevo.
+                'roles' => fn () => $request->user()?->roles->pluck('label', 'name'),
+                'permissions' => fn () => $request->user()?->getAllPermissions()->pluck('name'),
             ],
-            'ziggy'       => fn(): array      => [
-                 ...(new Ziggy)->toArray(),
+            'ziggy' => fn (): array => [
+                ...(new Ziggy)->toArray(),
                 'location' => $request->url(),
             ],
-            'flash'       => [
-                'success'              => $request->session()->get('success'),
-                'error'                => $request->session()->get('error'),
+            'flash' => [
+                'success' => $request->session()->get('success'),
+                'error' => $request->session()->get('error'),
                 'cash_register_notice' => $request->session()->get('cash_register_notice'),
             ],
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
-            'modules'     => fn() => Module::where('is_active', true)
+            'modules' => fn () => Module::where('is_active', true)
                 ->orderBy('order')
                 ->get(['key', 'label', 'icon', 'route', 'group']),
         ];

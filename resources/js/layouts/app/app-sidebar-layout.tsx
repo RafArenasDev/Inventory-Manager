@@ -5,6 +5,7 @@ import { AppSidebarHeader } from '@/components/app-sidebar-header';
 import CashRegisterNoticeWatcher from '@/components/cash-register-notice-watcher';
 import FlashErrorWatcher from '@/components/flash-error-watcher';
 import ForcePasswordChangeModal from '@/components/force-password-change-modal';
+import UserDeactivationWatcher from '@/components/user-deactivation-watcher';
 import { type BreadcrumbItem } from '@/types';
 import { type PropsWithChildren } from 'react';
 
@@ -19,6 +20,7 @@ export default function AppSidebarLayout({ children, breadcrumbs = [] }: PropsWi
             <ForcePasswordChangeModal />
             <FlashErrorWatcher />
             <CashRegisterNoticeWatcher />
+            <UserDeactivationWatcher />
         </AppShell>
     );
 }

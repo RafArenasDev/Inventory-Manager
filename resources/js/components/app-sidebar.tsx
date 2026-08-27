@@ -7,20 +7,11 @@ import {
     SidebarMenu,
     SidebarMenuButton,
     SidebarMenuItem,
-    SidebarSeparator,
 } from '@/components/ui/sidebar';
-import { type NavItem, type SharedData } from '@/types';
+import { type NavItem, type SharedData, type SidebarModule } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
 import { resolveIcon } from '@/lib/icon-map';
 import AppLogo from './app-logo';
-
-interface SidebarModule {
-    key: string;
-    label: string;
-    icon: string | null;
-    route: string | null;
-    group: string | null;
-}
 
 export function AppSidebar() {
     type Auth = {
@@ -66,10 +57,13 @@ export function AppSidebar() {
 
     return (
         <Sidebar collapsible="icon" variant="inset">
-            <SidebarHeader>
+            {/* Mismo divisor que separa la versión en el footer (border-sidebar-border)
+                — acá marca el límite entre el logo y la navegación, con aire
+                de sobra a los dos lados para que no quede todo pegado. */}
+            <SidebarHeader className="border-b border-sidebar-border pb-3">
                 <SidebarMenu>
                     <SidebarMenuItem>
-                        <SidebarMenuButton size="lg" asChild>
+                        <SidebarMenuButton size="lg" asChild tooltip="Inventory Manager">
                             <Link href="/dashboard" prefetch>
                                 <AppLogo />
                             </Link>
@@ -78,16 +72,14 @@ export function AppSidebar() {
                 </SidebarMenu>
             </SidebarHeader>
 
-            <SidebarSeparator />
-
             <SidebarContent>
                 <NavMain items={filteredNavItems} />
             </SidebarContent>
 
             <SidebarFooter>
-                <div className="group-data-[collapsible=icon]:hidden px-2 py-1 text-[11px] leading-tight text-sidebar-foreground/50">
-                    <p>v{appVersion}</p>
-                    <p>© 2025–2026 RafArenasDev</p>
+                <div className="group-data-[collapsible=icon]:hidden space-y-0.5 border-t border-sidebar-border px-2 pt-3 pb-1 text-center">
+                    <p className="text-[11px] font-medium tracking-wide text-sidebar-foreground/60">Versión {appVersion}</p>
+                    <p className="text-[10px] text-sidebar-foreground/35">© 2025–2026 RafArenasDev</p>
                 </div>
             </SidebarFooter>
         </Sidebar>

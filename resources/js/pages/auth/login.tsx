@@ -80,6 +80,16 @@ export default function Login({ status, canResetPassword = true }: LoginProps) {
                     draggable: true,
                     confirmButtonText: 'Entendido'
                 });
+            } else if (status.includes('Tu sesión fue cerrada')) {
+                // MENSAJE DE DESACTIVACIÓN DE CUENTA CON SESIÓN YA ABIERTA —
+                // deliberadamente genérico, sin explicar el motivo.
+                Swal.fire({
+                    title: "Sesión cerrada",
+                    icon: "warning",
+                    text: status,
+                    draggable: true,
+                    confirmButtonText: 'Entendido'
+                });
             } else if (status.includes('Contraseña restablecida')) {
                 // MENSAJE DEL RESET-PASSWORD
                 Swal.fire({
