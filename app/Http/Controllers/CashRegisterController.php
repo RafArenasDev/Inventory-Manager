@@ -7,6 +7,7 @@ use App\Http\Requests\CashRegisterOpenRequest;
 use App\Models\CashRegister;
 use App\Models\Sale;
 use App\Models\Transaction;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -148,6 +149,7 @@ class CashRegisterController extends Controller
             'total_expenses' => 0,
             'difference' => null,
             'opened_by' => $openedBy,
+            'opened_by_name' => $openedBy ? User::find($openedBy)?->name : null,
             'opened_at' => now(),
             'closed_by' => null,
             'closed_at' => null,
@@ -315,6 +317,7 @@ class CashRegisterController extends Controller
                 'total_expenses' => $expensesTotal,
                 'difference' => $difference,
                 'closed_by' => $closedBy,
+                'closed_by_name' => $closedBy ? User::find($closedBy)?->name : null,
                 'closed_at' => now(),
                 'is_closed' => true,
                 'notes' => $notes ?? $cashRegister->notes,
@@ -370,8 +373,16 @@ class CashRegisterController extends Controller
                 : null,
             'is_closed' => $register->is_closed,
             'notes' => $register->notes ?? '',
-            'openedBy' => $register->openedBy ? ['id' => $register->openedBy->id, 'name' => $register->openedBy->name] : ['id' => 0, 'name' => '-'],
-            'closedBy' => $register->closedBy ? ['id' => $register->closedBy->id, 'name' => $register->closedBy->name] : ['id' => 0, 'name' => '-'],
+            // Si el usuario que abrió/cerró ya fue eliminado, la relación
+            // viene null (FK en nullOnDelete) — se cae al snapshot del
+            // nombre tomado en el momento, en vez de mostrar "-" sin poder
+            // saber quién fue.
+            'openedBy' => $register->openedBy
+                ? ['id' => $register->openedBy->id, 'name' => $register->openedBy->name]
+                : ['id' => 0, 'name' => $register->opened_by_name ?? '-'],
+            'closedBy' => $register->closedBy
+                ? ['id' => $register->closedBy->id, 'name' => $register->closedBy->name]
+                : ['id' => 0, 'name' => $register->closed_by_name ?? '-'],
         ];
     }
 

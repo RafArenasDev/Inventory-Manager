@@ -6,7 +6,9 @@ use App\Http\Requests\UserRequest;
 use App\Models\Role;
 use App\Models\User;
 use App\Notifications\WelcomeUserNotification;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Inertia\Inertia;
 
@@ -117,7 +119,34 @@ class UserController extends Controller
             return redirect()->back()->with('error', 'No puedes eliminar tu propia cuenta.');
         }
 
-        $user->delete();
+        // Un usuario queda referenciado en tablas de historial que todavía
+        // no tengan FK en null (cualquier tabla nueva que referencie users
+        // con "restrict" rompería el borrado sin aviso) — se deja que la
+        // restricción real de la BD lo bloquee y se traduce ese error a un
+        // mensaje claro. SQLSTATE 23000/23001 = violación de integridad
+        // referencial en MySQL y Postgres respectivamente.
+        //
+        // DB::transaction() es necesario acá: el trait HasRoles de Spatie
+        // borra los roles del usuario en un evento `deleting` ANTES de que
+        // Eloquent intente el DELETE real. Sin transacción, si el DELETE
+        // fallaba por una FK restrict, ese borrado de roles ya había hecho
+        // commit por su cuenta y el usuario quedaba sin rol aunque la fila
+        // siguiera existiendo (bug real, encontrado probando este flujo).
+        try {
+            DB::transaction(function () use ($user) {
+                $user->delete();
+            });
+        } catch (QueryException $e) {
+            if (in_array($e->getCode(), ['23000', '23001'], true)) {
+                return redirect()->back()->with(
+                    'error',
+                    'No se puede eliminar a "'.$user->name.'": tiene historial asociado (cajas, ventas, movimientos, etc.). '.
+                    'Puedes desactivarlo en su lugar.'
+                );
+            }
+
+            throw $e;
+        }
 
         return redirect()->route('users.index')->with('success', 'Usuario eliminado correctamente.');
     }
