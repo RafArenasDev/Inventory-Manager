@@ -150,8 +150,8 @@ export default function UserIndex({ users, roles, filters, totalCount, filteredC
                     if (!open) attemptCloseForm();
                 }}
             >
-                <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg" onInteractOutside={(e) => e.preventDefault()}>
-                    <DialogHeader>
+                <DialogContent className="flex max-h-[90vh] flex-col overflow-hidden sm:max-w-lg" onInteractOutside={(e) => e.preventDefault()}>
+                    <DialogHeader className="shrink-0">
                         <DialogTitle>{isCreating ? 'Nuevo Usuario' : `Editar Usuario: ${editingUser?.name}`}</DialogTitle>
                         <DialogDescription>
                             {isCreating ? 'Completa los datos para crear un nuevo usuario.' : 'Actualiza los datos del usuario.'}

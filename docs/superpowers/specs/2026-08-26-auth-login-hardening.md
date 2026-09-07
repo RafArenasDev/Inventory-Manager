@@ -288,3 +288,62 @@ orden que el propio doc sugiere:
 8. **Calidad de código general** — tests en pausa durante el MVP, revisión
    de nombres/tipos pendiente (fuera de esto: el checklist de pre-commit
    ya se resolvió hoy, ver arriba).
+
+### 4. Render/Aiven: `/login` en 500 sin resolver — pausado, foco vuelve a local
+
+Decisión del usuario al cierre de la sesión: dejar de invertir tiempo en
+diagnosticar el deploy online por ahora. Prioridad es terminar el MVP en
+local; Render/Aiven se retoma más adelante, posiblemente migrando a un
+VPS más económico en vez de Render+Aiven free tier.
+
+**Estado en el que quedó Render (inventory-manager-rafael):**
+
+- El deploy más reciente (`4c383c6`, worker `22dgq`, live desde las 11:30
+  PM) responde **500 en `/login`** de forma consistente y reproducible —
+  no es flakiness de Aiven (la DB está `Running`, estable, y las
+  migraciones/seeds corren sin error en cada deploy: "Nothing to migrate"
+  + 3× "Seeding database." exitosos).
+- **Se descartó como causa**: `BROADCAST_CONNECTION=log` y
+  `SESSION_LIFETIME=630` — se agregaron para el keep-alive, se sospechó
+  que rompían el render, se revirtieron (eliminados de las env vars de
+  Render) y el 500 **persistió igual**. No son la causa.
+- **Se descartó por lectura estática de código** (sin tocar producción
+  con acciones reales, solo grep/Read):
+  - `HandleInertiaRequests::share()` — nada específico de Postgres/MySQL.
+  - El patrón `@vite(['resources/js/app.tsx', "resources/js/pages/{$page['component']}.tsx"])`
+    en `resources/views/app.blade.php` — es el patrón estándar del
+    starter kit de Laravel+React con Inertia, `app.tsx` resuelve páginas
+    vía `import.meta.glob`, debería generar entrada de manifest igual.
+  - SSR de Inertia (`config/inertia.php` tiene `ssr.enabled = true`) — se
+    confirmó que NO es la causa: `HttpGateway::shouldDispatch()` exige
+    `bundleExists()` cuando `ensure_bundle_exists` es true (default), y
+    el Dockerfile solo corre `npm run build` (no `build:ssr`), así que
+    nunca existe el bundle SSR → Inertia hace `dispatch()` → `null` sin
+    intentar conectar, sin lanzar excepción. Descartado con certeza.
+  - `ilike`/`whereLike` — no quedan usos de `ilike` en `app/` ni `routes/`.
+- **Pendiente sin resolver, sin diagnóstico final**: la causa raíz real
+  del 500 en `/login` sigue sin identificarse. Como último paso (no
+  completado) se cambió `LOG_CHANNEL` de `stack` a `stderr` en el
+  dashboard de Render, para que el stack trace real aparezca en los logs
+  del contenedor (visibles en el dashboard) en vez de quedar solo en
+  `storage/logs/laravel.log` (invisible sin Shell, y Shell no está
+  disponible en el plan free). **Este cambio quedó desplegado y sin
+  revertir** — es inofensivo (no expone nada públicamente, solo cambia
+  dónde se escriben los logs), pero hay que recordarlo la próxima vez que
+  se retome esto en Render.
+- **Próximo paso sugerido cuando se retome**: con `LOG_CHANNEL=stderr` ya
+  activo, pegarle una vez a `/login` (por ejemplo con `curl`) y leer el
+  log del dashboard de Render inmediatamente después — debería mostrar el
+  stack trace completo de la excepción real. Ese paso se interrumpió
+  antes de ejecutarse.
+- **No se tocó** el Dockerfile, `docker/entrypoint.sh`, ni ningún archivo
+  de código de la app durante este diagnóstico — todos los cambios de
+  esta sesión relacionados con Render fueron solo env vars (agregadas y
+  luego revertidas) y este último cambio de `LOG_CHANNEL`.
+- El servicio de Aiven (`inventory-pos-db`) se encendió manualmente esta
+  sesión (estaba apagado por inactividad del plan free) y quedó
+  `Running`. El workflow `.github/workflows/keep-alive.yml` (commit
+  `4c383c6`, ya en `main`) pinguea `/login` cada 10 minutos para evitar
+  que Render y Aiven se vuelvan a dormir — pero como `/login` está roto,
+  el ping en sí seguirá recibiendo 500 hasta que se arregle esto (no
+  rompe nada, pero tampoco sirve como demo mientras tanto).
