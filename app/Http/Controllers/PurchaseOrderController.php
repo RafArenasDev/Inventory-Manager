@@ -29,9 +29,9 @@ class PurchaseOrderController extends Controller
         if ($request->filled('search')) {
             $search = $request->search;
             $ordersQuery->where(function ($query) use ($search) {
-                $query->whereLike('notes', "%{$search}%")
+                $query->whereLikeUnaccent('notes', "%{$search}%")
                     ->orWhereHas('supplier', function ($q) use ($search) {
-                        $q->whereLike('name', "%{$search}%");
+                        $q->whereLikeUnaccent('name', "%{$search}%");
                     });
             });
         }
@@ -81,7 +81,7 @@ class PurchaseOrderController extends Controller
             // queda restringido a solo productos en alerta, para no mezclar
             // con pedidos "normales" (reponer algo que ya está bien).
             $isLowStockOrder = Product::whereIn('id', collect($validated['items'])->pluck('product_id'))
-                ->where('stock', '<=', DashboardController::ALERT_STOCK_THRESHOLD)
+                ->whereRaw('stock <= COALESCE(low_stock_threshold, ?)', [DashboardController::ALERT_STOCK_THRESHOLD])
                 ->exists();
 
             $order = PurchaseOrder::create([
@@ -258,12 +258,10 @@ class PurchaseOrderController extends Controller
      */
     public function lowStockByProvider()
     {
-        $threshold = DashboardController::ALERT_STOCK_THRESHOLD;
-
         $products = Product::with('supplier:id,name,phone,cellphone')
-            ->where('stock', '<=', $threshold)
+            ->whereRaw('stock <= COALESCE(low_stock_threshold, ?)', [DashboardController::ALERT_STOCK_THRESHOLD])
             ->orderBy('stock')
-            ->get(['id', 'code', 'name', 'stock', 'supplier_id']);
+            ->get(['id', 'code', 'name', 'stock', 'low_stock_threshold', 'supplier_id']);
 
         $activeItemsByProduct = PurchaseOrderItem::query()
             ->whereHas('purchaseOrder', fn ($q) => $q->where('status', 'Solicitado'))
@@ -300,7 +298,7 @@ class PurchaseOrderController extends Controller
                         'code' => $product->code,
                         'name' => $product->name,
                         'stock' => $product->stock,
-                        'tier' => Product::stockTier($product->stock),
+                        'tier' => Product::stockTier($product->stock, $product->effective_low_stock_threshold),
                         'has_active_order' => $activeItemsByProduct->has($product->id),
                     ];
                 })->values(),

@@ -280,8 +280,8 @@ export default function PurchaseOrdersIndex({ purchaseOrders, suppliers, product
                     if (!open) attemptCloseForm();
                 }}
             >
-                <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-5xl" onInteractOutside={(e) => e.preventDefault()}>
-                    <DialogHeader>
+                <DialogContent className="flex max-h-[90vh] flex-col overflow-hidden sm:max-w-5xl" onInteractOutside={(e) => e.preventDefault()}>
+                    <DialogHeader className="shrink-0">
                         <DialogTitle>
                             {editingOrder
                                 ? `Editar Pedido: ${editingOrder.supplier?.name ?? 'Proveedor eliminado'} — ${editingOrder.created_at.slice(0, 10).split('-').reverse().join('-')}`

@@ -470,214 +470,222 @@ export default function PurchaseOrderForm({
 
     return (
         <>
-            <form onSubmit={handleSubmit} className="space-y-5">
-                <div>
-                    <Label className="mb-1 block text-sm font-medium">Proveedor *</Label>
-                    {supplierLocked ? (
-                        <div className="border-input flex items-center justify-between gap-2 rounded-md border px-3 py-2 text-sm">
-                            <span className="font-medium">{selectedSupplier?.name}</span>
-                            <button
-                                type="button"
-                                className="flex items-center gap-1 text-xs text-sky-600 hover:underline dark:text-sky-500"
-                                onClick={() => setSupplierLocked(false)}
+            <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col gap-4">
+                <div className="min-h-0 flex-1 space-y-5 overflow-x-hidden overflow-y-auto pr-1">
+                    <div>
+                        <Label className="mb-1 block text-sm font-medium">Proveedor *</Label>
+                        {supplierLocked ? (
+                            <div className="border-input flex items-center justify-between gap-2 rounded-md border px-3 py-2 text-sm">
+                                <span className="font-medium">{selectedSupplier?.name}</span>
+                                <button
+                                    type="button"
+                                    className="flex items-center gap-1 text-xs text-sky-600 hover:underline dark:text-sky-500"
+                                    onClick={() => setSupplierLocked(false)}
+                                >
+                                    <Pencil className="h-3 w-3" /> Cambiar proveedor
+                                </button>
+                            </div>
+                        ) : (
+                            <Combobox
+                                items={supplierComboboxItems}
+                                itemToStringLabel={(s: Supplier) => s.name}
+                                itemToStringValue={(s: Supplier) => String(s.id)}
+                                value={selectedSupplier}
+                                onValueChange={handleSupplierChange}
+                                onInputValueChange={(value: string) => setSupplierQuery(value)}
                             >
-                                <Pencil className="h-3 w-3" /> Cambiar proveedor
-                            </button>
-                        </div>
-                    ) : (
-                        <Combobox
-                            items={supplierComboboxItems}
-                            itemToStringLabel={(s: Supplier) => s.name}
-                            itemToStringValue={(s: Supplier) => String(s.id)}
-                            value={selectedSupplier}
-                            onValueChange={handleSupplierChange}
-                            onInputValueChange={(value: string) => setSupplierQuery(value)}
-                        >
-                            <ComboboxInput placeholder="Buscar o crear proveedor" className="w-full" />
-                            <ComboboxContent>
-                                <ComboboxEmpty>Sin resultados.</ComboboxEmpty>
-                                <ComboboxList>
-                                    {(s: Supplier) =>
-                                        s.id === CREATE_SUPPLIER_SENTINEL_ID ? (
-                                            <ComboboxItem key="create" value={s} className="font-medium text-emerald-600 dark:text-emerald-500">
-                                                <Plus className="h-3.5 w-3.5" /> Crear proveedor "{s.name}"
-                                            </ComboboxItem>
-                                        ) : (
-                                            <ComboboxItem key={s.id} value={s}>
-                                                {s.name}
-                                            </ComboboxItem>
-                                        )
-                                    }
-                                </ComboboxList>
-                            </ComboboxContent>
-                        </Combobox>
-                    )}
-                    {errors.supplier_id && <p className="mt-1 text-sm text-red-600">{errors.supplier_id}</p>}
-                </div>
+                                <ComboboxInput placeholder="Buscar o crear proveedor" className="w-full" />
+                                <ComboboxContent>
+                                    <ComboboxEmpty>Sin resultados.</ComboboxEmpty>
+                                    <ComboboxList>
+                                        {(s: Supplier) =>
+                                            s.id === CREATE_SUPPLIER_SENTINEL_ID ? (
+                                                <ComboboxItem key="create" value={s} className="font-medium text-emerald-600 dark:text-emerald-500">
+                                                    <Plus className="h-3.5 w-3.5" /> Crear proveedor "{s.name}"
+                                                </ComboboxItem>
+                                            ) : (
+                                                <ComboboxItem key={s.id} value={s}>
+                                                    {s.name}
+                                                </ComboboxItem>
+                                            )
+                                        }
+                                    </ComboboxList>
+                                </ComboboxContent>
+                            </Combobox>
+                        )}
+                        {errors.supplier_id && <p className="mt-1 text-sm text-red-600">{errors.supplier_id}</p>}
+                    </div>
 
-                <div>
-                    <Label className="mb-1 block text-sm font-medium">Productos</Label>
-                    {effectiveProductFilter && (
-                        <p className="text-muted-foreground mb-2 text-xs">
-                            {effectiveProductFilter === 'alert-only'
-                                ? 'Pedido por alertas — solo se muestran productos agotados, críticos o con stock bajo.'
-                                : 'Pedido nuevo — solo se muestran productos que no están en alerta de stock.'}
-                        </p>
-                    )}
-                    {isEditing && supplierId !== originalSupplierId && (
-                        <div className="mb-2 flex items-start gap-2 rounded-md border border-amber-600/40 bg-amber-50 p-3 text-sm text-amber-800 dark:border-amber-500/40 dark:bg-amber-950/30 dark:text-amber-400">
-                            <Info className="mt-0.5 h-4 w-4 shrink-0" />
-                            <span>Cambiaste de proveedor — los productos se reiniciaron. Selecciona de nuevo los que quieras pedir.</span>
-                        </div>
-                    )}
-                    <div className="border-input rounded-md border p-2">
-                        <Combobox
-                            items={sortedProducts}
-                            multiple
-                            itemToStringLabel={(p: Product) => `${p.code} - ${p.name}`}
-                            itemToStringValue={(p: Product) => String(p.id)}
-                            isItemEqualToValue={(a: Product, b: Product) => a.id === b.id}
-                            value={selectedProducts}
-                            onValueChange={handleProductsChange}
-                            open={productsOpen}
-                            onOpenChange={setProductsOpen}
-                            disabled={!supplierId}
-                        >
-                            <ComboboxInput
-                                placeholder={supplierId ? 'Buscar producto por código o nombre...' : 'Elige primero un proveedor'}
-                                className="w-full"
-                                disabled={!supplierId}
-                            />
-                            <ComboboxContent>
-                                <ComboboxEmpty>Sin resultados.</ComboboxEmpty>
-                                <ComboboxList>
-                                    {(p: Product) => {
-                                        const tier = stockTier(p.stock);
-                                        return (
-                                            <ComboboxItem key={p.id} value={p}>
-                                                {p.code} - {p.name} <span className="text-muted-foreground">({p.stock} und)</span>
-                                                {tier && (
-                                                    <span className={`ml-1 rounded-full px-1.5 py-0.5 text-[10px] font-semibold ${TIER_BADGE[tier]}`}>
-                                                        {TIER_LABEL[tier]}
-                                                    </span>
-                                                )}
-                                            </ComboboxItem>
-                                        );
-                                    }}
-                                </ComboboxList>
-                            </ComboboxContent>
-                        </Combobox>
-
-                        {items.length > 0 && (
-                            <div className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
-                                {items.map((item) => {
-                                    const product = products.find((p) => p.id === item.product_id);
-                                    const currentStock = product?.stock ?? Infinity;
-                                    // El badge refleja el stock PROYECTADO (actual + lo que se está
-                                    // pidiendo), no el actual — así se ve en vivo si la cantidad
-                                    // elegida alcanza para salir del semáforo.
-                                    const projectedTier = stockTier(currentStock + item.quantity_requested);
-                                    const unitPrice = product?.price_without_tax ?? 0;
-                                    return (
-                                        <div
-                                            key={item.product_id}
-                                            className="border-input flex items-center justify-between gap-2 rounded-lg border px-3 py-2 shadow-sm transition-shadow hover:shadow-md"
-                                        >
-                                            <div className="min-w-0 flex-1 space-y-0.5">
-                                                <div className="truncate text-sm font-medium">{item.product_name}</div>
-                                                <div className="flex items-center gap-1.5">
-                                                    <span className="text-muted-foreground text-xs">{item.product_code}</span>
-                                                    {projectedTier ? (
-                                                        <span
-                                                            className={`rounded-full px-1.5 py-0.5 text-[10px] font-semibold ${TIER_BADGE[projectedTier]}`}
-                                                        >
-                                                            {TIER_LABEL[projectedTier]}
-                                                        </span>
-                                                    ) : (
-                                                        <span className="rounded-full bg-emerald-600 px-1.5 py-0.5 text-[10px] font-semibold text-white">
-                                                            Stock Óptimo
-                                                        </span>
-                                                    )}
-                                                </div>
-                                                <div className="text-muted-foreground text-xs">Valor unitario: {formatCOP(unitPrice)}</div>
-                                                <div className="text-muted-foreground text-xs">
-                                                    Valor total:{' '}
-                                                    <span className="text-foreground font-medium">
-                                                        {formatCOP(unitPrice * item.quantity_requested)}
-                                                    </span>
-                                                </div>
-                                                {(item.quantity_received ?? 0) > 0 && (
-                                                    <div className="text-xs font-medium text-emerald-600 dark:text-emerald-500">
-                                                        Ya recibido: {item.quantity_received} und
-                                                    </div>
-                                                )}
-                                            </div>
-                                            <div className="border-input flex shrink-0 items-center gap-1 rounded-md border px-1 py-0.5">
-                                                <Button
-                                                    type="button"
-                                                    variant="ghost"
-                                                    size="icon-xs"
-                                                    disabled={item.quantity_requested <= Math.max(1, item.quantity_received ?? 0)}
-                                                    onClick={() => handleQuantityChange(item.product_id, item.quantity_requested - 1)}
-                                                >
-                                                    <Minus className="size-3" />
-                                                </Button>
-                                                <span className="w-5 text-center text-sm font-semibold tabular-nums">{item.quantity_requested}</span>
-                                                <Button
-                                                    type="button"
-                                                    variant="ghost"
-                                                    size="icon-xs"
-                                                    onClick={() => handleQuantityChange(item.product_id, item.quantity_requested + 1)}
-                                                >
-                                                    <Plus className="size-3" />
-                                                </Button>
-                                            </div>
-                                            <Button
-                                                type="button"
-                                                variant="ghost"
-                                                size="icon-xs"
-                                                disabled={(item.quantity_received ?? 0) > 0}
-                                                title={
-                                                    (item.quantity_received ?? 0) > 0 ? 'Ya tiene recepción parcial — no se puede quitar' : undefined
-                                                }
-                                                className="shrink-0 text-rose-600 hover:bg-rose-100 hover:text-rose-700 dark:text-rose-500 dark:hover:bg-rose-950/40 dark:hover:text-rose-400"
-                                                onClick={() => handleRemoveItem(item.product_id)}
-                                            >
-                                                <Trash2 className="size-3.5" />
-                                            </Button>
-                                        </div>
-                                    );
-                                })}
+                    <div>
+                        <Label className="mb-1 block text-sm font-medium">Productos</Label>
+                        {effectiveProductFilter && (
+                            <p className="text-muted-foreground mb-2 text-xs">
+                                {effectiveProductFilter === 'alert-only'
+                                    ? 'Pedido por alertas — solo se muestran productos agotados, críticos o con stock bajo.'
+                                    : 'Pedido nuevo — solo se muestran productos que no están en alerta de stock.'}
+                            </p>
+                        )}
+                        {isEditing && supplierId !== originalSupplierId && (
+                            <div className="mb-2 flex items-start gap-2 rounded-md border border-amber-600/40 bg-amber-50 p-3 text-sm text-amber-800 dark:border-amber-500/40 dark:bg-amber-950/30 dark:text-amber-400">
+                                <Info className="mt-0.5 h-4 w-4 shrink-0" />
+                                <span>Cambiaste de proveedor — los productos se reiniciaron. Selecciona de nuevo los que quieras pedir.</span>
                             </div>
                         )}
+                        <div className="border-input rounded-md border p-2">
+                            <Combobox
+                                items={sortedProducts}
+                                multiple
+                                itemToStringLabel={(p: Product) => `${p.code} - ${p.name}`}
+                                itemToStringValue={(p: Product) => String(p.id)}
+                                isItemEqualToValue={(a: Product, b: Product) => a.id === b.id}
+                                value={selectedProducts}
+                                onValueChange={handleProductsChange}
+                                open={productsOpen}
+                                onOpenChange={setProductsOpen}
+                                disabled={!supplierId}
+                            >
+                                <ComboboxInput
+                                    placeholder={supplierId ? 'Buscar producto por código o nombre...' : 'Elige primero un proveedor'}
+                                    className="w-full"
+                                    disabled={!supplierId}
+                                />
+                                <ComboboxContent>
+                                    <ComboboxEmpty>Sin resultados.</ComboboxEmpty>
+                                    <ComboboxList>
+                                        {(p: Product) => {
+                                            const tier = stockTier(p.stock);
+                                            return (
+                                                <ComboboxItem key={p.id} value={p}>
+                                                    {p.code} - {p.name} <span className="text-muted-foreground">({p.stock} und)</span>
+                                                    {tier && (
+                                                        <span
+                                                            className={`ml-1 rounded-full px-1.5 py-0.5 text-[10px] font-semibold ${TIER_BADGE[tier]}`}
+                                                        >
+                                                            {TIER_LABEL[tier]}
+                                                        </span>
+                                                    )}
+                                                </ComboboxItem>
+                                            );
+                                        }}
+                                    </ComboboxList>
+                                </ComboboxContent>
+                            </Combobox>
+
+                            {items.length > 0 && (
+                                <div className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                                    {items.map((item) => {
+                                        const product = products.find((p) => p.id === item.product_id);
+                                        const currentStock = product?.stock ?? Infinity;
+                                        // El badge refleja el stock PROYECTADO (actual + lo que se está
+                                        // pidiendo), no el actual — así se ve en vivo si la cantidad
+                                        // elegida alcanza para salir del semáforo.
+                                        const projectedTier = stockTier(currentStock + item.quantity_requested);
+                                        const unitPrice = product?.price_without_tax ?? 0;
+                                        return (
+                                            <div
+                                                key={item.product_id}
+                                                className="border-input flex items-center justify-between gap-2 rounded-lg border px-3 py-2 shadow-sm transition-shadow hover:shadow-md"
+                                            >
+                                                <div className="min-w-0 flex-1 space-y-0.5">
+                                                    <div className="truncate text-sm font-medium">{item.product_name}</div>
+                                                    <div className="flex items-center gap-1.5">
+                                                        <span className="text-muted-foreground text-xs">{item.product_code}</span>
+                                                        {projectedTier ? (
+                                                            <span
+                                                                className={`rounded-full px-1.5 py-0.5 text-[10px] font-semibold ${TIER_BADGE[projectedTier]}`}
+                                                            >
+                                                                {TIER_LABEL[projectedTier]}
+                                                            </span>
+                                                        ) : (
+                                                            <span className="rounded-full bg-emerald-600 px-1.5 py-0.5 text-[10px] font-semibold text-white">
+                                                                Stock Óptimo
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                    <div className="text-muted-foreground text-xs">Valor unitario: {formatCOP(unitPrice)}</div>
+                                                    <div className="text-muted-foreground text-xs">
+                                                        Valor total:{' '}
+                                                        <span className="text-foreground font-medium">
+                                                            {formatCOP(unitPrice * item.quantity_requested)}
+                                                        </span>
+                                                    </div>
+                                                    {(item.quantity_received ?? 0) > 0 && (
+                                                        <div className="text-xs font-medium text-emerald-600 dark:text-emerald-500">
+                                                            Ya recibido: {item.quantity_received} und
+                                                        </div>
+                                                    )}
+                                                </div>
+                                                <div className="border-input flex shrink-0 items-center gap-1 rounded-md border px-1 py-0.5">
+                                                    <Button
+                                                        type="button"
+                                                        variant="ghost"
+                                                        size="icon-xs"
+                                                        disabled={item.quantity_requested <= Math.max(1, item.quantity_received ?? 0)}
+                                                        onClick={() => handleQuantityChange(item.product_id, item.quantity_requested - 1)}
+                                                    >
+                                                        <Minus className="size-3" />
+                                                    </Button>
+                                                    <span className="w-5 text-center text-sm font-semibold tabular-nums">
+                                                        {item.quantity_requested}
+                                                    </span>
+                                                    <Button
+                                                        type="button"
+                                                        variant="ghost"
+                                                        size="icon-xs"
+                                                        onClick={() => handleQuantityChange(item.product_id, item.quantity_requested + 1)}
+                                                    >
+                                                        <Plus className="size-3" />
+                                                    </Button>
+                                                </div>
+                                                <Button
+                                                    type="button"
+                                                    variant="ghost"
+                                                    size="icon-xs"
+                                                    disabled={(item.quantity_received ?? 0) > 0}
+                                                    title={
+                                                        (item.quantity_received ?? 0) > 0
+                                                            ? 'Ya tiene recepción parcial — no se puede quitar'
+                                                            : undefined
+                                                    }
+                                                    className="shrink-0 text-rose-600 hover:bg-rose-100 hover:text-rose-700 dark:text-rose-500 dark:hover:bg-rose-950/40 dark:hover:text-rose-400"
+                                                    onClick={() => handleRemoveItem(item.product_id)}
+                                                >
+                                                    <Trash2 className="size-3.5" />
+                                                </Button>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            )}
+                        </div>
+                        {items.length === 0 && <p className="text-muted-foreground mt-1.5 text-sm">Sin productos seleccionados todavía.</p>}
                     </div>
-                    {items.length === 0 && <p className="text-muted-foreground mt-1.5 text-sm">Sin productos seleccionados todavía.</p>}
+
+                    <div>
+                        <Label htmlFor="notes" className="mb-1 block text-sm font-medium">
+                            Notas
+                        </Label>
+                        <Textarea
+                            id="notes"
+                            value={notes}
+                            onChange={(e) => {
+                                setNotes(e.target.value);
+                                markDirty();
+                            }}
+                            placeholder="Notas opcionales..."
+                            rows={2}
+                        />
+                    </div>
+
+                    {items.length > 0 && (
+                        <div className="border-input flex items-center justify-between rounded-lg border px-4 py-3">
+                            <span className="text-sm font-bold">Total del pedido</span>
+                            <span className="text-base font-bold">{formatCOP(totalValue)}</span>
+                        </div>
+                    )}
                 </div>
 
-                <div>
-                    <Label htmlFor="notes" className="mb-1 block text-sm font-medium">
-                        Notas
-                    </Label>
-                    <Textarea
-                        id="notes"
-                        value={notes}
-                        onChange={(e) => {
-                            setNotes(e.target.value);
-                            markDirty();
-                        }}
-                        placeholder="Notas opcionales..."
-                        rows={2}
-                    />
-                </div>
-
-                {items.length > 0 && (
-                    <div className="border-input flex items-center justify-between rounded-lg border px-4 py-3">
-                        <span className="text-sm font-bold">Total del pedido</span>
-                        <span className="text-base font-bold">{formatCOP(totalValue)}</span>
-                    </div>
-                )}
-
-                <div className="flex justify-end gap-3 pt-2">
+                <div className="flex shrink-0 justify-end gap-3 pt-1">
                     {onCancel && (
                         <Button type="button" variant="outline" onClick={onCancel}>
                             Cancelar
@@ -691,8 +699,8 @@ export default function PurchaseOrderForm({
             </form>
 
             <Dialog open={showCreateSupplier} onOpenChange={setShowCreateSupplier}>
-                <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl" onInteractOutside={(e) => e.preventDefault()}>
-                    <DialogHeader>
+                <DialogContent className="flex max-h-[90vh] flex-col overflow-hidden sm:max-w-2xl" onInteractOutside={(e) => e.preventDefault()}>
+                    <DialogHeader className="shrink-0">
                         <DialogTitle>Nuevo Proveedor</DialogTitle>
                         <DialogDescription>Se agregará a la lista y quedará seleccionado en este pedido.</DialogDescription>
                     </DialogHeader>
