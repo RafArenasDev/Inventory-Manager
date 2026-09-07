@@ -22,7 +22,7 @@ class ClientController extends Controller
         if ($request->filled('search')) {
             $search = $request->search;
             $clientsQuery->where(function ($query) use ($search) {
-                $query->whereLike('name', "%{$search}%")
+                $query->whereLikeUnaccent('name', "%{$search}%")
                     ->orWhereLike('document_number', "%{$search}%");
             });
         }

@@ -209,8 +209,8 @@ export default function ClientIndex({ clients, filters, totalCount, filteredCoun
                     if (!open) attemptCloseForm();
                 }}
             >
-                <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg" onInteractOutside={(e) => e.preventDefault()}>
-                    <DialogHeader>
+                <DialogContent className="flex max-h-[90vh] flex-col overflow-hidden sm:max-w-lg" onInteractOutside={(e) => e.preventDefault()}>
+                    <DialogHeader className="shrink-0">
                         <DialogTitle>{isCreating ? 'Nuevo Cliente' : `Editar Cliente: ${editingClient?.name}`}</DialogTitle>
                         <DialogDescription>
                             {isCreating ? 'Completa los datos para registrar un nuevo cliente.' : 'Actualiza los datos del cliente.'}

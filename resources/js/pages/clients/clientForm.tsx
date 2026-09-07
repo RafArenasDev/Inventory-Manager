@@ -180,192 +180,194 @@ const ClientForm: React.FC<ClientFormProps> = ({ client, onCancel, onSaved, onDi
     const canSubmit = isEditing ? userPermissions.includes('Editar Clientes') : userPermissions.includes('Crear Clientes');
 
     return (
-        <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="space-y-4">
-                <div>
-                    <Label htmlFor="document_type" className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
-                        Tipo de Documento *
-                    </Label>
-                    <Combobox
-                        items={DOCUMENT_TYPES}
-                        value={data.document_type || null}
-                        onValueChange={(value: string | null) => setData('document_type', value ?? '')}
-                    >
-                        <ComboboxInput placeholder="Seleccione tipo de documento" className="w-full" />
-                        <ComboboxContent>
-                            <ComboboxEmpty>No se encontraron resultados.</ComboboxEmpty>
-                            <ComboboxList>
-                                {(type: string) => (
-                                    <ComboboxItem key={type} value={type}>
-                                        {type}
-                                    </ComboboxItem>
-                                )}
-                            </ComboboxList>
-                        </ComboboxContent>
-                    </Combobox>
-                    {errors.document_type && <p className="mt-1 text-sm text-red-600">{errors.document_type}</p>}
-                </div>
-
-                <div>
-                    <Label htmlFor="document_number" className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
-                        Número de Documento *
-                    </Label>
-                    <Input
-                        id="document_number"
-                        type={['CC', 'TI', 'NIT'].includes(data.document_type) ? 'number' : 'text'}
-                        value={data.document_number}
-                        onChange={(e) => setData('document_number', e.target.value)}
-                        className="w-full"
-                        placeholder="Ingrese el número de documento"
-                        required
-                    />
-                    {errors.document_number && <p className="mt-1 text-sm text-red-600">{errors.document_number}</p>}
-                </div>
-
-                {data.document_type === 'NIT' && (
+        <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col gap-4">
+            <div className="min-h-0 flex-1 space-y-6 overflow-x-hidden overflow-y-auto pr-1">
+                <div className="space-y-4">
                     <div>
-                        <Label htmlFor="verification_digit" className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
-                            Dígito de Verificación
+                        <Label htmlFor="document_type" className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                            Tipo de Documento *
+                        </Label>
+                        <Combobox
+                            items={DOCUMENT_TYPES}
+                            value={data.document_type || null}
+                            onValueChange={(value: string | null) => setData('document_type', value ?? '')}
+                        >
+                            <ComboboxInput placeholder="Seleccione tipo de documento" className="w-full" />
+                            <ComboboxContent>
+                                <ComboboxEmpty>No se encontraron resultados.</ComboboxEmpty>
+                                <ComboboxList>
+                                    {(type: string) => (
+                                        <ComboboxItem key={type} value={type}>
+                                            {type}
+                                        </ComboboxItem>
+                                    )}
+                                </ComboboxList>
+                            </ComboboxContent>
+                        </Combobox>
+                        {errors.document_type && <p className="mt-1 text-sm text-red-600">{errors.document_type}</p>}
+                    </div>
+
+                    <div>
+                        <Label htmlFor="document_number" className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                            Número de Documento *
                         </Label>
                         <Input
-                            id="verification_digit"
-                            type="number"
-                            value={data.verification_digit}
-                            onChange={(e) => setData('verification_digit', e.target.value)}
+                            id="document_number"
+                            type={['CC', 'TI', 'NIT'].includes(data.document_type) ? 'number' : 'text'}
+                            value={data.document_number}
+                            onChange={(e) => setData('document_number', e.target.value)}
                             className="w-full"
-                            placeholder="Ingrese el dígito de verificación"
+                            placeholder="Ingrese el número de documento"
+                            required
                         />
-                        {errors.verification_digit && <p className="mt-1 text-sm text-red-600">{errors.verification_digit}</p>}
+                        {errors.document_number && <p className="mt-1 text-sm text-red-600">{errors.document_number}</p>}
                     </div>
-                )}
 
-                <div>
-                    <Label htmlFor="name" className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
-                        Nombre *
-                    </Label>
-                    <Input
-                        id="name"
-                        value={data.name}
-                        onChange={(e) => setData('name', e.target.value)}
-                        className="w-full"
-                        placeholder="Ingrese el nombre"
-                        required
-                    />
-                    {errors.name && <p className="mt-1 text-sm text-red-600">{errors.name}</p>}
-                </div>
+                    {data.document_type === 'NIT' && (
+                        <div>
+                            <Label htmlFor="verification_digit" className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                Dígito de Verificación
+                            </Label>
+                            <Input
+                                id="verification_digit"
+                                type="number"
+                                value={data.verification_digit}
+                                onChange={(e) => setData('verification_digit', e.target.value)}
+                                className="w-full"
+                                placeholder="Ingrese el dígito de verificación"
+                            />
+                            {errors.verification_digit && <p className="mt-1 text-sm text-red-600">{errors.verification_digit}</p>}
+                        </div>
+                    )}
 
-                <div>
-                    <Label htmlFor="department_id" className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
-                        Departamento
-                    </Label>
-                    <Combobox
-                        items={departments}
-                        itemToStringLabel={(d: Department) => d.name}
-                        itemToStringValue={(d: Department) => d.id.toString()}
-                        value={departments.find((d) => d.id === data.department_id) ?? null}
-                        onValueChange={(d: Department | null) => setData('department_id', d ? d.id : '')}
-                    >
-                        <ComboboxInput placeholder="Seleccione un departamento" className="w-full" />
-                        <ComboboxContent>
-                            <ComboboxEmpty>No hay departamentos disponibles.</ComboboxEmpty>
-                            <ComboboxList>
-                                {(department: Department) => (
-                                    <ComboboxItem key={department.id} value={department}>
-                                        {department.name}
-                                    </ComboboxItem>
-                                )}
-                            </ComboboxList>
-                        </ComboboxContent>
-                    </Combobox>
-                    {errors.department_id && <p className="mt-1 text-sm text-red-600">{errors.department_id}</p>}
-                </div>
+                    <div>
+                        <Label htmlFor="name" className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                            Nombre *
+                        </Label>
+                        <Input
+                            id="name"
+                            value={data.name}
+                            onChange={(e) => setData('name', e.target.value)}
+                            className="w-full"
+                            placeholder="Ingrese el nombre"
+                            required
+                        />
+                        {errors.name && <p className="mt-1 text-sm text-red-600">{errors.name}</p>}
+                    </div>
 
-                <div>
-                    <Label htmlFor="city_id" className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
-                        Ciudad
-                    </Label>
-                    <Combobox
-                        items={availableCities}
-                        itemToStringLabel={(c: City) => c.name}
-                        itemToStringValue={(c: City) => c.id.toString()}
-                        value={availableCities.find((c) => c.id === data.city_id) ?? null}
-                        onValueChange={(c: City | null) => setData('city_id', c ? c.id : '')}
-                        disabled={!availableCities.length}
-                    >
-                        <ComboboxInput placeholder="Seleccione una ciudad" className="w-full" />
-                        <ComboboxContent>
-                            <ComboboxEmpty>No hay ciudades disponibles.</ComboboxEmpty>
-                            <ComboboxList>
-                                {(city: City) => (
-                                    <ComboboxItem key={city.id} value={city}>
-                                        {city.name}
-                                    </ComboboxItem>
-                                )}
-                            </ComboboxList>
-                        </ComboboxContent>
-                    </Combobox>
-                    {errors.city_id && <p className="mt-1 text-sm text-red-600">{errors.city_id}</p>}
-                </div>
+                    <div>
+                        <Label htmlFor="department_id" className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                            Departamento
+                        </Label>
+                        <Combobox
+                            items={departments}
+                            itemToStringLabel={(d: Department) => d.name}
+                            itemToStringValue={(d: Department) => d.id.toString()}
+                            value={departments.find((d) => d.id === data.department_id) ?? null}
+                            onValueChange={(d: Department | null) => setData('department_id', d ? d.id : '')}
+                        >
+                            <ComboboxInput placeholder="Seleccione un departamento" className="w-full" />
+                            <ComboboxContent>
+                                <ComboboxEmpty>No hay departamentos disponibles.</ComboboxEmpty>
+                                <ComboboxList>
+                                    {(department: Department) => (
+                                        <ComboboxItem key={department.id} value={department}>
+                                            {department.name}
+                                        </ComboboxItem>
+                                    )}
+                                </ComboboxList>
+                            </ComboboxContent>
+                        </Combobox>
+                        {errors.department_id && <p className="mt-1 text-sm text-red-600">{errors.department_id}</p>}
+                    </div>
 
-                <div>
-                    <Label htmlFor="address" className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
-                        Dirección
-                    </Label>
-                    <Input
-                        id="address"
-                        value={data.address}
-                        onChange={(e) => setData('address', e.target.value)}
-                        className="w-full"
-                        placeholder="Ingrese la dirección"
-                    />
-                    {errors.address && <p className="mt-1 text-sm text-red-600">{errors.address}</p>}
-                </div>
+                    <div>
+                        <Label htmlFor="city_id" className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                            Ciudad
+                        </Label>
+                        <Combobox
+                            items={availableCities}
+                            itemToStringLabel={(c: City) => c.name}
+                            itemToStringValue={(c: City) => c.id.toString()}
+                            value={availableCities.find((c) => c.id === data.city_id) ?? null}
+                            onValueChange={(c: City | null) => setData('city_id', c ? c.id : '')}
+                            disabled={!availableCities.length}
+                        >
+                            <ComboboxInput placeholder="Seleccione una ciudad" className="w-full" />
+                            <ComboboxContent>
+                                <ComboboxEmpty>No hay ciudades disponibles.</ComboboxEmpty>
+                                <ComboboxList>
+                                    {(city: City) => (
+                                        <ComboboxItem key={city.id} value={city}>
+                                            {city.name}
+                                        </ComboboxItem>
+                                    )}
+                                </ComboboxList>
+                            </ComboboxContent>
+                        </Combobox>
+                        {errors.city_id && <p className="mt-1 text-sm text-red-600">{errors.city_id}</p>}
+                    </div>
 
-                <div>
-                    <Label htmlFor="phone" className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
-                        Teléfono
-                    </Label>
-                    <Input
-                        id="phone"
-                        value={data.phone}
-                        onChange={(e) => setData('phone', e.target.value)}
-                        className="w-full"
-                        placeholder="Ingrese el número de teléfono"
-                    />
-                    {errors.phone && <p className="mt-1 text-sm text-red-600">{errors.phone}</p>}
-                </div>
+                    <div>
+                        <Label htmlFor="address" className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                            Dirección
+                        </Label>
+                        <Input
+                            id="address"
+                            value={data.address}
+                            onChange={(e) => setData('address', e.target.value)}
+                            className="w-full"
+                            placeholder="Ingrese la dirección"
+                        />
+                        {errors.address && <p className="mt-1 text-sm text-red-600">{errors.address}</p>}
+                    </div>
 
-                <div>
-                    <Label htmlFor="cellphone" className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
-                        Celular
-                    </Label>
-                    <Input
-                        id="cellphone"
-                        value={data.cellphone}
-                        onChange={(e) => setData('cellphone', e.target.value)}
-                        className="w-full"
-                        placeholder="Ingrese el número de celular"
-                    />
-                    {errors.cellphone && <p className="mt-1 text-sm text-red-600">{errors.cellphone}</p>}
-                </div>
+                    <div>
+                        <Label htmlFor="phone" className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                            Teléfono
+                        </Label>
+                        <Input
+                            id="phone"
+                            value={data.phone}
+                            onChange={(e) => setData('phone', e.target.value)}
+                            className="w-full"
+                            placeholder="Ingrese el número de teléfono"
+                        />
+                        {errors.phone && <p className="mt-1 text-sm text-red-600">{errors.phone}</p>}
+                    </div>
 
-                <div>
-                    <Label htmlFor="email" className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
-                        Email
-                    </Label>
-                    <Input
-                        id="email"
-                        type="email"
-                        value={data.email}
-                        onChange={(e) => setData('email', e.target.value)}
-                        className="w-full"
-                        placeholder="Ingrese el correo electrónico"
-                    />
-                    {errors.email && <p className="mt-1 text-sm text-red-600">{errors.email}</p>}
+                    <div>
+                        <Label htmlFor="cellphone" className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                            Celular
+                        </Label>
+                        <Input
+                            id="cellphone"
+                            value={data.cellphone}
+                            onChange={(e) => setData('cellphone', e.target.value)}
+                            className="w-full"
+                            placeholder="Ingrese el número de celular"
+                        />
+                        {errors.cellphone && <p className="mt-1 text-sm text-red-600">{errors.cellphone}</p>}
+                    </div>
+
+                    <div>
+                        <Label htmlFor="email" className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                            Email
+                        </Label>
+                        <Input
+                            id="email"
+                            type="email"
+                            value={data.email}
+                            onChange={(e) => setData('email', e.target.value)}
+                            className="w-full"
+                            placeholder="Ingrese el correo electrónico"
+                        />
+                        {errors.email && <p className="mt-1 text-sm text-red-600">{errors.email}</p>}
+                    </div>
                 </div>
             </div>
 
-            <div className="flex justify-end space-x-3 border-t border-gray-300 pt-4 dark:border-gray-600">
+            <div className="flex shrink-0 justify-end space-x-3 pt-1">
                 <Button type="button" onClick={onCancel} variant="outline" disabled={processing}>
                     Cancelar
                 </Button>
