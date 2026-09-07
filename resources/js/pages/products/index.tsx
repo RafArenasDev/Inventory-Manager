@@ -219,8 +219,11 @@ export default function ProductIndex({ products, categories, suppliers, filters,
                     if (!open) attemptCloseForm();
                 }}
             >
-                <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl" onInteractOutside={(e) => e.preventDefault()}>
-                    <DialogHeader>
+                <DialogContent
+                    className="flex max-h-[90vh] w-[95vw] flex-col overflow-hidden sm:max-w-4xl lg:max-w-6xl"
+                    onInteractOutside={(e) => e.preventDefault()}
+                >
+                    <DialogHeader className="shrink-0">
                         <DialogTitle>{isCreating ? 'Nuevo Producto' : `Editar Producto: ${editingProduct?.name}`}</DialogTitle>
                         <DialogDescription>
                             {isCreating ? 'Completa los datos para registrar un nuevo producto.' : 'Actualiza los datos del producto.'}

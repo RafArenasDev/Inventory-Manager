@@ -2,6 +2,7 @@ import { IconActionButton } from '@/components/icon-action-button';
 import { Pagination } from '@/components/ui/pagination';
 import SearchInput from '@/components/ui/search-input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import Swal from '@/lib/swal';
 import { LinkProps } from '@/types';
 import { router } from '@inertiajs/react';
@@ -24,6 +25,7 @@ interface Product {
     supplier?: string | null;
     supplier_id?: number | null;
     stock: number;
+    low_stock_threshold?: number | null;
     created_at?: string;
     updated_at?: string;
     movement_date?: string;
@@ -164,7 +166,22 @@ export default function ProductsTable({
                                     <TableCell className="text-left font-medium">{product.code}</TableCell>
                                     <TableCell className="text-left">
                                         {product.image_path ? (
-                                            <img src={product.image_path} alt={product.name} className="h-12 w-12 rounded object-cover" />
+                                            <Tooltip>
+                                                <TooltipTrigger asChild>
+                                                    <img
+                                                        src={product.image_path}
+                                                        alt={product.name}
+                                                        className="h-8 w-8 cursor-zoom-in rounded object-cover ring-1 ring-black/10 transition-transform hover:scale-110 dark:ring-white/10"
+                                                    />
+                                                </TooltipTrigger>
+                                                <TooltipContent side="right" className="border-none bg-transparent p-0 shadow-none [&_svg]:hidden">
+                                                    <img
+                                                        src={product.image_path}
+                                                        alt={product.name}
+                                                        className="h-44 w-44 rounded-lg border-2 border-white object-cover shadow-2xl dark:border-gray-700"
+                                                    />
+                                                </TooltipContent>
+                                            </Tooltip>
                                         ) : (
                                             <span className="text-gray-500 dark:text-gray-400">Sin imagen</span>
                                         )}

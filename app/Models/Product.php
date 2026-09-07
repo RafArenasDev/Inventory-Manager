@@ -16,8 +16,15 @@ class Product extends Model
     protected $fillable = [
         'code', 'category_id', 'name', 'description',
         'image_path', 'price_without_tax', 'price_with_tax', 'iva_value',
-        'sale_price', 'supplier_id', 'stock', 'initial_movement_id',
+        'sale_price', 'supplier_id', 'stock', 'low_stock_threshold', 'initial_movement_id',
     ];
+
+    /**
+     * Umbral de alerta de stock usado cuando el producto no define uno
+     * propio (columna `low_stock_threshold` nula) — mismo valor que se
+     * usaba hardcodeado antes en DashboardController.
+     */
+    public const DEFAULT_LOW_STOCK_THRESHOLD = 7;
 
     protected $casts = [
         'price_without_tax' => 'integer',
@@ -73,18 +80,27 @@ class Product extends Model
         return $query->where('stock', 0);
     }
 
+    public function getEffectiveLowStockThresholdAttribute(): int
+    {
+        return $this->low_stock_threshold ?? self::DEFAULT_LOW_STOCK_THRESHOLD;
+    }
+
     /**
-     * Mismos cortes que el semáforo de productsTable.tsx / la campana de
-     * notificaciones — un solo lugar para no repetir los números 0/3 en
-     * cada controlador que necesite clasificar stock bajo.
+     * Mismos cortes que la campana de notificaciones — un solo lugar para
+     * no repetir la clasificación en cada controlador. "Crítico" es la
+     * mitad del umbral de alerta (mínimo 1), para que escale junto con el
+     * umbral configurable por producto en vez de quedar fijo en 3.
      */
-    public static function stockTier(int $stock): string
+    public static function stockTier(int $stock, ?int $threshold = null): string
     {
         if ($stock === 0) {
             return 'agotado';
         }
 
-        if ($stock <= 3) {
+        $threshold ??= self::DEFAULT_LOW_STOCK_THRESHOLD;
+        $criticalThreshold = max(1, intdiv($threshold, 2));
+
+        if ($stock <= $criticalThreshold) {
             return 'critico';
         }
 

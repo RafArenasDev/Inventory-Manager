@@ -19,7 +19,7 @@ class DatabaseSeeder extends Seeder
             UserSeeder::class,
             CategorySeeder::class,
             SupplierSeeder::class,
-            ProductSeeder::class,
+            // ProductSeeder::class, // omitido a pedido del usuario: los productos de prueba se cargan vía Carga Masiva.
             DepartmentCitySeeder::class,
             ClientSeeder::class,
             TransactionCategorySeeder::class,

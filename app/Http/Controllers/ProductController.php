@@ -7,6 +7,7 @@ use App\Models\InventoryMovement;
 use App\Models\Product;
 use App\Models\Supplier;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
@@ -37,10 +38,10 @@ class ProductController extends Controller
         if ($request->filled('search')) {
             $search = $request->search;
             $productsQuery->where(function ($query) use ($search) {
-                $query->whereLike('name', "%{$search}%")
+                $query->whereLikeUnaccent('name', "%{$search}%")
                     ->orWhereLike('code', "%{$search}%")
                     ->orWhereHas('supplier', function ($query) use ($search) {
-                        $query->whereLike('name', "%{$search}%");
+                        $query->whereLikeUnaccent('name', "%{$search}%");
                     });
             });
         }
@@ -80,6 +81,7 @@ class ProductController extends Controller
                 'category' => $product->category?->name,
                 'category_id' => $product->category_id,
                 'stock' => $product->stock,
+                'low_stock_threshold' => $product->low_stock_threshold,
                 'price_without_tax' => $product->price_without_tax,
                 'price_with_tax' => $product->price_with_tax,
                 'iva_value' => $product->iva_value,
@@ -111,10 +113,10 @@ class ProductController extends Controller
         if ($request->filled('search')) {
             $search = $request->search;
             $productsQuery->where(function ($query) use ($search) {
-                $query->whereLike('name', "%{$search}%")
+                $query->whereLikeUnaccent('name', "%{$search}%")
                     ->orWhereLike('code', "%{$search}%")
                     ->orWhereHas('supplier', function ($query) use ($search) {
-                        $query->whereLike('name', "%{$search}%");
+                        $query->whereLikeUnaccent('name', "%{$search}%");
                     });
             });
         }
@@ -258,15 +260,14 @@ class ProductController extends Controller
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-            'image_path' => 'nullable|string|max:255',
             'price_without_tax' => 'required|integer|min:0',
             'price_with_tax' => 'required|integer|min:0',
             'iva_value' => 'nullable|integer|min:0',
             'sale_price' => 'required|integer|min:0',
-            'supplier_id' => 'nullable|integer|exists:suppliers,id',
+            'supplier_id' => 'required|integer|exists:suppliers,id',
             'stock' => 'required|integer|min:0',
+            'low_stock_threshold' => 'nullable|integer|min:1',
             'movement_notes' => 'nullable|string|max:500',
-            'movement_type' => 'required|in:Entry,Exit,CustomerReturn,SupplierReturn,ConsignmentEntry,ConsignmentExit,ExchangeEntry,ExchangeExit,InventoryAdjustment',
         ], [
             'code.required' => 'El código del producto es obligatorio.',
             'code.unique' => 'Ya existe un producto con este código.',
@@ -284,24 +285,17 @@ class ProductController extends Controller
             'sale_price.integer' => 'El precio de venta debe ser un número entero.',
             'stock.required' => 'El stock es obligatorio.',
             'stock.min' => 'El stock no puede ser negativo.',
+            'supplier_id.required' => 'Debe seleccionar un proveedor.',
             'supplier_id.exists' => 'El proveedor seleccionado no es válido.',
-            'movement_type.required' => 'El tipo de movimiento es obligatorio.',
-            'movement_type.in' => 'El tipo de movimiento no es válido.',
         ]);
 
-        $imagePath = null;
-
-        if ($request->hasFile('image')) {
-            $imagePath = $request->file('image')->store('products', 'public');
-        } elseif ($validated['image_path']) {
-            $imagePath = $validated['image_path'];
-            if (str_starts_with($imagePath, '/storage/')) {
-                $imagePath = str_replace('/storage/', '', $imagePath);
-            } elseif (str_starts_with($imagePath, 'http')) {
-                $imagePath = parse_url($imagePath, PHP_URL_PATH);
-                $imagePath = str_replace('/storage/', '', $imagePath);
-            }
-        }
+        // La imagen SOLO puede venir de un archivo subido — nunca de un path
+        // de string enviado por el cliente (evita que alguien manipule el
+        // request para apuntar `image_path` a un archivo arbitrario del disco
+        // público, o a una URL externa que nunca se validó como imagen real).
+        $imagePath = $request->hasFile('image')
+            ? $request->file('image')->store('products', 'public')
+            : null;
 
         $product = Product::create([
             'code' => $validated['code'],
@@ -315,19 +309,22 @@ class ProductController extends Controller
             'sale_price' => $validated['sale_price'],
             'supplier_id' => $validated['supplier_id'] ?: null,
             'stock' => $validated['stock'],
+            'low_stock_threshold' => $validated['low_stock_threshold'] ?: null,
             'initial_movement_id' => null,
         ]);
 
         $this->reactivateCategoryIfNeeded($validated['category_id']);
 
         if ($validated['stock'] > 0) {
-            // Obtener el nombre del proveedor
             $supplier = Supplier::find($validated['supplier_id']);
-            $supplierName = $supplier->name;
+            $supplierName = $supplier?->name ?? 'proveedor no especificado';
 
+            // Un producto siempre "nace" con una Entrada — el tipo nunca lo
+            // decide el cliente (evita que un POST manipulado a mano registre
+            // el movimiento inicial como "Salida" o cualquier otro tipo).
             $movement = InventoryMovement::create([
                 'product_id' => $product->id,
-                'type' => $this->movementTypeMap[$validated['movement_type']] ?? $validated['movement_type'],
+                'type' => 'Entrada',
                 'quantity' => $validated['stock'],
                 'date' => now()->format('Y-m-d'),
                 'notes' => $validated['movement_notes'] ?: "Primer pedido del proveedor {$supplierName}",
@@ -367,6 +364,7 @@ class ProductController extends Controller
                 'sale_price' => $product->sale_price,
                 'supplier_id' => $product->supplier_id,
                 'stock' => $product->stock,
+                'low_stock_threshold' => $product->low_stock_threshold,
                 'movement_notes' => $initialMovement?->notes,
                 'movement_type' => $movementType,
                 'initial_movement_id' => $initialMovement?->id,
@@ -388,14 +386,14 @@ class ProductController extends Controller
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-            'image_path' => 'nullable|string|max:255',
             'remove_image' => 'nullable|boolean',
             'price_without_tax' => 'required|integer|min:0',
             'price_with_tax' => 'required|integer|min:0',
             'iva_value' => 'nullable|integer|min:0',
             'sale_price' => 'required|integer|min:0',
-            'supplier_id' => 'nullable|integer|exists:suppliers,id',
+            'supplier_id' => 'required|integer|exists:suppliers,id',
             'stock' => 'nullable|integer|min:0',
+            'low_stock_threshold' => 'nullable|integer|min:1',
             'movement_notes' => 'nullable|string|max:500',
         ], [
             'code.required' => 'El código del producto es obligatorio.',
@@ -412,10 +410,13 @@ class ProductController extends Controller
             'price_with_tax.numeric' => 'El precio con IVA debe ser un número.',
             'sale_price.required' => 'El precio de venta es obligatorio.',
             'sale_price.numeric' => 'El precio de venta debe ser un número.',
+            'supplier_id.required' => 'Debe seleccionar un proveedor.',
             'supplier_id.exists' => 'El proveedor seleccionado no es válido.',
         ]);
 
-        // Manejar imagen
+        // Manejar imagen — igual que en store(), nunca se acepta un path de
+        // string enviado por el cliente: o sube un archivo nuevo, o pide
+        // borrarla, o se deja tal cual está.
         $imagePath = $product->image_path;
 
         if ($request->hasFile('image')) {
@@ -428,14 +429,6 @@ class ProductController extends Controller
                 Storage::disk('public')->delete($product->image_path);
             }
             $imagePath = null;
-        } elseif ($validated['image_path']) {
-            $imagePath = $validated['image_path'];
-            if (str_starts_with($imagePath, '/storage/')) {
-                $imagePath = str_replace('/storage/', '', $imagePath);
-            } elseif (str_starts_with($imagePath, 'http')) {
-                $imagePath = parse_url($imagePath, PHP_URL_PATH);
-                $imagePath = str_replace('/storage/', '', $imagePath);
-            }
         }
 
         // Convertir strings a integers
@@ -444,6 +437,8 @@ class ProductController extends Controller
         $ivaValue = $validated['iva_value'] ? (int) $validated['iva_value'] : 0;
         $salePrice = (int) $validated['sale_price'];
         $stock = $validated['stock'] !== null ? (int) $validated['stock'] : $product->stock;
+        $originalStock = $product->stock;
+        $stockChanged = $stock !== $originalStock;
 
         $product->update([
             'code' => $validated['code'],
@@ -457,28 +452,35 @@ class ProductController extends Controller
             'sale_price' => $salePrice,
             'supplier_id' => $validated['supplier_id'] ?: null,
             'stock' => $stock,
+            'low_stock_threshold' => $validated['low_stock_threshold'] ?: null,
         ]);
 
         $this->reactivateCategoryIfNeeded($validated['category_id']);
 
         // Obtener el nombre del proveedor
         $supplier = Supplier::find($validated['supplier_id']);
-        $supplierName = $supplier->name;
+        $supplierName = $supplier?->name ?? 'proveedor no especificado';
 
-        // Manejar movimiento de inventario
+        // El historial de movimientos del producto solo se toca si el stock
+        // realmente cambió — editar otros campos (precio, nombre, etc.) no
+        // genera ni modifica movimientos. El tipo nunca lo elige el usuario:
+        // aquí siempre es "Ajuste Inventario" (el frontend ya lo decide así).
         $initialMovementId = $product->initial_movement_id;
         if ($initialMovementId) {
-            $movement = InventoryMovement::where('id', $initialMovementId)
-                ->where('product_id', $product->id)
-                ->first();
-            if ($movement) {
-                $movement->update([
-                    'quantity' => $stock,
-                    'notes' => $validated['movement_notes'] ?? $movement->notes,
-                    'supplier_id' => $validated['supplier_id'],
-                ]);
+            if ($stockChanged) {
+                $movement = InventoryMovement::where('id', $initialMovementId)
+                    ->where('product_id', $product->id)
+                    ->first();
+                if ($movement) {
+                    $movement->update([
+                        'type' => 'Ajuste Inventario',
+                        'quantity' => $stock,
+                        'notes' => $validated['movement_notes'] ?? $movement->notes,
+                        'supplier_id' => $validated['supplier_id'],
+                    ]);
+                }
             }
-        } elseif ($stock > 0 || ! empty($validated['movement_notes'])) {
+        } elseif ($stockChanged && ($stock > 0 || ! empty($validated['movement_notes']))) {
             $movement = InventoryMovement::create([
                 'product_id' => $product->id,
                 'type' => 'Entrada',
@@ -497,16 +499,45 @@ class ProductController extends Controller
 
     public function destroy(Product $product)
     {
-        if ($product->movements()->count() > 0) {
+        // Ventas y pedidos de compra sí bloquean el borrado (integridad real
+        // del historial fiscal/de compras — `restrict` a nivel de BD). Los
+        // movimientos de inventario NO bloquean: son solo el historial de
+        // entradas/salidas del propio producto, y todo producto tiene al
+        // menos uno (el de creación), así que exigir "sin movimientos" para
+        // borrar hacía imposible eliminar cualquier producto ya creado.
+        if ($product->saleItems()->exists()) {
             return redirect()->back()
-                ->with('error', 'No se puede eliminar el producto "'.$product->name.'" porque tiene movimientos de inventario asociados.');
+                ->with('error', 'No se puede eliminar "'.$product->name.'": tiene ventas registradas. Puedes marcarlo como agotado en su lugar.');
         }
 
-        if ($product->image_path) {
-            Storage::disk('public')->delete($product->image_path);
+        if ($product->purchaseOrderItems()->exists()) {
+            return redirect()->back()
+                ->with('error', 'No se puede eliminar "'.$product->name.'": está incluido en uno o más pedidos de compra.');
         }
 
-        $product->delete();
+        DB::transaction(function () use ($product) {
+            // El historial de movimientos NO se borra — queda como rastro de
+            // auditoría (con snapshot de código/nombre, ver InventoryMovement)
+            // de que el producto existió y qué pasó con su stock, aunque el
+            // producto en sí se elimine por completo a continuación.
+            InventoryMovement::create([
+                'product_id' => $product->id,
+                'product_code' => $product->code,
+                'product_name' => $product->name,
+                'type' => 'Ajuste Inventario',
+                'quantity' => -$product->stock,
+                'date' => now()->format('Y-m-d'),
+                'notes' => 'Producto eliminado del catálogo — stock dado de baja.',
+            ]);
+
+            $product->movements()->update(['product_deleted_at' => now()]);
+
+            if ($product->image_path) {
+                Storage::disk('public')->delete($product->image_path);
+            }
+
+            $product->delete();
+        });
 
         return redirect()->route('products.index')
             ->with('success', 'Producto eliminado correctamente.');
