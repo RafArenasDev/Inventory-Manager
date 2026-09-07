@@ -179,8 +179,9 @@ export default function UsersTable({
                                                 <IconActionButton
                                                     variant="ghost"
                                                     onClick={() => handleDelete(user.id, user.name)}
-                                                    className="text-red-600 hover:bg-red-100 hover:text-red-700 dark:text-red-500 dark:hover:bg-red-950/40 dark:hover:text-red-400"
-                                                    label="Eliminar usuario"
+                                                    disabled={user.id === auth.user.id}
+                                                    className="text-red-600 hover:bg-red-100 hover:text-red-700 disabled:pointer-events-auto disabled:opacity-40 dark:text-red-500 dark:hover:bg-red-950/40 dark:hover:text-red-400"
+                                                    label={user.id === auth.user.id ? 'No puedes eliminar tu propia cuenta' : 'Eliminar usuario'}
                                                 >
                                                     <Trash2 className="size-3.5" />
                                                 </IconActionButton>

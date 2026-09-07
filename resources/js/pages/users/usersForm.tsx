@@ -1,3 +1,4 @@
+import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
 import { Combobox, ComboboxContent, ComboboxEmpty, ComboboxInput, ComboboxItem, ComboboxList } from '@/components/ui/combobox';
 import { Input } from '@/components/ui/input';
@@ -6,8 +7,21 @@ import { PasswordInput } from '@/components/ui/password-input';
 import { generateSecurePassword } from '@/lib/generate-password';
 import Swal from '@/lib/swal';
 import { useForm } from '@inertiajs/react';
-import { Wand2 } from 'lucide-react';
+import { Check, Wand2, X } from 'lucide-react';
 import React, { useEffect } from 'react';
+
+// Mismas reglas que Password::defaults() en AppServiceProvider (min 12,
+// mayúsculas+minúsculas, número, símbolo) — reflejadas acá solo para dar
+// feedback inmediato en el checklist; la validación real sigue siendo la
+// del backend, esto nunca reemplaza esa regla.
+const PASSWORD_RULES = [
+    { key: 'length', label: 'Mínimo 12 caracteres', test: (v: string) => v.length >= 12 },
+    { key: 'case', label: 'Mayúsculas y minúsculas', test: (v: string) => /[a-z]/.test(v) && /[A-Z]/.test(v) },
+    { key: 'number', label: 'Al menos un número', test: (v: string) => /[0-9]/.test(v) },
+    { key: 'symbol', label: 'Al menos un símbolo', test: (v: string) => /[^A-Za-z0-9]/.test(v) },
+] as const;
+
+const passwordMeetsPolicy = (value: string) => PASSWORD_RULES.every((rule) => rule.test(value));
 
 interface Role {
     id: number;
@@ -118,10 +132,21 @@ const UserForm: React.FC<UserFormProps> = ({ user, roles, onCancel, onSaved, onD
     const isEditing = !!user?.id;
     const passwordRequired = !isEditing;
 
+    // En edición, la contraseña es opcional — pero si se toca CUALQUIERA de
+    // los dos campos (password o confirmación), ambos pasan a exigirse
+    // completos y coincidentes, para no permitir un envío a medias.
+    const passwordTouched = data.password.length > 0 || data.confirm_password.length > 0;
+    const passwordMustValidate = passwordRequired || passwordTouched;
+    const passwordPolicyOk = passwordMeetsPolicy(data.password);
+    const passwordsMatch = data.password.length > 0 && data.password === data.confirm_password;
+    const passwordOk = passwordMustValidate ? passwordPolicyOk && passwordsMatch : true;
+
+    const isFormValid = data.name.trim() !== '' && data.email.trim() !== '' && data.roles.length > 0 && passwordOk;
+
     const canSubmit = isEditing ? userPermissions.includes('Editar Usuarios') : userPermissions.includes('Crear Usuarios');
 
     return (
-        <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col gap-4">
+        <form onSubmit={handleSubmit} noValidate className="flex min-h-0 flex-1 flex-col gap-4">
             <div className="min-h-0 flex-1 space-y-6 overflow-x-hidden overflow-y-auto pr-1">
                 <div className="space-y-4">
                     <div>
@@ -133,11 +158,11 @@ const UserForm: React.FC<UserFormProps> = ({ user, roles, onCancel, onSaved, onD
                             id="name"
                             value={data.name}
                             onChange={(e) => setData('name', e.target.value)}
+                            aria-invalid={!!errors.name}
                             className="w-full"
                             placeholder="Ingrese el nombre del usuario"
-                            required
                         />
-                        {errors.name && <p className="mt-1 text-sm text-red-600">{errors.name}</p>}
+                        <InputError message={errors.name} />
                     </div>
 
                     <div>
@@ -149,11 +174,11 @@ const UserForm: React.FC<UserFormProps> = ({ user, roles, onCancel, onSaved, onD
                             id="email"
                             value={data.email}
                             onChange={(e) => setData('email', e.target.value)}
+                            aria-invalid={!!errors.email}
                             className="w-full"
                             placeholder="Ingrese el email del usuario"
-                            required
                         />
-                        {errors.email && <p className="mt-1 text-sm text-red-600">{errors.email}</p>}
+                        <InputError message={errors.email} />
                     </div>
 
                     <div>
@@ -176,15 +201,29 @@ const UserForm: React.FC<UserFormProps> = ({ user, roles, onCancel, onSaved, onD
                             id="password"
                             value={data.password}
                             onChange={(e) => setData('password', e.target.value)}
+                            aria-invalid={!!errors.password}
                             className="w-full"
                             placeholder={isEditing ? 'Dejar vacío para mantener la contraseña actual' : 'Ingrese la contraseña'}
-                            required={passwordRequired}
-                            minLength={12}
                         />
-                        <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                            Mínimo 12 caracteres, con mayúsculas, minúsculas, números y símbolos.
-                        </p>
-                        {errors.password && <p className="mt-1 text-sm text-red-600">{errors.password}</p>}
+                        {(passwordRequired || passwordTouched) && (
+                            <ul className="mt-2 grid grid-cols-2 gap-x-3 gap-y-1">
+                                {PASSWORD_RULES.map((rule) => {
+                                    const met = rule.test(data.password);
+                                    return (
+                                        <li
+                                            key={rule.key}
+                                            className={`flex items-center gap-1.5 text-xs ${
+                                                met ? 'text-emerald-600 dark:text-emerald-500' : 'text-gray-400 dark:text-gray-500'
+                                            }`}
+                                        >
+                                            {met ? <Check className="h-3 w-3 shrink-0" /> : <X className="h-3 w-3 shrink-0" />}
+                                            {rule.label}
+                                        </li>
+                                    );
+                                })}
+                            </ul>
+                        )}
+                        <InputError message={errors.password} />
                     </div>
 
                     <div>
@@ -195,11 +234,14 @@ const UserForm: React.FC<UserFormProps> = ({ user, roles, onCancel, onSaved, onD
                             id="confirm_password"
                             value={data.confirm_password}
                             onChange={(e) => setData('confirm_password', e.target.value)}
+                            aria-invalid={!!errors.confirm_password || (passwordTouched && data.confirm_password.length > 0 && !passwordsMatch)}
                             className="w-full"
                             placeholder={isEditing ? 'Dejar vacío para mantener la contraseña actual' : 'Confirme la contraseña'}
-                            required={passwordRequired}
                         />
-                        {errors.confirm_password && <p className="mt-1 text-sm text-red-600">{errors.confirm_password}</p>}
+                        {passwordTouched && data.confirm_password.length > 0 && !passwordsMatch && !errors.confirm_password && (
+                            <p className="mt-1 text-sm text-red-600 dark:text-red-400">Las contraseñas no coinciden.</p>
+                        )}
+                        <InputError message={errors.confirm_password} />
                     </div>
 
                     <div>
@@ -213,7 +255,7 @@ const UserForm: React.FC<UserFormProps> = ({ user, roles, onCancel, onSaved, onD
                             value={roles.find((r) => r.name === currentRoleName) ?? null}
                             onValueChange={(r: Role | null) => handleRoleChange(r?.name ?? '')}
                         >
-                            <ComboboxInput placeholder="Seleccione un rol" className="w-full" />
+                            <ComboboxInput placeholder="Seleccione un rol" aria-invalid={!!errors.roles} className="w-full" />
                             <ComboboxContent>
                                 <ComboboxEmpty>No se encontraron roles.</ComboboxEmpty>
                                 <ComboboxList>
@@ -225,7 +267,7 @@ const UserForm: React.FC<UserFormProps> = ({ user, roles, onCancel, onSaved, onD
                                 </ComboboxList>
                             </ComboboxContent>
                         </Combobox>
-                        {errors.roles && <p className="mt-1 text-sm text-red-600">{errors.roles}</p>}
+                        <InputError message={errors.roles} />
                     </div>
                 </div>
             </div>
@@ -235,7 +277,7 @@ const UserForm: React.FC<UserFormProps> = ({ user, roles, onCancel, onSaved, onD
                     Cancelar
                 </Button>
                 {canSubmit && (
-                    <Button type="submit" disabled={processing}>
+                    <Button type="submit" disabled={processing || !isFormValid}>
                         {processing ? 'Guardando...' : isEditing ? 'Actualizar Usuario' : 'Crear Usuario'}
                     </Button>
                 )}
