@@ -33,10 +33,18 @@ interface Supplier {
     name: string;
 }
 
+interface MovementProduct {
+    id: number | null;
+    code?: string;
+    name: string;
+    stock?: number;
+    deleted?: boolean;
+}
+
 interface InventoryMovement {
     id: number;
     type: string;
-    product: Product;
+    product: MovementProduct;
     supplier?: Supplier;
     quantity: number;
     notes?: string;
@@ -129,7 +137,7 @@ export default function InventoryMovementsIndex({ movements, products, suppliers
     const handleEditMovement = (movement: InventoryMovement) => {
         setEditingMovement({
             id: movement.id,
-            product_id: movement.product.id,
+            product_id: movement.product.id ?? '',
             supplier_id: movement.supplier?.id ?? '',
             type: movement.type as
                 | 'Entrada'
@@ -237,8 +245,8 @@ export default function InventoryMovementsIndex({ movements, products, suppliers
                     if (!open) attemptCloseForm();
                 }}
             >
-                <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg" onInteractOutside={(e) => e.preventDefault()}>
-                    <DialogHeader>
+                <DialogContent className="flex max-h-[90vh] flex-col overflow-hidden sm:max-w-lg" onInteractOutside={(e) => e.preventDefault()}>
+                    <DialogHeader className="shrink-0">
                         <DialogTitle>{isCreating ? 'Registrar Movimiento' : 'Editar Movimiento'}</DialogTitle>
                         <DialogDescription>
                             {isCreating

@@ -28,11 +28,32 @@ class InventoryImportService
 {
     private const REQUIRED_HEADERS = ['codigo', 'cantidad'];
 
+    /**
+     * Tope de filas por archivo — cada fila válida abre su propia
+     * transacción de escritura (producto + movimiento + posible ajuste de
+     * Pedido); un archivo de miles de filas puede agotar el tiempo de
+     * ejecución o la memoria. 50 cubre sobradamente una carga manual real;
+     * catálogos más grandes deben partirse en varios archivos.
+     */
+    public const MAX_ROWS = 50;
+
     private const MOVEMENT_TYPES = [
         'Entrada', 'Salida', 'Devolucion Cliente', 'Devolucion Proveedor',
         'Consignacion Entrada', 'Consignacion Salida', 'Cambio Entrada',
         'Cambio Salida', 'Ajuste Inventario',
     ];
+
+    /**
+     * Normaliza para comparar nombres de categoría/proveedor tal como los
+     * escribe quien arma el Excel — minúsculas y sin tildes, igual que la
+     * búsqueda insensible a tildes del resto de la app (whereLikeUnaccent).
+     */
+    private function normalizeForMatch(string $value): string
+    {
+        $value = mb_strtolower(trim($value));
+
+        return strtr($value, ['á' => 'a', 'é' => 'e', 'í' => 'i', 'ó' => 'o', 'ú' => 'u', 'ñ' => 'n']);
+    }
 
     public function storeUpload(UploadedFile $file): string
     {
@@ -46,8 +67,8 @@ class InventoryImportService
     {
         $rows = $this->parseRows($filePath);
 
-        $categoriesByName = Category::pluck('id', 'name')->mapWithKeys(fn ($id, $name) => [mb_strtolower($name) => $id]);
-        $suppliersByName = Supplier::pluck('id', 'name')->mapWithKeys(fn ($id, $name) => [mb_strtolower($name) => $id]);
+        $categoriesByName = Category::pluck('id', 'name')->mapWithKeys(fn ($id, $name) => [$this->normalizeForMatch($name) => $id]);
+        $suppliersByName = Supplier::pluck('id', 'name')->mapWithKeys(fn ($id, $name) => [$this->normalizeForMatch($name) => $id]);
         $productsByCode = Product::pluck('id', 'code')->mapWithKeys(fn ($id, $code) => [mb_strtolower($code) => $id]);
 
         $results = [];
@@ -70,8 +91,8 @@ class InventoryImportService
     {
         $rows = $this->parseRows($filePath);
 
-        $categoriesByName = Category::pluck('id', 'name')->mapWithKeys(fn ($id, $name) => [mb_strtolower($name) => $id]);
-        $suppliersByName = Supplier::pluck('id', 'name')->mapWithKeys(fn ($id, $name) => [mb_strtolower($name) => $id]);
+        $categoriesByName = Category::pluck('id', 'name')->mapWithKeys(fn ($id, $name) => [$this->normalizeForMatch($name) => $id]);
+        $suppliersByName = Supplier::pluck('id', 'name')->mapWithKeys(fn ($id, $name) => [$this->normalizeForMatch($name) => $id]);
         $productsByCode = Product::pluck('id', 'code')->mapWithKeys(fn ($id, $code) => [mb_strtolower($code) => $id]);
 
         $created = 0;
@@ -90,15 +111,16 @@ class InventoryImportService
                 if ($validated['action'] === 'create_product') {
                     $product = Product::create([
                         'code' => $row['codigo'],
-                        'category_id' => $categoriesByName[mb_strtolower($row['categoria'])],
+                        'category_id' => $categoriesByName[$this->normalizeForMatch($row['categoria'])],
                         'name' => $row['nombre'],
                         'description' => null,
                         'price_without_tax' => (int) $row['precio_sin_iva'],
                         'price_with_tax' => (int) ($row['precio_con_iva'] ?? $row['precio_sin_iva']),
                         'iva_value' => (int) ($row['iva_valor'] ?? 0),
                         'sale_price' => (int) ($row['precio_venta'] ?? $row['precio_sin_iva']),
-                        'supplier_id' => $row['proveedor'] ? ($suppliersByName[mb_strtolower($row['proveedor'])] ?? null) : null,
+                        'supplier_id' => $row['proveedor'] ? ($suppliersByName[$this->normalizeForMatch($row['proveedor'])] ?? null) : null,
                         'stock' => (int) $row['cantidad'],
+                        'low_stock_threshold' => is_numeric($row['umbral_alerta'] ?? null) ? (int) $row['umbral_alerta'] : null,
                     ]);
                     $productsByCode[mb_strtolower($product->code)] = $product->id;
                     $created++;
@@ -122,7 +144,7 @@ class InventoryImportService
 
                 $movement = InventoryMovement::create([
                     'product_id' => $product->id,
-                    'supplier_id' => $row['proveedor'] ? ($suppliersByName[mb_strtolower($row['proveedor'])] ?? null) : $product->supplier_id,
+                    'supplier_id' => $row['proveedor'] ? ($suppliersByName[$this->normalizeForMatch($row['proveedor'])] ?? null) : $product->supplier_id,
                     'purchase_order_id' => $purchaseOrderId,
                     'type' => $type,
                     'quantity' => $quantity,
@@ -189,11 +211,19 @@ class InventoryImportService
                     ? round(((float) $row['precio_sin_iva']) * ((float) $row['iva_porcentaje']) / 100)
                     : null,
                 'precio_venta' => $row['precio_venta'] ?? null,
+                'umbral_alerta' => $row['umbral_alerta'] ?? null,
                 'cantidad' => $row['cantidad'] ?? null,
                 'tipo_movimiento' => trim((string) ($row['tipo_movimiento'] ?? '')) ?: 'Entrada',
                 'fecha' => trim((string) ($row['fecha'] ?? '')),
                 'notas' => trim((string) ($row['notas'] ?? '')),
             ];
+        }
+
+        if (count($rows) > self::MAX_ROWS) {
+            throw new \RuntimeException(
+                'El archivo tiene '.count($rows).' filas — el máximo por carga es '.self::MAX_ROWS.
+                '. Divídelo en archivos más pequeños.'
+            );
         }
 
         return $rows;
@@ -225,7 +255,7 @@ class InventoryImportService
             }
             if ($row['categoria'] === '') {
                 $errors[] = 'Producto nuevo: falta la categoría.';
-            } elseif (! $categoriesByName->has(mb_strtolower($row['categoria']))) {
+            } elseif (! $categoriesByName->has($this->normalizeForMatch($row['categoria']))) {
                 $errors[] = "La categoría \"{$row['categoria']}\" no existe — créala primero.";
             }
             if (! is_numeric($row['precio_sin_iva'])) {
@@ -233,7 +263,7 @@ class InventoryImportService
             }
         }
 
-        if ($row['proveedor'] !== '' && ! $suppliersByName->has(mb_strtolower($row['proveedor']))) {
+        if ($row['proveedor'] !== '' && ! $suppliersByName->has($this->normalizeForMatch($row['proveedor']))) {
             $errors[] = "El proveedor \"{$row['proveedor']}\" no existe.";
         }
 
@@ -245,7 +275,33 @@ class InventoryImportService
             'tipo_movimiento' => $row['tipo_movimiento'],
             'action' => $action,
             'errors' => $errors,
+            'detail' => $this->buildDetail($row, $action),
         ];
+    }
+
+    /**
+     * Resumen legible de qué va a pasar con la fila — sin esto, "Detalle"
+     * quedaba vacío salvo que hubiera un error, y no se entendía para qué
+     * servía la columna.
+     */
+    private function buildDetail(array $row, string $action): string
+    {
+        if ($action === 'create_product') {
+            $parts = ["Crea \"{$row['nombre']}\" en \"{$row['categoria']}\""];
+            if ($row['proveedor'] !== '') {
+                $parts[] = "proveedor \"{$row['proveedor']}\"";
+            }
+
+            return implode(', ', $parts).'.';
+        }
+
+        $type = $row['tipo_movimiento'] ?: 'Entrada';
+        $detail = "Registra un movimiento \"{$type}\" de {$row['cantidad']} unidades sobre el producto existente.";
+        if ($row['notas'] !== '') {
+            $detail .= " Notas: {$row['notas']}";
+        }
+
+        return $detail;
     }
 
     public function requiredHeaders(): array

@@ -14,6 +14,7 @@ interface PreviewRow {
     tipo_movimiento: string;
     action: 'create_product' | 'update_stock';
     errors: string[];
+    detail: string;
 }
 
 interface PreviewResponse {
@@ -55,14 +56,14 @@ export function InventoryImportDialog({ open, onOpenChange, purchaseOrderId }: I
                 body: formData,
                 headers: csrfHeader(),
             });
-            if (!res.ok) throw new Error('No se pudo leer el archivo.');
-            const data: PreviewResponse = await res.json();
-            setPreview(data);
-        } catch {
+            const data = await res.json();
+            if (!res.ok) throw new Error(data?.message || 'No se pudo leer el archivo.');
+            setPreview(data as PreviewResponse);
+        } catch (error) {
             Swal.fire({
                 icon: 'error',
                 title: 'No se pudo procesar el archivo',
-                text: 'Verifica que sea un .xlsx o .csv con las columnas esperadas.',
+                text: error instanceof Error ? error.message : 'Verifica que sea un .xlsx o .csv con las columnas esperadas.',
             });
         } finally {
             setUploading(false);
@@ -155,7 +156,15 @@ export function InventoryImportDialog({ open, onOpenChange, purchaseOrderId }: I
                                             <td className="p-2">{row.codigo || '-'}</td>
                                             <td className="p-2">{row.action === 'create_product' ? 'Crear producto' : 'Actualizar stock'}</td>
                                             <td className="p-2">{row.cantidad}</td>
-                                            <td className="p-2 text-rose-600 dark:text-rose-400">{row.errors.join(' ')}</td>
+                                            <td
+                                                className={
+                                                    row.errors.length > 0
+                                                        ? 'p-2 text-rose-600 dark:text-rose-400'
+                                                        : 'p-2 text-gray-600 dark:text-gray-400'
+                                                }
+                                            >
+                                                {row.errors.length > 0 ? row.errors.join(' ') : row.detail}
+                                            </td>
                                         </tr>
                                     ))}
                                 </tbody>

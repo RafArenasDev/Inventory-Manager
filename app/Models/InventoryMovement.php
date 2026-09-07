@@ -14,13 +14,32 @@ class InventoryMovement extends Model
 
     protected $fillable = [
         'product_id', 'supplier_id', 'purchase_order_id', 'type', 'quantity', 'date', 'notes', 'cancelled_at',
+        'product_code', 'product_name', 'product_deleted_at',
     ];
 
     protected $casts = [
         'date' => 'date',
         'quantity' => 'integer',
         'cancelled_at' => 'datetime',
+        'product_deleted_at' => 'datetime',
     ];
+
+    protected static function booted(): void
+    {
+        // Snapshot automático: si no viene ya seteado (p.ej. por la
+        // eliminación de un producto, que lo fija explícitamente), se toma
+        // del producto real al momento de crear el movimiento — así el
+        // historial sigue siendo legible aunque el producto se borre después.
+        static::creating(function (self $movement) {
+            if ($movement->product_id && ! $movement->product_code) {
+                $product = Product::find($movement->product_id);
+                if ($product) {
+                    $movement->product_code = $product->code;
+                    $movement->product_name = $product->name;
+                }
+            }
+        });
+    }
 
     public function product()
     {

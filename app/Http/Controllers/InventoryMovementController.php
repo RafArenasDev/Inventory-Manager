@@ -28,13 +28,17 @@ class InventoryMovementController extends Controller
         if ($request->filled('search')) {
             $search = $request->search;
             $movementsQuery->where(function ($query) use ($search) {
-                $query->whereLike('notes', "%{$search}%")
+                $query->whereLikeUnaccent('notes', "%{$search}%")
                     ->orWhereHas('product', function ($q) use ($search) {
-                        $q->whereLike('name', "%{$search}%")
+                        $q->whereLikeUnaccent('name', "%{$search}%")
                             ->orWhereLike('code', "%{$search}%");
                     })
+                    // Cubre productos ya eliminados: sin esto, buscar por su
+                    // nombre/código no encontraba sus movimientos históricos.
+                    ->orWhereLikeUnaccent('product_name', "%{$search}%")
+                    ->orWhereLike('product_code', "%{$search}%")
                     ->orWhereHas('supplier', function ($q) use ($search) {
-                        $q->whereLike('name', "%{$search}%");
+                        $q->whereLikeUnaccent('name', "%{$search}%");
                     });
             });
         }
@@ -65,6 +69,9 @@ class InventoryMovementController extends Controller
 
         $movementsQuery = $movementsQuery->paginate($perPage)->withQueryString();
         $movementsQuery->getCollection()->transform(function ($movement) {
+            // El producto puede ya no existir (eliminado desde entonces) —
+            // el movimiento sigue mostrándose con el snapshot guardado en
+            // vez de romper la página con un `null->name`.
             return [
                 'id' => $movement->id,
                 'type' => $movement->type,
@@ -73,16 +80,17 @@ class InventoryMovementController extends Controller
                 'notes' => $movement->notes,
                 'created_at' => $movement->created_at->format('Y-m-d H:i:s'),
                 'product' => [
-                    'id' => $movement->product->id,
-                    'code' => $movement->product->code,
-                    'name' => $movement->product->name,
-                    'stock' => $movement->product->stock,
+                    'id' => $movement->product?->id,
+                    'code' => $movement->product?->code ?? $movement->product_code,
+                    'name' => $movement->product?->name ?? $movement->product_name,
+                    'stock' => $movement->product?->stock,
+                    'deleted' => $movement->product === null,
                 ],
                 'supplier' => $movement->supplier ? [
                     'id' => $movement->supplier->id,
                     'name' => $movement->supplier->name,
                 ] : null,
-                'category' => $movement->product->category->name,
+                'category' => $movement->product?->category?->name,
             ];
         });
 
@@ -112,8 +120,13 @@ class InventoryMovementController extends Controller
 
         $product = Product::findOrFail($validated['product_id']);
 
-        // Validar stock para movimientos de salida
-        if (in_array($validated['type'], ['Salida', 'Devolucion Proveedor', 'Consignacion Salida', 'Cambio Salida']) && $product->stock < $validated['quantity']) {
+        // Validar stock para movimientos de salida — un "Ajuste Inventario"
+        // negativo también resta stock (ver abajo), así que cuenta igual.
+        $isOutbound = in_array($validated['type'], ['Salida', 'Devolucion Proveedor', 'Consignacion Salida', 'Cambio Salida']);
+        $isNegativeAdjustment = $validated['type'] === 'Ajuste Inventario' && $validated['quantity'] < 0;
+        $outboundQuantity = $isNegativeAdjustment ? abs($validated['quantity']) : $validated['quantity'];
+
+        if (($isOutbound || $isNegativeAdjustment) && $product->stock < $outboundQuantity) {
             return back()->with('error',
                 'No hay suficiente stock. Stock actual: '.$product->stock
             )->withInput();
@@ -192,6 +205,10 @@ class InventoryMovementController extends Controller
 
         $product = $inventoryMovement->product;
 
+        if (! $product) {
+            return back()->with('error', 'No se puede editar: el producto de este movimiento ya fue eliminado del catálogo.');
+        }
+
         // Revertir el efecto del movimiento anterior en el stock
         if (in_array($inventoryMovement->type, ['Entrada', 'Devolucion Cliente', 'Consignacion Entrada', 'Cambio Entrada'])) {
             $product->decrement('stock', $inventoryMovement->quantity);
@@ -205,8 +222,12 @@ class InventoryMovementController extends Controller
             }
         }
 
-        // Validar stock para el nuevo movimiento si es de salida
-        if (in_array($validated['type'], ['Salida', 'Devolucion Proveedor', 'Consignacion Salida', 'Cambio Salida']) && $product->stock < $validated['quantity']) {
+        // Validar stock para el nuevo movimiento si es de salida (o ajuste negativo)
+        $isOutbound = in_array($validated['type'], ['Salida', 'Devolucion Proveedor', 'Consignacion Salida', 'Cambio Salida']);
+        $isNegativeAdjustment = $validated['type'] === 'Ajuste Inventario' && $validated['quantity'] < 0;
+        $outboundQuantity = $isNegativeAdjustment ? abs($validated['quantity']) : $validated['quantity'];
+
+        if (($isOutbound || $isNegativeAdjustment) && $product->stock < $outboundQuantity) {
             return back()->with('error',
                 'No hay suficiente stock después de revertir el movimiento anterior. Stock actual: '.$product->stock
             )->withInput();
@@ -237,6 +258,10 @@ class InventoryMovementController extends Controller
     public function destroy(InventoryMovement $inventoryMovement)
     {
         $product = $inventoryMovement->product;
+
+        if (! $product) {
+            return back()->with('error', 'No se puede eliminar: el producto de este movimiento ya fue eliminado del catálogo.');
+        }
 
         // Revertir el efecto en el stock
         if (in_array($inventoryMovement->type, ['Entrada', 'Devolucion Cliente', 'Consignacion Entrada', 'Cambio Entrada'])) {
@@ -269,13 +294,17 @@ class InventoryMovementController extends Controller
         if ($request->filled('search')) {
             $search = $request->search;
             $movementsQuery->where(function ($query) use ($search) {
-                $query->whereLike('notes', "%{$search}%")
+                $query->whereLikeUnaccent('notes', "%{$search}%")
                     ->orWhereHas('product', function ($q) use ($search) {
-                        $q->whereLike('name', "%{$search}%")
+                        $q->whereLikeUnaccent('name', "%{$search}%")
                             ->orWhereLike('code', "%{$search}%");
                     })
+                    // Cubre productos ya eliminados: sin esto, buscar por su
+                    // nombre/código no encontraba sus movimientos históricos.
+                    ->orWhereLikeUnaccent('product_name', "%{$search}%")
+                    ->orWhereLike('product_code', "%{$search}%")
                     ->orWhereHas('supplier', function ($q) use ($search) {
-                        $q->whereLike('name', "%{$search}%");
+                        $q->whereLikeUnaccent('name', "%{$search}%");
                     });
             });
         }
@@ -353,12 +382,12 @@ class InventoryMovementController extends Controller
         foreach ($movements as $movement) {
             $sheet->setCellValue('A'.$row, $movement->id);
             $sheet->setCellValue('B'.$row, $movement->type);
-            $sheet->setCellValue('C'.$row, $movement->product->name);
-            $sheet->setCellValue('D'.$row, $movement->product->code);
-            $sheet->setCellValue('E'.$row, $movement->product->category->name);
+            $sheet->setCellValue('C'.$row, $movement->product?->name ?? $movement->product_name.' (eliminado)');
+            $sheet->setCellValue('D'.$row, $movement->product?->code ?? $movement->product_code);
+            $sheet->setCellValue('E'.$row, $movement->product?->category?->name ?? '');
             $sheet->setCellValue('F'.$row, $movement->supplier->name ?? '');
             $sheet->setCellValue('G'.$row, $movement->quantity);
-            $sheet->setCellValue('H'.$row, $movement->product->stock);
+            $sheet->setCellValue('H'.$row, $movement->product?->stock ?? '');
             $sheet->setCellValue('I'.$row, $movement->date->format('d/m/Y'));
             $sheet->setCellValue('J'.$row, $movement->notes ?? '');
             $sheet->setCellValue('K'.$row, $movement->created_at->format('d/m/Y H:i:s'));

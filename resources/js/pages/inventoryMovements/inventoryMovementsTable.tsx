@@ -7,8 +7,9 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { ArrowLeftRight, Download, Pencil } from 'lucide-react';
 
 interface Product {
-    id: number;
+    id: number | null;
     name: string;
+    deleted?: boolean;
 }
 
 interface Supplier {
@@ -165,7 +166,12 @@ export default function InventoryMovementsTable({
                                         </span>
                                     </TableCell>
                                     <TableCell className="font-medium">{m.quantity}</TableCell>
-                                    <TableCell>{m.product.name}</TableCell>
+                                    <TableCell>
+                                        {m.product.name}
+                                        {m.product.deleted && (
+                                            <span className="ml-1.5 text-xs text-gray-400 italic dark:text-gray-500">(eliminado)</span>
+                                        )}
+                                    </TableCell>
                                     <TableCell>
                                         <span className="w-fit rounded-full bg-zinc-600 px-3 py-0.5 text-xs font-bold text-white shadow-sm dark:bg-zinc-700">
                                             {m.supplier?.name || '-'}
@@ -186,17 +192,18 @@ export default function InventoryMovementsTable({
                                     {showActionsColumn && (
                                         <TableCell className="text-right">
                                             <div className="flex justify-end gap-2">
-                                                {(userPermissions.includes('Editar Movimientos Inventario') ||
-                                                    userPermissions.includes('Actualizar Movimientos Inventario')) && (
-                                                    <IconActionButton
-                                                        variant="ghost"
-                                                        onClick={() => onEditMovement(m)}
-                                                        className="text-amber-600 hover:bg-amber-100 hover:text-amber-700 dark:text-amber-500 dark:hover:bg-amber-950/40 dark:hover:text-amber-400"
-                                                        label="Editar movimiento"
-                                                    >
-                                                        <Pencil className="size-3.5" />
-                                                    </IconActionButton>
-                                                )}
+                                                {!m.product.deleted &&
+                                                    (userPermissions.includes('Editar Movimientos Inventario') ||
+                                                        userPermissions.includes('Actualizar Movimientos Inventario')) && (
+                                                        <IconActionButton
+                                                            variant="ghost"
+                                                            onClick={() => onEditMovement(m)}
+                                                            className="text-amber-600 hover:bg-amber-100 hover:text-amber-700 dark:text-amber-500 dark:hover:bg-amber-950/40 dark:hover:text-amber-400"
+                                                            label="Editar movimiento"
+                                                        >
+                                                            <Pencil className="size-3.5" />
+                                                        </IconActionButton>
+                                                    )}
                                             </div>
                                         </TableCell>
                                     )}
