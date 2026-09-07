@@ -290,7 +290,7 @@ const RoleForm: React.FC<RoleFormProps> = ({ role, onCancel, onSaved, onDirtyCha
             </div>
 
             {/* Botones de acción */}
-            <div className="flex shrink-0 justify-end space-x-3 border-t border-gray-200 pt-4 dark:border-gray-700">
+            <div className="flex shrink-0 justify-end space-x-3 pt-1">
                 <Button type="button" onClick={onCancel} variant="outline" disabled={processing}>
                     Cancelar
                 </Button>
