@@ -135,21 +135,24 @@ class DashboardController extends Controller
     }
 
     /**
-     * Umbral de alerta de stock: coincide con las franjas "Bajo" (crítico) y
-     * "Medio" (advertencia) del semáforo ya usado en el módulo de Productos
-     * (ver productsTable.tsx). Las franjas "Bueno"/"Óptimo" no son alertables.
+     * Umbral de alerta de stock por defecto, usado cuando el producto no
+     * define uno propio — ver `Product::DEFAULT_LOW_STOCK_THRESHOLD` y
+     * `Product::$effective_low_stock_threshold`.
      */
-    public const ALERT_STOCK_THRESHOLD = 7;
-
-    private function stockTier(int $stock): string
-    {
-        return Product::stockTier($stock);
-    }
+    public const ALERT_STOCK_THRESHOLD = Product::DEFAULT_LOW_STOCK_THRESHOLD;
 
     public function lowStockNotifications()
     {
-        $products = Product::where('stock', '<=', self::ALERT_STOCK_THRESHOLD)
-            ->select('id', 'code', 'name', 'stock')
+        // Cada producto puede definir su propio umbral (`low_stock_threshold`);
+        // sin uno propio, cae al default general (COALESCE en SQL, portable
+        // entre MySQL/Postgres/SQLite).
+        $lowStockQuery = fn () => Product::whereRaw(
+            'stock <= COALESCE(low_stock_threshold, ?)',
+            [self::ALERT_STOCK_THRESHOLD]
+        );
+
+        $products = $lowStockQuery()
+            ->select('id', 'code', 'name', 'stock', 'low_stock_threshold')
             ->orderBy('stock')
             ->limit(200)
             ->get();
@@ -166,14 +169,14 @@ class DashboardController extends Controller
                 'code' => $product->code,
                 'name' => $product->name,
                 'stock' => $product->stock,
-                'tier' => $this->stockTier($product->stock),
+                'tier' => Product::stockTier($product->stock, $product->effective_low_stock_threshold),
                 'has_active_order' => $activeProductIds->contains($product->id),
             ];
         });
 
         return response()->json([
             'products' => $products,
-            'total' => Product::where('stock', '<=', self::ALERT_STOCK_THRESHOLD)->count(),
+            'total' => $lowStockQuery()->count(),
         ]);
     }
 

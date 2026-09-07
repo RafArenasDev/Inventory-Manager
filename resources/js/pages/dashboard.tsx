@@ -3,6 +3,7 @@ import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { useLiveRefresh } from '@/hooks/use-live-refresh';
 import AppLayout from '@/layouts/app-layout';
 import { resolveIcon } from '@/lib/icon-map';
 import { type BreadcrumbItem, type SidebarModule } from '@/types';
@@ -260,6 +261,13 @@ export default function Dashboard({ stats, financials, charts, salesProducts, sa
     useEffect(() => {
         loadChartData(period);
     }, [period]);
+
+    // Contadores del sidebar, resumen financiero y gráficos deben reflejar
+    // cambios de cualquier otra sesión, igual que el resto de los módulos.
+    useLiveRefresh(['sales', 'inventory', 'admin', 'finance', 'clients', 'purchase-orders'], () => {
+        router.reload();
+        loadChartData(period);
+    });
 
     useEffect(() => {
         Chart.Chart.register(...Chart.registerables);
