@@ -15,7 +15,9 @@ class CashRegister extends Model
     protected $fillable = [
         'register_date',
         'opened_by',
+        'opened_by_name',
         'closed_by',
+        'closed_by_name',
         'opening_amount',
         'closing_amount',
         'total_sales',
