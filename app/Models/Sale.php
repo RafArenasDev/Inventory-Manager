@@ -21,6 +21,7 @@ class Sale extends Model
         'total_without_tax',
         'total_with_discount',
         'discount',
+        'discount_type',
         'total_paid',
         'payment_method',
         'notes',

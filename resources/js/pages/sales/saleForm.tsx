@@ -29,6 +29,7 @@ interface SaleFormData {
     sale_date: string;
     sale_time: string;
     discount: number;
+    discount_type: 'percentage' | 'fixed';
     payment_method: string;
     notes?: string;
     items: SaleItem[];
@@ -132,6 +133,7 @@ const SaleForm: React.FC<SaleFormProps> = ({ sale, onCancel, onSaved, onDirtyCha
         sale_date: `${now.getFullYear()}-${(now.getMonth() + 1).toString().padStart(2, '0')}-${now.getDate().toString().padStart(2, '0')}`,
         sale_time: `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}:${now.getSeconds().toString().padStart(2, '0')}`,
         discount: sale?.discount || 0,
+        discount_type: sale?.discount_type || 'fixed',
         payment_method: sale?.payment_method || 'Efectivo',
         notes: sale?.notes || '',
         items: sale?.items || [],
@@ -314,8 +316,15 @@ const SaleForm: React.FC<SaleFormProps> = ({ sale, onCancel, onSaved, onDirtyCha
 
     const handleDiscountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value;
-        const parsedValue = value === '' ? 0 : parseFloat(value.replace(/^0+/, '')) || 0;
+        let parsedValue = value === '' ? 0 : parseFloat(value.replace(/^0+/, '')) || 0;
+        if (formData.discount_type === 'percentage') {
+            parsedValue = Math.min(parsedValue, 100);
+        }
         setFormData((prev) => ({ ...prev, discount: parsedValue }));
+    };
+
+    const handleDiscountTypeChange = (isPercentage: boolean) => {
+        setFormData((prev) => ({ ...prev, discount_type: isPercentage ? 'percentage' : 'fixed', discount: 0 }));
     };
 
     const calculateItemTotal = (item: SaleItem) => {
@@ -324,7 +333,8 @@ const SaleForm: React.FC<SaleFormProps> = ({ sale, onCancel, onSaved, onDirtyCha
 
     const calculateTotals = () => {
         const totalWithoutTax = selectedItems.reduce((sum, item) => sum + calculateItemTotal(item), 0);
-        const discountAmount = totalWithoutTax * (formData.discount / 100);
+        const discountAmount =
+            formData.discount_type === 'percentage' ? totalWithoutTax * (formData.discount / 100) : Math.min(formData.discount, totalWithoutTax);
         const totalWithDiscount = totalWithoutTax - discountAmount;
         const totalPaid = totalWithDiscount;
         return { totalWithoutTax, totalWithDiscount, totalPaid, discountAmount };
@@ -379,6 +389,7 @@ const SaleForm: React.FC<SaleFormProps> = ({ sale, onCancel, onSaved, onDirtyCha
             sale_date: formData.sale_date,
             sale_time: formData.sale_time,
             discount: formData.discount,
+            discount_type: formData.discount_type,
             payment_method: formData.payment_method,
             notes: formData.notes || '',
             items: selectedItems.map((item) => ({
@@ -431,255 +442,290 @@ const SaleForm: React.FC<SaleFormProps> = ({ sale, onCancel, onSaved, onDirtyCha
 
     const selectedClient = formData.client_id ? clients.find((c) => c.id === formData.client_id) : null;
     const isNequi = formData.payment_method === 'Nequi';
+    const isPercentage = formData.discount_type === 'percentage';
 
     return (
         <>
             <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col gap-4">
-                {/* Información del Cliente */}
-                <div className="shrink-0 space-y-2">
-                    <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">Información del Cliente</h3>
-                    <div className="relative max-w-md">
-                        <div className="flex space-x-2">
-                            <Input
-                                type="text"
-                                id="client_document_number"
-                                value={formData.client_document_number || ''}
-                                onChange={handleClientInputChange}
-                                onKeyPress={(e) => {
-                                    if (e.key === 'Enter') {
-                                        e.preventDefault();
-                                        handleClientSearch();
-                                    }
-                                }}
-                                placeholder="Documento (CC, TI, CE, NIT)"
-                                className="w-full"
-                            />
-                            <Button type="button" onClick={handleClientSearch} disabled={!formData.client_document_number}>
-                                Buscar
-                            </Button>
-                        </div>
-                        {filteredClients.length > 0 && (
-                            <ul className="bg-background text-foreground border-input absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md border shadow-lg">
-                                {filteredClients.map((c) => (
-                                    <li
-                                        key={c.id}
-                                        className="hover:bg-accent hover:text-accent-foreground cursor-pointer px-3 py-2"
-                                        onClick={() => handleSelectClient(c)}
-                                    >
-                                        {c.document_number} - {c.name}
-                                    </li>
-                                ))}
-                            </ul>
-                        )}
-                        {clientNotFound && (
-                            <div className="mt-2 rounded-md border border-blue-200 bg-blue-50 p-2 dark:border-blue-900 dark:bg-blue-950/40">
-                                <p className="text-sm text-blue-800 dark:text-blue-300">
-                                    Cliente no encontrado. Se abrirá el formulario para crear uno nuevo.
-                                </p>
-                            </div>
-                        )}
-                    </div>
-                    {selectedClient && (
-                        <div className="grid grid-cols-2 gap-x-4 gap-y-2 rounded-md border border-gray-200 p-2.5 sm:grid-cols-3 lg:grid-cols-5 dark:border-gray-800">
-                            <InfoField label="Tipo Doc." value={selectedClient.document_type} />
-                            <InfoField label="N° Documento" value={selectedClient.document_number} />
-                            <InfoField label="Nombre" value={selectedClient.name} />
-                            <InfoField label="Email" value={selectedClient.email} />
-                            <InfoField label="Teléfono" value={selectedClient.phone} />
-                            <InfoField label="Celular" value={selectedClient.cellphone} />
-                            <InfoField label="Dirección" value={selectedClient.address} />
-                            <InfoField label="Ciudad / Depto." value={`${selectedClient.city || '-'}, ${selectedClient.department || '-'}`} />
-                            {selectedClient.document_type === 'NIT' && <InfoField label="Dígito Verif." value={selectedClient.verification_digit} />}
-                        </div>
-                    )}
-                    {errors.client_id && <p className="text-sm text-red-600">{errors.client_id}</p>}
-                </div>
-
-                {/* Detalles de la Venta */}
-                <div className="shrink-0 space-y-2">
-                    <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">Detalles de la Venta</h3>
-                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                        <div>
-                            <Label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Método de Pago *</Label>
-                            <div className="flex h-[34px] items-center gap-2.5">
-                                <span
-                                    className={`text-sm ${!isNequi ? 'font-semibold text-gray-900 dark:text-gray-100' : 'text-gray-400 dark:text-gray-500'}`}
-                                >
-                                    Efectivo
-                                </span>
-                                <Switch
-                                    id="payment_method"
-                                    checked={isNequi}
-                                    onCheckedChange={(checked) =>
-                                        setFormData((prev) => ({ ...prev, payment_method: checked ? 'Nequi' : 'Efectivo' }))
-                                    }
-                                />
-                                <span
-                                    className={`text-sm ${isNequi ? 'font-semibold text-gray-900 dark:text-gray-100' : 'text-gray-400 dark:text-gray-500'}`}
-                                >
-                                    Nequi
-                                </span>
-                            </div>
-                            {errors.payment_method && <p className="mt-1 text-sm text-red-600">{errors.payment_method}</p>}
-                        </div>
-
-                        <div>
-                            <Label htmlFor="discount" className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                Descuento Total (%)
-                            </Label>
-                            <Input
-                                type="text"
-                                id="discount"
-                                value={formData.discount === 0 ? '' : formData.discount}
-                                onChange={handleDiscountChange}
-                                onKeyPress={(e) => {
-                                    if (!/[0-9.]/.test(e.key)) {
-                                        e.preventDefault();
-                                    }
-                                }}
-                                className="w-24"
-                                placeholder="0"
-                            />
-                            {errors.discount && <p className="mt-1 text-sm text-red-600">{errors.discount}</p>}
-                        </div>
-                    </div>
-
-                    <div>
-                        <Label htmlFor="notes" className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
-                            Notas
-                        </Label>
-                        <Textarea
-                            id="notes"
-                            value={formData.notes || ''}
-                            onChange={(e) => setFormData((prev) => ({ ...prev, notes: e.target.value }))}
-                            rows={1}
-                            className="min-h-0 w-full"
-                            placeholder="Notas adicionales (opcional)"
-                        />
-                        {errors.notes && <p className="mt-1 text-sm text-red-600">{errors.notes}</p>}
-                    </div>
-                </div>
-
-                {/* Items de la Venta — única zona con scroll */}
-                <div className="flex min-h-[150px] flex-1 flex-col gap-2">
+                {/* Único contenedor con scroll: header y botones de acción quedan siempre visibles */}
+                <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-x-hidden overflow-y-auto pr-1">
+                    {/* Información del Cliente */}
                     <div className="shrink-0 space-y-2">
-                        <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">Items de la Venta</h3>
+                        <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">Información del Cliente</h3>
                         <div className="relative max-w-md">
                             <div className="flex space-x-2">
                                 <Input
                                     type="text"
-                                    value={productSearch}
-                                    onChange={handleProductInputChange}
+                                    id="client_document_number"
+                                    value={formData.client_document_number || ''}
+                                    onChange={handleClientInputChange}
                                     onKeyPress={(e) => {
                                         if (e.key === 'Enter') {
                                             e.preventDefault();
-                                            handleProductSearch();
+                                            handleClientSearch();
                                         }
                                     }}
-                                    placeholder="Código del producto (ej. JL161200)"
+                                    placeholder="Documento (CC, TI, CE, NIT)"
                                     className="w-full"
                                 />
-                                <Button type="button" onClick={handleProductSearch} disabled={!productSearch}>
-                                    Añadir Item
+                                <Button type="button" onClick={handleClientSearch} disabled={!formData.client_document_number}>
+                                    Buscar
                                 </Button>
                             </div>
-                            {filteredProducts.length > 0 && (
+                            {filteredClients.length > 0 && (
                                 <ul className="bg-background text-foreground border-input absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md border shadow-lg">
-                                    {filteredProducts.map((p) => (
+                                    {filteredClients.map((c) => (
                                         <li
-                                            key={p.id}
+                                            key={c.id}
                                             className="hover:bg-accent hover:text-accent-foreground cursor-pointer px-3 py-2"
-                                            onClick={() => handleSelectProduct(p)}
+                                            onClick={() => handleSelectClient(c)}
                                         >
-                                            {p.code} - {p.name}
+                                            {c.document_number} - {c.name}
                                         </li>
                                     ))}
                                 </ul>
                             )}
+                            {clientNotFound && (
+                                <div className="mt-2 rounded-md border border-blue-200 bg-blue-50 p-2 dark:border-blue-900 dark:bg-blue-950/40">
+                                    <p className="text-sm text-blue-800 dark:text-blue-300">
+                                        Cliente no encontrado. Se abrirá el formulario para crear uno nuevo.
+                                    </p>
+                                </div>
+                            )}
+                        </div>
+                        {selectedClient && (
+                            <div className="grid grid-cols-2 gap-x-4 gap-y-2 rounded-md border border-gray-200 p-2.5 sm:grid-cols-3 lg:grid-cols-5 dark:border-gray-800">
+                                <InfoField label="Tipo Doc." value={selectedClient.document_type} />
+                                <InfoField label="N° Documento" value={selectedClient.document_number} />
+                                <InfoField label="Nombre" value={selectedClient.name} />
+                                <InfoField label="Email" value={selectedClient.email} />
+                                <InfoField label="Teléfono" value={selectedClient.phone} />
+                                <InfoField label="Celular" value={selectedClient.cellphone} />
+                                <InfoField label="Dirección" value={selectedClient.address} />
+                                <InfoField label="Ciudad / Depto." value={`${selectedClient.city || '-'}, ${selectedClient.department || '-'}`} />
+                                {selectedClient.document_type === 'NIT' && (
+                                    <InfoField label="Dígito Verif." value={selectedClient.verification_digit} />
+                                )}
+                            </div>
+                        )}
+                        {errors.client_id && <p className="text-sm text-red-600">{errors.client_id}</p>}
+                    </div>
+
+                    {/* Detalles de la Venta */}
+                    <div className="shrink-0 space-y-2">
+                        <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">Detalles de la Venta</h3>
+                        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                            <div>
+                                <Label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Método de Pago *</Label>
+                                <div className="flex h-[34px] items-center gap-2.5">
+                                    <span
+                                        className={`text-sm ${!isNequi ? 'font-semibold text-gray-900 dark:text-gray-100' : 'text-gray-400 dark:text-gray-500'}`}
+                                    >
+                                        Efectivo
+                                    </span>
+                                    <Switch
+                                        id="payment_method"
+                                        checked={isNequi}
+                                        onCheckedChange={(checked) =>
+                                            setFormData((prev) => ({ ...prev, payment_method: checked ? 'Nequi' : 'Efectivo' }))
+                                        }
+                                    />
+                                    <span
+                                        className={`text-sm ${isNequi ? 'font-semibold text-gray-900 dark:text-gray-100' : 'text-gray-400 dark:text-gray-500'}`}
+                                    >
+                                        Nequi
+                                    </span>
+                                </div>
+                                {errors.payment_method && <p className="mt-1 text-sm text-red-600">{errors.payment_method}</p>}
+                            </div>
+
+                            <div>
+                                <Label htmlFor="discount" className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    Descuento Total
+                                </Label>
+                                <div className="flex items-center gap-3">
+                                    <div className="relative w-28">
+                                        {!isPercentage && (
+                                            <span className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-sm text-gray-500 dark:text-gray-400">
+                                                $
+                                            </span>
+                                        )}
+                                        <Input
+                                            type="text"
+                                            id="discount"
+                                            value={formData.discount === 0 ? '' : formData.discount}
+                                            onChange={handleDiscountChange}
+                                            onKeyPress={(e) => {
+                                                if (!/[0-9.]/.test(e.key)) {
+                                                    e.preventDefault();
+                                                }
+                                            }}
+                                            className={isPercentage ? 'pr-6' : 'pl-6'}
+                                            placeholder="0"
+                                        />
+                                        {isPercentage && (
+                                            <span className="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-sm text-gray-500 dark:text-gray-400">
+                                                %
+                                            </span>
+                                        )}
+                                    </div>
+                                    <div className="flex h-[34px] items-center gap-2">
+                                        <span
+                                            className={`text-sm ${!isPercentage ? 'font-semibold text-gray-900 dark:text-gray-100' : 'text-gray-400 dark:text-gray-500'}`}
+                                        >
+                                            Valor
+                                        </span>
+                                        <Switch id="discount_type" checked={isPercentage} onCheckedChange={handleDiscountTypeChange} />
+                                        <span
+                                            className={`text-sm ${isPercentage ? 'font-semibold text-gray-900 dark:text-gray-100' : 'text-gray-400 dark:text-gray-500'}`}
+                                        >
+                                            Porcentaje
+                                        </span>
+                                    </div>
+                                </div>
+                                {errors.discount && <p className="mt-1 text-sm text-red-600">{errors.discount}</p>}
+                            </div>
+                        </div>
+
+                        <div>
+                            <Label htmlFor="notes" className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                Notas
+                            </Label>
+                            <Textarea
+                                id="notes"
+                                value={formData.notes || ''}
+                                onChange={(e) => setFormData((prev) => ({ ...prev, notes: e.target.value }))}
+                                rows={1}
+                                className="min-h-0 w-full"
+                                placeholder="Notas adicionales (opcional)"
+                            />
+                            {errors.notes && <p className="mt-1 text-sm text-red-600">{errors.notes}</p>}
                         </div>
                     </div>
-                    <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-md border border-gray-200 dark:border-gray-800">
-                        <div className="min-h-0 flex-1 overflow-y-auto p-1.5">
-                            <Table>
-                                <TableHeader className="sticky top-0 bg-gray-100 dark:bg-white/[0.04]">
-                                    <TableRow>
-                                        <TableHead>Código</TableHead>
-                                        <TableHead>Producto</TableHead>
-                                        <TableHead>Precio Unitario</TableHead>
-                                        <TableHead>Precio Total</TableHead>
-                                        <TableHead>Cantidad</TableHead>
-                                        <TableHead className="text-right">Acciones</TableHead>
-                                    </TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                    {selectedItems.map((item, index) => (
-                                        <TableRow key={index}>
-                                            <TableCell>{item.product_code}</TableCell>
-                                            <TableCell>{item.product_name}</TableCell>
-                                            <TableCell>{formatCurrency(item.price_at_sale || 0)}</TableCell>
-                                            <TableCell>{formatCurrency(calculateItemTotal(item))}</TableCell>
-                                            <TableCell>
-                                                <div className="flex items-center space-x-2">
-                                                    <Button
-                                                        type="button"
-                                                        variant="outline"
-                                                        size="icon"
-                                                        onClick={() => handleUpdateQuantity(index, -1)}
-                                                        disabled={item.quantity <= 1}
-                                                    >
-                                                        <Minus className="h-4 w-4" />
-                                                    </Button>
-                                                    <span className="min-w-[2rem] text-center">{item.quantity}</span>
-                                                    <Button
-                                                        type="button"
-                                                        variant="outline"
-                                                        size="icon"
-                                                        onClick={() => handleUpdateQuantity(index, 1)}
-                                                        disabled={item.quantity >= (products.find((p) => p.id === item.product_id)?.stock || 0)}
-                                                    >
-                                                        <Plus className="h-4 w-4" />
-                                                    </Button>
-                                                </div>
-                                            </TableCell>
-                                            <TableCell className="text-right">
-                                                <Button type="button" variant="destructive" size="icon" onClick={() => handleRemoveItem(index)}>
-                                                    <Trash2 className="h-4 w-4" />
-                                                </Button>
-                                            </TableCell>
-                                        </TableRow>
-                                    ))}
-                                    {selectedItems.length === 0 && (
+
+                    {/* Items de la Venta */}
+                    <div className="flex flex-col gap-2">
+                        <div className="shrink-0 space-y-2">
+                            <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">Items de la Venta</h3>
+                            <div className="relative max-w-md">
+                                <div className="flex space-x-2">
+                                    <Input
+                                        type="text"
+                                        value={productSearch}
+                                        onChange={handleProductInputChange}
+                                        onKeyPress={(e) => {
+                                            if (e.key === 'Enter') {
+                                                e.preventDefault();
+                                                handleProductSearch();
+                                            }
+                                        }}
+                                        placeholder="Código del producto (ej. JL161200)"
+                                        className="w-full"
+                                    />
+                                    <Button type="button" onClick={handleProductSearch} disabled={!productSearch}>
+                                        Añadir Item
+                                    </Button>
+                                </div>
+                                {filteredProducts.length > 0 && (
+                                    <ul className="bg-background text-foreground border-input absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md border shadow-lg">
+                                        {filteredProducts.map((p) => (
+                                            <li
+                                                key={p.id}
+                                                className="hover:bg-accent hover:text-accent-foreground cursor-pointer px-3 py-2"
+                                                onClick={() => handleSelectProduct(p)}
+                                            >
+                                                {p.code} - {p.name}
+                                            </li>
+                                        ))}
+                                    </ul>
+                                )}
+                            </div>
+                        </div>
+                        <div className="rounded-md border border-gray-200 dark:border-gray-800">
+                            <div className="max-h-[280px] overflow-y-auto p-1.5">
+                                <Table>
+                                    <TableHeader className="sticky top-0 bg-gray-100 dark:bg-white/[0.04]">
                                         <TableRow>
-                                            <TableCell colSpan={6} className="py-4 text-center text-gray-500 dark:text-gray-400">
-                                                No hay items agregados. Ingrese un código de producto arriba.
-                                            </TableCell>
+                                            <TableHead>Código</TableHead>
+                                            <TableHead>Producto</TableHead>
+                                            <TableHead>Precio Unitario</TableHead>
+                                            <TableHead>Precio Total</TableHead>
+                                            <TableHead>Cantidad</TableHead>
+                                            <TableHead className="text-right">Acciones</TableHead>
                                         </TableRow>
-                                    )}
-                                </TableBody>
-                            </Table>
+                                    </TableHeader>
+                                    <TableBody>
+                                        {selectedItems.map((item, index) => (
+                                            <TableRow key={index}>
+                                                <TableCell>{item.product_code}</TableCell>
+                                                <TableCell>{item.product_name}</TableCell>
+                                                <TableCell>{formatCurrency(item.price_at_sale || 0)}</TableCell>
+                                                <TableCell>{formatCurrency(calculateItemTotal(item))}</TableCell>
+                                                <TableCell>
+                                                    <div className="flex items-center space-x-2">
+                                                        <Button
+                                                            type="button"
+                                                            variant="outline"
+                                                            size="icon"
+                                                            onClick={() => handleUpdateQuantity(index, -1)}
+                                                            disabled={item.quantity <= 1}
+                                                        >
+                                                            <Minus className="h-4 w-4" />
+                                                        </Button>
+                                                        <span className="min-w-[2rem] text-center">{item.quantity}</span>
+                                                        <Button
+                                                            type="button"
+                                                            variant="outline"
+                                                            size="icon"
+                                                            onClick={() => handleUpdateQuantity(index, 1)}
+                                                            disabled={item.quantity >= (products.find((p) => p.id === item.product_id)?.stock || 0)}
+                                                        >
+                                                            <Plus className="h-4 w-4" />
+                                                        </Button>
+                                                    </div>
+                                                </TableCell>
+                                                <TableCell className="text-right">
+                                                    <Button type="button" variant="destructive" size="icon" onClick={() => handleRemoveItem(index)}>
+                                                        <Trash2 className="h-4 w-4" />
+                                                    </Button>
+                                                </TableCell>
+                                            </TableRow>
+                                        ))}
+                                        {selectedItems.length === 0 && (
+                                            <TableRow>
+                                                <TableCell colSpan={6} className="py-4 text-center text-gray-500 dark:text-gray-400">
+                                                    No hay items agregados. Ingrese un código de producto arriba.
+                                                </TableCell>
+                                            </TableRow>
+                                        )}
+                                    </TableBody>
+                                </Table>
+                            </div>
+                        </div>
+                        {errors.items && <p className="text-sm text-red-600">{errors.items}</p>}
+                    </div>
+
+                    {/* Totales */}
+                    <div className="shrink-0 space-y-0.5 rounded-lg bg-gray-50 p-2.5 dark:bg-white/[0.03]">
+                        <div className="flex justify-between text-sm">
+                            <span className="font-medium">Subtotal:</span>
+                            <span>{formatCurrency(totalWithoutTax)}</span>
+                        </div>
+                        <div className="flex justify-between text-sm">
+                            <span className="font-medium">
+                                Descuento ({isPercentage ? `${formData.discount}%` : formatCurrency(formData.discount)}):
+                            </span>
+                            <span className="text-red-600">-{formatCurrency(discountAmount)}</span>
+                        </div>
+                        <div className="flex justify-between border-t border-gray-200 pt-1.5 text-lg font-bold dark:border-gray-800">
+                            <span>Total a Pagar:</span>
+                            <span className="text-green-600 dark:text-green-500">{formatCurrency(totalPaid)}</span>
                         </div>
                     </div>
-                    {errors.items && <p className="text-sm text-red-600">{errors.items}</p>}
                 </div>
 
-                {/* Totales */}
-                <div className="shrink-0 space-y-0.5 rounded-lg bg-gray-50 p-2.5 dark:bg-white/[0.03]">
-                    <div className="flex justify-between text-sm">
-                        <span className="font-medium">Subtotal:</span>
-                        <span>{formatCurrency(totalWithoutTax)}</span>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                        <span className="font-medium">Descuento ({formData.discount}%):</span>
-                        <span className="text-red-600">-{formatCurrency(discountAmount)}</span>
-                    </div>
-                    <div className="flex justify-between border-t border-gray-200 pt-1.5 text-lg font-bold dark:border-gray-800">
-                        <span>Total a Pagar:</span>
-                        <span className="text-green-600 dark:text-green-500">{formatCurrency(totalPaid)}</span>
-                    </div>
-                </div>
-
-                {/* Botones de acción */}
-                <div className="flex shrink-0 justify-end space-x-3 border-t border-gray-200 pt-3 dark:border-gray-800">
+                {/* Botones de acción — fuera del área de scroll, siempre visibles */}
+                <div className="flex shrink-0 justify-end space-x-3 pt-1">
                     <Button type="button" onClick={onCancel} variant="outline" disabled={processing}>
                         Cancelar
                     </Button>
@@ -698,8 +744,8 @@ const SaleForm: React.FC<SaleFormProps> = ({ sale, onCancel, onSaved, onDirtyCha
                     if (!open) handleCancelClientModal();
                 }}
             >
-                <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg" onInteractOutside={(e) => e.preventDefault()}>
-                    <DialogHeader>
+                <DialogContent className="flex max-h-[90vh] flex-col overflow-hidden sm:max-w-lg" onInteractOutside={(e) => e.preventDefault()}>
+                    <DialogHeader className="shrink-0">
                         <DialogTitle>Nuevo Cliente</DialogTitle>
                         <DialogDescription>Completa los datos para registrar el cliente y continuar con la venta.</DialogDescription>
                     </DialogHeader>

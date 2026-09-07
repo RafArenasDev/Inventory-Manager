@@ -121,6 +121,7 @@ class SaleSeeder extends Seeder
                         'sale_date' => $saleDate->toDateString(),
                         'sale_time' => $saleTime,
                         'discount' => $discountPercent * 100,
+                        'discount_type' => 'percentage',
                         'payment_method' => $paymentMethod,
                         'notes' => null,
                         'total_without_tax' => $totalWithoutTax * 100,

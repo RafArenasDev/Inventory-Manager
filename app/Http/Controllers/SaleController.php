@@ -40,7 +40,7 @@ class SaleController extends Controller
             $search = $request->search;
             $salesQuery->where(function ($query) use ($search) {
                 $query->whereHas('client', function ($q) use ($search) {
-                    $q->whereLike('name', "%{$search}%")
+                    $q->whereLikeUnaccent('name', "%{$search}%")
                         ->orWhereLike('document_number', "%{$search}%");
                 })->orWhereLike('id', "%{$search}%")
                     ->orWhereLike('invoice_number', "%{$search}%");
@@ -126,6 +126,7 @@ class SaleController extends Controller
             'total_without_tax' => $sale->total_without_tax / 100,
             'total_with_discount' => $sale->total_with_discount / 100,
             'discount' => $sale->discount / 100,
+            'discount_type' => $sale->discount_type,
             'total_paid' => $sale->total_paid / 100,
             'payment_method' => $sale->payment_method,
             'notes' => $sale->notes,
@@ -170,6 +171,7 @@ class SaleController extends Controller
                     'sale_date' => $validated['sale_date'],
                     'sale_time' => $validated['sale_time'],
                     'discount' => $validated['discount'],
+                    'discount_type' => $validated['discount_type'],
                     'payment_method' => $validated['payment_method'],
                     'notes' => $validated['notes'] ?? null,
                     'total_without_tax' => $validated['total_without_tax'],
@@ -334,7 +336,7 @@ class SaleController extends Controller
             $search = $request->search;
             $salesQuery->where(function ($query) use ($search) {
                 $query->whereHas('client', function ($q) use ($search) {
-                    $q->whereLike('name', "%{$search}%")
+                    $q->whereLikeUnaccent('name', "%{$search}%")
                         ->orWhereLike('document_number', "%{$search}%");
                 })->orWhereLike('id', "%{$search}%")
                     ->orWhereLike('invoice_number', "%{$search}%");
@@ -406,7 +408,10 @@ class SaleController extends Controller
             $sheet->setCellValue('E'.$row, $clientName);
             $sheet->setCellValue('F'.$row, $clientDocument);
             $sheet->setCellValue('G'.$row, $sale->total_without_tax / 100);
-            $sheet->setCellValue('H'.$row, number_format($sale->discount / 100, 0).'%');
+            $discountLabel = $sale->discount_type === 'percentage'
+                ? number_format($sale->discount / 100, 0).'%'
+                : '$ '.number_format($sale->discount / 100, 0, ',', '.');
+            $sheet->setCellValue('H'.$row, $discountLabel);
             $sheet->setCellValue('I'.$row, $sale->total_paid / 100);
             $sheet->setCellValue('J'.$row, $sale->payment_method);
             $sheet->setCellValue('K'.$row, $sale->is_cancelled ? 'Anulada' : 'Activa');

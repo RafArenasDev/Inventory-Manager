@@ -43,11 +43,11 @@ interface Sale {
     total_without_tax: number;
     total_with_discount: number;
     discount: number;
+    discount_type: 'percentage' | 'fixed';
     total_paid: number;
     payment_method: string;
     notes?: string;
     items: SaleItem[];
-    discount_percentage: number;
     public_invoice_url: string | null;
     is_cancelled: boolean;
 }

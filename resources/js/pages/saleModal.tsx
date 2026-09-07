@@ -19,7 +19,7 @@ export function SaleModal({
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent
-                className="flex max-h-[90vh] w-[95vw] flex-col overflow-y-auto sm:max-w-3xl lg:max-w-5xl xl:max-w-6xl"
+                className="flex max-h-[90vh] w-[95vw] flex-col overflow-hidden sm:max-w-3xl lg:max-w-5xl xl:max-w-6xl"
                 onInteractOutside={(e) => e.preventDefault()}
             >
                 <DialogHeader className="shrink-0">

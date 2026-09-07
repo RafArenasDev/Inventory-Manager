@@ -39,11 +39,11 @@ export interface Sale {
     total_without_tax: number;
     total_with_discount: number;
     discount: number;
+    discount_type: 'percentage' | 'fixed';
     total_paid: number;
     payment_method: string;
     notes?: string;
     items: SaleItem[];
-    discount_percentage: number;
     is_cancelled: boolean;
     public_invoice_url?: string | null;
 }
@@ -230,9 +230,11 @@ export default function SaleDetailModal({ isOpen, onClose, sale, businessName }:
                             <span className="font-medium">Subtotal:</span>
                             <span>{formatCurrency(sale.total_without_tax)}</span>
                         </div>
-                        {sale.discount_percentage > 0 && (
+                        {sale.discount > 0 && (
                             <div className="flex justify-between text-sm">
-                                <span className="font-medium">Descuento ({sale.discount_percentage}%):</span>
+                                <span className="font-medium">
+                                    Descuento ({sale.discount_type === 'percentage' ? `${sale.discount}%` : formatCurrency(sale.discount)}):
+                                </span>
                                 <span className="text-red-600 dark:text-red-400">
                                     -{formatCurrency(sale.total_without_tax - sale.total_with_discount)}
                                 </span>
