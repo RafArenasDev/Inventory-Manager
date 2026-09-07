@@ -99,43 +99,45 @@ const CategoryForm: React.FC<CategoryFormProps> = ({ category, onCancel, onSaved
     const canSubmit = category?.id ? userPermissions.includes('Actualizar Categorías') : userPermissions.includes('Crear Categorías');
 
     return (
-        <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Información básica */}
-            <div className="space-y-4">
-                <div>
-                    <Label htmlFor="name" className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
-                        Nombre de la Categoría *
-                    </Label>
-                    <Input
-                        type="text"
-                        id="name"
-                        value={data.name}
-                        onChange={(e) => setData('name', e.target.value)}
-                        className="w-full"
-                        placeholder="Ingrese el nombre de la categoría"
-                        required
-                    />
-                    {errors.name && <p className="mt-1 text-sm text-red-600">{errors.name}</p>}
-                </div>
+        <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col gap-4">
+            <div className="min-h-0 flex-1 space-y-6 overflow-x-hidden overflow-y-auto pr-1">
+                {/* Información básica */}
+                <div className="space-y-4">
+                    <div>
+                        <Label htmlFor="name" className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                            Nombre de la Categoría *
+                        </Label>
+                        <Input
+                            type="text"
+                            id="name"
+                            value={data.name}
+                            onChange={(e) => setData('name', e.target.value)}
+                            className="w-full"
+                            placeholder="Ingrese el nombre de la categoría"
+                            required
+                        />
+                        {errors.name && <p className="mt-1 text-sm text-red-600">{errors.name}</p>}
+                    </div>
 
-                <div>
-                    <Label htmlFor="description" className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
-                        Descripción
-                    </Label>
-                    <Textarea
-                        id="description"
-                        value={data.description}
-                        onChange={(e) => setData('description', e.target.value)}
-                        rows={3}
-                        className="w-full"
-                        placeholder="Descripción de la categoría (opcional)"
-                    />
-                    {errors.description && <p className="mt-1 text-sm text-red-600">{errors.description}</p>}
+                    <div>
+                        <Label htmlFor="description" className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                            Descripción
+                        </Label>
+                        <Textarea
+                            id="description"
+                            value={data.description}
+                            onChange={(e) => setData('description', e.target.value)}
+                            rows={3}
+                            className="w-full"
+                            placeholder="Descripción de la categoría (opcional)"
+                        />
+                        {errors.description && <p className="mt-1 text-sm text-red-600">{errors.description}</p>}
+                    </div>
                 </div>
             </div>
 
             {/* Botones de acción */}
-            <div className="flex justify-end space-x-3 border-t border-gray-200 pt-4 dark:border-gray-700">
+            <div className="flex shrink-0 justify-end space-x-3 pt-1">
                 <Button type="button" onClick={onCancel} variant="outline" disabled={processing}>
                     Cancelar
                 </Button>

@@ -155,8 +155,8 @@ export default function CategoryIndex({ categories, filters, totalCount, filtere
                     if (!open) attemptCloseForm();
                 }}
             >
-                <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg" onInteractOutside={(e) => e.preventDefault()}>
-                    <DialogHeader>
+                <DialogContent className="flex max-h-[90vh] flex-col overflow-hidden sm:max-w-lg" onInteractOutside={(e) => e.preventDefault()}>
+                    <DialogHeader className="shrink-0">
                         <DialogTitle>{isCreating ? 'Nueva Categoría' : `Editar Categoría: ${editingCategory?.name}`}</DialogTitle>
                         <DialogDescription>
                             {isCreating ? 'Completa los datos para crear una nueva categoría.' : 'Actualiza los datos de la categoría.'}

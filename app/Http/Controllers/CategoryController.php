@@ -22,7 +22,7 @@ class CategoryController extends Controller
         if ($request->filled('search')) {
             $search = $request->search;
             $categoriesQuery->where(function ($query) use ($search) {
-                $query->whereLike('name', "%{$search}%");
+                $query->whereLikeUnaccent('name', "%{$search}%");
             });
         }
 
