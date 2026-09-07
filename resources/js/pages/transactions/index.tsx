@@ -223,8 +223,8 @@ export default function TransactionsPage({ transactions, categories, filters, to
                     if (!open) attemptCloseForm();
                 }}
             >
-                <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl" onInteractOutside={(e) => e.preventDefault()}>
-                    <DialogHeader>
+                <DialogContent className="flex max-h-[90vh] flex-col overflow-hidden sm:max-w-2xl" onInteractOutside={(e) => e.preventDefault()}>
+                    <DialogHeader className="shrink-0">
                         <DialogTitle>{isCreating ? 'Nueva Transacción' : `Editar Transacción: #${editingTransaction?.id}`}</DialogTitle>
                         <DialogDescription>
                             {isCreating ? 'Completa los datos para registrar una nueva transacción.' : 'Actualiza los datos de la transacción.'}

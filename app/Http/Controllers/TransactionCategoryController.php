@@ -22,8 +22,8 @@ class TransactionCategoryController extends Controller
         if ($request->filled('search')) {
             $search = $request->search;
             $categoriesQuery->where(function ($query) use ($search) {
-                $query->whereLike('name', "%{$search}%")
-                    ->orWhereLike('description', "%{$search}%");
+                $query->whereLikeUnaccent('name', "%{$search}%")
+                    ->orWhereLikeUnaccent('description', "%{$search}%");
             });
         }
 
