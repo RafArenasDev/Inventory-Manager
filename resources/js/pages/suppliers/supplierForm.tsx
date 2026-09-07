@@ -193,150 +193,152 @@ const SupplierForm: React.FC<SupplierFormProps> = ({
     const canSubmit = supplier?.id ? userPermissions.includes('Actualizar Proveedores') : userPermissions.includes('Crear Proveedores');
 
     return (
-        <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-                <div>
-                    <Label htmlFor="name" className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
-                        Nombre del Proveedor *
-                    </Label>
-                    <Input
-                        type="text"
-                        id="name"
-                        value={data.name}
-                        onChange={(e) => setData('name', e.target.value)}
-                        className="w-full"
-                        placeholder="Ingrese el nombre del proveedor"
-                        required
-                    />
-                    {errors.name && <p className="mt-1 text-sm text-red-600">{errors.name}</p>}
-                </div>
-
-                <div>
-                    <Label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">NIT *</Label>
-                    <div className="flex items-center gap-2">
+        <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col gap-4">
+            <div className="min-h-0 flex-1 space-y-6 overflow-x-hidden overflow-y-auto pr-1">
+                <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                    <div>
+                        <Label htmlFor="name" className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                            Nombre del Proveedor *
+                        </Label>
                         <Input
-                            type="number"
-                            id="nit_number"
-                            value={data.nit_number}
-                            onChange={handleNitNumberChange}
-                            className="flex-1"
-                            aria-invalid={!!nitNumberError}
-                            placeholder="Número NIT"
-                            min="0"
+                            type="text"
+                            id="name"
+                            value={data.name}
+                            onChange={(e) => setData('name', e.target.value)}
+                            className="w-full"
+                            placeholder="Ingrese el nombre del proveedor"
                             required
                         />
-                        <span className="text-gray-500">-</span>
-                        <Input
-                            type="number"
-                            id="nit_digit"
-                            value={data.nit_digit}
-                            onChange={handleNitDigitChange}
-                            className="w-12"
-                            aria-invalid={!!nitDigitError}
-                            placeholder="D"
-                            min="0"
-                            max="9"
-                            required
-                        />
+                        {errors.name && <p className="mt-1 text-sm text-red-600">{errors.name}</p>}
                     </div>
-                    {nitNumberError && <p className="mt-1 text-sm text-red-600">{nitNumberError}</p>}
-                    {nitDigitError && <p className="mt-1 text-sm text-red-600">{nitDigitError}</p>}
-                    {errors.nit_number && <p className="mt-1 text-sm text-red-600">{errors.nit_number}</p>}
-                    {errors.nit_digit && <p className="mt-1 text-sm text-red-600">{errors.nit_digit}</p>}
-                </div>
 
-                <div className="md:col-span-2">
-                    <Label htmlFor="representative" className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
-                        Representante Legal
-                    </Label>
-                    <Input
-                        type="text"
-                        id="representative"
-                        value={data.representative || ''}
-                        onChange={(e) => setData('representative', e.target.value)}
-                        className="w-full"
-                        placeholder="Nombre del representante legal"
-                    />
-                    {errors.representative && <p className="mt-1 text-sm text-red-600">{errors.representative}</p>}
-                </div>
+                    <div>
+                        <Label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">NIT *</Label>
+                        <div className="flex items-center gap-2">
+                            <Input
+                                type="number"
+                                id="nit_number"
+                                value={data.nit_number}
+                                onChange={handleNitNumberChange}
+                                className="flex-1"
+                                aria-invalid={!!nitNumberError}
+                                placeholder="Número NIT"
+                                min="0"
+                                required
+                            />
+                            <span className="text-gray-500">-</span>
+                            <Input
+                                type="number"
+                                id="nit_digit"
+                                value={data.nit_digit}
+                                onChange={handleNitDigitChange}
+                                className="w-12"
+                                aria-invalid={!!nitDigitError}
+                                placeholder="D"
+                                min="0"
+                                max="9"
+                                required
+                            />
+                        </div>
+                        {nitNumberError && <p className="mt-1 text-sm text-red-600">{nitNumberError}</p>}
+                        {nitDigitError && <p className="mt-1 text-sm text-red-600">{nitDigitError}</p>}
+                        {errors.nit_number && <p className="mt-1 text-sm text-red-600">{errors.nit_number}</p>}
+                        {errors.nit_digit && <p className="mt-1 text-sm text-red-600">{errors.nit_digit}</p>}
+                    </div>
 
-                <div>
-                    <Label htmlFor="phone" className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
-                        Teléfono Fijo
-                    </Label>
-                    <Input
-                        type="tel"
-                        id="phone"
-                        value={data.phone || ''}
-                        onChange={(e) => setData('phone', e.target.value.replace(/[^0-9]/g, ''))}
-                        className="w-full"
-                        placeholder="Teléfono fijo"
-                    />
-                    {errors.phone && <p className="mt-1 text-sm text-red-600">{errors.phone}</p>}
-                </div>
+                    <div className="md:col-span-2">
+                        <Label htmlFor="representative" className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                            Representante Legal
+                        </Label>
+                        <Input
+                            type="text"
+                            id="representative"
+                            value={data.representative || ''}
+                            onChange={(e) => setData('representative', e.target.value)}
+                            className="w-full"
+                            placeholder="Nombre del representante legal"
+                        />
+                        {errors.representative && <p className="mt-1 text-sm text-red-600">{errors.representative}</p>}
+                    </div>
 
-                <div>
-                    <Label htmlFor="cellphone" className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
-                        Celular
-                    </Label>
-                    <Input
-                        type="tel"
-                        id="cellphone"
-                        value={data.cellphone || ''}
-                        onChange={(e) => setData('cellphone', e.target.value.replace(/[^0-9]/g, ''))}
-                        className="w-full"
-                        placeholder="Número de celular"
-                    />
-                    {errors.cellphone && <p className="mt-1 text-sm text-red-600">{errors.cellphone}</p>}
-                </div>
+                    <div>
+                        <Label htmlFor="phone" className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                            Teléfono Fijo
+                        </Label>
+                        <Input
+                            type="tel"
+                            id="phone"
+                            value={data.phone || ''}
+                            onChange={(e) => setData('phone', e.target.value.replace(/[^0-9]/g, ''))}
+                            className="w-full"
+                            placeholder="Teléfono fijo"
+                        />
+                        {errors.phone && <p className="mt-1 text-sm text-red-600">{errors.phone}</p>}
+                    </div>
 
-                <div className="md:col-span-2">
-                    <Label htmlFor="email" className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
-                        Email
-                    </Label>
-                    <Input
-                        type="email"
-                        id="email"
-                        value={data.email || ''}
-                        onChange={(e) => setData('email', e.target.value)}
-                        className="w-full"
-                        placeholder="email@proveedor.com"
-                    />
-                    {errors.email && <p className="mt-1 text-sm text-red-600">{errors.email}</p>}
-                </div>
+                    <div>
+                        <Label htmlFor="cellphone" className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                            Celular
+                        </Label>
+                        <Input
+                            type="tel"
+                            id="cellphone"
+                            value={data.cellphone || ''}
+                            onChange={(e) => setData('cellphone', e.target.value.replace(/[^0-9]/g, ''))}
+                            className="w-full"
+                            placeholder="Número de celular"
+                        />
+                        {errors.cellphone && <p className="mt-1 text-sm text-red-600">{errors.cellphone}</p>}
+                    </div>
 
-                <div className="md:col-span-2">
-                    <Label htmlFor="address" className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
-                        Dirección
-                    </Label>
-                    <Textarea
-                        id="address"
-                        value={data.address || ''}
-                        onChange={(e) => setData('address', e.target.value)}
-                        rows={2}
-                        className="w-full"
-                        placeholder="Dirección completa del proveedor"
-                    />
-                    {errors.address && <p className="mt-1 text-sm text-red-600">{errors.address}</p>}
-                </div>
+                    <div className="md:col-span-2">
+                        <Label htmlFor="email" className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                            Email
+                        </Label>
+                        <Input
+                            type="email"
+                            id="email"
+                            value={data.email || ''}
+                            onChange={(e) => setData('email', e.target.value)}
+                            className="w-full"
+                            placeholder="email@proveedor.com"
+                        />
+                        {errors.email && <p className="mt-1 text-sm text-red-600">{errors.email}</p>}
+                    </div>
 
-                <div className="md:col-span-2">
-                    <Label htmlFor="description" className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
-                        Descripción
-                    </Label>
-                    <Textarea
-                        id="description"
-                        value={data.description || ''}
-                        onChange={(e) => setData('description', e.target.value)}
-                        rows={3}
-                        className="w-full"
-                        placeholder="Descripción del proveedor (opcional)"
-                    />
-                    {errors.description && <p className="mt-1 text-sm text-red-600">{errors.description}</p>}
+                    <div className="md:col-span-2">
+                        <Label htmlFor="address" className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                            Dirección
+                        </Label>
+                        <Textarea
+                            id="address"
+                            value={data.address || ''}
+                            onChange={(e) => setData('address', e.target.value)}
+                            rows={2}
+                            className="w-full"
+                            placeholder="Dirección completa del proveedor"
+                        />
+                        {errors.address && <p className="mt-1 text-sm text-red-600">{errors.address}</p>}
+                    </div>
+
+                    <div className="md:col-span-2">
+                        <Label htmlFor="description" className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                            Descripción
+                        </Label>
+                        <Textarea
+                            id="description"
+                            value={data.description || ''}
+                            onChange={(e) => setData('description', e.target.value)}
+                            rows={3}
+                            className="w-full"
+                            placeholder="Descripción del proveedor (opcional)"
+                        />
+                        {errors.description && <p className="mt-1 text-sm text-red-600">{errors.description}</p>}
+                    </div>
                 </div>
             </div>
 
-            <div className="flex justify-end space-x-3 border-t border-gray-200 pt-4 dark:border-gray-700">
+            <div className="flex shrink-0 justify-end space-x-3 pt-1">
                 <Button type="button" onClick={onCancel} variant="outline" disabled={processing}>
                     Cancelar
                 </Button>

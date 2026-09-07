@@ -176,8 +176,8 @@ export default function SupplierIndex({ suppliers, filters, totalCount, filtered
                     if (!open) attemptCloseForm();
                 }}
             >
-                <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl" onInteractOutside={(e) => e.preventDefault()}>
-                    <DialogHeader>
+                <DialogContent className="flex max-h-[90vh] flex-col overflow-hidden sm:max-w-2xl" onInteractOutside={(e) => e.preventDefault()}>
+                    <DialogHeader className="shrink-0">
                         <DialogTitle>{isCreating ? 'Nuevo Proveedor' : `Editar Proveedor: ${editingSupplier?.name || ''}`}</DialogTitle>
                         <DialogDescription>
                             {isCreating ? 'Completa los datos para registrar un nuevo proveedor.' : 'Actualiza los datos del proveedor.'}
