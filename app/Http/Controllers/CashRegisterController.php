@@ -38,9 +38,9 @@ class CashRegisterController extends Controller
             // tabla (dd/mm/aaaa) y encima rompía la consulta en Postgres.
             $search = $request->search;
             $cashQuery->where(function ($query) use ($search) {
-                $query->whereLike('notes', "%{$search}%")
+                $query->whereLikeUnaccent('notes', "%{$search}%")
                     ->orWhereHas('openedBy', function ($q) use ($search) {
-                        $q->whereLike('name', "%{$search}%");
+                        $q->whereLikeUnaccent('name', "%{$search}%");
                     });
             });
         }

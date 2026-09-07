@@ -184,8 +184,8 @@ export default function CashRegisterIndex({ cashRegisters, filters, totalCount, 
                     if (!open) attemptCloseForm();
                 }}
             >
-                <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg" onInteractOutside={(e) => e.preventDefault()}>
-                    <DialogHeader>
+                <DialogContent className="flex max-h-[90vh] flex-col overflow-hidden sm:max-w-lg" onInteractOutside={(e) => e.preventDefault()}>
+                    <DialogHeader className="shrink-0">
                         <DialogTitle>{isCreating ? 'Abrir Caja' : `Cerrar Caja: ${editingCashRegister?.register_date ?? ''}`}</DialogTitle>
                         <DialogDescription>
                             {isCreating ? 'Abre la caja para iniciar la jornada.' : 'Registra el cierre de caja de la jornada.'}

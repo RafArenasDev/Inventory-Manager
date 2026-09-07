@@ -92,8 +92,8 @@ const CashRegisterForm: React.FC<CashRegisterFormProps> = ({ cashRegister, onCan
     const canSubmit = isCreating ? userPermissions.includes('Crear Caja') : userPermissions.includes('Actualizar Caja');
 
     return (
-        <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="space-y-4">
+        <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col gap-4">
+            <div className="min-h-0 flex-1 space-y-4 overflow-x-hidden overflow-y-auto pr-1">
                 <div>
                     <Label htmlFor="notes" className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
                         Notas
@@ -108,7 +108,7 @@ const CashRegisterForm: React.FC<CashRegisterFormProps> = ({ cashRegister, onCan
                     {errors.notes && <p className="mt-1 text-sm text-red-600">{errors.notes}</p>}
                 </div>
             </div>
-            <div className="flex justify-end space-x-3 border-t border-gray-200 pt-4 dark:border-gray-700">
+            <div className="flex shrink-0 justify-end space-x-3 pt-1">
                 <Button type="button" onClick={onCancel} variant="outline" disabled={processing}>
                     Cancelar
                 </Button>
