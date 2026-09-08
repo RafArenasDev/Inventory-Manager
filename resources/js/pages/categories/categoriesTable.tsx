@@ -55,7 +55,7 @@ export default function CategoriesTable({
     const handleDelete = (categoryId: number, categoryName: string) => {
         Swal.fire({
             title: '¿Estás seguro?',
-            text: `Esta acción eliminará la categoría ${categoryName} permanentemente`,
+            html: `Esta acción eliminará la categoría <b>${categoryName}</b> permanentemente`,
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#3085d6',

@@ -64,7 +64,7 @@ export default function UsersTable({
     const handleDelete = (userId: number, userName: string) => {
         Swal.fire({
             title: '¿Estás seguro?',
-            text: `Esta acción eliminará al usuario ${userName} permanentemente`,
+            html: `Esta acción eliminará al usuario <b>${userName}</b> permanentemente`,
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#3085d6',

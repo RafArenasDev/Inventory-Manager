@@ -65,7 +65,7 @@ export default function ClientsTable({
     const handleDelete = (clientId: number, clientName: string) => {
         Swal.fire({
             title: '¿Estás seguro?',
-            text: `Esta acción eliminará al cliente ${clientName} permanentemente`,
+            html: `Esta acción eliminará al cliente <b>${clientName}</b> permanentemente`,
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#3085d6',
