@@ -137,7 +137,7 @@ export default function ClientDetailModal({ isOpen, onClose, client }: ClientDet
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
-            <DialogContent className="bg-card max-h-[92vh] max-w-[97vw] overflow-y-auto rounded-2xl p-0 shadow-2xl sm:max-w-[1100px]">
+            <DialogContent className="max-h-[92vh] max-w-[97vw] overflow-y-auto rounded-2xl p-0 shadow-2xl sm:max-w-[1100px]">
                 <div className="space-y-6 p-6">
                     {/* Encabezado */}
                     <div className="flex items-start gap-4">

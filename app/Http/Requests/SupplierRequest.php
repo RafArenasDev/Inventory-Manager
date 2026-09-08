@@ -41,7 +41,7 @@ class SupplierRequest extends FormRequest
             'nit_digit' => 'required|integer|between:0,9',
             'phone' => 'nullable|string|max:20',
             'cellphone' => 'nullable|string|max:20',
-            'address' => 'nullable|string',
+            'address' => ['required', 'string'],
             'email' => ['required', 'email', 'max:255'],
             'description' => 'nullable|string',
         ];
@@ -58,6 +58,7 @@ class SupplierRequest extends FormRequest
             'nit_number.unique' => 'Ya existe un proveedor con este NIT.',
             'nit_digit.required' => 'El dígito de verificación es obligatorio.',
             'nit_digit.between' => 'El dígito de verificación debe estar entre 0 y 9.',
+            'address.required' => 'La dirección del proveedor es obligatoria.',
             'email.required' => 'El email es obligatorio.',
             'email.email' => 'El email no tiene un formato válido.',
         ];

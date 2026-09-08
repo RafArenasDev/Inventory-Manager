@@ -310,7 +310,7 @@ export default function SaleIndex({ sales, products, clients, departments, citie
             />
 
             <Dialog open={isInvoiceModalOpen} onOpenChange={setIsInvoiceModalOpen}>
-                <DialogContent className="bg-card max-h-[95vh] max-w-[95vw] rounded-2xl p-0 shadow-2xl sm:max-w-[550px]">
+                <DialogContent className="max-h-[95vh] max-w-[95vw] rounded-2xl p-0 shadow-2xl sm:max-w-[550px]">
                     <div className="space-y-4 p-6">
                         <DialogTitle className="text-xl font-bold text-gray-900 dark:text-gray-100">
                             Factura #{currentInvoiceUrl ? currentInvoiceUrl.split('/').pop()?.replace('invoice_', '').replace('.pdf', '') : ''}
