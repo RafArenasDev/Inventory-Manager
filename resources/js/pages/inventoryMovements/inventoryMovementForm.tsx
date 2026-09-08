@@ -186,7 +186,7 @@ const InventoryMovementForm: React.FC<InventoryMovementFormProps> = ({ movement,
         (isAdjustment ? data.quantity >= 0 : data.quantity > 0);
 
     return (
-        <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col gap-4">
+        <form onSubmit={handleSubmit} noValidate className="flex min-h-0 flex-1 flex-col gap-4">
             <div className="min-h-0 flex-1 space-y-6 overflow-x-hidden overflow-y-auto p-1">
                 {/* Tipo */}
                 <div>

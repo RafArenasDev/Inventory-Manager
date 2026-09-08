@@ -446,7 +446,7 @@ const SaleForm: React.FC<SaleFormProps> = ({ sale, onCancel, onSaved, onDirtyCha
 
     return (
         <>
-            <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col gap-4">
+            <form onSubmit={handleSubmit} noValidate className="flex min-h-0 flex-1 flex-col gap-4">
                 {/* Único contenedor con scroll: header y botones de acción quedan siempre visibles */}
                 <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-x-hidden overflow-y-auto p-1">
                     {/* Información del Cliente */}

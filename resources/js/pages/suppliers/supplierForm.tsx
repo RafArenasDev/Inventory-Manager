@@ -2,10 +2,31 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { csrfHeader } from '@/lib/csrf';
 import Swal from '@/lib/swal';
 import { useForm } from '@inertiajs/react';
+import { Info } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
+
+// Algoritmo oficial de la DIAN (módulo 11 con tabla de pesos fija) para el
+// Dígito de Verificación (DV) del NIT — se calcula siempre a partir del
+// número de NIT, nunca se pide al usuario que lo adivine o lo busque en su
+// RUT. El backend recalcula este mismo valor de forma independiente y
+// jamás confía en el que viaja en el request.
+const NIT_CHECK_DIGIT_WEIGHTS = [3, 7, 13, 17, 19, 23, 29, 37, 41, 43, 47, 53, 59, 67, 71];
+
+const calculateNitCheckDigit = (nitNumber: string): string => {
+    if (!nitNumber) {
+        return '';
+    }
+
+    const digits = nitNumber.split('').reverse();
+    const sum = digits.reduce((acc, digit, index) => acc + Number(digit) * (NIT_CHECK_DIGIT_WEIGHTS[index] ?? 0), 0);
+    const remainder = sum % 11;
+
+    return (remainder < 2 ? remainder : 11 - remainder).toString();
+};
 
 interface SupplierForForm {
     id?: number;
@@ -44,7 +65,7 @@ const SupplierForm: React.FC<SupplierFormProps> = ({
         name: supplier?.name || '',
         representative: supplier?.representative || '',
         nit_number: supplier?.nit_number?.toString() || '',
-        nit_digit: supplier?.nit_digit?.toString() || '',
+        nit_digit: supplier?.nit_digit?.toString() || calculateNitCheckDigit(supplier?.nit_number?.toString() || ''),
         phone: supplier?.phone || '',
         cellphone: supplier?.cellphone || '',
         address: supplier?.address || '',
@@ -53,46 +74,30 @@ const SupplierForm: React.FC<SupplierFormProps> = ({
     });
 
     const [nitNumberError, setNitNumberError] = useState<string>('');
-    const [nitDigitError, setNitDigitError] = useState<string>('');
 
     useEffect(() => {
         onDirtyChange?.(isDirty);
     }, [isDirty, onDirtyChange]);
 
     const validateNitNumber = (value: string) => {
-        if (!/^\d+$/.test(value)) {
-            setNitNumberError('Debe ser un número válido');
+        if (!/^\d{1,15}$/.test(value)) {
+            setNitNumberError(value.length > 15 ? 'NIT demasiado largo' : 'Solo números');
             return false;
         }
         setNitNumberError('');
         return true;
     };
 
-    const validateNitDigit = (value: string) => {
-        if (!/^\d$/.test(value)) {
-            setNitDigitError('Debe ser un dígito (0-9)');
-            return false;
-        }
-        setNitDigitError('');
-        return true;
-    };
-
     const handleNitNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const value = e.target.value.replace(/\D/g, '');
-        setData('nit_number', value);
+        const value = e.target.value.replace(/\D/g, '').slice(0, 15);
+        setData((current) => ({ ...current, nit_number: value, nit_digit: calculateNitCheckDigit(value) }));
         validateNitNumber(value);
-    };
-
-    const handleNitDigitChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const value = e.target.value.replace(/\D/g, '').slice(0, 1);
-        setData('nit_digit', value);
-        validateNitDigit(value);
     };
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
 
-        if (!validateNitNumber(data.nit_number.toString()) || !validateNitDigit(data.nit_digit.toString())) {
+        if (!validateNitNumber(data.nit_number.toString())) {
             return;
         }
 
@@ -190,65 +195,88 @@ const SupplierForm: React.FC<SupplierFormProps> = ({
         }
     };
 
+    const isFormValid =
+        data.name.trim() !== '' &&
+        data.nit_number.toString().trim() !== '' &&
+        data.nit_digit.toString().trim() !== '' &&
+        data.representative.trim() !== '' &&
+        data.email.trim() !== '' &&
+        !nitNumberError;
+
     const canSubmit = supplier?.id ? userPermissions.includes('Actualizar Proveedores') : userPermissions.includes('Crear Proveedores');
 
     return (
-        <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col gap-4">
+        <form onSubmit={handleSubmit} noValidate className="flex min-h-0 flex-1 flex-col gap-4">
             <div className="min-h-0 flex-1 space-y-6 overflow-x-hidden overflow-y-auto p-1">
                 <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-                    <div>
-                        <Label htmlFor="name" className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
-                            Nombre del Proveedor *
-                        </Label>
-                        <Input
-                            type="text"
-                            id="name"
-                            value={data.name}
-                            onChange={(e) => setData('name', e.target.value)}
-                            className="w-full"
-                            placeholder="Ingrese el nombre del proveedor"
-                            required
-                        />
-                        {errors.name && <p className="mt-1 text-sm text-red-600">{errors.name}</p>}
-                    </div>
-
-                    <div>
-                        <Label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">NIT *</Label>
-                        <div className="flex items-center gap-2">
+                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-6 md:col-span-2">
+                        <div className="sm:col-span-3">
+                            <Label htmlFor="name" className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                Nombre del Proveedor *
+                            </Label>
                             <Input
-                                type="number"
+                                type="text"
+                                id="name"
+                                value={data.name}
+                                onChange={(e) => setData('name', e.target.value)}
+                                className="w-full"
+                                placeholder="Ingrese el nombre del proveedor"
+                                required
+                            />
+                            {errors.name && <p className="mt-1 text-sm text-red-600">{errors.name}</p>}
+                        </div>
+
+                        <div className="sm:col-span-2">
+                            <Label htmlFor="nit_number" className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                NIT *
+                            </Label>
+                            <Input
+                                type="text"
+                                inputMode="numeric"
+                                pattern="[0-9]*"
                                 id="nit_number"
                                 value={data.nit_number}
                                 onChange={handleNitNumberChange}
-                                className="flex-1"
+                                className="w-full"
                                 aria-invalid={!!nitNumberError}
                                 placeholder="Número NIT"
-                                min="0"
                                 required
                             />
-                            <span className="text-gray-500">-</span>
+                            {nitNumberError && <p className="mt-1 text-sm text-red-600">{nitNumberError}</p>}
+                            {errors.nit_number && <p className="mt-1 text-sm text-red-600">{errors.nit_number}</p>}
+                        </div>
+
+                        <div className="sm:col-span-1">
+                            <div className="mb-1 flex items-center gap-1">
+                                <Label htmlFor="nit_digit" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    DV
+                                </Label>
+                                <Tooltip>
+                                    <TooltipTrigger asChild>
+                                        <button type="button" className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+                                            <Info className="h-3.5 w-3.5" />
+                                        </button>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                        Dígito de Verificación: lo calcula automáticamente el sistema con el algoritmo oficial de la DIAN a partir del
+                                        NIT.
+                                    </TooltipContent>
+                                </Tooltip>
+                            </div>
                             <Input
-                                type="number"
+                                type="text"
                                 id="nit_digit"
                                 value={data.nit_digit}
-                                onChange={handleNitDigitChange}
-                                className="w-12"
-                                aria-invalid={!!nitDigitError}
-                                placeholder="D"
-                                min="0"
-                                max="9"
-                                required
+                                readOnly
+                                className="w-full cursor-not-allowed text-center opacity-80"
                             />
+                            {errors.nit_digit && <p className="mt-1 text-sm text-red-600">{errors.nit_digit}</p>}
                         </div>
-                        {nitNumberError && <p className="mt-1 text-sm text-red-600">{nitNumberError}</p>}
-                        {nitDigitError && <p className="mt-1 text-sm text-red-600">{nitDigitError}</p>}
-                        {errors.nit_number && <p className="mt-1 text-sm text-red-600">{errors.nit_number}</p>}
-                        {errors.nit_digit && <p className="mt-1 text-sm text-red-600">{errors.nit_digit}</p>}
                     </div>
 
                     <div className="md:col-span-2">
                         <Label htmlFor="representative" className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
-                            Representante Legal
+                            Representante Legal *
                         </Label>
                         <Input
                             type="text"
@@ -257,6 +285,7 @@ const SupplierForm: React.FC<SupplierFormProps> = ({
                             onChange={(e) => setData('representative', e.target.value)}
                             className="w-full"
                             placeholder="Nombre del representante legal"
+                            required
                         />
                         {errors.representative && <p className="mt-1 text-sm text-red-600">{errors.representative}</p>}
                     </div>
@@ -293,7 +322,7 @@ const SupplierForm: React.FC<SupplierFormProps> = ({
 
                     <div className="md:col-span-2">
                         <Label htmlFor="email" className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
-                            Email
+                            Email *
                         </Label>
                         <Input
                             type="email"
@@ -302,6 +331,7 @@ const SupplierForm: React.FC<SupplierFormProps> = ({
                             onChange={(e) => setData('email', e.target.value)}
                             className="w-full"
                             placeholder="email@proveedor.com"
+                            required
                         />
                         {errors.email && <p className="mt-1 text-sm text-red-600">{errors.email}</p>}
                     </div>
@@ -343,7 +373,7 @@ const SupplierForm: React.FC<SupplierFormProps> = ({
                     Cancelar
                 </Button>
                 {canSubmit && (
-                    <Button type="submit" disabled={processing || !!nitNumberError || !!nitDigitError}>
+                    <Button type="submit" disabled={processing || !isFormValid}>
                         {processing ? 'Guardando...' : supplier?.id ? 'Actualizar Proveedor' : 'Crear Proveedor'}
                     </Button>
                 )}

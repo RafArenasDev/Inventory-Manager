@@ -180,7 +180,7 @@ const ClientForm: React.FC<ClientFormProps> = ({ client, onCancel, onSaved, onDi
     const canSubmit = isEditing ? userPermissions.includes('Editar Clientes') : userPermissions.includes('Crear Clientes');
 
     return (
-        <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col gap-4">
+        <form onSubmit={handleSubmit} noValidate className="flex min-h-0 flex-1 flex-col gap-4">
             <div className="min-h-0 flex-1 space-y-6 overflow-x-hidden overflow-y-auto p-1">
                 <div className="space-y-4">
                     <div>
