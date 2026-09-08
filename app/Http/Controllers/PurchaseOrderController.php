@@ -205,7 +205,14 @@ class PurchaseOrderController extends Controller
             return back()->with('error', 'Este pedido no está en un estado que se pueda recibir.');
         }
 
-        DB::transaction(function () use ($purchaseOrder) {
+        // Mismo título que el modal "Ver detalle" de Pedidos — así el
+        // movimiento en el historial se identifica con el pedido exacto
+        // igual que en el resto de la UI, en vez de un "#id" que ahí no se
+        // usa para nada.
+        $supplierName = $purchaseOrder->supplier?->name ?? 'Proveedor eliminado';
+        $orderTitle = "Pedido: {$supplierName} — {$purchaseOrder->created_at->format('d-m-Y')}";
+
+        DB::transaction(function () use ($purchaseOrder, $orderTitle) {
             foreach ($purchaseOrder->items as $item) {
                 $pending = $item->quantity_requested - $item->quantity_received;
                 if ($pending <= 0) {
@@ -213,6 +220,16 @@ class PurchaseOrderController extends Controller
                 }
 
                 $product = $item->product;
+
+                // Si el pedido llegó del mismo proveedor que ya tiene
+                // asignado el producto, es una reposición de rutina —
+                // "Ajuste Inventario". Si el proveedor cambió (el producto
+                // se consiguió esta vez con alguien distinto), queda como
+                // "Entrada" para que el cambio de origen sea visible en el
+                // historial.
+                $isSameSupplier = $product->supplier_id === $purchaseOrder->supplier_id;
+                $movementType = $isSameSupplier ? 'Ajuste Inventario' : 'Entrada';
+
                 $product->increment('stock', $pending);
                 Category::where('id', $product->category_id)->where('is_active', false)->update(['is_active' => true]);
 
@@ -220,10 +237,10 @@ class PurchaseOrderController extends Controller
                     'product_id' => $item->product_id,
                     'supplier_id' => $purchaseOrder->supplier_id,
                     'purchase_order_id' => $purchaseOrder->id,
-                    'type' => 'Entrada',
+                    'type' => $movementType,
                     'quantity' => $pending,
                     'date' => today(),
-                    'notes' => "Recepción del pedido #{$purchaseOrder->id}",
+                    'notes' => $orderTitle,
                 ]);
 
                 $item->increment('quantity_received', $pending);
@@ -331,6 +348,7 @@ class PurchaseOrderController extends Controller
                 'id' => $order->supplier->id,
                 'name' => $order->supplier->name,
                 'phone' => $order->supplier->cellphone ?? $order->supplier->phone,
+                'email' => $order->supplier->email,
             ] : null,
             'requested_by' => $order->requestedBy?->name,
             'received_by' => $order->receivedBy?->name,

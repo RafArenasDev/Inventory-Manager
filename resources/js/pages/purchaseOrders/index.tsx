@@ -5,7 +5,6 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { useLiveRefresh } from '@/hooks/use-live-refresh';
 import AppLayout from '@/layouts/app-layout';
 import Swal from '@/lib/swal';
-import { buildPurchaseOrderMessage, openWhatsApp } from '@/lib/whatsapp';
 import { LinkProps, type BreadcrumbItem } from '@/types';
 import { Head, router, usePage } from '@inertiajs/react';
 import { PackageSearch, Plus } from 'lucide-react';
@@ -168,22 +167,15 @@ export default function PurchaseOrdersIndex({ purchaseOrders, suppliers, product
         );
     };
 
-    const handleOrderCreated = (result?: {
-        supplier: Supplier | null;
-        items: { product_name: string; product_code: string; quantity_requested: number }[];
-    }) => {
+    const handleOrderCreated = () => {
         closeForm();
         // Refresca la tabla en el lugar (mismo POST que ya usa la búsqueda/
         // filtros) en vez de dejar que el store() navegue a otra vista —
         // así el nuevo pedido aparece al instante sin salir de Pedidos.
         refreshTable();
 
-        // Todo pedido nuevo se pide por WhatsApp, sea "Pedido Nuevo" o
-        // "Stock Bajo" — no solo el que sale desde las alertas.
-        const phone = result?.supplier?.cellphone ?? result?.supplier?.phone;
-        if (phone && result?.items.length) {
-            openWhatsApp(phone, buildPurchaseOrderMessage(result.items));
-        }
+        // Ya no se abre WhatsApp automáticamente al crear — el envío es una
+        // acción explícita del usuario desde el botón dedicado en la tabla.
     };
 
     const handleOrderSaved = () => {

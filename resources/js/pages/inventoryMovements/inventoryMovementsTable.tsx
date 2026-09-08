@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Pagination } from '@/components/ui/pagination';
 import SearchInput from '@/components/ui/search-input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { formatTime } from '@/lib/format-datetime';
 import { ArrowLeftRight, Download, Pencil } from 'lucide-react';
 
 interface Product {
@@ -95,9 +96,20 @@ export default function InventoryMovementsTable({
                 return 'bg-rose-600 dark:bg-rose-700';
             case 'Ajuste Inventario':
                 return 'bg-amber-600 dark:bg-amber-700';
+            case 'Baja por Eliminacion':
+                return 'bg-slate-700 dark:bg-slate-800';
             default:
                 return 'bg-zinc-600 dark:bg-zinc-700';
         }
+    };
+
+    // dd-mm-aaaa - hh:mm AM/PM, separando fecha y hora con un guion — la
+    // fecha por sí sola no decía a qué hora exacta pasó el movimiento. La
+    // hora usa el helper compartido (AM/PM sin puntos); acá solo se arma la
+    // fecha con guion en vez de "/" para que combine con el resto de la tabla.
+    const formatMovementDateTime = (isoDateTime: string) => {
+        const date = new Date(isoDateTime).toLocaleDateString('es-CO', { day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/\//g, '-');
+        return `${date} - ${formatTime(isoDateTime)}`;
     };
 
     const handleExport = () => {
@@ -147,8 +159,8 @@ export default function InventoryMovementsTable({
                         <TableRow>
                             <TableHead>Tipo</TableHead>
                             <TableHead>Cantidad</TableHead>
-                            <TableHead>Producto</TableHead>
                             <TableHead>Proveedor</TableHead>
+                            <TableHead>Producto</TableHead>
                             <TableHead>Descripción</TableHead>
                             <TableHead>Fecha</TableHead>
                             {showActionsColumn && <TableHead className="text-right">Acciones</TableHead>}
@@ -167,28 +179,13 @@ export default function InventoryMovementsTable({
                                     </TableCell>
                                     <TableCell className="font-medium">{m.quantity}</TableCell>
                                     <TableCell>
-                                        {m.product.name}
-                                        {m.product.deleted && (
-                                            <span className="ml-1.5 text-xs text-gray-400 italic dark:text-gray-500">(eliminado)</span>
-                                        )}
-                                    </TableCell>
-                                    <TableCell>
                                         <span className="w-fit rounded-full bg-zinc-600 px-3 py-0.5 text-xs font-bold text-white shadow-sm dark:bg-zinc-700">
                                             {m.supplier?.name || '-'}
                                         </span>
                                     </TableCell>
+                                    <TableCell>{m.product.name}</TableCell>
                                     <TableCell className="max-w-xs truncate">{m.notes || '-'}</TableCell>
-                                    <TableCell>
-                                        {m.date
-                                            ? m.date.split('-').reverse().join('-')
-                                            : new Date(m.created_at)
-                                                  .toLocaleDateString('es-CO', {
-                                                      day: '2-digit',
-                                                      month: '2-digit',
-                                                      year: 'numeric',
-                                                  })
-                                                  .replace(/\//g, '-')}
-                                    </TableCell>
+                                    <TableCell>{formatMovementDateTime(m.created_at)}</TableCell>
                                     {showActionsColumn && (
                                         <TableCell className="text-right">
                                             <div className="flex justify-end gap-2">

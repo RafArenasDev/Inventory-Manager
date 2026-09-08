@@ -192,7 +192,11 @@ export default function InventoryMovementsIndex({ movements, products, suppliers
     const showActionsColumn =
         userPermissions.includes('Editar Movimientos Inventario') || userPermissions.includes('Actualizar Movimientos Inventario');
 
-    const hasMultiplePages = totalCount > Number(filters.per_page || 10);
+    // filteredCount (no totalCount): este módulo filtra al mes actual por
+    // defecto, así que el histórico completo puede superar el perPage aunque
+    // la vista actual tenga pocas filas — comparar contra el total sin
+    // filtrar estiraba la card de más cuando no hacía falta paginar de verdad.
+    const hasMultiplePages = filteredCount > Number(filters.per_page || 10);
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>

@@ -260,10 +260,10 @@ class ProductController extends Controller
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-            'price_without_tax' => 'required|integer|min:0',
-            'price_with_tax' => 'required|integer|min:0',
+            'price_without_tax' => 'required|integer|min:1',
+            'price_with_tax' => 'required|integer|min:1',
             'iva_value' => 'nullable|integer|min:0',
-            'sale_price' => 'required|integer|min:0',
+            'sale_price' => 'required|integer|min:1',
             'supplier_id' => 'required|integer|exists:suppliers,id',
             'stock' => 'required|integer|min:0',
             'low_stock_threshold' => 'nullable|integer|min:1',
@@ -315,24 +315,25 @@ class ProductController extends Controller
 
         $this->reactivateCategoryIfNeeded($validated['category_id']);
 
-        if ($validated['stock'] > 0) {
-            $supplier = Supplier::find($validated['supplier_id']);
-            $supplierName = $supplier?->name ?? 'proveedor no especificado';
+        $supplier = Supplier::find($validated['supplier_id']);
+        $supplierName = $supplier?->name ?? 'proveedor no especificado';
 
-            // Un producto siempre "nace" con una Entrada — el tipo nunca lo
-            // decide el cliente (evita que un POST manipulado a mano registre
-            // el movimiento inicial como "Salida" o cualquier otro tipo).
-            $movement = InventoryMovement::create([
-                'product_id' => $product->id,
-                'type' => 'Entrada',
-                'quantity' => $validated['stock'],
-                'date' => now()->format('Y-m-d'),
-                'notes' => $validated['movement_notes'] ?: "Primer pedido del proveedor {$supplierName}",
-                'supplier_id' => $validated['supplier_id'],
-            ]);
+        // Todo producto nace con una Entrada — incluso con stock inicial 0 —
+        // para que Productos y Movimientos siempre estén en sincronía (un
+        // producto sin ningún movimiento era un hueco en el historial). El
+        // tipo nunca lo decide el cliente (evita que un POST manipulado a
+        // mano registre el movimiento inicial como "Salida" o cualquier otro
+        // tipo).
+        $movement = InventoryMovement::create([
+            'product_id' => $product->id,
+            'type' => 'Entrada',
+            'quantity' => $validated['stock'],
+            'date' => now()->format('Y-m-d'),
+            'notes' => $validated['movement_notes'] ?: "Primer pedido del proveedor {$supplierName}",
+            'supplier_id' => $validated['supplier_id'],
+        ]);
 
-            $product->update(['initial_movement_id' => $movement->id]);
-        }
+        $product->update(['initial_movement_id' => $movement->id]);
 
         return redirect()->route('products.index')
             ->with('success', 'Producto creado correctamente.');
@@ -387,10 +388,10 @@ class ProductController extends Controller
             'description' => 'nullable|string',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             'remove_image' => 'nullable|boolean',
-            'price_without_tax' => 'required|integer|min:0',
-            'price_with_tax' => 'required|integer|min:0',
+            'price_without_tax' => 'required|integer|min:1',
+            'price_with_tax' => 'required|integer|min:1',
             'iva_value' => 'nullable|integer|min:0',
-            'sale_price' => 'required|integer|min:0',
+            'sale_price' => 'required|integer|min:1',
             'supplier_id' => 'required|integer|exists:suppliers,id',
             'stock' => 'nullable|integer|min:0',
             'low_stock_threshold' => 'nullable|integer|min:1',
@@ -524,8 +525,9 @@ class ProductController extends Controller
                 'product_id' => $product->id,
                 'product_code' => $product->code,
                 'product_name' => $product->name,
-                'type' => 'Ajuste Inventario',
-                'quantity' => -$product->stock,
+                'supplier_id' => $product->supplier_id,
+                'type' => 'Baja por Eliminacion',
+                'quantity' => $product->stock,
                 'date' => now()->format('Y-m-d'),
                 'notes' => 'Producto eliminado del catálogo — stock dado de baja.',
             ]);

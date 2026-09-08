@@ -6,8 +6,9 @@ import SearchInput from '@/components/ui/search-input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { formatDateTime } from '@/lib/format-datetime';
 import Swal from '@/lib/swal';
+import { BUSINESS_NAME, buildPurchaseOrderMessage, openWhatsApp } from '@/lib/whatsapp';
 import { router } from '@inertiajs/react';
-import { Download, Eye, PackageCheck, PackageSearch, Pencil } from 'lucide-react';
+import { Download, Eye, Mail, MessageCircle, PackageCheck, PackageSearch, Pencil } from 'lucide-react';
 import { useState } from 'react';
 import { PurchaseOrderDetailModal } from './purchaseOrderDetailModal';
 
@@ -30,7 +31,7 @@ interface PurchaseOrder {
     created_at: string;
     updated_at: string | null;
     is_low_stock_order: boolean;
-    supplier: { id: number; name: string; phone?: string | null } | null;
+    supplier: { id: number; name: string; phone?: string | null; email?: string | null } | null;
     requested_by: string | null;
     received_by: string | null;
     updated_by: string | null;
@@ -98,6 +99,34 @@ export default function PurchaseOrdersTable({
 
     const handleExport = () => {
         window.open(route('purchase-orders.export'), '_blank');
+    };
+
+    const handleSendWhatsApp = (order: PurchaseOrder) => {
+        const phone = order.supplier?.phone;
+        if (!phone) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Sin número de contacto',
+                html: `<b>${order.supplier?.name ?? 'Este proveedor'}</b> no tiene un teléfono registrado.`,
+            });
+            return;
+        }
+        openWhatsApp(phone, buildPurchaseOrderMessage(order.items));
+    };
+
+    const handleSendEmail = (order: PurchaseOrder) => {
+        const email = order.supplier?.email;
+        if (!email) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Sin correo registrado',
+                html: `<b>${order.supplier?.name ?? 'Este proveedor'}</b> no tiene un correo registrado.`,
+            });
+            return;
+        }
+        const subject = `Pedido — ${BUSINESS_NAME}`;
+        const body = buildPurchaseOrderMessage(order.items);
+        window.location.href = `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
     };
 
     const handleReceive = (order: PurchaseOrder) => {
@@ -218,6 +247,26 @@ export default function PurchaseOrdersTable({
                                             >
                                                 <Eye className="size-3.5" />
                                             </IconActionButton>
+                                            {order.status === 'Solicitado' && (
+                                                <>
+                                                    <IconActionButton
+                                                        variant="ghost"
+                                                        onClick={() => handleSendWhatsApp(order)}
+                                                        className="text-green-600 hover:bg-green-100 hover:text-green-700 dark:text-green-500 dark:hover:bg-green-950/40 dark:hover:text-green-400"
+                                                        label="Enviar pedido por WhatsApp"
+                                                    >
+                                                        <MessageCircle className="size-3.5" />
+                                                    </IconActionButton>
+                                                    <IconActionButton
+                                                        variant="ghost"
+                                                        onClick={() => handleSendEmail(order)}
+                                                        className="text-indigo-600 hover:bg-indigo-100 hover:text-indigo-700 dark:text-indigo-500 dark:hover:bg-indigo-950/40 dark:hover:text-indigo-400"
+                                                        label="Enviar pedido por correo"
+                                                    >
+                                                        <Mail className="size-3.5" />
+                                                    </IconActionButton>
+                                                </>
+                                            )}
                                             {userPermissions.includes('Actualizar Pedidos') && order.status === 'Solicitado' && (
                                                 <IconActionButton
                                                     variant="ghost"

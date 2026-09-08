@@ -231,7 +231,7 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ transaction, categori
 
     return (
         <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col gap-4">
-            <div className="min-h-0 flex-1 space-y-6 overflow-x-hidden overflow-y-auto pr-1">
+            <div className="min-h-0 flex-1 space-y-6 overflow-x-hidden overflow-y-auto px-1">
                 <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                     {/* Tipo */}
                     <div>
