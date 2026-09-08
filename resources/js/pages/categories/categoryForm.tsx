@@ -1,3 +1,4 @@
+import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -97,9 +98,10 @@ const CategoryForm: React.FC<CategoryFormProps> = ({ category, onCancel, onSaved
 
     // Verificar permisos para el botón de submit
     const canSubmit = category?.id ? userPermissions.includes('Actualizar Categorías') : userPermissions.includes('Crear Categorías');
+    const isFormValid = data.name.trim() !== '';
 
     return (
-        <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col gap-4">
+        <form onSubmit={handleSubmit} noValidate className="flex min-h-0 flex-1 flex-col gap-4">
             <div className="min-h-0 flex-1 space-y-6 overflow-x-hidden overflow-y-auto pr-1">
                 {/* Información básica */}
                 <div className="space-y-4">
@@ -112,11 +114,11 @@ const CategoryForm: React.FC<CategoryFormProps> = ({ category, onCancel, onSaved
                             id="name"
                             value={data.name}
                             onChange={(e) => setData('name', e.target.value)}
+                            aria-invalid={!!errors.name}
                             className="w-full"
                             placeholder="Ingrese el nombre de la categoría"
-                            required
                         />
-                        {errors.name && <p className="mt-1 text-sm text-red-600">{errors.name}</p>}
+                        <InputError message={errors.name} />
                     </div>
 
                     <div>
@@ -127,11 +129,12 @@ const CategoryForm: React.FC<CategoryFormProps> = ({ category, onCancel, onSaved
                             id="description"
                             value={data.description}
                             onChange={(e) => setData('description', e.target.value)}
+                            aria-invalid={!!errors.description}
                             rows={3}
                             className="w-full"
                             placeholder="Descripción de la categoría (opcional)"
                         />
-                        {errors.description && <p className="mt-1 text-sm text-red-600">{errors.description}</p>}
+                        <InputError message={errors.description} />
                     </div>
                 </div>
             </div>
@@ -142,7 +145,7 @@ const CategoryForm: React.FC<CategoryFormProps> = ({ category, onCancel, onSaved
                     Cancelar
                 </Button>
                 {canSubmit && (
-                    <Button type="submit" disabled={processing}>
+                    <Button type="submit" disabled={processing || !isFormValid}>
                         {processing ? 'Guardando...' : category?.id ? 'Actualizar Categoría' : 'Crear Categoría'}
                     </Button>
                 )}

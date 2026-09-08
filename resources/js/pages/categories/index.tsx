@@ -18,6 +18,7 @@ interface Category {
     created_at: string;
     updated_at: string;
     products_count?: number;
+    is_active: boolean;
 }
 
 interface CategoryForForm {
