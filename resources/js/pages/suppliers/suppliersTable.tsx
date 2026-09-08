@@ -163,8 +163,8 @@ export default function SuppliersTable({
                     <TableHeader className="bg-gray-400 dark:bg-gray-700">
                         <TableRow>
                             <TableHead>Nombre</TableHead>
-                            <TableHead>Representante</TableHead>
                             <TableHead>NIT</TableHead>
+                            <TableHead>Representante</TableHead>
                             <TableHead>Teléfono</TableHead>
                             <TableHead>Email</TableHead>
                             <TableHead>Estado</TableHead>
@@ -176,8 +176,8 @@ export default function SuppliersTable({
                             suppliers.data.map((supplier) => (
                                 <TableRow key={supplier.id}>
                                     <TableCell className="font-medium">{supplier.name}</TableCell>
-                                    <TableCell>{supplier.representative || '-'}</TableCell>
                                     <TableCell className="font-mono">{`${supplier.nit_number}-${supplier.nit_digit}`}</TableCell>
+                                    <TableCell>{supplier.representative || '-'}</TableCell>
                                     <TableCell>{renderPhones(supplier)}</TableCell>
                                     <TableCell className="max-w-[200px] truncate">{supplier.email || '-'}</TableCell>
                                     <TableCell>

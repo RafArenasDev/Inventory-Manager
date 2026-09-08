@@ -183,8 +183,8 @@ class SupplierController extends Controller
         $headers = [
             'A1' => 'ID',
             'B1' => 'Nombre',
-            'C1' => 'Representante',
-            'D1' => 'NIT',
+            'C1' => 'NIT',
+            'D1' => 'Representante',
             'E1' => 'Teléfono',
             'F1' => 'Celular',
             'G1' => 'Email',
@@ -225,8 +225,8 @@ class SupplierController extends Controller
         foreach ($suppliers as $supplier) {
             $sheet->setCellValue('A'.$row, $supplier->id);
             $sheet->setCellValue('B'.$row, $supplier->name);
-            $sheet->setCellValue('C'.$row, $supplier->representative ?? '');
-            $sheet->setCellValue('D'.$row, $supplier->nit_number.'-'.$supplier->nit_digit);
+            $sheet->setCellValue('C'.$row, $supplier->nit_number.'-'.$supplier->nit_digit);
+            $sheet->setCellValue('D'.$row, $supplier->representative ?? '');
             $sheet->setCellValue('E'.$row, $supplier->phone ?? '');
             $sheet->setCellValue('F'.$row, $supplier->cellphone ?? '');
             $sheet->setCellValue('G'.$row, $supplier->email ?? '');
@@ -254,7 +254,7 @@ class SupplierController extends Controller
         }
 
         $sheet->getStyle('A2:A'.($row - 1))->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-        $sheet->getStyle('D2:D'.($row - 1))->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+        $sheet->getStyle('C2:C'.($row - 1))->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
         $sheet->getStyle('J2:J'.($row - 1))->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
 
         foreach (range('A', 'K') as $col) {

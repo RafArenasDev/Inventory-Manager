@@ -475,7 +475,7 @@ export default function PurchaseOrderForm({
 
     return (
         <>
-            <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col gap-4">
+            <form onSubmit={handleSubmit} noValidate className="flex min-h-0 flex-1 flex-col gap-4">
                 <div className="min-h-0 flex-1 space-y-5 overflow-x-hidden overflow-y-auto p-1">
                     <div>
                         <Label className="mb-1 block text-sm font-medium">Proveedor *</Label>

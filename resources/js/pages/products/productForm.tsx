@@ -737,9 +737,31 @@ const ProductForm: React.FC<ProductFormProps> = ({
                                     </div>
 
                                     <div>
-                                        <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                            Precio de venta calculado
-                                        </label>
+                                        <div className="mb-1 flex items-center gap-1.5">
+                                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                                Precio de venta calculado
+                                            </label>
+                                            {currentProfit && (
+                                                <Tooltip>
+                                                    <TooltipTrigger asChild>
+                                                        <button
+                                                            type="button"
+                                                            className={
+                                                                currentProfit.amount < 0
+                                                                    ? 'text-red-500 hover:text-red-600 dark:text-red-400 dark:hover:text-red-300'
+                                                                    : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-300'
+                                                            }
+                                                        >
+                                                            <Info className="h-3.5 w-3.5" />
+                                                        </button>
+                                                    </TooltipTrigger>
+                                                    <TooltipContent>
+                                                        {currentProfit.percent}% de utilidad ({currentProfit.amount < 0 ? '-' : ''}$
+                                                        {formatCOP(Math.abs(currentProfit.amount).toString())}) sobre el costo con IVA
+                                                    </TooltipContent>
+                                                </Tooltip>
+                                            )}
+                                        </div>
                                         <Input
                                             type="text"
                                             value={formatCOP(data.sale_price)}
@@ -748,14 +770,6 @@ const ProductForm: React.FC<ProductFormProps> = ({
                                             className="w-full cursor-not-allowed border-gray-300 opacity-80 focus-visible:border-gray-400 focus-visible:ring-gray-400/50 dark:border-gray-600 dark:focus-visible:border-gray-500 dark:focus-visible:ring-gray-300/25"
                                         />
                                         <InputError message={errors.sale_price} />
-                                        {currentProfit && (
-                                            <p
-                                                className={`mt-1 text-xs ${currentProfit.amount < 0 ? 'text-red-600 dark:text-red-400' : 'text-gray-400 dark:text-gray-500'}`}
-                                            >
-                                                {currentProfit.percent}% de utilidad ({currentProfit.amount < 0 ? '-' : ''}$
-                                                {formatCOP(Math.abs(currentProfit.amount).toString())}) sobre el costo con IVA
-                                            </p>
-                                        )}
                                     </div>
                                 </div>
                             )}
