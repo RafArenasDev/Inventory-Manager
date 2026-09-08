@@ -77,25 +77,15 @@ class CategoryController extends Controller
      */
     public function store(CategoryRequest $request)
     {
-        // Verificar si ya existe una categoría con el mismo name
-        $existingCategory = Category::where('name', $request->name)->first();
-
-        if ($existingCategory) {
-            return redirect()->back()->with('error',
-                'Ya existe una categoría con el nombre "'.$request->name.'"'
-            );
-        }
-
-        $category = Category::create([
+        // La unicidad del nombre ya la valida CategoryRequest (Rule::unique) —
+        // un chequeo manual acá solo duplicaba la regla con un mensaje genérico
+        // en vez del error asociado al campo.
+        Category::create([
             'name' => $request->name,
             'description' => $request->description,
         ]);
 
-        if ($category) {
-            return redirect()->route('categories.index')->with('success', 'Categoría creada correctamente.');
-        }
-
-        return redirect()->back()->with('error', 'Error al crear la categoría.');
+        return redirect()->route('categories.index')->with('success', 'Categoría creada correctamente.');
     }
 
     /**
@@ -103,17 +93,6 @@ class CategoryController extends Controller
      */
     public function update(CategoryRequest $request, Category $category)
     {
-        // Verificar si otra categoría ya tiene el mismo name (excepto la categoría actual)
-        $existingCategory = Category::where('name', $request->name)
-            ->where('id', '!=', $category->id)
-            ->first();
-
-        if ($existingCategory) {
-            return redirect()->back()->with('error',
-                'Ya existe otra categoría con el nombre "'.$request->name.'"'
-            );
-        }
-
         $category->name = $request->name;
         $category->description = $request->description;
 
@@ -127,11 +106,17 @@ class CategoryController extends Controller
      */
     public function destroy(Category $category)
     {
-        // Verificar si la categoría tiene productos asociados
-        if ($category->products()->count() > 0) {
-            return redirect()->back()->with('error',
-                'No se puede eliminar la categoría "'.$category->name.
-                '" porque tiene productos asociados.'
+        $productsCount = $category->products()->count();
+        if ($productsCount > 0) {
+            $isPlural = $productsCount > 1;
+            $noun = $isPlural ? 'productos asociados' : 'producto asociado';
+
+            // La primera línea es el título del Swal (soporta HTML) y el
+            // resto el cuerpo — ver FlashErrorWatcher.
+            return redirect()->back()->with(
+                'error',
+                "No se puede eliminar la categoría <b>{$category->name}</b>\n".
+                "Tiene {$productsCount} {$noun}."
             );
         }
 
