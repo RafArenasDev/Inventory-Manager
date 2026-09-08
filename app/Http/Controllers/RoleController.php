@@ -8,6 +8,7 @@ use App\Models\Permission;
 use App\Models\Role;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 
 class RoleController extends Controller
@@ -87,15 +88,39 @@ class RoleController extends Controller
     public function update(RoleRequest $request, $id): RedirectResponse
     {
         $role = Role::findOrFail($id);
-        $role->update([
-            'name' => $request->name,
-            'label' => $request->label,
-            'description' => $request->description,
-            'is_active' => true,  // Siempre activo
-            'guard_name' => 'web', // Siempre web
-        ]);
+        $isAdminRole = $role->name === 'admin';
 
-        $role->syncPermissions($request->input('permissions', []));
+        // El rol Administrador siempre conserva todos los permisos y su
+        // nombre interno: de lo contrario se podría editar y dejar el
+        // sistema sin ningún usuario con acceso completo.
+        $permissionIds = $isAdminRole
+            ? Permission::pluck('id')->all()
+            : $request->input('permissions', []);
+
+        $user = $request->user();
+        $isOnlyRoleOfCurrentUser = $user->roles->count() === 1 && $user->roles->contains('id', $role->id);
+
+        if ($isOnlyRoleOfCurrentUser) {
+            $viewRolesPermissionId = Permission::where('name', 'Ver Roles y Permisos')->value('id');
+
+            if (! in_array($viewRolesPermissionId, $permissionIds)) {
+                return redirect()->back()->withErrors([
+                    'permissions' => 'No puedes quitar el permiso "Ver Roles y Permisos" de tu único rol: perderías el acceso a este módulo.',
+                ]);
+            }
+        }
+
+        DB::transaction(function () use ($role, $request, $isAdminRole, $permissionIds) {
+            $role->update([
+                'name' => $isAdminRole ? 'admin' : $request->name,
+                'label' => $request->label,
+                'description' => $request->description,
+                'is_active' => true,  // Siempre activo
+                'guard_name' => 'web', // Siempre web
+            ]);
+
+            $role->syncPermissions($permissionIds);
+        });
 
         return redirect()->route('roles.index')->with('success', 'Rol actualizado correctamente.');
     }
@@ -105,12 +130,31 @@ class RoleController extends Controller
      */
     public function destroy(Role $role)
     {
-        if ($role) {
-            $role->delete();
-
-            return redirect()->route('roles.index')->with('success', 'Rol eliminado correctamente.');
+        if ($role->name === 'admin') {
+            return redirect()->back()->with('error', 'No puedes eliminar el rol Administrador.');
         }
 
-        return redirect()->back()->with('error', 'Error al eliminar el rol.');
+        // model_has_roles borra en cascada al eliminar un rol (no hay FK
+        // restrict), así que sin este chequeo los usuarios asignados
+        // quedarían sin rol de forma silenciosa. Se bloquea explícitamente
+        // en vez de confiar en la integridad referencial.
+        $usersCount = $role->users()->count();
+        if ($usersCount > 0) {
+            $isPlural = $usersCount > 1;
+            $noun = $isPlural ? 'usuarios asignados' : 'usuario asignado';
+            $verb = $isPlural ? 'Reasígnalos' : 'Reasígnalo';
+
+            // La primera línea es el título del Swal (soporta HTML) y el
+            // resto el cuerpo — ver FlashErrorWatcher.
+            return redirect()->back()->with(
+                'error',
+                "No se puede eliminar el rol <b>{$role->label}</b>\n".
+                "Tiene {$usersCount} {$noun}. {$verb} a otro rol primero."
+            );
+        }
+
+        $role->delete();
+
+        return redirect()->route('roles.index')->with('success', 'Rol eliminado correctamente.');
     }
 }
