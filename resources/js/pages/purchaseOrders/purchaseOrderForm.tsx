@@ -257,6 +257,11 @@ export default function PurchaseOrderForm({
         [items, products],
     );
 
+    // Mismo estándar de validación que el resto de módulos: proveedor y al
+    // menos un producto son los únicos campos realmente obligatorios acá
+    // (la cantidad de cada ítem ya nunca baja de 1 por el stepper).
+    const isFormValid = supplierId !== null && items.length > 0;
+
     const canCreateSupplier = userPermissions.includes('Crear Proveedores');
     const supplierHasExactMatch = supplierList.some((s) => s.name.toLowerCase() === supplierQuery.trim().toLowerCase());
     const showCreateSupplierOption = canCreateSupplier && supplierQuery.trim().length > 0 && !supplierHasExactMatch;
@@ -689,7 +694,7 @@ export default function PurchaseOrderForm({
                             Cancelar
                         </Button>
                     )}
-                    <Button type="submit" disabled={processing} className="gap-1.5 bg-emerald-600 text-white hover:bg-emerald-700">
+                    <Button type="submit" disabled={processing || !isFormValid} className="gap-1.5">
                         {submitIcon}
                         {processing ? 'Guardando...' : resolvedSubmitLabel}
                     </Button>
