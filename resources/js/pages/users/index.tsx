@@ -16,6 +16,7 @@ interface User {
     name: string;
     email: string;
     roles: string[];
+    is_active: boolean;
 }
 
 interface Role {

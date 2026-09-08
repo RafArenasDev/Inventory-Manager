@@ -22,14 +22,23 @@ class TransactionRequest extends FormRequest
         return [
             'type' => 'required|in:Ingreso,Gasto',
             'transaction_category_id' => 'required|exists:transaction_categories,id',
-            'amount' => 'required|integer|min:0',
+            'amount' => 'required|integer|min:1',
             'transaction_date' => 'required|date',
             'transaction_time' => 'required|date_format:H:i',
             'payment_method' => 'required|in:Efectivo,Nequi',
-            'reference_number' => 'nullable|string|max:255', // Cambiar aquí
+            'invoice_number' => 'nullable|string|max:255',
             'description' => 'nullable|string',
             'notes' => 'nullable|string',
         ];
+    }
+
+    protected function prepareForValidation(): void
+    {
+        $this->merge([
+            'invoice_number' => $this->filled('invoice_number') ? trim((string) $this->invoice_number) : null,
+            'description' => $this->filled('description') ? trim((string) $this->description) : null,
+            'notes' => $this->filled('notes') ? trim((string) $this->notes) : null,
+        ]);
     }
 
     /**
@@ -44,12 +53,12 @@ class TransactionRequest extends FormRequest
             'transaction_category_id.exists' => 'La categoría seleccionada no es válida.',
             'amount.required' => 'El monto es requerido.',
             'amount.integer' => 'El monto debe ser un número entero.',
-            'amount.min' => 'El monto debe ser mayor o igual a 0.',
+            'amount.min' => 'El monto debe ser mayor a 0.',
             'transaction_date.required' => 'La fecha es requerida.',
             'transaction_time.required' => 'La hora es requerida.',
             'payment_method.required' => 'El método de pago es requerido.',
             'payment_method.in' => 'El método de pago seleccionado no es válido.',
-            'reference_number.max' => 'El número de referencia no debe exceder los 255 caracteres.', // Cambiar aquí
+            'invoice_number.max' => 'El número de factura no debe exceder los 255 caracteres.',
         ];
     }
 }

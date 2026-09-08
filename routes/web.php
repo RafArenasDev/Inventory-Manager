@@ -328,9 +328,6 @@ Route::middleware(['auth', 'verified', 'active'])->group(function () {
         Route::put('/{transaction}', [TransactionController::class, 'update'])
             ->name('transactions.update')
             ->middleware('permission:Editar Finanzas');
-        Route::post('/{transaction}/cancel', [TransactionController::class, 'cancel'])
-            ->name('transactions.cancel')
-            ->middleware('permission:Cancelar Finanzas');
     });
 
     // Cash Register (Caja)

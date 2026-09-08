@@ -1,3 +1,4 @@
+import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
 import { Combobox, ComboboxContent, ComboboxEmpty, ComboboxInput, ComboboxItem, ComboboxList } from '@/components/ui/combobox';
 import { Input } from '@/components/ui/input';
@@ -108,7 +109,7 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ transaction, categori
         initialTime = formatTimeForColombia(transaction.transaction_time, transaction.transaction_date);
     }
 
-    const { data, setData, post, put, processing, errors, reset, isDirty } = useForm({
+    const { data, setData, post, put, processing, errors, reset, isDirty, transform } = useForm({
         type: transaction?.type || '',
         transaction_category_id: transaction?.transaction_category_id || '',
         amount: transaction?.amount || '',
@@ -171,8 +172,26 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ transaction, categori
         setData('amount', cleanValue ? parseInt(cleanValue) : '');
     };
 
+    const isFormValid =
+        data.type !== '' &&
+        data.transaction_category_id !== '' &&
+        Number(data.amount) > 0 &&
+        data.payment_method !== '' &&
+        data.transaction_date !== '' &&
+        data.transaction_time !== '';
+
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
+
+        // description/notes/invoice_number son opcionales pero no deben
+        // guardarse con espacios sueltos; setData es asíncrono así que el
+        // recorte se aplica en transform justo antes de armar el request.
+        transform((current) => ({
+            ...current,
+            description: current.description.trim(),
+            notes: current.notes.trim(),
+            invoice_number: current.invoice_number.trim(),
+        }));
 
         if (transaction?.id) {
             put(route('transactions.update', transaction.id), {
@@ -243,7 +262,7 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ transaction, categori
                             value={TRANSACTION_TYPES.find((t) => t.value === data.type) ?? null}
                             onValueChange={(t: { value: string; label: string } | null) => handleTypeChange(t?.value ?? '')}
                         >
-                            <ComboboxInput placeholder="Seleccione el tipo" />
+                            <ComboboxInput placeholder="Seleccione el tipo" aria-invalid={!!errors.type} />
                             <ComboboxContent>
                                 <ComboboxEmpty>No se encontraron resultados.</ComboboxEmpty>
                                 <ComboboxList>
@@ -255,7 +274,7 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ transaction, categori
                                 </ComboboxList>
                             </ComboboxContent>
                         </Combobox>
-                        {errors.type && <p className="mt-1 text-sm text-red-600">{errors.type}</p>}
+                        <InputError message={errors.type} />
                     </div>
 
                     {/* Categoría */}
@@ -271,7 +290,10 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ transaction, categori
                             onValueChange={(c: TransactionCategory | null) => setData('transaction_category_id', c ? c.id.toString() : '')}
                             disabled={!selectedType}
                         >
-                            <ComboboxInput placeholder={selectedType ? 'Seleccione la categoría' : 'Seleccione primero el tipo'} />
+                            <ComboboxInput
+                                placeholder={selectedType ? 'Seleccione la categoría' : 'Seleccione primero el tipo'}
+                                aria-invalid={!!errors.transaction_category_id}
+                            />
                             <ComboboxContent>
                                 <ComboboxEmpty>No hay categorías disponibles.</ComboboxEmpty>
                                 <ComboboxList>
@@ -283,7 +305,7 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ transaction, categori
                                 </ComboboxList>
                             </ComboboxContent>
                         </Combobox>
-                        {errors.transaction_category_id && <p className="mt-1 text-sm text-red-600">{errors.transaction_category_id}</p>}
+                        <InputError message={errors.transaction_category_id} />
                     </div>
 
                     {/* Monto */}
@@ -298,11 +320,12 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ transaction, categori
                                 type="text"
                                 value={amountInput ? formatAmountDisplay(amountInput) : ''}
                                 onChange={handleAmountChange}
+                                aria-invalid={!!errors.amount}
                                 className="w-full pl-8"
                                 placeholder="0"
                             />
                         </div>
-                        {errors.amount && <p className="mt-1 text-sm text-red-600">{errors.amount}</p>}
+                        <InputError message={errors.amount} />
                     </div>
 
                     {/* Medio de Pago */}
@@ -315,7 +338,7 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ transaction, categori
                             value={data.payment_method || null}
                             onValueChange={(value: string | null) => setData('payment_method', value ?? '')}
                         >
-                            <ComboboxInput placeholder="Seleccione el medio de pago" />
+                            <ComboboxInput placeholder="Seleccione el medio de pago" aria-invalid={!!errors.payment_method} />
                             <ComboboxContent>
                                 <ComboboxEmpty>No se encontraron resultados.</ComboboxEmpty>
                                 <ComboboxList>
@@ -327,7 +350,7 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ transaction, categori
                                 </ComboboxList>
                             </ComboboxContent>
                         </Combobox>
-                        {errors.payment_method && <p className="mt-1 text-sm text-red-600">{errors.payment_method}</p>}
+                        <InputError message={errors.payment_method} />
                     </div>
 
                     {/* Fecha */}
@@ -340,9 +363,11 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ transaction, categori
                             type="date"
                             value={data.transaction_date}
                             onChange={(e) => setData('transaction_date', e.target.value)}
-                            className="w-full"
+                            aria-invalid={!!errors.transaction_date}
+                            className="w-full cursor-not-allowed"
+                            readOnly
                         />
-                        {errors.transaction_date && <p className="mt-1 text-sm text-red-600">{errors.transaction_date}</p>}
+                        <InputError message={errors.transaction_date} />
                     </div>
 
                     {/* Hora */}
@@ -355,10 +380,11 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ transaction, categori
                             type="time"
                             value={data.transaction_time}
                             onChange={(e) => setData('transaction_time', e.target.value)}
+                            aria-invalid={!!errors.transaction_time}
                             className="w-full cursor-not-allowed"
                             readOnly
                         />
-                        {errors.transaction_time && <p className="mt-1 text-sm text-red-600">{errors.transaction_time}</p>}
+                        <InputError message={errors.transaction_time} />
                     </div>
                 </div>
 
@@ -371,10 +397,11 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ transaction, categori
                         id="invoice_number"
                         value={data.invoice_number}
                         onChange={(e) => setData('invoice_number', e.target.value)}
+                        aria-invalid={!!errors.invoice_number}
                         className="w-full"
                         placeholder="Número de factura (opcional)"
                     />
-                    {errors.invoice_number && <p className="mt-1 text-sm text-red-600">{errors.invoice_number}</p>}
+                    <InputError message={errors.invoice_number} />
                 </div>
 
                 {/* Descripción */}
@@ -386,11 +413,12 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ transaction, categori
                         id="description"
                         value={data.description}
                         onChange={(e) => setData('description', e.target.value)}
+                        aria-invalid={!!errors.description}
                         rows={3}
                         className="w-full"
                         placeholder="Descripción de la transacción (opcional)"
                     />
-                    {errors.description && <p className="mt-1 text-sm text-red-600">{errors.description}</p>}
+                    <InputError message={errors.description} />
                 </div>
 
                 {/* Notas */}
@@ -402,11 +430,12 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ transaction, categori
                         id="notes"
                         value={data.notes}
                         onChange={(e) => setData('notes', e.target.value)}
+                        aria-invalid={!!errors.notes}
                         rows={3}
                         className="w-full"
                         placeholder="Notas adicionales (opcional)"
                     />
-                    {errors.notes && <p className="mt-1 text-sm text-red-600">{errors.notes}</p>}
+                    <InputError message={errors.notes} />
                 </div>
             </div>
 
@@ -416,7 +445,7 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ transaction, categori
                     Cancelar
                 </Button>
                 {canSubmit && (
-                    <Button type="submit" disabled={processing}>
+                    <Button type="submit" disabled={processing || !isFormValid}>
                         {processing ? 'Guardando...' : transaction?.id ? 'Actualizar Transacción' : 'Crear Transacción'}
                     </Button>
                 )}
