@@ -77,19 +77,11 @@ class ClientController extends Controller
 
     public function quickStore(ClientRequest $request)
     {
-        $validated = $request->validate([
-            'document_type' => ['required', 'in:CC,TI,CE,Pasaporte,NIT'],
-            'document_number' => ['required', 'string', 'unique:clients,document_number'],
-            'verification_digit' => ['nullable', 'required_if:document_type,NIT', 'numeric'],
-            'name' => ['required', 'string', 'max:255'],
-            'department_id' => ['nullable', 'exists:departments,id'],
-            'city_id' => ['nullable', 'exists:cities,id'],
-            'phone' => ['nullable', 'string'],
-            'cellphone' => ['nullable', 'string'],
-            'address' => ['nullable', 'string'],
-            'email' => ['nullable', 'email'],
-            'is_active' => ['boolean'],
-        ]);
+        // ClientRequest ya valida esto (misma regla que store()/update(), incluyendo
+        // el unique por document_type) al inyectarse como FormRequest — repetirlo
+        // acá con otro set de reglas más flojo (sin scoping por document_type en el
+        // unique) solo generaba dos validaciones divergentes para la misma acción.
+        $validated = $request->validated();
 
         $validated['document_number'] = in_array($validated['document_type'], ['CC', 'TI', 'NIT']) ? (int) $validated['document_number'] : $validated['document_number'];
         $client = Client::create($validated);
