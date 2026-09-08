@@ -156,40 +156,9 @@ export default function ProductModal({ isOpen, onClose, product }: ProductModalP
                                     )}
                                 </div>
 
-                                {/* Stock + Proveedor */}
-                                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                                    <div className="flex items-center gap-3 rounded-lg border border-gray-200 p-3 dark:border-gray-800">
-                                        <Package className="h-5 w-5 shrink-0 text-gray-400" />
-                                        <div className="min-w-0 flex-1">
-                                            <p className="text-xs text-gray-500 dark:text-gray-400">Stock actual</p>
-                                            <p className="font-semibold text-gray-900 dark:text-gray-100">{product.stock} unidades</p>
-                                        </div>
-                                        <span className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-semibold shadow-sm ${stockStatus.color}`}>
-                                            {stockStatus.label}
-                                        </span>
-                                    </div>
-                                    <div className="flex items-start gap-3 rounded-lg border border-gray-200 p-3 dark:border-gray-800">
-                                        <Truck className="mt-0.5 h-5 w-5 shrink-0 text-gray-400" />
-                                        <div className="min-w-0 flex-1">
-                                            <p className="text-xs text-gray-500 dark:text-gray-400">Proveedor</p>
-                                            <p className="leading-snug font-semibold break-words text-gray-900 dark:text-gray-100">
-                                                {product.supplier || '-'}
-                                            </p>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {product.low_stock_threshold && (
-                                    <p className="-mt-2 text-xs text-gray-400 dark:text-gray-500">
-                                        Umbral de alerta configurado para este producto: {product.low_stock_threshold} unidades.
-                                    </p>
-                                )}
-
-                                {/* Desglose de precio — una fila por dato, nunca deja huecos */}
+                                {/* Desglose de costos — sin encabezado propio, es una
+                                    continuación directa del precio de venta de arriba */}
                                 <div className="space-y-1.5 rounded-lg border border-gray-200 p-3 dark:border-gray-800">
-                                    <p className="mb-1 text-xs font-semibold tracking-wide text-gray-500 uppercase dark:text-gray-400">
-                                        Desglose de precio
-                                    </p>
                                     {product.price_without_tax !== undefined && (
                                         <div className="flex items-center justify-between text-sm">
                                             <span className="text-gray-500 dark:text-gray-400">Costo sin IVA</span>
@@ -220,6 +189,35 @@ export default function ProductModal({ isOpen, onClose, product }: ProductModalP
                                             </p>
                                         )}
                                 </div>
+
+                                {/* Stock + Proveedor */}
+                                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                                    <div className="flex items-center gap-3 rounded-lg border border-gray-200 p-3 dark:border-gray-800">
+                                        <Package className="h-5 w-5 shrink-0 text-gray-400" />
+                                        <div className="min-w-0 flex-1">
+                                            <p className="text-xs text-gray-500 dark:text-gray-400">Stock actual</p>
+                                            <p className="font-semibold text-gray-900 dark:text-gray-100">{product.stock} unidades</p>
+                                        </div>
+                                        <span className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-semibold shadow-sm ${stockStatus.color}`}>
+                                            {stockStatus.label}
+                                        </span>
+                                    </div>
+                                    <div className="flex items-start gap-3 rounded-lg border border-gray-200 p-3 dark:border-gray-800">
+                                        <Truck className="mt-0.5 h-5 w-5 shrink-0 text-gray-400" />
+                                        <div className="min-w-0 flex-1">
+                                            <p className="text-xs text-gray-500 dark:text-gray-400">Proveedor</p>
+                                            <p className="leading-snug font-semibold break-words text-gray-900 dark:text-gray-100">
+                                                {product.supplier || '-'}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {product.low_stock_threshold && (
+                                    <p className="-mt-2 text-xs text-gray-400 dark:text-gray-500">
+                                        Umbral de alerta configurado para este producto: {product.low_stock_threshold} unidades.
+                                    </p>
+                                )}
 
                                 {/* Metadatos: alta del movimiento inicial. Las notas del
                                     movimiento (ej. "Carga inicial - catálogo de prueba") son
