@@ -1,3 +1,4 @@
+import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -21,7 +22,7 @@ interface CashRegisterFormProps {
 }
 
 const CashRegisterForm: React.FC<CashRegisterFormProps> = ({ cashRegister, onCancel, onSaved, onDirtyChange, userPermissions }) => {
-    const { data, setData, post, put, processing, errors, reset, isDirty } = useForm({
+    const { data, setData, post, put, processing, errors, reset, isDirty, transform } = useForm({
         notes: '',
     });
 
@@ -31,6 +32,10 @@ const CashRegisterForm: React.FC<CashRegisterFormProps> = ({ cashRegister, onCan
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
+        // setData es asíncrono (estado de React) — pasarle el trim y llamar
+        // put/post en la misma función seguiría mandando el valor viejo sin
+        // recortar. transform() sí aplica antes de armar el request.
+        transform((current) => ({ ...current, notes: current.notes.trim() }));
 
         if (cashRegister?.id) {
             put(route('cash-register.update', cashRegister.id), {
@@ -102,10 +107,11 @@ const CashRegisterForm: React.FC<CashRegisterFormProps> = ({ cashRegister, onCan
                         id="notes"
                         value={data.notes}
                         onChange={(e) => setData('notes', e.target.value)}
+                        aria-invalid={!!errors.notes}
                         className="w-full"
                         placeholder="Notas opcionales..."
                     />
-                    {errors.notes && <p className="mt-1 text-sm text-red-600">{errors.notes}</p>}
+                    <InputError message={errors.notes} />
                 </div>
             </div>
             <div className="flex shrink-0 justify-end space-x-3 pt-1">
