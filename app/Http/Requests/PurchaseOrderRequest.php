@@ -20,7 +20,8 @@ class PurchaseOrderRequest extends FormRequest
         return [
             'supplier_id' => ['required', 'exists:suppliers,id'],
             'notes' => ['nullable', 'string', 'max:1000'],
-            'expected_at' => ['nullable', 'date'],
+            // No tiene sentido "esperar" una entrega en una fecha ya pasada.
+            'expected_at' => ['nullable', 'date', 'after_or_equal:today'],
             'items' => ['required', 'array', 'min:1'],
             'items.*.product_id' => ['required', 'distinct', 'exists:products,id'],
             'items.*.quantity_requested' => ['required', 'integer', 'min:1'],

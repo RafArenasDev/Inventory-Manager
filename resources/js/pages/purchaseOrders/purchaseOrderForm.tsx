@@ -257,6 +257,11 @@ export default function PurchaseOrderForm({
         [items, products],
     );
 
+    // Mismo estándar de validación que el resto de módulos: proveedor y al
+    // menos un producto son los únicos campos realmente obligatorios acá
+    // (la cantidad de cada ítem ya nunca baja de 1 por el stepper).
+    const isFormValid = supplierId !== null && items.length > 0;
+
     const canCreateSupplier = userPermissions.includes('Crear Proveedores');
     const supplierHasExactMatch = supplierList.some((s) => s.name.toLowerCase() === supplierQuery.trim().toLowerCase());
     const showCreateSupplierOption = canCreateSupplier && supplierQuery.trim().length > 0 && !supplierHasExactMatch;
@@ -471,7 +476,7 @@ export default function PurchaseOrderForm({
     return (
         <>
             <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col gap-4">
-                <div className="min-h-0 flex-1 space-y-5 overflow-x-hidden overflow-y-auto pr-1">
+                <div className="min-h-0 flex-1 space-y-5 overflow-x-hidden overflow-y-auto p-1">
                     <div>
                         <Label className="mb-1 block text-sm font-medium">Proveedor *</Label>
                         {supplierLocked ? (
@@ -531,48 +536,46 @@ export default function PurchaseOrderForm({
                                 <span>Cambiaste de proveedor — los productos se reiniciaron. Selecciona de nuevo los que quieras pedir.</span>
                             </div>
                         )}
-                        <div className="border-input rounded-md border p-2">
-                            <Combobox
-                                items={sortedProducts}
-                                multiple
-                                itemToStringLabel={(p: Product) => `${p.code} - ${p.name}`}
-                                itemToStringValue={(p: Product) => String(p.id)}
-                                isItemEqualToValue={(a: Product, b: Product) => a.id === b.id}
-                                value={selectedProducts}
-                                onValueChange={handleProductsChange}
-                                open={productsOpen}
-                                onOpenChange={setProductsOpen}
+                        <Combobox
+                            items={sortedProducts}
+                            multiple
+                            itemToStringLabel={(p: Product) => `${p.code} - ${p.name}`}
+                            itemToStringValue={(p: Product) => String(p.id)}
+                            isItemEqualToValue={(a: Product, b: Product) => a.id === b.id}
+                            value={selectedProducts}
+                            onValueChange={handleProductsChange}
+                            open={productsOpen}
+                            onOpenChange={setProductsOpen}
+                            disabled={!supplierId}
+                        >
+                            <ComboboxInput
+                                placeholder={supplierId ? 'Buscar producto por código o nombre...' : 'Elige primero un proveedor'}
+                                className="w-full"
                                 disabled={!supplierId}
-                            >
-                                <ComboboxInput
-                                    placeholder={supplierId ? 'Buscar producto por código o nombre...' : 'Elige primero un proveedor'}
-                                    className="w-full"
-                                    disabled={!supplierId}
-                                />
-                                <ComboboxContent>
-                                    <ComboboxEmpty>Sin resultados.</ComboboxEmpty>
-                                    <ComboboxList>
-                                        {(p: Product) => {
-                                            const tier = stockTier(p.stock);
-                                            return (
-                                                <ComboboxItem key={p.id} value={p}>
-                                                    {p.code} - {p.name} <span className="text-muted-foreground">({p.stock} und)</span>
-                                                    {tier && (
-                                                        <span
-                                                            className={`ml-1 rounded-full px-1.5 py-0.5 text-[10px] font-semibold ${TIER_BADGE[tier]}`}
-                                                        >
-                                                            {TIER_LABEL[tier]}
-                                                        </span>
-                                                    )}
-                                                </ComboboxItem>
-                                            );
-                                        }}
-                                    </ComboboxList>
-                                </ComboboxContent>
-                            </Combobox>
+                            />
+                            <ComboboxContent>
+                                <ComboboxEmpty>Sin resultados.</ComboboxEmpty>
+                                <ComboboxList>
+                                    {(p: Product) => {
+                                        const tier = stockTier(p.stock);
+                                        return (
+                                            <ComboboxItem key={p.id} value={p}>
+                                                {p.code} - {p.name} <span className="text-muted-foreground">({p.stock} und)</span>
+                                                {tier && (
+                                                    <span className={`ml-1 rounded-full px-1.5 py-0.5 text-[10px] font-semibold ${TIER_BADGE[tier]}`}>
+                                                        {TIER_LABEL[tier]}
+                                                    </span>
+                                                )}
+                                            </ComboboxItem>
+                                        );
+                                    }}
+                                </ComboboxList>
+                            </ComboboxContent>
+                        </Combobox>
 
-                            {items.length > 0 && (
-                                <div className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                        {items.length > 0 && (
+                            <div className="border-input mt-2 rounded-md border p-2">
+                                <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
                                     {items.map((item) => {
                                         const product = products.find((p) => p.id === item.product_id);
                                         const currentStock = product?.stock ?? Infinity;
@@ -656,8 +659,8 @@ export default function PurchaseOrderForm({
                                         );
                                     })}
                                 </div>
-                            )}
-                        </div>
+                            </div>
+                        )}
                         {items.length === 0 && <p className="text-muted-foreground mt-1.5 text-sm">Sin productos seleccionados todavía.</p>}
                     </div>
 
@@ -691,7 +694,7 @@ export default function PurchaseOrderForm({
                             Cancelar
                         </Button>
                     )}
-                    <Button type="submit" disabled={processing} className="gap-1.5 bg-emerald-600 text-white hover:bg-emerald-700">
+                    <Button type="submit" disabled={processing || !isFormValid} className="gap-1.5">
                         {submitIcon}
                         {processing ? 'Guardando...' : resolvedSubmitLabel}
                     </Button>

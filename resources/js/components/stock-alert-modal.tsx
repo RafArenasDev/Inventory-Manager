@@ -1,9 +1,7 @@
 import { IconActionButton } from '@/components/icon-action-button';
-import { WhatsAppIcon } from '@/components/icons/whatsapp-icon';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { buildPurchaseOrderMessage, openWhatsApp } from '@/lib/whatsapp';
 import PurchaseOrderForm from '@/pages/purchaseOrders/purchaseOrderForm';
 import { router } from '@inertiajs/react';
 import { Pencil, Truck } from 'lucide-react';
@@ -59,13 +57,6 @@ interface Product {
     supplier_id: number | null;
     stock: number;
     price_without_tax: number;
-}
-
-interface DraftItem {
-    product_id: number;
-    product_code: string;
-    product_name: string;
-    quantity_requested: number;
 }
 
 const formatCOP = (value: number): string =>
@@ -138,7 +129,7 @@ export function StockAlertModal({ open, onOpenChange, onOrderCreated }: StockAle
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [loading, groups]);
 
-    const handleOrderSaved = (group: SupplierGroup, result?: { supplier: Supplier | null; items: DraftItem[] }) => {
+    const handleOrderSaved = () => {
         onOrderCreated();
 
         // Este modal se abre desde la campana en CUALQUIER página — si el
@@ -147,14 +138,9 @@ export function StockAlertModal({ open, onOpenChange, onOrderCreated }: StockAle
         // que ya tenía esa página, sin efecto visible.
         router.reload();
 
-        // El éxito ya lo anuncia PurchaseOrderForm (con el nombre del
-        // proveedor); acá solo el efecto propio de este modal: WhatsApp +
-        // refrescar el agrupado.
-        const phone = result?.supplier?.cellphone ?? result?.supplier?.phone ?? group.supplier?.phone;
-        if (phone && result?.items.length) {
-            openWhatsApp(phone, buildPurchaseOrderMessage(result.items));
-        }
-
+        // Ya no se abre WhatsApp automáticamente acá — el envío (por
+        // WhatsApp o correo) es una acción explícita desde los botones de la
+        // tabla de Pedidos, una vez creado.
         fetchAlerts();
     };
 
@@ -233,9 +219,7 @@ export function StockAlertModal({ open, onOpenChange, onOrderCreated }: StockAle
                                                         initialProductIds={uncovered.map((p) => p.id)}
                                                         productFilter="alert-only"
                                                         onDirtyChange={() => {}}
-                                                        onSaved={(result) => handleOrderSaved(group, result)}
-                                                        submitLabel="Enviar pedido"
-                                                        submitIcon={<WhatsAppIcon className="h-4 w-4" />}
+                                                        onSaved={handleOrderSaved}
                                                     />
                                                 </AccordionContent>
                                             </AccordionItem>

@@ -181,7 +181,7 @@ const ClientForm: React.FC<ClientFormProps> = ({ client, onCancel, onSaved, onDi
 
     return (
         <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col gap-4">
-            <div className="min-h-0 flex-1 space-y-6 overflow-x-hidden overflow-y-auto pr-1">
+            <div className="min-h-0 flex-1 space-y-6 overflow-x-hidden overflow-y-auto p-1">
                 <div className="space-y-4">
                     <div>
                         <Label htmlFor="document_type" className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">

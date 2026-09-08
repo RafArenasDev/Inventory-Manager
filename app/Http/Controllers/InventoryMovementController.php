@@ -120,13 +120,17 @@ class InventoryMovementController extends Controller
 
         $product = Product::findOrFail($validated['product_id']);
 
-        // Validar stock para movimientos de salida — un "Ajuste Inventario"
-        // negativo también resta stock (ver abajo), así que cuenta igual.
-        $isOutbound = in_array($validated['type'], ['Salida', 'Devolucion Proveedor', 'Consignacion Salida', 'Cambio Salida']);
-        $isNegativeAdjustment = $validated['type'] === 'Ajuste Inventario' && $validated['quantity'] < 0;
-        $outboundQuantity = $isNegativeAdjustment ? abs($validated['quantity']) : $validated['quantity'];
+        // El proveedor nunca lo decide el cliente — se toma siempre del
+        // producto, sin importar qué haya llegado en el request (el campo es
+        // de solo lectura en el formulario; esto evita que un POST
+        // manipulado a mano le asigne al movimiento un proveedor distinto).
+        $validated['supplier_id'] = $product->supplier_id;
 
-        if (($isOutbound || $isNegativeAdjustment) && $product->stock < $outboundQuantity) {
+        // Validar stock solo para movimientos de salida — "Ajuste Inventario"
+        // ya no resta por signo (ver abajo), así que no aplica acá.
+        $isOutbound = in_array($validated['type'], ['Salida', 'Devolucion Proveedor', 'Consignacion Salida', 'Cambio Salida']);
+
+        if ($isOutbound && $product->stock < $validated['quantity']) {
             return back()->with('error',
                 'No hay suficiente stock. Stock actual: '.$product->stock
             )->withInput();
@@ -139,10 +143,15 @@ class InventoryMovementController extends Controller
         } elseif (in_array($validated['type'], ['Salida', 'Devolucion Proveedor', 'Consignacion Salida', 'Cambio Salida'])) {
             $product->decrement('stock', $validated['quantity']);
         } elseif ($validated['type'] === 'Ajuste Inventario') {
-            if ($validated['quantity'] >= 0) {
-                $product->increment('stock', $validated['quantity']);
-            } else {
-                $product->decrement('stock', abs($validated['quantity']));
+            // "Ajuste Inventario" registra el conteo físico real (nunca un
+            // delta con signo) — ej. había 3 en sistema, el conteo real dio
+            // 4 o 2. La cantidad guardada es ese conteo, siempre positiva; el
+            // sistema calcula la diferencia y la aplica al stock.
+            $delta = $validated['quantity'] - $product->stock;
+            if ($delta > 0) {
+                $product->increment('stock', $delta);
+            } elseif ($delta < 0) {
+                $product->decrement('stock', abs($delta));
             }
         }
 
@@ -166,7 +175,12 @@ class InventoryMovementController extends Controller
             return;
         }
 
-        $entryTypes = ['Entrada', 'Devolucion Cliente', 'Consignacion Entrada', 'Cambio Entrada'];
+        // "Ajuste Inventario" entra acá también: PurchaseOrderController::
+        // receive() lo usa (en vez de "Entrada") cuando el pedido llega del
+        // mismo proveedor que ya tenía el producto — pero solo puede pasar
+        // ligado a un pedido con cantidad positiva, así que cuenta igual
+        // como "cobertura" de la línea recibida.
+        $entryTypes = ['Entrada', 'Devolucion Cliente', 'Consignacion Entrada', 'Cambio Entrada', 'Ajuste Inventario'];
         if (! in_array($movement->type, $entryTypes)) {
             return;
         }
@@ -209,25 +223,29 @@ class InventoryMovementController extends Controller
             return back()->with('error', 'No se puede editar: el producto de este movimiento ya fue eliminado del catálogo.');
         }
 
-        // Revertir el efecto del movimiento anterior en el stock
+        // El producto de un movimiento no se reasigna por edición (todo el
+        // efecto de stock ya aplicado abajo es sobre ESTE producto) y el
+        // proveedor tampoco lo decide el cliente — ver la misma nota en
+        // store(). Ignora cualquier product_id/supplier_id distinto que
+        // llegue en el request.
+        $validated['product_id'] = $product->id;
+        $validated['supplier_id'] = $product->supplier_id;
+
+        // Revertir el efecto del movimiento anterior en el stock. "Ajuste
+        // Inventario" no se revierte con una resta — guarda un conteo
+        // declarado, no un delta — así que se deja el stock como está: el
+        // cálculo de más abajo ya parte de un stock que todavía refleja ese
+        // conteo, y una edición de la misma cantidad se resuelve sola.
         if (in_array($inventoryMovement->type, ['Entrada', 'Devolucion Cliente', 'Consignacion Entrada', 'Cambio Entrada'])) {
             $product->decrement('stock', $inventoryMovement->quantity);
         } elseif (in_array($inventoryMovement->type, ['Salida', 'Devolucion Proveedor', 'Consignacion Salida', 'Cambio Salida'])) {
             $product->increment('stock', $inventoryMovement->quantity);
-        } elseif ($inventoryMovement->type === 'Ajuste Inventario') {
-            if ($inventoryMovement->quantity >= 0) {
-                $product->decrement('stock', $inventoryMovement->quantity);
-            } else {
-                $product->increment('stock', abs($inventoryMovement->quantity));
-            }
         }
 
-        // Validar stock para el nuevo movimiento si es de salida (o ajuste negativo)
+        // Validar stock para el nuevo movimiento si es de salida
         $isOutbound = in_array($validated['type'], ['Salida', 'Devolucion Proveedor', 'Consignacion Salida', 'Cambio Salida']);
-        $isNegativeAdjustment = $validated['type'] === 'Ajuste Inventario' && $validated['quantity'] < 0;
-        $outboundQuantity = $isNegativeAdjustment ? abs($validated['quantity']) : $validated['quantity'];
 
-        if (($isOutbound || $isNegativeAdjustment) && $product->stock < $outboundQuantity) {
+        if ($isOutbound && $product->stock < $validated['quantity']) {
             return back()->with('error',
                 'No hay suficiente stock después de revertir el movimiento anterior. Stock actual: '.$product->stock
             )->withInput();
@@ -239,10 +257,11 @@ class InventoryMovementController extends Controller
         } elseif (in_array($validated['type'], ['Salida', 'Devolucion Proveedor', 'Consignacion Salida', 'Cambio Salida'])) {
             $product->decrement('stock', $validated['quantity']);
         } elseif ($validated['type'] === 'Ajuste Inventario') {
-            if ($validated['quantity'] >= 0) {
-                $product->increment('stock', $validated['quantity']);
-            } else {
-                $product->decrement('stock', abs($validated['quantity']));
+            $delta = $validated['quantity'] - $product->stock;
+            if ($delta > 0) {
+                $product->increment('stock', $delta);
+            } elseif ($delta < 0) {
+                $product->decrement('stock', abs($delta));
             }
         }
 
@@ -263,17 +282,16 @@ class InventoryMovementController extends Controller
             return back()->with('error', 'No se puede eliminar: el producto de este movimiento ya fue eliminado del catálogo.');
         }
 
-        // Revertir el efecto en el stock
+        // Revertir el efecto en el stock. "Ajuste Inventario" no se revierte
+        // acá: guarda un conteo declarado (no un delta), y no hay forma
+        // confiable de reconstruir cuál era el stock justo antes de esa
+        // declaración — se deja el stock como está en vez de arriesgar un
+        // cálculo incorrecto. Borrar el registro es solo quitar la nota del
+        // historial, no deshacer el conteo.
         if (in_array($inventoryMovement->type, ['Entrada', 'Devolucion Cliente', 'Consignacion Entrada', 'Cambio Entrada'])) {
             $product->decrement('stock', $inventoryMovement->quantity);
         } elseif (in_array($inventoryMovement->type, ['Salida', 'Devolucion Proveedor', 'Consignacion Salida', 'Cambio Salida'])) {
             $product->increment('stock', $inventoryMovement->quantity);
-        } elseif ($inventoryMovement->type === 'Ajuste Inventario') {
-            if ($inventoryMovement->quantity >= 0) {
-                $product->decrement('stock', $inventoryMovement->quantity);
-            } else {
-                $product->increment('stock', abs($inventoryMovement->quantity));
-            }
         }
 
         $this->syncPurchaseOrder($inventoryMovement, -$inventoryMovement->quantity);

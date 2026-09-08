@@ -331,9 +331,9 @@ const ProductForm: React.FC<ProductFormProps> = ({
             data.code &&
             data.category_id &&
             data.name &&
-            data.price_without_tax &&
-            data.price_with_tax &&
-            data.sale_price &&
+            (parseInt(data.price_without_tax || '0') || 0) > 0 &&
+            (parseInt(data.price_with_tax || '0') || 0) > 0 &&
+            (parseInt(data.sale_price || '0') || 0) > 0 &&
             data.supplier_id &&
             (isCreating ? data.stock !== undefined : true)
         );
@@ -608,18 +608,10 @@ const ProductForm: React.FC<ProductFormProps> = ({
                         <div>
                             <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Porcentaje IVA</label>
                             <div className="grid grid-cols-3 gap-2">
-                                <Button
-                                    type="button"
-                                    variant={ivaType === '0' ? 'default' : 'outline'}
-                                    onClick={() => handleIvaTypeChange('0')}
-                                >
+                                <Button type="button" variant={ivaType === '0' ? 'default' : 'outline'} onClick={() => handleIvaTypeChange('0')}>
                                     0%
                                 </Button>
-                                <Button
-                                    type="button"
-                                    variant={ivaType === '19' ? 'default' : 'outline'}
-                                    onClick={() => handleIvaTypeChange('19')}
-                                >
+                                <Button type="button" variant={ivaType === '19' ? 'default' : 'outline'} onClick={() => handleIvaTypeChange('19')}>
                                     19%
                                 </Button>
                                 <Button
@@ -692,8 +684,8 @@ const ProductForm: React.FC<ProductFormProps> = ({
                                                 </button>
                                             </TooltipTrigger>
                                             <TooltipContent>
-                                                Sugerencia inicial de {DEFAULT_PROFIT_PERCENT}% (Colombia no fija un margen mínimo por ley, solo
-                                                IVA); ajústala según tu producto.
+                                                Sugerencia inicial de {DEFAULT_PROFIT_PERCENT}% (Colombia no fija un margen mínimo por ley, solo IVA);
+                                                ajústala según tu producto.
                                             </TooltipContent>
                                         </Tooltip>
                                     )}

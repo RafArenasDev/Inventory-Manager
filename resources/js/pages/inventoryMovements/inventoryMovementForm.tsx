@@ -77,7 +77,7 @@ const InventoryMovementForm: React.FC<InventoryMovementFormProps> = ({ movement,
         type: movement?.type || '',
         product_id: movement?.product_id || '',
         supplier_id: movement?.supplier_id || '',
-        quantity: movement?.quantity || 0,
+        quantity: movement ? Math.max(0, movement.quantity) : 0,
         date: movement?.date || formattedToday,
         notes: movement?.notes || '',
     });
@@ -92,7 +92,7 @@ const InventoryMovementForm: React.FC<InventoryMovementFormProps> = ({ movement,
                 type: movement.type,
                 product_id: movement.product_id ?? '',
                 supplier_id: movement.supplier_id ?? '',
-                quantity: movement.quantity,
+                quantity: Math.max(0, movement.quantity),
                 date: movement.date,
                 notes: movement.notes || '',
             });
@@ -173,11 +173,21 @@ const InventoryMovementForm: React.FC<InventoryMovementFormProps> = ({ movement,
         ? userPermissions.includes('Actualizar Movimientos Inventario')
         : userPermissions.includes('Crear Movimientos Inventario');
 
-    const quantityMin = data.type === 'Ajuste Inventario' ? undefined : 1;
+    const isAdjustment = data.type === 'Ajuste Inventario';
+
+    // Proveedor no se valida acá — se autocompleta solo del producto elegido,
+    // así que ya queda cubierto por exigir product_id. Notas es el único
+    // campo realmente opcional.
+    const isFormValid =
+        data.type !== '' &&
+        data.date !== '' &&
+        data.product_id !== '' &&
+        data.product_id !== null &&
+        (isAdjustment ? data.quantity >= 0 : data.quantity > 0);
 
     return (
         <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col gap-4">
-            <div className="min-h-0 flex-1 space-y-6 overflow-x-hidden overflow-y-auto pr-1">
+            <div className="min-h-0 flex-1 space-y-6 overflow-x-hidden overflow-y-auto p-1">
                 {/* Tipo */}
                 <div>
                     <Label htmlFor="type" className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -220,7 +230,9 @@ const InventoryMovementForm: React.FC<InventoryMovementFormProps> = ({ movement,
                     {errors.date && <p className="mt-1 text-sm text-red-600">{errors.date}</p>}
                 </div>
 
-                {/* Producto */}
+                {/* Producto — no se puede reasignar al editar: el efecto de
+                    stock ya aplicado es sobre este producto, y el servidor
+                    ignora cualquier otro que llegue en el request. */}
                 <div>
                     <Label htmlFor="product_id" className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
                         Producto *
@@ -231,6 +243,7 @@ const InventoryMovementForm: React.FC<InventoryMovementFormProps> = ({ movement,
                         itemToStringValue={(p: Product) => p.id.toString()}
                         value={products.find((p) => p.id === data.product_id) ?? null}
                         onValueChange={(p: Product | null) => handleProductChange(p ? p.id.toString() : '')}
+                        disabled={!!movement?.id}
                     >
                         <ComboboxInput placeholder="Seleccione un producto" className="mt-1 w-full" />
                         <ComboboxContent>
@@ -256,24 +269,33 @@ const InventoryMovementForm: React.FC<InventoryMovementFormProps> = ({ movement,
                     {errors.supplier_id && <p className="mt-1 text-sm text-red-600">{errors.supplier_id}</p>}
                 </div>
 
-                {/* Cantidad */}
+                {/* Cantidad — para "Ajuste Inventario" es el conteo físico
+                    real (puede ser 0 si de verdad no queda ninguno), nunca un
+                    delta con signo; el sistema calcula solo la diferencia
+                    contra el stock actual. Para el resto, las unidades del
+                    movimiento (mínimo 1). */}
                 <div>
                     <Label htmlFor="quantity" className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
-                        Cantidad *
+                        {isAdjustment ? 'Conteo real en bodega *' : 'Cantidad *'}
                     </Label>
                     <Input
                         id="quantity"
                         type="number"
-                        value={data.quantity || ''}
+                        value={data.quantity || (data.quantity === 0 ? '0' : '')}
                         onChange={(e) => {
                             const val = e.target.value;
-                            setData('quantity', val ? parseInt(val) : 0);
+                            setData('quantity', val ? Math.abs(parseInt(val)) : 0);
                         }}
-                        min={quantityMin}
+                        min={isAdjustment ? 0 : 1}
                         placeholder="0"
                         required
                         className="w-full"
                     />
+                    {isAdjustment && (
+                        <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                            Escribe cuántas unidades hay realmente en bodega ahora mismo — el sistema calcula si eso sube o baja el stock.
+                        </p>
+                    )}
                     {errors.quantity && <p className="mt-1 text-sm text-red-600">{errors.quantity}</p>}
                 </div>
 
@@ -300,7 +322,7 @@ const InventoryMovementForm: React.FC<InventoryMovementFormProps> = ({ movement,
                     Cancelar
                 </Button>
                 {canSubmit && (
-                    <Button type="submit" disabled={processing}>
+                    <Button type="submit" disabled={processing || !isFormValid}>
                         {processing ? 'Guardando...' : movement?.id ? 'Actualizar' : 'Registrar'}
                     </Button>
                 )}
