@@ -102,7 +102,7 @@ const CategoryForm: React.FC<CategoryFormProps> = ({ category, onCancel, onSaved
 
     return (
         <form onSubmit={handleSubmit} noValidate className="flex min-h-0 flex-1 flex-col gap-4">
-            <div className="min-h-0 flex-1 space-y-6 overflow-x-hidden overflow-y-auto px-1">
+            <div className="min-h-0 flex-1 space-y-6 overflow-x-hidden overflow-y-auto p-1">
                 {/* Información básica */}
                 <div className="space-y-4">
                     <div>

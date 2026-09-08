@@ -448,7 +448,7 @@ const SaleForm: React.FC<SaleFormProps> = ({ sale, onCancel, onSaved, onDirtyCha
         <>
             <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col gap-4">
                 {/* Único contenedor con scroll: header y botones de acción quedan siempre visibles */}
-                <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-x-hidden overflow-y-auto px-1">
+                <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-x-hidden overflow-y-auto p-1">
                     {/* Información del Cliente */}
                     <div className="shrink-0 space-y-2">
                         <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">Información del Cliente</h3>
