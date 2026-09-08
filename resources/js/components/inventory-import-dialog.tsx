@@ -3,8 +3,12 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { csrfHeader } from '@/lib/csrf';
 import Swal from '@/lib/swal';
 import { router } from '@inertiajs/react';
-import { Download, Upload } from 'lucide-react';
+import { AlertTriangle, Download, Hash, ListChecks, Tags, Truck, Upload } from 'lucide-react';
 import { useState } from 'react';
+
+// Debe coincidir con InventoryImportService::MAX_ROWS — no hay endpoint
+// dedicado para este número porque no cambia dinámicamente por datos.
+const MAX_ROWS = 50;
 
 interface PreviewRow {
     line: number;
@@ -99,6 +103,45 @@ export function InventoryImportDialog({ open, onOpenChange, purchaseOrderId }: I
 
                 {!preview && (
                     <div className="space-y-4">
+                        <div className="space-y-3 rounded-lg border border-sky-100 bg-sky-50 p-4 dark:border-sky-900/30 dark:bg-sky-950/20">
+                            <p className="text-sm font-semibold text-sky-700 dark:text-sky-400">Cómo completar el archivo</p>
+                            <ul className="space-y-2 text-sm text-gray-700 dark:text-gray-300">
+                                <li className="flex gap-2">
+                                    <Tags className="mt-0.5 h-4 w-4 shrink-0 text-sky-600 dark:text-sky-400" />
+                                    <span>
+                                        <strong>Categoría:</strong> el <strong>nombre</strong> tal como aparece en el sistema (ej.{' '}
+                                        <span className="font-mono">Accesorios</span>), nunca un número de ID. Debe existir antes de subir el archivo
+                                        — créala primero en el módulo Categorías si hace falta.
+                                    </span>
+                                </li>
+                                <li className="flex gap-2">
+                                    <Truck className="mt-0.5 h-4 w-4 shrink-0 text-sky-600 dark:text-sky-400" />
+                                    <span>
+                                        <strong>Proveedor:</strong> también por <strong>nombre</strong>, y es opcional. Vacío deja el producto sin
+                                        proveedor asignado.
+                                    </span>
+                                </li>
+                                <li className="flex gap-2">
+                                    <Hash className="mt-0.5 h-4 w-4 shrink-0 text-sky-600 dark:text-sky-400" />
+                                    <span>
+                                        <strong>Código:</strong> si ya existe en el sistema, la fila solo registra un movimiento de stock sobre ese
+                                        producto; si es nuevo, lo crea (necesita nombre, categoría y precio sin IVA).
+                                    </span>
+                                </li>
+                                <li className="flex gap-2">
+                                    <ListChecks className="mt-0.5 h-4 w-4 shrink-0 text-sky-600 dark:text-sky-400" />
+                                    <span>
+                                        <strong>Tipo de movimiento:</strong> Entrada, Salida, Devolucion Cliente, Devolucion Proveedor, Consignacion
+                                        Entrada/Salida, Cambio Entrada/Salida o Ajuste Inventario. Vacío se toma como "Entrada".
+                                    </span>
+                                </li>
+                            </ul>
+                            <p className="flex items-center gap-1.5 border-t border-sky-200 pt-2.5 text-xs text-sky-700 dark:border-sky-900/40 dark:text-sky-400">
+                                <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
+                                Máximo {MAX_ROWS} filas por archivo — si tienes más productos, divídelos en varias cargas.
+                            </p>
+                        </div>
+
                         <a
                             href={route('inventory-import.template')}
                             className="text-primary inline-flex items-center gap-1.5 text-sm hover:underline"

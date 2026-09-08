@@ -1,5 +1,5 @@
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog';
-import { CalendarClock, Expand, Image as ImageIcon, Package, StickyNote, TrendingUp, Truck } from 'lucide-react';
+import { CalendarClock, Expand, Image as ImageIcon, Package, TrendingUp, Truck } from 'lucide-react';
 import { useState } from 'react';
 
 interface Product {
@@ -221,21 +221,14 @@ export default function ProductModal({ isOpen, onClose, product }: ProductModalP
                                         )}
                                 </div>
 
-                                {/* Metadatos: alta y notas del movimiento inicial */}
-                                {(createdAtLabel || product.movement_notes) && (
-                                    <div className="space-y-1.5 text-xs text-gray-400 dark:text-gray-500">
-                                        {createdAtLabel && (
-                                            <div className="flex items-center gap-1.5">
-                                                <CalendarClock className="h-3.5 w-3.5" />
-                                                <span>Registrado el {createdAtLabel}</span>
-                                            </div>
-                                        )}
-                                        {product.movement_notes && (
-                                            <div className="flex items-start gap-1.5">
-                                                <StickyNote className="mt-0.5 h-3.5 w-3.5 shrink-0" />
-                                                <span>{product.movement_notes}</span>
-                                            </div>
-                                        )}
+                                {/* Metadatos: alta del movimiento inicial. Las notas del
+                                    movimiento (ej. "Carga inicial - catálogo de prueba") son
+                                    internas del historial de inventario, no información de
+                                    producto — no se muestran acá. */}
+                                {createdAtLabel && (
+                                    <div className="flex items-center gap-1.5 text-xs text-gray-400 dark:text-gray-500">
+                                        <CalendarClock className="h-3.5 w-3.5" />
+                                        <span>Registrado el {createdAtLabel}</span>
                                     </div>
                                 )}
                             </div>
