@@ -233,7 +233,14 @@ export default function SaleDetailModal({ isOpen, onClose, sale, businessName }:
                         {sale.discount > 0 && (
                             <div className="flex justify-between text-sm">
                                 <span className="font-medium">
-                                    Descuento ({sale.discount_type === 'percentage' ? `${sale.discount}%` : formatCurrency(sale.discount)}):
+                                    Descuento (
+                                    {sale.discount_type === 'percentage'
+                                        ? // El servidor solo guarda el monto ya calculado del
+                                          // descuento (no el % que se tecleó), así que el % se
+                                          // reconstruye desde la proporción sobre el subtotal.
+                                          `${sale.total_without_tax > 0 ? Math.round((sale.discount / sale.total_without_tax) * 100) : 0}%`
+                                        : formatCurrency(sale.discount)}
+                                    ):
                                 </span>
                                 <span className="text-red-600 dark:text-red-400">
                                     -{formatCurrency(sale.total_without_tax - sale.total_with_discount)}

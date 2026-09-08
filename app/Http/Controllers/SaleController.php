@@ -442,8 +442,12 @@ class SaleController extends Controller
             $sheet->setCellValue('E'.$row, $clientName);
             $sheet->setCellValue('F'.$row, $clientDocument);
             $sheet->setCellValue('G'.$row, $sale->total_without_tax / 100);
+            // El % ya no se guarda tal cual: solo el monto calculado del
+            // descuento. Se reconstruye desde su proporción sobre el
+            // subtotal (mismas unidades x100 en numerador y denominador,
+            // se cancelan).
             $discountLabel = $sale->discount_type === 'percentage'
-                ? number_format($sale->discount / 100, 0).'%'
+                ? number_format($sale->total_without_tax > 0 ? round($sale->discount / $sale->total_without_tax * 100) : 0, 0).'%'
                 : '$ '.number_format($sale->discount / 100, 0, ',', '.');
             $sheet->setCellValue('H'.$row, $discountLabel);
             $sheet->setCellValue('I'.$row, $sale->total_paid / 100);

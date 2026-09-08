@@ -23,6 +23,30 @@ class ClientSeeder extends Seeder
             return;
         }
 
+        // Cliente genérico recomendado por la DIAN para facturación electrónica
+        // cuando el comprador no da sus datos (documento 222222222222). También
+        // existe como migración (2026_09_08_212432_seed_dian_default_client) para
+        // que quede garantizado en producción, donde los seeders no corren en cada
+        // deploy — pero esa migración corre ANTES que este seeder en un
+        // `migrate:fresh --seed` local, cuando `departments`/`cities` todavía están
+        // vacías, así que acá se usa updateOrCreate para completar/corregir el
+        // departamento y la ciudad una vez que sí existen.
+        $bogota = $cities->first(fn ($city) => str_contains(mb_strtolower($city->name), 'bogot'));
+        Client::updateOrCreate(
+            ['document_type' => 'CC', 'document_number' => 222222222222],
+            [
+                'verification_digit' => null,
+                'name' => 'Consumidor Final',
+                'department_id' => $bogota?->department_id,
+                'city_id' => $bogota?->id,
+                'phone' => null,
+                'cellphone' => '0000000000',
+                'address' => 'No informa',
+                'email' => 'consumidorfinal@noinforma.com',
+                'is_active' => true,
+            ]
+        );
+
         $documentTypes = ['CC', 'CC', 'CC', 'CC', 'CE', 'NIT', 'TI'];
         $usedDocuments = [];
 
