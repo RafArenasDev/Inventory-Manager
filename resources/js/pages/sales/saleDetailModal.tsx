@@ -113,7 +113,7 @@ export default function SaleDetailModal({ isOpen, onClose, sale, businessName }:
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
-            <DialogContent className="bg-card max-h-[90vh] max-w-[95vw] overflow-y-auto rounded-2xl p-0 shadow-2xl sm:max-w-[800px] dark:border-gray-800">
+            <DialogContent className="max-h-[90vh] max-w-[95vw] overflow-y-auto rounded-2xl p-0 shadow-2xl sm:max-w-[800px] dark:border-gray-800">
                 <div className="space-y-6 p-6">
                     <div className="flex items-start justify-between gap-4">
                         <div>

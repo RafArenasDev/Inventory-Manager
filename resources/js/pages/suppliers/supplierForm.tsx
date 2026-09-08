@@ -202,6 +202,7 @@ const SupplierForm: React.FC<SupplierFormProps> = ({
         data.nit_digit.toString().trim() !== '' &&
         data.representative.trim() !== '' &&
         data.email.trim() !== '' &&
+        data.address.trim() !== '' &&
         !nitNumberError;
 
     const canSubmit = supplier?.id ? userPermissions.includes('Actualizar Proveedores') : userPermissions.includes('Crear Proveedores');
@@ -338,13 +339,14 @@ const SupplierForm: React.FC<SupplierFormProps> = ({
 
                     <div className="md:col-span-2">
                         <Label htmlFor="address" className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
-                            Dirección
+                            Dirección *
                         </Label>
-                        <Textarea
+                        <Input
                             id="address"
+                            type="text"
                             value={data.address || ''}
                             onChange={(e) => setData('address', e.target.value)}
-                            rows={2}
+                            aria-invalid={!!errors.address}
                             className="w-full"
                             placeholder="Dirección completa del proveedor"
                         />
