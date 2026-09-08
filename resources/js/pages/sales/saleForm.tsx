@@ -771,7 +771,7 @@ const SaleForm: React.FC<SaleFormProps> = ({ sale, onCancel, onSaved, onDirtyCha
                     if (!open) handleCancelClientModal();
                 }}
             >
-                <DialogContent className="flex max-h-[90vh] flex-col overflow-hidden sm:max-w-lg" onInteractOutside={(e) => e.preventDefault()}>
+                <DialogContent className="flex max-h-[90vh] flex-col overflow-hidden sm:max-w-2xl" onInteractOutside={(e) => e.preventDefault()}>
                     <DialogHeader className="shrink-0">
                         <DialogTitle>Nuevo Cliente</DialogTitle>
                         <DialogDescription>Completa los datos para registrar el cliente y continuar con la venta.</DialogDescription>
