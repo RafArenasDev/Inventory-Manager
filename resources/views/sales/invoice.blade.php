@@ -387,9 +387,9 @@
                         <td class="product-code">{{ $item->product->code }}</td>
                         <td>{{ $item->product->name ?? 'Producto no especificado' }}</td>
                         <td class="text-right">{{ $item->quantity }}</td>
-                        <td class="text-right">$ {{ number_format($item->price_at_sale / 100, 0, ',', '.') }}</td>
+                        <td class="text-right">$ {{ number_format($item->price_at_sale, 0, ',', '.') }}</td>
                         <td class="text-right" style="font-weight: 600;">$
-                            {{ number_format($item->subtotal / 100, 0, ',', '.') }}
+                            {{ number_format($item->subtotal, 0, ',', '.') }}
                         </td>
                     </tr>
                 @endforeach
