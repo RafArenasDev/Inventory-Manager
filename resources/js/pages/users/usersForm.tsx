@@ -1,27 +1,16 @@
 import InputError from '@/components/input-error';
+import { PasswordRequirements } from '@/components/password-requirements';
 import { Button } from '@/components/ui/button';
 import { Combobox, ComboboxContent, ComboboxEmpty, ComboboxInput, ComboboxItem, ComboboxList } from '@/components/ui/combobox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { PasswordInput } from '@/components/ui/password-input';
 import { generateSecurePassword } from '@/lib/generate-password';
+import { passwordMeetsPolicy } from '@/lib/password-policy';
 import Swal from '@/lib/swal';
 import { useForm } from '@inertiajs/react';
-import { Check, Wand2, X } from 'lucide-react';
+import { Wand2 } from 'lucide-react';
 import React, { useEffect } from 'react';
-
-// Mismas reglas que Password::defaults() en AppServiceProvider (min 12,
-// mayúsculas+minúsculas, número, símbolo) — reflejadas acá solo para dar
-// feedback inmediato en el checklist; la validación real sigue siendo la
-// del backend, esto nunca reemplaza esa regla.
-const PASSWORD_RULES = [
-    { key: 'length', label: 'Mínimo 12 caracteres', test: (v: string) => v.length >= 12 },
-    { key: 'case', label: 'Mayúsculas y minúsculas', test: (v: string) => /[a-z]/.test(v) && /[A-Z]/.test(v) },
-    { key: 'number', label: 'Al menos un número', test: (v: string) => /[0-9]/.test(v) },
-    { key: 'symbol', label: 'Al menos un símbolo', test: (v: string) => /[^A-Za-z0-9]/.test(v) },
-] as const;
-
-const passwordMeetsPolicy = (value: string) => PASSWORD_RULES.every((rule) => rule.test(value));
 
 interface Role {
     id: number;
@@ -205,24 +194,7 @@ const UserForm: React.FC<UserFormProps> = ({ user, roles, onCancel, onSaved, onD
                             className="w-full"
                             placeholder={isEditing ? 'Dejar vacío para mantener la contraseña actual' : 'Ingrese la contraseña'}
                         />
-                        {(passwordRequired || passwordTouched) && (
-                            <ul className="mt-2 grid grid-cols-2 gap-x-3 gap-y-1">
-                                {PASSWORD_RULES.map((rule) => {
-                                    const met = rule.test(data.password);
-                                    return (
-                                        <li
-                                            key={rule.key}
-                                            className={`flex items-center gap-1.5 text-xs ${
-                                                met ? 'text-emerald-600 dark:text-emerald-500' : 'text-gray-400 dark:text-gray-500'
-                                            }`}
-                                        >
-                                            {met ? <Check className="h-3 w-3 shrink-0" /> : <X className="h-3 w-3 shrink-0" />}
-                                            {rule.label}
-                                        </li>
-                                    );
-                                })}
-                            </ul>
-                        )}
+                        {(passwordRequired || passwordTouched) && <PasswordRequirements value={data.password} />}
                         <InputError message={errors.password} />
                     </div>
 
@@ -238,10 +210,12 @@ const UserForm: React.FC<UserFormProps> = ({ user, roles, onCancel, onSaved, onD
                             className="w-full"
                             placeholder={isEditing ? 'Dejar vacío para mantener la contraseña actual' : 'Confirme la contraseña'}
                         />
-                        {passwordTouched && data.confirm_password.length > 0 && !passwordsMatch && !errors.confirm_password && (
-                            <p className="mt-1 text-sm text-red-600 dark:text-red-400">Las contraseñas no coinciden.</p>
-                        )}
-                        <InputError message={errors.confirm_password} />
+                        <InputError
+                            message={
+                                errors.confirm_password ||
+                                (passwordTouched && data.confirm_password.length > 0 && !passwordsMatch ? 'Las contraseñas no coinciden.' : undefined)
+                            }
+                        />
                     </div>
 
                     <div>

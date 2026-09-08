@@ -1,3 +1,4 @@
+import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
 import { Combobox, ComboboxContent, ComboboxEmpty, ComboboxInput, ComboboxItem, ComboboxList } from '@/components/ui/combobox';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -518,7 +519,7 @@ export default function PurchaseOrderForm({
                                 </ComboboxContent>
                             </Combobox>
                         )}
-                        {errors.supplier_id && <p className="mt-1 text-sm text-red-600">{errors.supplier_id}</p>}
+                        <InputError message={errors.supplier_id} />
                     </div>
 
                     <div>
