@@ -1,3 +1,4 @@
+import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
@@ -163,7 +164,11 @@ const SaleForm: React.FC<SaleFormProps> = ({ sale, onCancel, onSaved, onDirtyCha
 
     const handleClientInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value;
-        setFormData((prev) => ({ ...prev, client_document_number: value }));
+        // Si ya había un cliente resuelto (client_id) y el usuario vuelve a
+        // tocar el documento, ese client_id queda obsoleto de inmediato —
+        // si no se limpia acá, una venta podría terminar asociada al
+        // cliente viejo aunque el texto en pantalla ya sea otro.
+        setFormData((prev) => ({ ...prev, client_document_number: value, client_id: null }));
         if (value) {
             setFilteredClients(clients.filter((c) => c.document_number?.toString().startsWith(value)));
         } else {
@@ -184,7 +189,7 @@ const SaleForm: React.FC<SaleFormProps> = ({ sale, onCancel, onSaved, onDirtyCha
     };
 
     const handleClientSearch = () => {
-        const document_number = formData.client_document_number || '';
+        const document_number = (formData.client_document_number || '').trim();
         const client = clients.find((c) => c.document_number?.toString() === document_number);
 
         if (client) {
@@ -356,6 +361,19 @@ const SaleForm: React.FC<SaleFormProps> = ({ sale, onCancel, onSaved, onDirtyCha
         setProcessing(true);
         setErrors({});
 
+        if (!formData.client_id) {
+            Swal.fire({
+                position: 'center',
+                icon: 'error',
+                title: 'Falta el cliente',
+                text: 'Busque el documento del cliente y selecciónelo antes de continuar.',
+                showConfirmButton: false,
+                timer: 2200,
+            });
+            setProcessing(false);
+            return;
+        }
+
         if (selectedItems.length === 0) {
             Swal.fire({
                 position: 'center',
@@ -391,7 +409,7 @@ const SaleForm: React.FC<SaleFormProps> = ({ sale, onCancel, onSaved, onDirtyCha
             discount: formData.discount,
             discount_type: formData.discount_type,
             payment_method: formData.payment_method,
-            notes: formData.notes || '',
+            notes: (formData.notes || '').trim(),
             items: selectedItems.map((item) => ({
                 product_id: item.product_id,
                 quantity: item.quantity,
@@ -444,6 +462,11 @@ const SaleForm: React.FC<SaleFormProps> = ({ sale, onCancel, onSaved, onDirtyCha
     const isNequi = formData.payment_method === 'Nequi';
     const isPercentage = formData.discount_type === 'percentage';
 
+    // Cliente y forma de pago pasan a obligatorios de verdad — antes el
+    // botón solo miraba que hubiera items. client_id debe ser un cliente
+    // real ya resuelto (no basta con haber escrito un documento).
+    const isFormValid = formData.client_id !== null && formData.client_id !== undefined && !!formData.payment_method && selectedItems.length > 0;
+
     return (
         <>
             <form onSubmit={handleSubmit} noValidate className="flex min-h-0 flex-1 flex-col gap-4">
@@ -453,6 +476,9 @@ const SaleForm: React.FC<SaleFormProps> = ({ sale, onCancel, onSaved, onDirtyCha
                     <div className="shrink-0 space-y-2">
                         <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">Información del Cliente</h3>
                         <div className="relative max-w-md">
+                            <Label htmlFor="client_document_number" className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                Documento del cliente *
+                            </Label>
                             <div className="flex space-x-2">
                                 <Input
                                     type="text"
@@ -465,6 +491,7 @@ const SaleForm: React.FC<SaleFormProps> = ({ sale, onCancel, onSaved, onDirtyCha
                                             handleClientSearch();
                                         }
                                     }}
+                                    aria-invalid={!!errors.client_id}
                                     placeholder="Documento (CC, TI, CE, NIT)"
                                     className="w-full"
                                 />
@@ -508,7 +535,7 @@ const SaleForm: React.FC<SaleFormProps> = ({ sale, onCancel, onSaved, onDirtyCha
                                 )}
                             </div>
                         )}
-                        {errors.client_id && <p className="text-sm text-red-600">{errors.client_id}</p>}
+                        <InputError message={errors.client_id} />
                     </div>
 
                     {/* Detalles de la Venta */}
@@ -536,7 +563,7 @@ const SaleForm: React.FC<SaleFormProps> = ({ sale, onCancel, onSaved, onDirtyCha
                                         Nequi
                                     </span>
                                 </div>
-                                {errors.payment_method && <p className="mt-1 text-sm text-red-600">{errors.payment_method}</p>}
+                                <InputError message={errors.payment_method} />
                             </div>
 
                             <div>
@@ -583,7 +610,7 @@ const SaleForm: React.FC<SaleFormProps> = ({ sale, onCancel, onSaved, onDirtyCha
                                         </span>
                                     </div>
                                 </div>
-                                {errors.discount && <p className="mt-1 text-sm text-red-600">{errors.discount}</p>}
+                                <InputError message={errors.discount} />
                             </div>
                         </div>
 
@@ -599,7 +626,7 @@ const SaleForm: React.FC<SaleFormProps> = ({ sale, onCancel, onSaved, onDirtyCha
                                 className="min-h-0 w-full"
                                 placeholder="Notas adicionales (opcional)"
                             />
-                            {errors.notes && <p className="mt-1 text-sm text-red-600">{errors.notes}</p>}
+                            <InputError message={errors.notes} />
                         </div>
                     </div>
 
@@ -702,7 +729,7 @@ const SaleForm: React.FC<SaleFormProps> = ({ sale, onCancel, onSaved, onDirtyCha
                                 </Table>
                             </div>
                         </div>
-                        {errors.items && <p className="text-sm text-red-600">{errors.items}</p>}
+                        <InputError message={errors.items} />
                     </div>
 
                     {/* Totales */}
@@ -730,7 +757,7 @@ const SaleForm: React.FC<SaleFormProps> = ({ sale, onCancel, onSaved, onDirtyCha
                         Cancelar
                     </Button>
                     {canSubmit && (
-                        <Button type="submit" disabled={processing || selectedItems.length === 0}>
+                        <Button type="submit" disabled={processing || !isFormValid}>
                             {processing ? 'Guardando...' : 'Crear Venta'}
                         </Button>
                     )}

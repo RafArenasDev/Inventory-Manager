@@ -139,8 +139,11 @@ class SaleController extends Controller
                     'product_name' => $item->product->name,
                     'product_code' => $item->product->code,
                     'quantity' => $item->quantity,
-                    'price_at_sale' => $item->price_at_sale / 100,
-                    'subtotal' => $item->subtotal / 100,
+                    // price_at_sale/subtotal se guardan en pesos planos (igual que
+                    // Product::sale_price), NO en la escala x100 de Sale — dividir
+                    // acá los mostraba 100 veces más chicos de lo cobrado.
+                    'price_at_sale' => $item->price_at_sale,
+                    'subtotal' => $item->subtotal,
                 ];
             }),
         ];
@@ -158,25 +161,56 @@ class SaleController extends Controller
             $validated = $request->validated();
             $invoiceNumber = Sale::generateInvoiceNumber();
 
-            $validated['discount'] = (int) ($validated['discount'] * 100);
-            $validated['total_without_tax'] = (int) ($validated['total_without_tax'] * 100);
-            $validated['total_with_discount'] = (int) ($validated['total_with_discount'] * 100);
-            $validated['total_paid'] = (int) ($validated['total_paid'] * 100);
-
             $sale = DB::transaction(function () use ($validated, $invoiceNumber) {
+                // El precio, el stock y los totales NUNCA se toman del payload:
+                // el cliente solo dice "qué producto y cuánta cantidad", el
+                // servidor recalcula todo desde Product::sale_price (con
+                // lockForUpdate para no vender sobre stock ya reservado por
+                // otra venta concurrente). Esto es lo mismo que ya se hace en
+                // Proveedores con el DV del NIT: nunca confiar en un número
+                // que viene del cliente cuando el servidor puede calcularlo.
+                $lineItems = [];
+                $totalWithoutTax = 0;
+
+                foreach ($validated['items'] as $item) {
+                    $product = Product::where('id', $item['product_id'])->lockForUpdate()->firstOrFail();
+
+                    if ($product->stock < $item['quantity']) {
+                        throw new \RuntimeException("Stock insuficiente para \"{$product->name}\": quedan {$product->stock}, se pidieron {$item['quantity']}.");
+                    }
+
+                    $priceAtSale = $product->sale_price;
+                    $subtotal = $priceAtSale * $item['quantity'];
+                    $totalWithoutTax += $subtotal;
+
+                    $lineItems[] = [
+                        'product' => $product,
+                        'quantity' => $item['quantity'],
+                        'price_at_sale' => $priceAtSale,
+                        'subtotal' => $subtotal,
+                    ];
+                }
+
+                $discountInput = (float) $validated['discount'];
+                $discountAmount = $validated['discount_type'] === 'percentage'
+                    ? (int) round($totalWithoutTax * min($discountInput, 100) / 100)
+                    : (int) round(min($discountInput, $totalWithoutTax));
+                $totalWithDiscount = $totalWithoutTax - $discountAmount;
+                $totalPaid = $totalWithDiscount;
+
                 $sale = Sale::create([
                     'invoice_number' => $invoiceNumber,
                     'client_id' => $validated['client_id'],
                     'user_id' => auth()->id(),
                     'sale_date' => $validated['sale_date'],
                     'sale_time' => $validated['sale_time'],
-                    'discount' => $validated['discount'],
+                    'discount' => (int) ($discountAmount * 100),
                     'discount_type' => $validated['discount_type'],
                     'payment_method' => $validated['payment_method'],
                     'notes' => $validated['notes'] ?? null,
-                    'total_without_tax' => $validated['total_without_tax'],
-                    'total_with_discount' => $validated['total_with_discount'],
-                    'total_paid' => $validated['total_paid'],
+                    'total_without_tax' => (int) ($totalWithoutTax * 100),
+                    'total_with_discount' => (int) ($totalWithDiscount * 100),
+                    'total_paid' => (int) ($totalPaid * 100),
                     'is_cancelled' => false,
                 ]);
 
@@ -184,26 +218,24 @@ class SaleController extends Controller
                     Client::where('id', $validated['client_id'])->where('is_active', false)->update(['is_active' => true]);
                 }
 
-                foreach ($validated['items'] as $item) {
+                foreach ($lineItems as $line) {
                     SaleItem::create([
                         'sale_id' => $sale->id,
-                        'product_id' => $item['product_id'],
-                        'quantity' => $item['quantity'],
-                        'price_at_sale' => $item['price_at_sale'],
-                        'subtotal' => $item['subtotal'],
+                        'product_id' => $line['product']->id,
+                        'quantity' => $line['quantity'],
+                        'price_at_sale' => $line['price_at_sale'],
+                        'subtotal' => $line['subtotal'],
                     ]);
 
-                    $product = Product::findOrFail($item['product_id']);
-                    $product->stock -= $item['quantity'];
-                    $product->save();
+                    $line['product']->decrement('stock', $line['quantity']);
 
                     InventoryMovement::create([
-                        'product_id' => $item['product_id'],
+                        'product_id' => $line['product']->id,
                         'type' => 'Salida',
-                        'quantity' => $item['quantity'],
+                        'quantity' => $line['quantity'],
                         'date' => now(),
                         'notes' => 'Venta '.$invoiceNumber,
-                        'supplier_id' => $product->supplier_id,
+                        'supplier_id' => $line['product']->supplier_id,
                     ]);
                 }
 
@@ -217,7 +249,7 @@ class SaleController extends Controller
                         'user_id' => auth()->id(),
                         'type' => 'Ingreso',
                         'transaction_category_id' => $salesCategory->id,
-                        'amount' => $validated['total_paid'] / 100,
+                        'amount' => $totalPaid,
                         'transaction_date' => $validated['sale_date'],
                         'transaction_time' => $validated['sale_time'],
                         'payment_method' => $validated['payment_method'],
@@ -234,6 +266,8 @@ class SaleController extends Controller
             $publicUrl = app(InvoicePdfService::class)->generateAndStore($sale);
 
             return redirect()->route('sales.index')->with(['success' => 'Venta creada correctamente.', 'invoice_url' => $publicUrl]);
+        } catch (\RuntimeException $e) {
+            return redirect()->back()->withErrors(['error' => $e->getMessage()])->withInput();
         } catch (\Exception $e) {
             Log::error('Error creating sale: '.$e->getMessage());
 

@@ -15,8 +15,9 @@ class SaleRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'client_id' => ['required_without:client_document_number', 'nullable', 'exists:clients,id'],
-            'client_document_number' => ['required_without:client_id', 'nullable', 'string'],
+            // Cliente obligatorio de verdad: ya no se acepta una venta con
+            // solo un número de documento sin resolver a un cliente real.
+            'client_id' => ['required', 'exists:clients,id'],
             'sale_date' => ['required', 'date'],
             'sale_time' => ['required', 'date_format:H:i:s'],
             'discount_type' => ['required', Rule::in(['percentage', 'fixed'])],
@@ -31,11 +32,9 @@ class SaleRequest extends FormRequest
             'items' => ['required', 'array', 'min:1'],
             'items.*.product_id' => ['required', 'exists:products,id'],
             'items.*.quantity' => ['required', 'integer', 'min:1'],
-            'items.*.price_at_sale' => ['required', 'numeric', 'min:0'],
-            'items.*.subtotal' => ['required', 'numeric', 'min:0'],
-            'total_without_tax' => ['required', 'numeric', 'min:0'],
-            'total_with_discount' => ['required', 'numeric', 'min:0'],
-            'total_paid' => ['required', 'numeric', 'min:0'],
+            // price_at_sale, subtotal y los totales NO se validan como input:
+            // el controlador los recalcula siempre desde Product::sale_price,
+            // nunca confía en lo que mande el cliente.
         ];
     }
 }
