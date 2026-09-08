@@ -278,7 +278,7 @@ export default function InventoryMovementsIndex({ movements, products, suppliers
                 onConfirm={closeForm}
             />
 
-            <InventoryImportDialog open={isImporting} onOpenChange={setIsImporting} />
+            <InventoryImportDialog open={isImporting} onOpenChange={setIsImporting} mode="movements" />
         </AppLayout>
     );
 }

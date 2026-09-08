@@ -63,7 +63,7 @@ class InventoryImportService
         return $token;
     }
 
-    public function preview(string $filePath): array
+    public function preview(string $filePath, string $mode = 'movements'): array
     {
         $rows = $this->parseRows($filePath);
 
@@ -73,7 +73,7 @@ class InventoryImportService
 
         $results = [];
         foreach ($rows as $index => $row) {
-            $results[] = $this->validateRow($row, $index + 2, $categoriesByName, $suppliersByName, $productsByCode);
+            $results[] = $this->validateRow($row, $index + 2, $categoriesByName, $suppliersByName, $productsByCode, $mode);
         }
 
         return [
@@ -87,7 +87,7 @@ class InventoryImportService
         ];
     }
 
-    public function commit(string $filePath, ?int $purchaseOrderId = null): array
+    public function commit(string $filePath, ?int $purchaseOrderId = null, string $mode = 'movements'): array
     {
         $rows = $this->parseRows($filePath);
 
@@ -99,9 +99,9 @@ class InventoryImportService
         $updated = 0;
         $skipped = 0;
 
-        DB::transaction(function () use ($rows, $categoriesByName, $suppliersByName, $productsByCode, $purchaseOrderId, &$created, &$updated, &$skipped) {
+        DB::transaction(function () use ($rows, $categoriesByName, $suppliersByName, $productsByCode, $purchaseOrderId, $mode, &$created, &$updated, &$skipped) {
             foreach ($rows as $index => $row) {
-                $validated = $this->validateRow($row, $index + 2, $categoriesByName, $suppliersByName, $productsByCode);
+                $validated = $this->validateRow($row, $index + 2, $categoriesByName, $suppliersByName, $productsByCode, $mode);
                 if (! empty($validated['errors'])) {
                     $skipped++;
 
@@ -229,11 +229,12 @@ class InventoryImportService
         return $rows;
     }
 
-    private function validateRow(array $row, int $lineNumber, $categoriesByName, $suppliersByName, $productsByCode): array
+    private function validateRow(array $row, int $lineNumber, $categoriesByName, $suppliersByName, $productsByCode, string $mode = 'movements'): array
     {
         $errors = [];
         $code = mb_strtolower($row['codigo']);
         $productExists = $code !== '' && $productsByCode->has($code);
+        $isProductsMode = $mode === 'products';
 
         if ($row['codigo'] === '') {
             $errors[] = 'Falta el código del producto.';
@@ -243,8 +244,16 @@ class InventoryImportService
             $errors[] = 'La cantidad debe ser un número mayor a 0.';
         }
 
-        if ($row['tipo_movimiento'] && ! in_array($row['tipo_movimiento'], self::MOVEMENT_TYPES)) {
+        // La carga masiva de Productos solo crea productos nuevos — no
+        // admite "tipo_movimiento" (siempre es Entrada) ni reutilizar un
+        // código existente, eso es tarea de Movimientos de Inventario.
+        if (! $isProductsMode && $row['tipo_movimiento'] && ! in_array($row['tipo_movimiento'], self::MOVEMENT_TYPES)) {
             $errors[] = "Tipo de movimiento \"{$row['tipo_movimiento']}\" no reconocido.";
+        }
+
+        if ($isProductsMode && $productExists) {
+            $errors[] = 'Este código ya existe — la carga masiva de Productos solo crea productos nuevos. '.
+                'Para registrar una entrada sobre un producto existente, usa Movimientos de Inventario.';
         }
 
         $action = $productExists ? 'update_stock' : 'create_product';
@@ -263,7 +272,9 @@ class InventoryImportService
             }
         }
 
-        if ($row['proveedor'] !== '' && ! $suppliersByName->has($this->normalizeForMatch($row['proveedor']))) {
+        if ($isProductsMode && $row['proveedor'] === '') {
+            $errors[] = 'Falta el proveedor — todo producto necesita uno.';
+        } elseif ($row['proveedor'] !== '' && ! $suppliersByName->has($this->normalizeForMatch($row['proveedor']))) {
             $errors[] = "El proveedor \"{$row['proveedor']}\" no existe.";
         }
 

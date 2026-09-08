@@ -254,7 +254,7 @@ export default function ProductIndex({ products, categories, suppliers, filters,
                 onConfirm={closeForm}
             />
 
-            <InventoryImportDialog open={isImporting} onOpenChange={setIsImporting} />
+            <InventoryImportDialog open={isImporting} onOpenChange={setIsImporting} mode="products" />
         </AppLayout>
     );
 }
