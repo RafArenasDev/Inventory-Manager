@@ -8,6 +8,7 @@ use App\Models\CashRegister;
 use App\Models\Sale;
 use App\Models\Transaction;
 use App\Models\User;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -100,10 +101,24 @@ class CashRegisterController extends Controller
             // sincronización en tiempo real) termina pegado ahí y revienta
             // porque esa ruta no acepta GET.
             return redirect()->route('cash-register.index')->with('success', 'Caja abierta correctamente.');
+        } catch (QueryException $e) {
+            // El check de "ya existe" de arriba es best-effort: dos clics
+            // casi simultáneos (o dos pestañas) pueden pasar la validación
+            // los dos antes de que cualquiera inserte. El unique de
+            // register_date en la BD es la garantía real contra la caja
+            // duplicada — acá solo se traduce esa violación a un mensaje
+            // legible en vez del SQLSTATE crudo.
+            if ((int) $e->getCode() === 23505 || str_contains($e->getMessage(), 'cash_registers_register_date_unique')) {
+                return back()->with('error', 'Ya existe una caja registrada para esta fecha.');
+            }
+
+            Log::error('Error al abrir caja: '.$e->getMessage());
+
+            return back()->with('error', 'Error al abrir la caja. Intenta de nuevo.');
         } catch (\Exception $e) {
             Log::error('Error al abrir caja: '.$e->getMessage());
 
-            return back()->with('error', 'Error al abrir la caja: '.$e->getMessage());
+            return back()->with('error', 'Error al abrir la caja. Intenta de nuevo.');
         }
     }
 
@@ -176,7 +191,19 @@ class CashRegisterController extends Controller
             return null;
         }
 
-        return $this->openRegisterForToday($openedBy, 'Abierta automáticamente al iniciar sesión.');
+        // Esto corre como efecto secundario del login — nunca debe poder
+        // tumbarlo. Dos logins casi simultáneos pueden pasar los dos el
+        // "exists()" de arriba antes de que cualquiera inserte; el segundo
+        // choca con el unique de register_date. Sin este try/catch, esa
+        // excepción se propagaba sin capturar hasta AuthenticatedSessionController
+        // y el usuario recibía un 500 en vez de iniciar sesión.
+        try {
+            return $this->openRegisterForToday($openedBy, 'Abierta automáticamente al iniciar sesión.');
+        } catch (\Throwable $e) {
+            Log::error('Error al auto-abrir caja en login: '.$e->getMessage());
+
+            return null;
+        }
     }
 
     /**
@@ -199,7 +226,16 @@ class CashRegisterController extends Controller
             return null;
         }
 
-        $this->closeRegister($register, $closedBy, 'Cerrada automáticamente al finalizar la sesión.');
+        // Efecto secundario del logout — igual que autoOpenIfNeeded, no
+        // debe poder bloquear la acción principal (que el usuario sí logre
+        // salir) si el cierre automático falla por cualquier motivo.
+        try {
+            $this->closeRegister($register, $closedBy, 'Cerrada automáticamente al finalizar la sesión.');
+        } catch (\Throwable $e) {
+            Log::error('Error al auto-cerrar caja en logout: '.$e->getMessage());
+
+            return null;
+        }
 
         return $register->fresh();
     }
@@ -272,27 +308,56 @@ class CashRegisterController extends Controller
         return $amount;
     }
 
+    /**
+     * Ventas, ingresos y gastos de un día — se usa tanto para el cierre
+     * (snapshot final, se guarda) como para mostrar en vivo la caja del día
+     * mientras sigue abierta (antes de este método, la fila de "hoy" en la
+     * tabla mostraba $0 en Ventas/Otros Ingresos/Egresos todo el día, porque
+     * esas columnas solo se llenaban al cerrar).
+     *
+     * @return array{sales_total: float, total_income: float, expenses_total: float}
+     */
+    private function computeDailyTotals(\DateTimeInterface|string $registerDate): array
+    {
+        // Sale.total_paid se guarda en centavos (igual que en toda la
+        // app), pero total_income/total_expenses/opening_amount vienen
+        // de Transaction.amount, que se guarda en pesos. Sin este /100,
+        // total_sales quedaba 100 veces más grande que total_income.
+        $salesTotal = Sale::whereDate('sale_date', $registerDate)
+            ->where('is_cancelled', false)
+            ->sum('total_paid') / 100;
+
+        $totalIncome = Transaction::whereDate('transaction_date', $registerDate)
+            ->where('type', 'Ingreso')
+            ->sum('amount');
+
+        $expensesTotal = Transaction::whereDate('transaction_date', $registerDate)
+            ->where('type', 'Gasto')
+            ->sum('amount');
+
+        return ['sales_total' => $salesTotal, 'total_income' => $totalIncome, 'expenses_total' => $expensesTotal];
+    }
+
     private function closeRegister(CashRegister $cashRegister, ?int $closedBy, ?string $notes = null): void
     {
         config(['app.timezone' => 'America/Bogota']);
         date_default_timezone_set('America/Bogota');
 
         DB::transaction(function () use ($cashRegister, $closedBy, $notes) {
-            // Sale.total_paid se guarda en centavos (igual que en toda la
-            // app), pero total_income/total_expenses/opening_amount vienen
-            // de Transaction.amount, que se guarda en pesos. Sin este /100,
-            // total_sales quedaba 100 veces más grande que total_income.
-            $salesTotal = Sale::whereDate('sale_date', $cashRegister->register_date)
-                ->where('is_cancelled', false)
-                ->sum('total_paid') / 100;
+            // Sin este lockForUpdate + re-chequeo, dos clics casi simultáneos
+            // en "Cerrar Caja" (o el cierre manual justo cuando el
+            // autocierre por horario también dispara) podían pasar los dos
+            // el "if ($cashRegister->is_closed)" de fuera, calcular el
+            // cierre por separado y pisarse el closed_by/closed_at uno a
+            // otro. Re-leer con lock adentro de la transacción hace que el
+            // segundo en llegar vea is_closed ya en true y no haga nada.
+            $cashRegister = CashRegister::whereKey($cashRegister->id)->lockForUpdate()->firstOrFail();
 
-            $totalIncome = Transaction::whereDate('transaction_date', $cashRegister->register_date)
-                ->where('type', 'Ingreso')
-                ->sum('amount');
+            if ($cashRegister->is_closed) {
+                return;
+            }
 
-            $expensesTotal = Transaction::whereDate('transaction_date', $cashRegister->register_date)
-                ->where('type', 'Gasto')
-                ->sum('amount');
+            ['sales_total' => $salesTotal, 'total_income' => $totalIncome, 'expenses_total' => $expensesTotal] = $this->computeDailyTotals($cashRegister->register_date);
 
             $closingAmount = $cashRegister->opening_amount + $totalIncome - $expensesTotal;
             // Ganancia/pérdida del día = cuánto quedó vs. cuánto había al
@@ -337,29 +402,50 @@ class CashRegisterController extends Controller
             ->whereDate('register_date', '<', today())
             ->get()
             ->each(function (CashRegister $register) use ($closedBy) {
-                $this->closeRegister(
-                    $register,
-                    $closedBy,
-                    trim(($register->notes ? $register->notes.' — ' : '').'Cerrada automáticamente al iniciar sesión el día siguiente.')
-                );
+                // Efecto secundario del login, igual que autoOpenIfNeeded —
+                // si una caja atrasada falla al cerrarse, no debe tumbar el
+                // login ni impedir que se sigan cerrando las demás del lote.
+                try {
+                    $this->closeRegister(
+                        $register,
+                        $closedBy,
+                        trim(($register->notes ? $register->notes.' — ' : '').'Cerrada automáticamente al iniciar sesión el día siguiente.')
+                    );
+                } catch (\Throwable $e) {
+                    Log::error('Error al auto-cerrar caja atrasada en login: '.$e->getMessage(), ['cash_register_id' => $register->id]);
+                }
             });
     }
 
     private function formatCashRegister($register)
     {
+        // Mientras la caja sigue abierta, total_sales/total_income/
+        // total_expenses en la BD siguen en 0 (solo se llenan al cerrar) —
+        // sin esto, la fila de "hoy" mostraba $0 en Ventas/Otros Ingresos/
+        // Egresos todo el día aunque ya hubiera ventas y gastos reales.
+        // Una vez cerrada, se muestra el snapshot final guardado (no se
+        // recalcula), que es lo correcto para el histórico.
+        if ($register->is_closed) {
+            $salesTotal = $register->total_sales;
+            $totalIncome = $register->total_income;
+            $expensesTotal = $register->total_expenses;
+        } else {
+            ['sales_total' => $salesTotal, 'total_income' => $totalIncome, 'expenses_total' => $expensesTotal] = $this->computeDailyTotals($register->register_date);
+        }
+
         return [
             'id' => $register->id,
             'register_date' => $register->register_date->format('Y-m-d'),
             'opening_amount' => $register->opening_amount,
             'closing_amount' => $register->closing_amount ?? 0,
-            'total_sales' => $register->total_sales,
+            'total_sales' => $salesTotal,
             // 'Otros Ingresos' = ingresos totales menos lo que ya se cuenta
             // en Ventas (aportes de capital, u otros ingresos que no son de
             // inventario) — así Ventas + Otros Ingresos se pueden sumar sin
             // duplicar ni un peso.
-            'other_income' => $register->total_income - $register->total_sales,
-            'total_income' => $register->total_income,
-            'total_expenses' => $register->total_expenses,
+            'other_income' => $totalIncome - $salesTotal,
+            'total_income' => $totalIncome,
+            'total_expenses' => $expensesTotal,
             'difference' => $register->difference ?? 0,
             'opened_by' => $register->opened_by,
             'closed_by' => $register->closed_by,

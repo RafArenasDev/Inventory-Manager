@@ -11,6 +11,13 @@ class CashRegisterOpenRequest extends FormRequest
         return auth()->user()->hasPermissionTo('Crear Caja');
     }
 
+    protected function prepareForValidation(): void
+    {
+        if ($this->filled('notes')) {
+            $this->merge(['notes' => trim((string) $this->notes)]);
+        }
+    }
+
     public function rules(): array
     {
         return [
