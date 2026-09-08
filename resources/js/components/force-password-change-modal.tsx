@@ -1,9 +1,11 @@
 import InputError from '@/components/input-error';
+import { PasswordRequirements } from '@/components/password-requirements';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { PasswordInput } from '@/components/ui/password-input';
 import { generateSecurePassword } from '@/lib/generate-password';
+import { passwordMeetsPolicy } from '@/lib/password-policy';
 import { useForm, usePage } from '@inertiajs/react';
 import { Wand2 } from 'lucide-react';
 import React, { useRef } from 'react';
@@ -43,6 +45,10 @@ export default function ForcePasswordChangeModal() {
         });
     };
 
+    const passwordPolicyOk = passwordMeetsPolicy(data.password);
+    const passwordsMatch = data.password.length > 0 && data.password === data.password_confirmation;
+    const isFormValid = data.current_password.trim() !== '' && passwordPolicyOk && passwordsMatch;
+
     if (!mustChange) return null;
 
     return (
@@ -60,13 +66,14 @@ export default function ForcePasswordChangeModal() {
                         </DialogDescription>
                     </div>
 
-                    <form onSubmit={handleSubmit} className="space-y-4">
+                    <form onSubmit={handleSubmit} noValidate className="space-y-4">
                         <div className="grid gap-2">
-                            <Label htmlFor="fpc-current-password">Contraseña actual</Label>
+                            <Label htmlFor="fpc-current-password">Contraseña actual *</Label>
                             <PasswordInput
                                 id="fpc-current-password"
                                 value={data.current_password}
                                 onChange={(e) => setData('current_password', e.target.value)}
+                                aria-invalid={!!errors.current_password}
                                 autoComplete="current-password"
                                 autoFocus
                             />
@@ -75,7 +82,7 @@ export default function ForcePasswordChangeModal() {
 
                         <div className="grid gap-2">
                             <div className="flex items-center justify-between">
-                                <Label htmlFor="fpc-password">Nueva contraseña</Label>
+                                <Label htmlFor="fpc-password">Nueva contraseña *</Label>
                                 <Button
                                     type="button"
                                     variant="ghost"
@@ -92,26 +99,31 @@ export default function ForcePasswordChangeModal() {
                                 ref={passwordInput}
                                 value={data.password}
                                 onChange={(e) => setData('password', e.target.value)}
+                                aria-invalid={!!errors.password}
                                 autoComplete="new-password"
                             />
-                            <p className="text-xs text-gray-500 dark:text-gray-400">
-                                Mínimo 12 caracteres, con mayúsculas, minúsculas, números y símbolos.
-                            </p>
+                            <PasswordRequirements value={data.password} />
                             <InputError message={errors.password} />
                         </div>
 
                         <div className="grid gap-2">
-                            <Label htmlFor="fpc-password-confirmation">Confirmar contraseña</Label>
+                            <Label htmlFor="fpc-password-confirmation">Confirmar contraseña *</Label>
                             <PasswordInput
                                 id="fpc-password-confirmation"
                                 value={data.password_confirmation}
                                 onChange={(e) => setData('password_confirmation', e.target.value)}
+                                aria-invalid={!!errors.password_confirmation || (data.password_confirmation.length > 0 && !passwordsMatch)}
                                 autoComplete="new-password"
                             />
-                            <InputError message={errors.password_confirmation} />
+                            <InputError
+                                message={
+                                    errors.password_confirmation ||
+                                    (data.password_confirmation.length > 0 && !passwordsMatch ? 'Las contraseñas no coinciden.' : undefined)
+                                }
+                            />
                         </div>
 
-                        <Button type="submit" disabled={processing} className="w-full">
+                        <Button type="submit" disabled={processing || !isFormValid} className="w-full">
                             {processing ? 'Guardando...' : 'Guardar y continuar'}
                         </Button>
                     </form>

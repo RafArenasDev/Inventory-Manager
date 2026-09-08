@@ -1,3 +1,4 @@
+import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -223,7 +224,7 @@ const SupplierForm: React.FC<SupplierFormProps> = ({
                                 placeholder="Ingrese el nombre del proveedor"
                                 required
                             />
-                            {errors.name && <p className="mt-1 text-sm text-red-600">{errors.name}</p>}
+                            <InputError message={errors.name} />
                         </div>
 
                         <div className="sm:col-span-2">
@@ -242,8 +243,7 @@ const SupplierForm: React.FC<SupplierFormProps> = ({
                                 placeholder="Número NIT"
                                 required
                             />
-                            {nitNumberError && <p className="mt-1 text-sm text-red-600">{nitNumberError}</p>}
-                            {errors.nit_number && <p className="mt-1 text-sm text-red-600">{errors.nit_number}</p>}
+                            <InputError message={nitNumberError || errors.nit_number} />
                         </div>
 
                         <div className="sm:col-span-1">
@@ -270,7 +270,7 @@ const SupplierForm: React.FC<SupplierFormProps> = ({
                                 readOnly
                                 className="w-full cursor-not-allowed text-center opacity-80"
                             />
-                            {errors.nit_digit && <p className="mt-1 text-sm text-red-600">{errors.nit_digit}</p>}
+                            <InputError message={errors.nit_digit} />
                         </div>
                     </div>
 
@@ -287,7 +287,7 @@ const SupplierForm: React.FC<SupplierFormProps> = ({
                             placeholder="Nombre del representante legal"
                             required
                         />
-                        {errors.representative && <p className="mt-1 text-sm text-red-600">{errors.representative}</p>}
+                        <InputError message={errors.representative} />
                     </div>
 
                     <div>
@@ -302,7 +302,7 @@ const SupplierForm: React.FC<SupplierFormProps> = ({
                             className="w-full"
                             placeholder="Teléfono fijo"
                         />
-                        {errors.phone && <p className="mt-1 text-sm text-red-600">{errors.phone}</p>}
+                        <InputError message={errors.phone} />
                     </div>
 
                     <div>
@@ -317,7 +317,7 @@ const SupplierForm: React.FC<SupplierFormProps> = ({
                             className="w-full"
                             placeholder="Número de celular"
                         />
-                        {errors.cellphone && <p className="mt-1 text-sm text-red-600">{errors.cellphone}</p>}
+                        <InputError message={errors.cellphone} />
                     </div>
 
                     <div className="md:col-span-2">
@@ -333,7 +333,7 @@ const SupplierForm: React.FC<SupplierFormProps> = ({
                             placeholder="email@proveedor.com"
                             required
                         />
-                        {errors.email && <p className="mt-1 text-sm text-red-600">{errors.email}</p>}
+                        <InputError message={errors.email} />
                     </div>
 
                     <div className="md:col-span-2">
@@ -348,7 +348,7 @@ const SupplierForm: React.FC<SupplierFormProps> = ({
                             className="w-full"
                             placeholder="Dirección completa del proveedor"
                         />
-                        {errors.address && <p className="mt-1 text-sm text-red-600">{errors.address}</p>}
+                        <InputError message={errors.address} />
                     </div>
 
                     <div className="md:col-span-2">
@@ -363,7 +363,7 @@ const SupplierForm: React.FC<SupplierFormProps> = ({
                             className="w-full"
                             placeholder="Descripción del proveedor (opcional)"
                         />
-                        {errors.description && <p className="mt-1 text-sm text-red-600">{errors.description}</p>}
+                        <InputError message={errors.description} />
                     </div>
                 </div>
             </div>

@@ -48,6 +48,8 @@ export function ProfileModal({ open, onOpenChange }: ProfileModalProps) {
         });
     };
 
+    const isFormValid = data.name.trim() !== '' && data.email.trim() !== '';
+
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="sm:max-w-md">
@@ -55,15 +57,15 @@ export function ProfileModal({ open, onOpenChange }: ProfileModalProps) {
                     <DialogTitle>Perfil</DialogTitle>
                     <DialogDescription>Actualiza el nombre y correo electrónico de tu cuenta.</DialogDescription>
                 </DialogHeader>
-                <form onSubmit={submit} className="space-y-4">
+                <form onSubmit={submit} noValidate className="space-y-4">
                     <div className="grid gap-2">
-                        <Label htmlFor="profile-name">Nombre</Label>
+                        <Label htmlFor="profile-name">Nombre *</Label>
                         <Input
                             id="profile-name"
                             className="w-full"
                             value={data.name}
                             onChange={(e) => setData('name', e.target.value)}
-                            required
+                            aria-invalid={!!errors.name}
                             autoComplete="name"
                             placeholder="Nombre completo"
                         />
@@ -71,14 +73,14 @@ export function ProfileModal({ open, onOpenChange }: ProfileModalProps) {
                     </div>
 
                     <div className="grid gap-2">
-                        <Label htmlFor="profile-email">Correo electrónico</Label>
+                        <Label htmlFor="profile-email">Correo electrónico *</Label>
                         <Input
                             id="profile-email"
                             type="email"
                             className="w-full"
                             value={data.email}
                             onChange={(e) => setData('email', e.target.value)}
-                            required
+                            aria-invalid={!!errors.email}
                             autoComplete="username"
                             placeholder="Correo electrónico"
                         />
@@ -89,7 +91,7 @@ export function ProfileModal({ open, onOpenChange }: ProfileModalProps) {
                         <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={processing}>
                             Cancelar
                         </Button>
-                        <Button type="submit" disabled={processing}>
+                        <Button type="submit" disabled={processing || !isFormValid}>
                             {processing ? 'Guardando...' : 'Guardar'}
                         </Button>
                     </DialogFooter>

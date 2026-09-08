@@ -493,20 +493,29 @@ const ProductForm: React.FC<ProductFormProps> = ({
                             <InputError message={errors.name} />
                         </div>
 
-                        {/* Fila 3: Descripción — misma altura que Imagen (fila 4),
-                            equivalente a ~3 inputs con label. */}
+                        {/* Fila 3: Descripción — 2 inputs de alto por defecto.
+                            Solo pasa a 3 inputs cuando "Otro" Y "Por utilidad"
+                            están activos a la vez (el bloque de Precio de
+                            venta gana una fila extra —Precio de venta
+                            calculado— justo cuando ya venía corrido un
+                            renglón por el "Valor del IVA" de Otro). Con
+                            cualquiera de los dos solo, o ninguno, se queda en
+                            2 inputs — solo cambia qué dos filas de la columna
+                            derecha caen dentro de su alto. */}
                         <div>
                             <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Descripción</label>
                             <Textarea
                                 value={data.description}
                                 onChange={handleInputChange('description')}
                                 aria-invalid={!!errors.description}
-                                className="h-48 w-full resize-none border-gray-300 focus-visible:border-gray-400 focus-visible:ring-gray-400/50 dark:border-gray-600 dark:focus-visible:border-gray-500 dark:focus-visible:ring-gray-300/25"
+                                className={`w-full resize-none border-gray-300 focus-visible:border-gray-400 focus-visible:ring-gray-400/50 dark:border-gray-600 dark:focus-visible:border-gray-500 dark:focus-visible:ring-gray-300/25 ${
+                                    ivaType === 'custom' && priceMode === 'profit' ? 'h-[228px]' : 'h-[136px]'
+                                }`}
                             />
                             <InputError message={errors.description} />
                         </div>
 
-                        {/* Fila 4: Imagen — misma altura que Descripción */}
+                        {/* Fila 4: Imagen — siempre 2 inputs de alto, fija */}
                         <div>
                             <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Imagen del Producto</label>
                             <input
@@ -518,7 +527,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
                             />
 
                             {imagePreview ? (
-                                <div className="animate-in fade-in flex h-48 flex-col overflow-hidden rounded-xl border border-gray-300 duration-300 dark:border-gray-700">
+                                <div className="animate-in fade-in flex h-44 flex-col overflow-hidden rounded-xl border border-gray-300 duration-300 dark:border-gray-700">
                                     <div className="relative flex min-h-0 flex-1 items-center justify-center bg-gray-100 dark:bg-white/[0.03]">
                                         {isImageLoading && (
                                             <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-2 bg-white/80 backdrop-blur-sm dark:bg-black/80">
@@ -579,7 +588,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
                                         setIsDraggingImage(false);
                                     }}
                                     onDrop={handleImageDrop}
-                                    className={`flex h-48 w-full cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed transition-all duration-200 ${
+                                    className={`flex h-44 w-full cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed transition-all duration-200 ${
                                         isDraggingImage
                                             ? 'scale-[1.01] border-blue-500 bg-blue-50 dark:bg-blue-950/20'
                                             : 'border-gray-300 bg-gray-50 hover:border-blue-400 dark:border-gray-600 dark:bg-black dark:hover:border-blue-500'
@@ -602,7 +611,9 @@ const ProductForm: React.FC<ProductFormProps> = ({
                         </div>
                     </div>
 
-                    {/* Columna 2: precios, IVA, inventario comercial */}
+                    {/* Columna 2: precios, IVA, inventario comercial — fluye
+                        normal: cada campo condicional que aparece empuja lo
+                        de abajo, y al ocultarse todo vuelve a subir solo. */}
                     <div className="flex flex-col gap-4">
                         {/* Fila 1: Porcentaje IVA */}
                         <div>
@@ -622,7 +633,12 @@ const ProductForm: React.FC<ProductFormProps> = ({
                                     Otro
                                 </Button>
                             </div>
-                            <InputError message={errors.iva_value} />
+                            {/* Espacio de error SIEMPRE reservado aquí (mismo alto
+                                    tenga o no mensaje) para que esta fila no cambie de
+                                    tamaño al activar "Otro" — si no, Código/Categoría
+                                    (columna 1) deja de coincidir con Porcentaje IVA
+                                    (columna 2) y arrastra el desfase a todo lo de abajo. */}
+                            <InputError message={ivaType !== 'custom' ? errors.iva_value : undefined} />
                         </div>
 
                         {/* Fila 2 (condicional, solo si IVA = Otro) */}
@@ -641,6 +657,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
                                     placeholder="Otro %"
                                     min="0"
                                 />
+                                <InputError message={errors.iva_value} />
                             </div>
                         )}
 
@@ -734,6 +751,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
                                             min="0"
                                             step="0.1"
                                         />
+                                        <InputError />
                                     </div>
 
                                     <div>

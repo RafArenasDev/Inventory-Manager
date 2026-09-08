@@ -1,3 +1,4 @@
+import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
 import { Combobox, ComboboxContent, ComboboxEmpty, ComboboxInput, ComboboxItem, ComboboxList } from '@/components/ui/combobox';
 import { Input } from '@/components/ui/input';
@@ -210,7 +211,7 @@ const InventoryMovementForm: React.FC<InventoryMovementFormProps> = ({ movement,
                             </ComboboxList>
                         </ComboboxContent>
                     </Combobox>
-                    {errors.type && <p className="mt-1 text-sm text-red-600">{errors.type}</p>}
+                    <InputError message={errors.type} />
                 </div>
 
                 {/* Fecha */}
@@ -227,7 +228,7 @@ const InventoryMovementForm: React.FC<InventoryMovementFormProps> = ({ movement,
                         className="w-full"
                         required
                     />
-                    {errors.date && <p className="mt-1 text-sm text-red-600">{errors.date}</p>}
+                    <InputError message={errors.date} />
                 </div>
 
                 {/* Producto — no se puede reasignar al editar: el efecto de
@@ -257,7 +258,7 @@ const InventoryMovementForm: React.FC<InventoryMovementFormProps> = ({ movement,
                             </ComboboxList>
                         </ComboboxContent>
                     </Combobox>
-                    {errors.product_id && <p className="mt-1 text-sm text-red-600">{errors.product_id}</p>}
+                    <InputError message={errors.product_id} />
                 </div>
 
                 {/* Proveedor */}
@@ -266,7 +267,7 @@ const InventoryMovementForm: React.FC<InventoryMovementFormProps> = ({ movement,
                         Proveedor *
                     </Label>
                     <Input id="supplier_name" type="text" value={supplierName} readOnly className="w-full cursor-not-allowed" />
-                    {errors.supplier_id && <p className="mt-1 text-sm text-red-600">{errors.supplier_id}</p>}
+                    <InputError message={errors.supplier_id} />
                 </div>
 
                 {/* Cantidad — para "Ajuste Inventario" es el conteo físico
@@ -296,7 +297,7 @@ const InventoryMovementForm: React.FC<InventoryMovementFormProps> = ({ movement,
                             Escribe cuántas unidades hay realmente en bodega ahora mismo — el sistema calcula si eso sube o baja el stock.
                         </p>
                     )}
-                    {errors.quantity && <p className="mt-1 text-sm text-red-600">{errors.quantity}</p>}
+                    <InputError message={errors.quantity} />
                 </div>
 
                 {/* Notas */}
@@ -312,7 +313,7 @@ const InventoryMovementForm: React.FC<InventoryMovementFormProps> = ({ movement,
                         rows={3}
                         placeholder="Opcional: agregar notas sobre este movimiento..."
                     />
-                    {errors.notes && <p className="mt-1 text-sm text-red-600">{errors.notes}</p>}
+                    <InputError message={errors.notes} />
                 </div>
             </div>
 
