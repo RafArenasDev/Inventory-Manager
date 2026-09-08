@@ -18,9 +18,16 @@ export default function FlashErrorWatcher() {
     useEffect(() => {
         if (flash?.error && flash.error !== lastShown.current) {
             lastShown.current = flash.error;
+
+            // Si el mensaje trae salto de línea, la primera línea es el
+            // título (puede traer HTML, ej. el nombre en negrilla) y el
+            // resto el cuerpo; si no, se mantiene el título genérico.
+            const [firstLine, ...rest] = flash.error.split('\n');
+            const hasCustomTitle = rest.length > 0;
+
             Swal.fire({
-                title: 'Error',
-                text: flash.error,
+                title: hasCustomTitle ? firstLine : 'Error',
+                html: hasCustomTitle ? rest.join('\n') : firstLine,
                 icon: 'error',
             });
         }

@@ -1,4 +1,4 @@
-// Modified roleForm.tsx
+import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
@@ -183,8 +183,14 @@ const RoleForm: React.FC<RoleFormProps> = ({ role, onCancel, onSaved, onDirtyCha
 
     const canSubmit = role?.id ? userPermissions.includes('Actualizar Roles y Permisos') : userPermissions.includes('Crear Roles y Permisos');
 
+    // El rol Administrador siempre conserva todos los permisos (forzado
+    // también en el backend) — se deshabilita la edición acá para no
+    // sugerir un cambio que el servidor va a ignorar igual.
+    const isAdminRole = role?.name === 'admin';
+    const isFormValid = data.label.trim() !== '' && (isAdminRole || selectedIds.size > 0);
+
     return (
-        <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col gap-6">
+        <form onSubmit={handleSubmit} noValidate className="flex min-h-0 flex-1 flex-col gap-6">
             {/* Información básica */}
             <div className="shrink-0 space-y-4">
                 <div>
@@ -196,11 +202,11 @@ const RoleForm: React.FC<RoleFormProps> = ({ role, onCancel, onSaved, onDirtyCha
                         id="label"
                         value={data.label}
                         onChange={(e) => setData('label', e.target.value)}
+                        aria-invalid={!!errors.label}
                         className="w-full"
                         placeholder="Ingrese el nombre del rol"
-                        required
                     />
-                    {errors.label && <p className="mt-1 text-sm text-red-600">{errors.label}</p>}
+                    <InputError message={errors.label} />
                 </div>
 
                 <div>
@@ -212,11 +218,12 @@ const RoleForm: React.FC<RoleFormProps> = ({ role, onCancel, onSaved, onDirtyCha
                         id="description"
                         value={data.description}
                         onChange={(e) => setData('description', e.target.value)}
+                        aria-invalid={!!errors.description}
                         rows={1}
                         className="min-h-[42px] w-full resize-none overflow-hidden"
                         placeholder="Descripción del rol (opcional)"
                     />
-                    {errors.description && <p className="mt-1 text-sm text-red-600">{errors.description}</p>}
+                    <InputError message={errors.description} />
                 </div>
 
                 {/* Campos ocultos */}
@@ -227,15 +234,22 @@ const RoleForm: React.FC<RoleFormProps> = ({ role, onCancel, onSaved, onDirtyCha
             {/* Selección de Permisos */}
             <div className="flex min-h-0 flex-1 flex-col gap-3">
                 <div className="flex shrink-0 items-center justify-between gap-2">
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Permisos por Módulo</label>
-                    <button
-                        type="button"
-                        onClick={handleToggleAllGlobal}
-                        className="text-sm font-medium whitespace-nowrap text-blue-600 hover:underline dark:text-blue-400"
-                    >
-                        {allGloballySelected ? 'Desmarcar todo' : 'Marcar todo'}
-                    </button>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Permisos por Módulo *</label>
+                    {!isAdminRole && (
+                        <button
+                            type="button"
+                            onClick={handleToggleAllGlobal}
+                            className="text-sm font-medium whitespace-nowrap text-blue-600 hover:underline dark:text-blue-400"
+                        >
+                            {allGloballySelected ? 'Desmarcar todo' : 'Marcar todo'}
+                        </button>
+                    )}
                 </div>
+                {isAdminRole && (
+                    <p className="shrink-0 text-xs text-gray-500 dark:text-gray-400">
+                        El rol Administrador siempre tiene todos los permisos y no puede modificarse.
+                    </p>
+                )}
                 <div className="min-h-0 flex-1 divide-y divide-gray-200 overflow-y-auto rounded-md border border-gray-200 p-1.5 dark:divide-gray-700 dark:border-gray-700">
                     {catalogModules.map((module) => {
                         const modulePermissions = permissionsByModule.get(module.id) ?? [];
@@ -253,13 +267,15 @@ const RoleForm: React.FC<RoleFormProps> = ({ role, onCancel, onSaved, onDirtyCha
                                         <span className="whitespace-nowrap text-gray-500 dark:text-gray-400">
                                             {selectedCount}/{modulePermissions.length}
                                         </span>
-                                        <button
-                                            type="button"
-                                            onClick={() => handleToggleAllInModule(modulePermissions, allSelected)}
-                                            className="font-medium whitespace-nowrap text-blue-600 hover:underline dark:text-blue-400"
-                                        >
-                                            {allSelected ? 'Quitar todos' : 'Marcar todos'}
-                                        </button>
+                                        {!isAdminRole && (
+                                            <button
+                                                type="button"
+                                                onClick={() => handleToggleAllInModule(modulePermissions, allSelected)}
+                                                className="font-medium whitespace-nowrap text-blue-600 hover:underline dark:text-blue-400"
+                                            >
+                                                {allSelected ? 'Quitar todos' : 'Marcar todos'}
+                                            </button>
+                                        )}
                                     </div>
                                 </div>
 
@@ -275,7 +291,8 @@ const RoleForm: React.FC<RoleFormProps> = ({ role, onCancel, onSaved, onDirtyCha
                                             >
                                                 <Checkbox
                                                     id={`permission-${permission.id}`}
-                                                    checked={isSelected}
+                                                    checked={isAdminRole ? true : isSelected}
+                                                    disabled={isAdminRole}
                                                     onCheckedChange={() => handlePermissionToggle(permission.id)}
                                                 />
                                                 {permission.label}
@@ -287,6 +304,7 @@ const RoleForm: React.FC<RoleFormProps> = ({ role, onCancel, onSaved, onDirtyCha
                         );
                     })}
                 </div>
+                <InputError message={errors.permissions} />
             </div>
 
             {/* Botones de acción */}
@@ -295,7 +313,7 @@ const RoleForm: React.FC<RoleFormProps> = ({ role, onCancel, onSaved, onDirtyCha
                     Cancelar
                 </Button>
                 {canSubmit && (
-                    <Button type="submit" disabled={processing}>
+                    <Button type="submit" disabled={processing || !isFormValid}>
                         {processing ? 'Guardando...' : role?.id ? 'Actualizar Rol' : 'Crear Rol'}
                     </Button>
                 )}

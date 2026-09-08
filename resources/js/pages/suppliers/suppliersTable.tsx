@@ -77,7 +77,7 @@ export default function SuppliersTable({
     const handleDelete = (supplierId: number, supplierName: string) => {
         Swal.fire({
             title: '¿Estás seguro?',
-            text: `Esta acción eliminará el proveedor ${supplierName} permanentemente`,
+            html: `Esta acción eliminará el proveedor <b>${supplierName}</b> permanentemente`,
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#3085d6',

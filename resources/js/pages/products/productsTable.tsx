@@ -68,7 +68,7 @@ export default function ProductsTable({
     const handleDelete = (productId: number, productName: string) => {
         Swal.fire({
             title: '¿Estás seguro?',
-            text: `Esta acción eliminará el producto ${productName} permanentemente`,
+            html: `Esta acción eliminará el producto <b>${productName}</b> permanentemente`,
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#3085d6',

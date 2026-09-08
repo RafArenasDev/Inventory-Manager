@@ -66,7 +66,7 @@ export default function RolesTable({
     const handleDelete = (roleId: number, roleLabel: string) => {
         Swal.fire({
             title: '¿Estás seguro?',
-            text: `Esta acción eliminará el rol ${roleLabel} permanentemente`,
+            html: `Esta acción eliminará el rol <b>${roleLabel}</b> permanentemente`,
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#3085d6',
