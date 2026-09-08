@@ -101,7 +101,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
     });
 
     const [imagePreview, setImagePreview] = useState<string | null>(product?.image_path || null);
-    const [imageError, setImageError] = useState<string | null>(null);
+    const [imageError, setImageError] = useState<{ name?: string; reason: string } | null>(null);
     const [isImageLoading, setIsImageLoading] = useState(false);
     const [isDraggingImage, setIsDraggingImage] = useState(false);
     const [imageRemoved, setImageRemoved] = useState(false);
@@ -273,15 +273,15 @@ const ProductForm: React.FC<ProductFormProps> = ({
         setImageError(null);
 
         if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
-            const message = `"${file.name}" no es una imagen válida. Solo se permiten archivos JPEG, PNG o GIF.`;
-            setImageError(message);
-            Swal.fire({ title: 'Archivo no permitido', text: message, icon: 'error' });
+            const reason = 'no es una imagen válida. Solo se permiten archivos JPEG, PNG o GIF.';
+            setImageError({ name: file.name, reason });
+            Swal.fire({ title: 'Archivo no permitido', html: `<b>${file.name}</b> ${reason}`, icon: 'error' });
             return;
         }
         if (file.size > MAX_IMAGE_SIZE) {
-            const message = `La imagen pesa ${(file.size / 1024 / 1024).toFixed(1)}MB. El máximo permitido es 2MB.`;
-            setImageError(message);
-            Swal.fire({ title: 'Imagen demasiado pesada', text: message, icon: 'error' });
+            const reason = `pesa ${(file.size / 1024 / 1024).toFixed(1)}MB. El máximo permitido es 2MB.`;
+            setImageError({ name: file.name, reason });
+            Swal.fire({ title: 'Imagen demasiado pesada', html: `<b>${file.name}</b> ${reason}`, icon: 'error' });
             return;
         }
 
@@ -532,7 +532,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
                                             onLoad={finishImageLoading}
                                             onError={() => {
                                                 finishImageLoading();
-                                                setImageError('No se pudo cargar la vista previa de la imagen.');
+                                                setImageError({ reason: 'No se pudo cargar la vista previa de la imagen.' });
                                             }}
                                             className={`h-full w-full object-contain p-2 transition-all duration-500 ${
                                                 isImageLoading ? 'scale-95 opacity-0' : 'scale-100 opacity-100'
@@ -593,7 +593,11 @@ const ProductForm: React.FC<ProductFormProps> = ({
                                 </div>
                             )}
 
-                            {imageError && <p className="mt-2 text-sm text-red-600 dark:text-red-400">{imageError}</p>}
+                            {imageError && (
+                                <p className="mt-2 text-sm text-red-600 dark:text-red-400">
+                                    {imageError.name && <strong>{imageError.name}</strong>} {imageError.reason}
+                                </p>
+                            )}
                             <InputError message={errors.image} className="mt-1" />
                         </div>
                     </div>
