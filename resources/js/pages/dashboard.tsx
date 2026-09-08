@@ -223,22 +223,6 @@ export default function Dashboard({ stats, financials, charts, salesProducts, sa
             };
         });
 
-    const calculateFinancialTotals = () => {
-        let totalIngresos = 0;
-        let totalEgresos = 0;
-
-        Object.entries(financials).forEach(([, data]) => {
-            totalIngresos += data.incomes.amount;
-            totalEgresos += data.expenses.amount;
-        });
-
-        return { totalIngresos, totalEgresos };
-    };
-
-    useEffect(() => {
-        calculateFinancialTotals();
-    }, []);
-
     const loadChartData = async (newPeriod: Period) => {
         try {
             const response = await fetch(`/dashboard/chart-data/${newPeriod}`);

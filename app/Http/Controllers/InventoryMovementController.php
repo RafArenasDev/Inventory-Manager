@@ -403,7 +403,7 @@ class InventoryMovementController extends Controller
             $sheet->setCellValue('C'.$row, $movement->product?->name ?? $movement->product_name.' (eliminado)');
             $sheet->setCellValue('D'.$row, $movement->product?->code ?? $movement->product_code);
             $sheet->setCellValue('E'.$row, $movement->product?->category?->name ?? '');
-            $sheet->setCellValue('F'.$row, $movement->supplier->name ?? '');
+            $sheet->setCellValue('F'.$row, $movement->supplier?->name ?? '');
             $sheet->setCellValue('G'.$row, $movement->quantity);
             $sheet->setCellValue('H'.$row, $movement->product?->stock ?? '');
             $sheet->setCellValue('I'.$row, $movement->date->format('d/m/Y'));

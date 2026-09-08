@@ -405,7 +405,7 @@
             @if($sale->discount > 0)
                 <div class="total-row">
                     <span class="total-label">Descuento
-                        ({{ $sale->discount_type === 'percentage' ? number_format($sale->discount / 100, 0).'%' : 'valor fijo' }}):</span>
+                        ({{ $sale->discount_type === 'percentage' ? number_format($sale->total_without_tax > 0 ? round($sale->discount / $sale->total_without_tax * 100) : 0, 0).'%' : 'valor fijo' }}):</span>
                     <span class="total-value discount-value">-$
                         {{ number_format(($sale->total_without_tax - $sale->total_with_discount) / 100, 0, ',', '.') }}</span>
                 </div>

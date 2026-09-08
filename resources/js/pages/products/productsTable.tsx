@@ -1,4 +1,5 @@
 import { IconActionButton } from '@/components/icon-action-button';
+import { Button } from '@/components/ui/button';
 import { Pagination } from '@/components/ui/pagination';
 import SearchInput from '@/components/ui/search-input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -6,7 +7,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip
 import Swal from '@/lib/swal';
 import { LinkProps } from '@/types';
 import { router } from '@inertiajs/react';
-import { Eye, Package, Pencil, Trash2 } from 'lucide-react';
+import { Download, Eye, Package, Pencil, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import ProductModal from './productModal';
 
@@ -130,6 +131,13 @@ export default function ProductsTable({
         setIsModalOpen(true);
     };
 
+    const handleExport = () => {
+        const params = new URLSearchParams();
+        if (search) params.append('search', search);
+        const exportUrl = route('products.export') + '?' + params.toString();
+        window.open(exportUrl, '_blank');
+    };
+
     const showActionsColumn =
         userPermissions.includes('Ver Productos') || userPermissions.includes('Editar Productos') || userPermissions.includes('Eliminar Productos');
 
@@ -142,6 +150,17 @@ export default function ProductsTable({
                     onSearch={onSearch}
                     className="w-full sm:max-w-lg"
                 />
+                {userPermissions.includes('Exportar Productos') && (
+                    <Button
+                        size="sm"
+                        onClick={handleExport}
+                        title="Exportar productos a Excel"
+                        className="gap-2 bg-gray-500 text-white hover:bg-gray-600"
+                    >
+                        <Download className="h-4 w-4" />
+                        Exportar Excel
+                    </Button>
+                )}
             </div>
 
             <div className="bg-card overflow-hidden rounded-md shadow-lg shadow-black/10 dark:shadow-black/60">
