@@ -42,7 +42,6 @@ interface TransactionFilters {
     date_from?: string;
     date_to?: string;
     category_id?: string;
-    status?: string;
     type?: string;
 }
 

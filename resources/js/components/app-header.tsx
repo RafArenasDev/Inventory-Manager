@@ -1,5 +1,7 @@
 import { Breadcrumbs } from '@/components/breadcrumbs';
 import { Icon } from '@/components/icon';
+import { PasswordModal } from '@/components/password-modal';
+import { ProfileModal } from '@/components/profile-modal';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
@@ -11,6 +13,7 @@ import { cn } from '@/lib/utils';
 import { type BreadcrumbItem, type NavItem, type SharedData } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
 import { LayoutGrid, Menu, Search } from 'lucide-react';
+import { useState } from 'react';
 import AppLogo from './app-logo';
 import AppLogoIcon from './app-logo-icon';
 
@@ -32,6 +35,9 @@ export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
     const page = usePage<SharedData>();
     const { auth } = page.props;
     const getInitials = useInitials();
+    const [profileOpen, setProfileOpen] = useState(false);
+    const [passwordOpen, setPasswordOpen] = useState(false);
+
     return (
         <>
             <div className="border-sidebar-border/80 border-b">
@@ -113,12 +119,14 @@ export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
                                 </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent className="w-56" align="end">
-                                <UserMenuContent user={auth.user} />
+                                <UserMenuContent onOpenProfile={() => setProfileOpen(true)} onOpenPassword={() => setPasswordOpen(true)} />
                             </DropdownMenuContent>
                         </DropdownMenu>
                     </div>
                 </div>
             </div>
+            <ProfileModal open={profileOpen} onOpenChange={setProfileOpen} />
+            <PasswordModal open={passwordOpen} onOpenChange={setPasswordOpen} />
             {breadcrumbs.length > 1 && (
                 <div className="border-sidebar-border/70 flex w-full border-b">
                     <div className="mx-auto flex h-12 w-full items-center justify-start px-4 text-neutral-500 md:max-w-7xl">

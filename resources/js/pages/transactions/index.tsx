@@ -36,6 +36,10 @@ interface TransactionForForm {
     id?: number;
     type: 'Ingreso' | 'Gasto';
     transaction_category_id: number;
+    // Solo para mostrar en el título del modal de edición ("Editar
+    // Transacción: Gasto — Arriendo") — el id crudo no dice nada de un
+    // vistazo. No se manda al backend.
+    category_name?: string;
     amount: number;
     transaction_date: string;
     transaction_time: string;
@@ -43,6 +47,7 @@ interface TransactionForForm {
     description: string | null;
     notes: string | null;
     invoice_number: string | null;
+    sale_id?: number | null;
 }
 
 interface TransactionFilters {
@@ -51,7 +56,6 @@ interface TransactionFilters {
     date_from?: string;
     date_to?: string;
     category_id?: string;
-    status?: string;
     type?: string;
 }
 
@@ -117,6 +121,7 @@ export default function TransactionsPage({ transactions, categories, filters, to
             id: transaction.id,
             type: transaction.type,
             transaction_category_id: transaction.transaction_category_id,
+            category_name: transaction.category?.name,
             amount: transaction.amount,
             transaction_date: transaction.transaction_date,
             transaction_time: transaction.transaction_time,
@@ -124,6 +129,7 @@ export default function TransactionsPage({ transactions, categories, filters, to
             description: transaction.description,
             notes: transaction.notes,
             invoice_number: transaction.invoice_number,
+            sale_id: transaction.sale_id,
         });
         setIsCreating(false);
     };
@@ -225,7 +231,11 @@ export default function TransactionsPage({ transactions, categories, filters, to
             >
                 <DialogContent className="flex max-h-[90vh] flex-col overflow-hidden sm:max-w-2xl" onInteractOutside={(e) => e.preventDefault()}>
                     <DialogHeader className="shrink-0">
-                        <DialogTitle>{isCreating ? 'Nueva Transacción' : `Editar Transacción: #${editingTransaction?.id}`}</DialogTitle>
+                        <DialogTitle>
+                            {isCreating
+                                ? 'Nueva Transacción'
+                                : `Editar ${editingTransaction?.type ?? 'Transacción'}${editingTransaction?.category_name ? ` — ${editingTransaction.category_name}` : ''}`}
+                        </DialogTitle>
                         <DialogDescription>
                             {isCreating ? 'Completa los datos para registrar una nueva transacción.' : 'Actualiza los datos de la transacción.'}
                         </DialogDescription>

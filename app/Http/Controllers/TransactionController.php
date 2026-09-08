@@ -50,10 +50,6 @@ class TransactionController extends Controller
             $transactionsQuery->where('type', $request->type);
         }
 
-        if ($request->filled('status')) {
-            $transactionsQuery->where('status', $request->status);
-        }
-
         $totalCount = $transactionsQuery->count();
         $filteredCount = $totalCount;
 
@@ -105,7 +101,7 @@ class TransactionController extends Controller
         return Inertia::render('transactions/index', [
             'transactions' => $transactions,
             'categories' => $categories,
-            'filters' => [...$request->only(['search', 'per_page', 'category_id', 'type', 'status']), 'date_from' => $dateFrom, 'date_to' => $dateTo],
+            'filters' => [...$request->only(['search', 'per_page', 'category_id', 'type']), 'date_from' => $dateFrom, 'date_to' => $dateTo],
             'totalCount' => $totalCount,
             'filteredCount' => $filteredCount,
             'totals' => $totals,
@@ -330,6 +326,10 @@ class TransactionController extends Controller
      */
     public function update(TransactionRequest $request, Transaction $transaction)
     {
+        if ($transaction->sale_id !== null) {
+            return redirect()->back()->with('error', 'Esta transacción proviene de una venta y no puede editarse manualmente.');
+        }
+
         $transaction->update([
             'type' => $request->type,
             'transaction_category_id' => $request->transaction_category_id,
@@ -344,19 +344,5 @@ class TransactionController extends Controller
 
         return redirect()->route('transactions.index')
             ->with('success', 'Transacción actualizada correctamente');
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Transaction $transaction)
-    {
-        if ($transaction) {
-            $transaction->delete();
-
-            return redirect()->route('transactions.index')->with('success', 'Transacción eliminada correctamente.');
-        }
-
-        return redirect()->back()->with('error', 'Error al eliminar la transacción.');
     }
 }
