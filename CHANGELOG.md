@@ -13,6 +13,13 @@ actualiza junto con cada tag nuevo. El modal de "Novedades" del sidebar y el
 badge de versión se generan de este archivo en build time — ver
 `scripts/generate-changelog.mjs`.
 
+## v1.12.10 - 2026-09-09
+
+Se corrigió que el formulario de Productos quedara desalineado tras el cambio de espaciado, y que la firma de derechos de autor mostrara siempre "2026" en vez del año actual.
+
+- **Corrección:** En el formulario de Productos, los campos de la columna izquierda y derecha vuelven a alinearse correctamente en las 4 combinaciones posibles de IVA y modo de precio.
+- **Corrección:** La firma "© 2025–{{año}}" al pie de la barra lateral, en el login y en los correos ahora siempre muestra el año actual, en vez de quedar fija en 2026.
+
 ## v1.12.9 - 2026-09-09
 
 Los campos de los formularios (Productos, Clientes, Usuarios, Roles, Categorías, Proveedores, Finanzas, Movimientos, Pedidos) quedan más juntos entre sí, sin perder el espacio para el mensaje de error en rojo.
