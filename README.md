@@ -23,7 +23,7 @@ historial completo de cambios), o [`CHANGELOG.md`](./CHANGELOG.md) en este repos
 | Roles y permisos | [spatie/laravel-permission](https://spatie.be/docs/laravel-permission) | — |
 | PDF (facturas) | [barryvdh/laravel-dompdf](https://github.com/barryvdh/laravel-dompdf) | — |
 | Excel (exportaciones/carga masiva) | [PhpSpreadsheet](https://phpspreadsheet.readthedocs.io) | — |
-| Base de datos | MySQL (desarrollo local) / PostgreSQL (producción) | — |
+| Base de datos | MySQL (uso actual, local) / PostgreSQL (alternativa compatible) | — |
 
 La app es una **PWA instalable**: se puede agregar a pantalla de inicio en Android, iOS, Windows y macOS, con
 service worker propio (`public/sw.js`) para que la interfaz siga cargando aunque se pierda la conexión un
@@ -91,7 +91,7 @@ DB_USERNAME=root
 DB_PASSWORD=
 ```
 
-**PostgreSQL (usado en producción — ej. Render):**
+**PostgreSQL (alternativa compatible, por si en el futuro se despliega en un servidor):**
 
 ```env
 DB_CONNECTION=pgsql

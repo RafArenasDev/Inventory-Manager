@@ -195,4 +195,3 @@ Primera versión completa del sistema — resultado de más de un año de trabaj
 - **Nueva función:** Se agregó actualización en tiempo real: si otra persona hace un cambio en el sistema, se refleja solo en la pantalla, sin necesidad de recargar.
 - **Seguridad:** Se agregó bloqueo progresivo de la cuenta tras varios intentos fallidos de inicio de sesión, exigencia de contraseñas seguras, cambio obligatorio de contraseña en el primer ingreso, correo de bienvenida, y recuperación de contraseña por correo.
 - **Diseño:** Se estandarizaron colores, íconos y estilos en todas las tablas del sistema, con un tema claro y oscuro consistente en toda la app.
-- **Nueva función:** El sistema quedó publicado en internet, con una base de datos gestionada de forma segura.
