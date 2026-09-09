@@ -192,7 +192,7 @@ const RoleForm: React.FC<RoleFormProps> = ({ role, onCancel, onSaved, onDirtyCha
     return (
         <form onSubmit={handleSubmit} noValidate className="flex min-h-0 flex-1 flex-col gap-6">
             {/* Información básica */}
-            <div className="shrink-0 space-y-4">
+            <div className="shrink-0 space-y-2">
                 <div>
                     <Label htmlFor="label" className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
                         Nombre del Rol *

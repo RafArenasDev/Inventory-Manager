@@ -188,7 +188,7 @@ const InventoryMovementForm: React.FC<InventoryMovementFormProps> = ({ movement,
 
     return (
         <form onSubmit={handleSubmit} noValidate className="flex min-h-0 flex-1 flex-col gap-4">
-            <div className="min-h-0 flex-1 space-y-6 overflow-x-hidden overflow-y-auto p-1">
+            <div className="min-h-0 flex-1 space-y-2 overflow-x-hidden overflow-y-auto p-1">
                 {/* Tipo */}
                 <div>
                     <Label htmlFor="type" className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">

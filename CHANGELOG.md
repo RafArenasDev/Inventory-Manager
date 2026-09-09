@@ -13,6 +13,12 @@ actualiza junto con cada tag nuevo. El modal de "Novedades" del sidebar y el
 badge de versión se generan de este archivo en build time — ver
 `scripts/generate-changelog.mjs`.
 
+## v1.12.9 - 2026-09-09
+
+Los campos de los formularios (Productos, Clientes, Usuarios, Roles, Categorías, Proveedores, Finanzas, Movimientos, Pedidos) quedan más juntos entre sí, sin perder el espacio para el mensaje de error en rojo.
+
+- **Diseño:** Se redujo la separación entre campos en los formularios de captura — se ven más compactos, sin afectar cómo se muestra el mensaje de error de validación debajo de cada campo.
+
 ## v1.12.8 - 2026-09-09
 
 La tarjeta de Auditoría en el Dashboard ya muestra su contador, y ningún contador se desborda cuando el número es muy grande.

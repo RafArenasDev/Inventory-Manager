@@ -210,8 +210,8 @@ const SupplierForm: React.FC<SupplierFormProps> = ({
     return (
         <form onSubmit={handleSubmit} noValidate className="flex min-h-0 flex-1 flex-col gap-4">
             <div className="min-h-0 flex-1 space-y-6 overflow-x-hidden overflow-y-auto p-1">
-                <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-6 md:col-span-2">
+                <div className="grid grid-cols-1 gap-x-6 gap-y-2 md:grid-cols-2">
+                    <div className="grid grid-cols-1 gap-x-4 gap-y-2 sm:grid-cols-6 md:col-span-2">
                         <div className="sm:col-span-3">
                             <Label htmlFor="name" className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
                                 Nombre del Proveedor *
