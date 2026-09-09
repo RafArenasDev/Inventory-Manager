@@ -2,195 +2,197 @@
 
 Formato: una sección por versión (`## vX.Y.Z - YYYY-MM-DD`), un resumen corto,
 y una lista de viñetas con el detalle de qué cambió — cada viñeta puede
-empezar con `**Categoría:**` (Funcionalidad, Seguridad, Auditoría,
-Validación, Legal, Rendimiento, Exportación, UI/UX, Corrección) para
+empezar con `**Categoría:**` (Nueva función, Seguridad, Auditoría,
+Validación, Legal, Velocidad, Exportación, Diseño, Corrección) para
 agruparse visualmente en el modal de "Novedades"; una viñeta sin categoría
-se muestra igual, sin agrupar. Generado a mano hasta `v1.10.1`; desde
-`v1.11.0` se actualiza junto con cada tag nuevo. El modal de "Novedades" del
-sidebar y el badge de versión se generan de este archivo en build time —
-ver `scripts/generate-changelog.mjs`.
+se muestra igual, sin agrupar. Este historial está escrito para quien usa el
+software día a día, no para desarrolladores — sin jerga técnica, explicando
+qué cambia para el usuario. El detalle técnico de cada versión vive en el
+historial de Git. Generado a mano hasta `v1.10.1`; desde `v1.11.0` se
+actualiza junto con cada tag nuevo. El modal de "Novedades" del sidebar y el
+badge de versión se generan de este archivo en build time — ver
+`scripts/generate-changelog.mjs`.
 
 ## v1.11.1 - 2026-09-08
 
-La app quedó instalable como PWA, con licencia explícita, documentación real, y un modal de "Novedades" rediseñado para mostrar el nivel real de detalle de cada versión.
+La app ya se puede instalar como una aplicación, quedó con su licencia definida por escrito, la documentación del proyecto se puso al día, y la pantalla de Novedades se ve mucho más clara.
 
-- **Funcionalidad:** La app quedó instalable como PWA en Android, escritorio e iOS: manifest completo (nombre, ícono, `start_url`, modo standalone) y un service worker propio que mantiene la interfaz utilizable un instante sin conexión — reutilizando el set de íconos ya existente, sin generar ninguno nuevo.
-- **Legal:** El software quedó clasificado explícitamente como licencia Freeware (uso gratuito autorizado por el desarrollador) bajo un EULA propietario — requisito legal para software gratuito en Colombia. Se agregó la cláusula de qué pasaría si en el futuro se cobra por su uso, y se subió `terms_version` para que todos los usuarios vuelvan a aceptar el texto actualizado.
-- **UI/UX:** El README del repositorio se reescribió por completo — antes era el README genérico del starter kit de Laravel/React y todavía decía licencia MIT. Ahora documenta el stack real, los módulos, cómo configurar un host local en Windows y Linux, las opciones de base de datos (MySQL/PostgreSQL), y la licencia correcta.
-- **UI/UX:** El modal de "Novedades" se rediseñó para mostrar el detalle real de trabajo de cada versión: una sola versión a la vez (la más reciente por defecto, elegible desde un combobox propio de la app en vez de un `<select>` nativo), tarjetas con ícono en insignia circular de color por categoría, esquinas redondeadas y sombra, y scroll interno que no compite con el título ni queda pegado a las tarjetas.
-- **Funcionalidad:** El historial de versiones se completó retroactivamente: los tags más antiguos (`v1.0.0` a `v1.5.0`) tenían solo un resumen de una línea pese a representar más de un año de desarrollo real — ahora documentan, con la misma categorización y detalle que las versiones nuevas, el trabajo real extraído del historial de commits.
-- **Corrección:** La tarjeta "Ventas" del resumen financiero del Dashboard mostraba un contador de ventas en vez de la etiqueta del período (Diario/Semanal/etc.) que sí muestran las demás tarjetas de esa fila.
-- **Corrección:** El título de la página de Caja decía "Cajas" (plural) siendo un módulo singular.
-- **Corrección:** Una venta anulada seguía mostrando los botones de "Ver detalles" e "Imprimir factura" funcionando — ahora, igual que un cliente anonimizado, muestra un candado con "Sin acciones".
-- **Corrección:** El modal de detalle de un producto mostraba "Saludable" para stock óptimo, en vez de "Óptimo" como en el resto de la app.
+- **Nueva función:** El sistema ya se puede instalar como una aplicación en el celular o el computador (Android, Windows, Mac, iPhone), con ícono propio, e incluso sigue mostrando la pantalla un instante si se corta el internet.
+- **Legal:** Se dejó por escrito el tipo de licencia del software (uso gratuito autorizado por el desarrollador) y qué pasaría si en algún momento se decide cobrar por su uso. Al haber cambiado el texto legal, todos los usuarios deberán volver a aceptar los Términos y Condiciones la próxima vez que ingresen.
+- **Diseño:** Se actualizó toda la documentación del proyecto con la información real y correcta del software (antes tenía datos de una plantilla genérica que ya no aplicaban).
+- **Diseño:** La pantalla de "Novedades" se rediseñó para mostrar el detalle completo de una versión a la vez, elegible desde un menú desplegable, con tarjetas más claras y ordenadas por tipo de cambio.
+- **Nueva función:** Se completó el historial de todas las versiones desde la primera, para que quede un registro claro de todo lo que se ha construido desde el inicio del proyecto.
+- **Corrección:** La tarjeta de "Ventas" del resumen del Dashboard mostraba un conteo de ventas en vez del período seleccionado (Diario, Semanal, etc.), como sí lo hacen las demás tarjetas.
+- **Corrección:** La página de Caja aparecía titulada en plural ("Cajas") cuando debía decir "Caja".
+- **Corrección:** Una venta anulada todavía dejaba ver e imprimir su factura — ahora, igual que un cliente eliminado, no muestra ninguna acción disponible.
+- **Corrección:** La ficha de un producto mostraba la palabra "Saludable" para indicar stock óptimo, en vez de "Óptimo" como en el resto del sistema.
 
 ## v1.11.0 - 2026-09-08
 
-Auditoría total, bloqueo de clientes anonimizados, aceptación obligatoria de Términos y Condiciones, y los dos topes DIAN activados con cifras reales de 2026.
+El sistema ahora registra todo lo que pasa en la cuenta de cada usuario, un cliente eliminado queda completamente protegido, aceptar los Términos y Condiciones es obligatorio al entrar, y los dos límites de la DIAN quedaron activos con las cifras vigentes de 2026.
 
-- **Auditoría:** Login (éxito, fallido, cuenta inactiva, cuenta bloqueada), logout, cambio de contraseña propio, actualización de perfil propio y reseteo de contraseña por correo quedan registrados con el detalle completo del evento. Antes eran invisibles para el trait automático porque no son cambios de atributos de un modelo — son eventos de autenticación sin modelo asociado, así que se instrumentaron a mano en cada punto exacto del flujo.
-- **Auditoría:** La sincronización de roles de un usuario y de permisos de un rol ahora deja constancia con el detalle de qué se agregó y qué se quitó. Estos cambios viven en tablas pivote (`syncRoles`/`syncPermissions`), invisibles para el trait genérico porque no tocan ningún atributo propio del modelo — se agregó un registro manual específico para cada uno.
-- **Auditoría:** La carga masiva de inventario (Excel) deja una sola entrada agregada por importación con el conteo de productos creados y movimientos registrados. Antes quedaba fuera de cobertura a propósito, para no duplicar el log de un ajuste manual — ahora el hueco real (importaciones sin ningún rastro) queda cerrado sin generar ruido.
-- **Seguridad:** Un cliente anonimizado queda totalmente bloqueado a nivel de servidor, no solo de interfaz: no se puede editar, eliminar, reactivar ni ver su detalle, ni siquiera manipulando la URL directamente. La validación vive en el controlador, así que ningún atajo del navegador la puede saltar.
-- **UI/UX:** La tabla de Clientes ya no envía ningún dato personal de un cliente anonimizado al navegador, ni siquiera el número de documento — solo el texto "Cliente Anonimizado" y guiones en cada columna, con un ícono de candado y "Sin acciones" reemplazando los botones de editar/eliminar/ver.
-- **Legal:** Los Términos y Condiciones se reescribieron por completo: qué hace y qué no hace el software, tipo de licencia, tratamiento de datos personales bajo la Ley 1581 de 2012, alcance del monitoreo interno, y límite de responsabilidad del desarrollador — contenido real, no un párrafo genérico.
-- **Funcionalidad:** La aceptación de los Términos pasó a ser un paso obligatorio justo después del login, con 3 checkboxes independientes que solo se habilitan después de hacer scroll hasta el final del texto — no basta con marcarlos sin leer. Rechazar cierra la sesión de inmediato y devuelve al login.
-- **Legal:** La aceptación quedó versionada con `terms_version`: si el texto legal cambia de fondo en el futuro, se sube un número de versión y absolutamente todos los usuarios vuelven a ver el paso de aceptación en su siguiente ingreso, sin importar en qué navegador o dispositivo lo hayan aceptado antes.
-- **Legal:** El software quedó clasificado explícitamente como licencia Freeware (uso gratuito autorizado por el desarrollador) bajo un EULA propietario — no es código abierto. Se agregó también la cláusula que cubre qué pasaría si en el futuro el desarrollador decide cobrar por su uso.
-- **Funcionalidad:** El tope de venta al cliente "Consumidor Final" quedó activo con una cifra real: 5 UVT, equivalentes a $261.870 con la UVT vigente de 2026. Se calcula desde un valor de UVT configurable en vez de una cifra fija en el código, así que actualizarlo cada año es cambiar una sola variable.
-- **Funcionalidad:** Se activó una alerta de tope anual de facturación electrónica obligatoria: un banner en el Dashboard que aparece a partir del 70% de 3.500 UVT en ventas acumuladas del año ($183.309.000 con la UVT de 2026), y cambia a rojo si el negocio ya lo superó.
-- **Corrección:** El copyright de las plantillas de correo mostraba un año fijo desactualizado (solo 2026) en vez del rango 2025-2026 usado en el resto de la app.
-- **Funcionalidad:** El historial de versiones ahora vive en `CHANGELOG.md` como única fuente de verdad, generado a `resources/js/version.ts` en cada build — de ahí salen tanto el badge de versión del pie de la barra lateral como este mismo modal de "Novedades".
-- **Funcionalidad:** La app quedó instalable como PWA en Android, escritorio e iOS, con un service worker propio que mantiene la interfaz utilizable un instante sin conexión (network-first con cache de respaldo, nunca sobre acciones que escriben datos).
+- **Auditoría:** Ahora quedan registrados el inicio y cierre de sesión (exitoso o fallido), los cambios de contraseña, las actualizaciones del perfil propio, y el restablecimiento de contraseña por correo — con el detalle completo de cada evento.
+- **Auditoría:** Cuando se cambian los roles de un usuario o los permisos de un rol, también queda registrado exactamente qué se agregó y qué se quitó.
+- **Auditoría:** Cuando se cargan productos o movimientos en bloque desde Excel, ahora queda un registro de esa carga con el total de productos creados y movimientos ingresados.
+- **Seguridad:** Un cliente cuyos datos fueron eliminados queda completamente protegido: no se puede editar, eliminar, reactivar, ni consultar su información nunca más, sin ninguna excepción.
+- **Diseño:** La tabla de Clientes ya no muestra ningún dato de un cliente eliminado, ni siquiera su documento — solo aparece "Cliente Anonimizado" y guiones, sin ningún botón de acción disponible sobre esa fila.
+- **Legal:** Los Términos y Condiciones se reescribieron por completo, explicando con claridad qué hace y qué no hace el software, cómo se manejan los datos personales, y los límites de responsabilidad.
+- **Nueva función:** Aceptar los Términos y Condiciones pasó a ser obligatorio justo después de iniciar sesión, con tres casillas de confirmación que solo se pueden marcar después de leer el texto completo. Si alguien los rechaza, la sesión se cierra automáticamente.
+- **Legal:** Si en el futuro se actualiza el contenido legal, todos los usuarios deberán volver a aceptarlo en su siguiente ingreso, sin importar desde qué dispositivo entren.
+- **Legal:** Se definió por escrito que el software es de uso gratuito autorizado por el desarrollador, y qué pasaría si en algún momento se decide cobrar por su uso.
+- **Nueva función:** Se activó el límite de venta al cliente "Consumidor Final" con la cifra vigente de la DIAN para 2026: $261.870. Este valor se actualiza automáticamente cada año sin necesidad de modificar el sistema.
+- **Nueva función:** Se activó un aviso en el Dashboard que alerta cuando las ventas del año se acercan o superan el monto que obliga a facturar electrónicamente ante la DIAN ($183.309.000 con la cifra vigente de 2026).
+- **Corrección:** El año que aparecía en los correos del sistema estaba desactualizado.
+- **Nueva función:** Se organizó el historial de versiones del software para que sea fácil consultar qué cambió en cada actualización, tanto desde el pie de la barra lateral como desde la pantalla de "Novedades".
+- **Nueva función:** El sistema ya se puede instalar como una aplicación en el celular o el computador, y sigue funcionando un instante aunque se pierda la conexión a internet.
 
 ## v1.10.1 - 2026-09-08
 
-Extensión del trait de auditoría a 12 modelos y cierre de una condición de carrera real en el número de factura.
+Se amplió el registro de auditoría a más partes del sistema y se corrigió una falla real que podía duplicar el número de una factura.
 
-- **Auditoría:** El trait `Auditable` (mismo patrón que `BroadcastsModelChanges`, ya usado para tiempo real) se aplicó a Sale, Client, Product, Category, Supplier, PurchaseOrder, User, Role, CashRegister, Transaction, TransactionCategory e InventoryMovement — cualquier creación, edición o eliminación en esos 12 modelos queda registrada automáticamente, sin instrumentar cada controlador a mano.
-- **Corrección:** Se encontró y corrigió una condición de carrera real en Ventas: el número de factura se generaba fuera de la transacción y sin ningún bloqueo, así que dos ventas registradas casi al mismo instante podían calcular el mismo siguiente número. Ahora se genera con `lockForUpdate()` dentro de la misma transacción que crea la venta.
-- **Seguridad:** Se agregó manejo de violación de unicidad (dos usuarios creando el mismo dato al mismo tiempo) en Client, Product, Supplier, Category y User — antes ese choque se veía como un error 500 crudo en vez de un mensaje claro de "ya existe un registro con ese dato".
-- **Funcionalidad:** El umbral DIAN de "Consumidor Final" se construyó como una configuración parametrizable, aunque quedó inactivo hasta v1.11.0 mientras se confirmaba la cifra vigente.
+- **Auditoría:** Ahora prácticamente cualquier creación, edición o eliminación en Ventas, Clientes, Productos, Categorías, Proveedores, Pedidos, Usuarios, Roles, Caja, Finanzas y Movimientos de Inventario queda registrada automáticamente.
+- **Corrección:** Se encontró y corrigió una falla real: si dos ventas se registraban casi al mismo instante, podían terminar con el mismo número de factura. Ahora eso no puede volver a pasar.
+- **Seguridad:** Si dos personas intentan crear el mismo cliente, producto, proveedor, categoría o usuario al mismo tiempo, el sistema ahora avisa con un mensaje claro en vez de mostrar un error confuso.
+- **Nueva función:** Se dejó preparado (pero sin activar todavía) el límite de venta al cliente "Consumidor Final" exigido por la DIAN.
 
 ## v1.10.0 - 2026-09-08
 
-Primer paquete de avisos legales para Colombia y el módulo de Auditoría.
+Primer paquete de avisos legales para Colombia, y llega el nuevo módulo de Auditoría.
 
-- **Legal:** Se agregaron un banner de cookies técnicas, un aviso de monitoreo laboral en el login, y un modal de Términos y Condiciones enlazado desde el pie del login.
-- **Legal:** Se agregó un disclaimer de Habeas Data (Ley 1581 de 2012) visible al crear un cliente, antes del primer campo del formulario.
-- **Funcionalidad:** Se agregó un botón para anonimizar los datos de un cliente sin borrar la fila — las ventas históricas mantienen su referencia contable intacta.
-- **Auditoría:** Se construyó el nuevo módulo de Auditoría, con paginación y filtro de año/mes igual que el resto de módulos, cubriendo inicialmente anulación de venta, anonimizar/eliminar cliente, y ajuste manual de inventario.
+- **Legal:** Se agregaron un aviso de cookies, un aviso de monitoreo laboral en el inicio de sesión, y una ventana de Términos y Condiciones.
+- **Legal:** Se agregó un aviso sobre el tratamiento de datos personales, visible al crear un cliente nuevo.
+- **Nueva función:** Se agregó un botón para eliminar los datos personales de un cliente sin borrar su historial de compras.
+- **Auditoría:** Se construyó el nuevo módulo de Auditoría, con el mismo tipo de filtros y paginación que el resto del sistema, cubriendo inicialmente anulación de venta, eliminación de datos de un cliente, y ajustes manuales de inventario.
 
 ## v1.9.3 - 2026-09-08
 
-Alineación de columnas de dinero en toda la app.
+Alineación de las columnas de dinero en toda la app.
 
-- **UI/UX:** "$" fijo a la izquierda y dígitos alineados a la derecha en tablas, modales de detalle, la factura PDF y las exportaciones a Excel.
+- **Diseño:** El símbolo "$" quedó fijo a la izquierda y las cifras alineadas a la derecha en todas las tablas, fichas de detalle, la factura, y las exportaciones a Excel.
 
 ## v1.9.2 - 2026-09-08
 
-Corrección de identidad de negocio en la factura.
+Corrección de la identidad del negocio en la factura.
 
-- **Corrección:** Título del modal de factura ya no muestra un "#" suelto.
-- **Corrección:** Reemplazada la identidad de negocio de ejemplo ("NovaTech Store") por "Inventory Manager" en `.env`, `.env.example` y `config/business.php`.
+- **Corrección:** El título de la ventana de factura ya no muestra un símbolo suelto.
+- **Corrección:** Se reemplazó el nombre de negocio de ejemplo por el nombre real del sistema en toda la app.
 
 ## v1.9.1 - 2026-09-08
 
-Auditoría del Dashboard y los exports, con dos bugs reales corregidos.
+Revisión del Dashboard y las exportaciones, con dos fallas reales corregidas.
 
-- **Corrección:** El descuento por porcentaje mostraba el monto en pesos calculado en vez del porcentaje ingresado.
-- **Exportación:** Agregado el botón de exportar Excel que faltaba en Productos.
-- **Rendimiento:** Eliminado código muerto en el Dashboard (`calculateFinancialTotals` nunca se usaba).
+- **Corrección:** El descuento por porcentaje mostraba el valor en pesos calculado en vez del porcentaje que se había ingresado.
+- **Exportación:** Se agregó el botón de exportar a Excel que faltaba en Productos.
+- **Velocidad:** Se limpió código que ya no se usaba en el Dashboard.
 
 ## v1.9.0 - 2026-09-08
 
-Cierre del módulo de Finanzas — 13/13 módulos completan el hardening pass.
+Cierre del módulo de Finanzas.
 
-- **Validación:** Validación real de formulario, guarda contra ediciones que romperían la auditoría, y limpieza de código muerto.
+- **Validación:** Se reforzó la validación del formulario de Finanzas y se protegió contra ediciones que podían afectar el registro de auditoría.
 
 ## v1.8.0 - 2026-09-08
 
 Cierre del módulo de Caja.
 
-- **Corrección:** Condición de carrera que podía tumbar el login, totales que quedaban en cero de forma obsoleta, y una condición de carrera de doble cierre de caja.
+- **Corrección:** Se corrigieron fallas reales que podían afectar el inicio de sesión y mostrar totales incorrectos si dos personas intentaban cerrar la caja al mismo tiempo.
 
 ## v1.7.1 - 2026-09-08
 
-Consistencia visual de modales y validación de proveedor.
+Consistencia visual y validación de proveedores.
 
-- **UI/UX:** Corregida una inconsistencia entre `bg-card`/`bg-background` en modales.
-- **Validación:** La dirección del proveedor pasó a ser un campo de texto obligatorio.
+- **Diseño:** Se corrigió una inconsistencia de color entre ventanas emergentes.
+- **Validación:** La dirección del proveedor pasó a ser obligatoria.
 
 ## v1.7.0 - 2026-09-08
 
 Cierre del módulo de Clientes.
 
-- **Validación:** Datos de contacto completos como obligatorios.
-- **Funcionalidad:** Cliente DIAN por defecto ("Consumidor Final").
-- **Corrección:** Error en la creación rápida de cliente.
+- **Validación:** Los datos de contacto completos pasaron a ser obligatorios.
+- **Nueva función:** Se agregó un cliente por defecto ("Consumidor Final") para ventas sin datos del comprador.
+- **Corrección:** Se corrigió una falla en la creación rápida de un cliente.
 
 ## v1.6.0 - 2026-09-08
 
 Cierre del módulo de Ventas.
 
-- **Seguridad:** Precio y stock pasaron a calcularse de forma autoritativa en el servidor (no confiar en el precio que envía el navegador).
-- **Validación:** Cliente pasó a ser obligatorio en toda venta.
-- **Corrección:** Error de visualización del precio por ítem.
+- **Seguridad:** El precio y el stock de una venta ahora se calculan siempre desde el sistema, no desde lo que envía el navegador de quien vende.
+- **Validación:** El cliente pasó a ser obligatorio en toda venta.
+- **Corrección:** Se corrigió cómo se mostraba el precio de cada producto dentro de una venta.
 
 ## v1.5.1 - 2026-09-08
 
-Corrección de validación y layout.
+Corrección de validación y de la apariencia de los formularios.
 
-- **Corrección:** Salto de layout durante la validación.
-- **Validación:** Modales de contraseña/perfil y alineación del formulario de productos.
+- **Corrección:** Se corrigió un salto visual que ocurría al validar un formulario.
+- **Validación:** Se revisaron las ventanas de contraseña, perfil, y el formulario de productos.
 
 ## v1.5.0 - 2026-09-08
 
-Hardening del módulo de Proveedores y fixes de validación transversales.
+Revisión del módulo de Proveedores.
 
-- **Validación:** Formulario de Proveedores endurecido, con auto-cálculo del dígito de verificación del NIT (evita capturarlo mal a mano).
+- **Validación:** Se reforzó el formulario de Proveedores, y el dígito de verificación del NIT ahora se calcula solo (evita errores al digitarlo a mano).
 
 ## v1.4.0 - 2026-09-07
 
-Hardening de Productos, Movimientos y Pedidos.
+Revisión de Productos, Movimientos de Inventario y Pedidos.
 
-- **Validación:** Cantidades que nunca quedan en negativo y validación reforzada del lado del servidor en los tres módulos.
-- **Funcionalidad:** Envío explícito (con confirmación) de WhatsApp y correo, en vez de dispararse automáticamente.
-- **Corrección:** Restaurado el anillo de foco visual en el último campo de cada formulario modal, y el botón de Pedidos ajustado al estilo/gating estándar del resto de la app.
+- **Validación:** Las cantidades ya nunca pueden quedar en negativo, y se reforzaron las validaciones en los tres módulos.
+- **Nueva función:** El envío de WhatsApp y de correo ahora pide confirmación en vez de enviarse solo.
+- **Corrección:** Se corrigieron detalles visuales menores en los formularios de estos módulos.
 
 ## v1.3.3 - 2026-09-07
 
-Corrección de errores de carga de imagen de producto.
+Corrección de errores al subir la imagen de un producto.
 
-- **Corrección:** El nombre del archivo se resalta en negrita (vía HTML del SweetAlert) y ya no aparece entre comillas en el mensaje de error de carga de imagen.
+- **Corrección:** El mensaje de error al subir una imagen ahora es más claro.
 
 ## v1.3.2 - 2026-09-07
 
 Rediseño de la carga masiva de Productos.
 
-- **Funcionalidad:** Modo de solo creación de productos (separado de Movimientos de Inventario), interfaz de arrastrar-y-soltar, y una tabla guía de campos esperados por columna.
+- **Nueva función:** La carga masiva de Productos ahora solo crea productos nuevos (separada de Movimientos de Inventario), con una interfaz de arrastrar y soltar el archivo, y una guía de qué va en cada columna.
 
 ## v1.3.1 - 2026-09-07
 
 Mejoras menores al módulo de Productos.
 
-- **UI/UX:** Ocultadas las notas de movimiento en el modal de vista de Productos (no aportaban nada ahí) y agregada una tarjeta guía para la carga masiva.
+- **Diseño:** Se simplificó la ficha de un producto y se agregó una guía para la carga masiva.
 
 ## v1.3.0 - 2026-09-07
 
 Cierre del módulo de Categorías.
 
-- **Validación:** Validación reducida a solo el nombre, chequeo redundante eliminado, mensaje de eliminación más claro.
+- **Validación:** Se simplificó la validación al crear o editar una categoría, y el mensaje al eliminarla es más claro.
 
 ## v1.2.0 - 2026-09-07
 
 Cierre del módulo de Roles.
 
-- **Validación:** Protección contra editar el rol Administrador o quitarse el único rol propio (evita quedar sin acceso al sistema).
-- **UI/UX:** Nombre de la entidad en negrita dentro de los diálogos de confirmación de eliminación, en toda la app.
+- **Validación:** Se protegió el rol de Administrador para que no se pueda editar mal ni dejar a un usuario sin ningún rol asignado.
+- **Diseño:** El nombre del registro aparece resaltado en los mensajes de confirmación antes de eliminar algo, en toda la app.
 
 ## v1.1.1 - 2026-09-07
 
-Corrección de hardening en el módulo de Usuarios.
+Corrección en el módulo de Usuarios.
 
-- **Corrección:** El borrado de un usuario no era atómico y podía romperse (y dejar al usuario sin roles pero sin eliminar) si chocaba contra historial referenciado por clave foránea — ahora corre dentro de una transacción.
+- **Corrección:** Se corrigió una falla al eliminar un usuario que, en ciertos casos, podía dejarlo en un estado inconsistente.
 
 ## v1.1.0 - 2026-09-07
 
 Cierre del módulo de Usuarios.
 
-- **Validación:** Validación completa del formulario de Usuarios.
-- **Seguridad:** Bloqueos de auto-acción — un usuario no puede desactivarse ni eliminarse a sí mismo.
+- **Validación:** Se completó la validación del formulario de Usuarios.
+- **Seguridad:** Un usuario ya no puede desactivar ni eliminar su propia cuenta.
 
 ## v1.0.0 - 2026-09-07
 
-Línea base del MVP — más de un año de desarrollo (primer commit: 1 de junio de 2025) que llega a este punto como la primera versión "completa": el negocio ya puede vender, cobrar, inventariar y reabastecer desde la propia app. El sistema de tags con changelog formal empezó junto con esta versión, así que todo ese trabajo previo queda resumido acá en vez de repartido en 120+ tags retroactivos.
+Primera versión completa del sistema — resultado de más de un año de trabajo (el desarrollo empezó el 1 de junio de 2025). Con esta versión, el negocio ya puede vender, cobrar, controlar el inventario y reabastecerse sin salir de la aplicación.
 
-- **Funcionalidad:** Los 11 módulos operativos del MVP quedaron con CRUD completo: Usuarios, Roles y Permisos, Categorías, Productos, Proveedores, Clientes, Ventas, Movimientos de Inventario, Pedidos (con recepción automática desde entradas de stock), Caja (apertura/cierre automático por horario laboral) y Dashboard.
-- **Funcionalidad:** Carga masiva de productos y movimientos de stock vía Excel/CSV, con vista previa fila por fila antes de confirmar.
-- **Funcionalidad:** Dashboard con gráficas de ventas y categorías, accesos directos por módulo, y exportación a PDF/Excel respetando el filtro activo.
-- **Funcionalidad:** Tiempo real en toda la app (Laravel Reverb): cualquier cambio de otra sesión se refleja solo, sin recargar, en prácticamente todos los módulos de negocio.
-- **Seguridad:** Bloqueo progresivo de cuenta tras intentos fallidos de login, contraseñas seguras obligatorias, cambio forzado en el primer ingreso, correo de bienvenida con credenciales, y flujo completo de restablecimiento de contraseña por correo.
-- **UI/UX:** Migración completa de formularios de página completa a modales, de `<select>` nativo a un Combobox propio buscable, y estandarización de colores, badges, íconos y alturas de fila en todas las tablas del sistema, con tema claro/oscuro consistente.
-- **Rendimiento:** Portabilidad de búsquedas y agregaciones por fecha entre MySQL, PostgreSQL y SQLite (sensibilidad a mayúsculas/tildes, funciones de fecha) — el mismo código corre en desarrollo local (MySQL) y en producción (PostgreSQL en Render) sin ramas de código distintas.
-- **Funcionalidad:** Despliegue containerizado (Docker) en Render, con la base de datos gestionada por Aiven.
+- **Nueva función:** Quedaron listos los 11 módulos principales: Usuarios, Roles y Permisos, Categorías, Productos, Proveedores, Clientes, Ventas, Movimientos de Inventario, Pedidos a proveedores, Caja, y el Dashboard.
+- **Nueva función:** Se agregó la carga masiva de productos y movimientos de inventario desde un archivo de Excel, con una vista previa antes de confirmar.
+- **Nueva función:** El Dashboard incluye gráficas de ventas y categorías, accesos rápidos a cada módulo, y exportación a PDF y Excel.
+- **Nueva función:** Se agregó actualización en tiempo real: si otra persona hace un cambio en el sistema, se refleja solo en la pantalla, sin necesidad de recargar.
+- **Seguridad:** Se agregó bloqueo progresivo de la cuenta tras varios intentos fallidos de inicio de sesión, exigencia de contraseñas seguras, cambio obligatorio de contraseña en el primer ingreso, correo de bienvenida, y recuperación de contraseña por correo.
+- **Diseño:** Se estandarizaron colores, íconos y estilos en todas las tablas del sistema, con un tema claro y oscuro consistente en toda la app.
+- **Nueva función:** El sistema quedó publicado en internet, con una base de datos gestionada de forma segura.
