@@ -1,6 +1,7 @@
 import { IconActionButton } from '@/components/icon-action-button';
 import { PeriodFilter } from '@/components/period-filter';
 import { Button } from '@/components/ui/button';
+import { CurrencyCell } from '@/components/ui/currency-cell';
 import { Pagination } from '@/components/ui/pagination';
 import SearchInput from '@/components/ui/search-input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -84,12 +85,6 @@ interface SalesTableProps {
     };
     extraFilters?: Record<string, string | undefined>;
 }
-
-const formatCurrency = (value: number): string => {
-    return `$ ${Math.round(value)
-        .toString()
-        .replace(/\B(?=(\d{3})+(?!\d))/g, '.')}`;
-};
 
 export default function SalesTable({
     sales,
@@ -199,7 +194,9 @@ export default function SalesTable({
                                 <TableCell>{formatDate(sale.sale_date)}</TableCell>
                                 <TableCell>{sale.sale_time}</TableCell>
                                 <TableCell>{sale.client?.name || 'Cliente no especificado'}</TableCell>
-                                <TableCell className="font-semibold">{formatCurrency(sale.total_paid)}</TableCell>
+                                <TableCell className="font-semibold">
+                                    <CurrencyCell value={sale.total_paid} />
+                                </TableCell>
                                 <TableCell>{sale.items.length}</TableCell>
                                 <TableCell>
                                     {sale.is_cancelled ? (

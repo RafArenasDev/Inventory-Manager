@@ -1,5 +1,6 @@
 import { IconActionButton } from '@/components/icon-action-button';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import { CurrencyCell } from '@/components/ui/currency-cell';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import PurchaseOrderForm from '@/pages/purchaseOrders/purchaseOrderForm';
@@ -59,10 +60,6 @@ interface Product {
     price_without_tax: number;
 }
 
-const formatCOP = (value: number): string =>
-    `$ ${Math.round(value)
-        .toString()
-        .replace(/\B(?=(\d{3})+(?!\d))/g, '.')}`;
 const formatDate = (value: string): string => value.slice(0, 10).split('-').reverse().join('-');
 
 const TIER_BADGE: Record<StockTier, string> = {
@@ -284,7 +281,7 @@ export function StockAlertModal({ open, onOpenChange, onOrderCreated }: StockAle
                                                                     {item.quantity_requested}
                                                                 </span>
                                                                 {item.unit_cost !== null && (
-                                                                    <span>{formatCOP(item.unit_cost * item.quantity_requested)}</span>
+                                                                    <CurrencyCell value={item.unit_cost * item.quantity_requested} className="w-24" />
                                                                 )}
                                                             </div>
                                                         ))}
@@ -292,7 +289,7 @@ export function StockAlertModal({ open, onOpenChange, onOrderCreated }: StockAle
                                                     {hasAnyPrice && (
                                                         <div className="border-input mt-2 flex items-center justify-between border-t pt-2 text-sm font-semibold">
                                                             <span>Total</span>
-                                                            <span>{formatCOP(total)}</span>
+                                                            <CurrencyCell value={total} className="w-24" />
                                                         </div>
                                                     )}
                                                 </div>

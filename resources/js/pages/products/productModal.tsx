@@ -1,3 +1,4 @@
+import { CurrencyCell } from '@/components/ui/currency-cell';
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog';
 import { CalendarClock, Expand, Image as ImageIcon, Package, TrendingUp, Truck } from 'lucide-react';
 import { useState } from 'react';
@@ -162,21 +163,29 @@ export default function ProductModal({ isOpen, onClose, product }: ProductModalP
                                     {product.price_without_tax !== undefined && (
                                         <div className="flex items-center justify-between text-sm">
                                             <span className="text-gray-500 dark:text-gray-400">Costo sin IVA</span>
-                                            <span className="font-medium text-gray-900 dark:text-gray-100">
-                                                {formatCOP(product.price_without_tax)}
-                                            </span>
+                                            <CurrencyCell
+                                                value={product.price_without_tax ?? 0}
+                                                className="w-28 font-medium text-gray-900 dark:text-gray-100"
+                                            />
                                         </div>
                                     )}
                                     {displayIvaValue > 0 && (
                                         <div className="flex items-center justify-between text-sm">
                                             <span className="text-gray-500 dark:text-gray-400">IVA</span>
-                                            <span className="font-medium text-emerald-700 dark:text-emerald-400">+{formatCOP(displayIvaValue)}</span>
+                                            <CurrencyCell
+                                                value={displayIvaValue}
+                                                showSign
+                                                className="w-28 font-medium text-emerald-700 dark:text-emerald-400"
+                                            />
                                         </div>
                                     )}
                                     {product.price_with_tax !== undefined && (
                                         <div className="flex items-center justify-between border-t border-gray-100 pt-1.5 text-sm dark:border-gray-800">
                                             <span className="font-medium text-gray-700 dark:text-gray-300">Costo con IVA</span>
-                                            <span className="font-semibold text-sky-700 dark:text-sky-300">{formatCOP(product.price_with_tax)}</span>
+                                            <CurrencyCell
+                                                value={product.price_with_tax ?? 0}
+                                                className="w-28 font-semibold text-sky-700 dark:text-sky-300"
+                                            />
                                         </div>
                                     )}
 

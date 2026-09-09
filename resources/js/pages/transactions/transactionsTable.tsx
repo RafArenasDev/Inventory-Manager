@@ -1,6 +1,7 @@
 import { IconActionButton } from '@/components/icon-action-button';
 import { PeriodFilter } from '@/components/period-filter';
 import { Button } from '@/components/ui/button';
+import { CurrencyCell } from '@/components/ui/currency-cell';
 import { Pagination } from '@/components/ui/pagination';
 import SearchInput from '@/components/ui/search-input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -86,14 +87,6 @@ export default function TransactionsTable({
 }: TransactionsTableProps) {
     // console.log("Datos recibidos:", transactions.data);
 
-    const formatAmount = (amount: number) => {
-        return new Intl.NumberFormat('es-CO', {
-            style: 'currency',
-            currency: 'COP',
-            minimumFractionDigits: 0,
-        }).format(amount);
-    };
-
     const getTypeColor = (type: 'Ingreso' | 'Gasto') => {
         return type === 'Ingreso' ? 'bg-emerald-600 dark:bg-emerald-700' : 'bg-rose-600 dark:bg-rose-700';
     };
@@ -151,7 +144,9 @@ export default function TransactionsTable({
                                     </span>
                                 </TableCell>
                                 <TableCell>{transaction.category.name}</TableCell>
-                                <TableCell className="font-semibold">{formatAmount(transaction.amount)}</TableCell>
+                                <TableCell className="font-semibold">
+                                    <CurrencyCell value={transaction.amount} />
+                                </TableCell>
                                 <TableCell>{transaction.payment_method}</TableCell>
                                 <TableCell>
                                     {formatDate(transaction.transaction_date)} - {formatTime(transaction.transaction_time)}

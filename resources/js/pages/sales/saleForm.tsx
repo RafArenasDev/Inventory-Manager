@@ -1,5 +1,6 @@
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
+import { CurrencyCell } from '@/components/ui/currency-cell';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -686,8 +687,12 @@ const SaleForm: React.FC<SaleFormProps> = ({ sale, onCancel, onSaved, onDirtyCha
                                             <TableRow key={index}>
                                                 <TableCell>{item.product_code}</TableCell>
                                                 <TableCell>{item.product_name}</TableCell>
-                                                <TableCell>{formatCurrency(item.price_at_sale || 0)}</TableCell>
-                                                <TableCell>{formatCurrency(calculateItemTotal(item))}</TableCell>
+                                                <TableCell>
+                                                    <CurrencyCell value={item.price_at_sale || 0} />
+                                                </TableCell>
+                                                <TableCell>
+                                                    <CurrencyCell value={calculateItemTotal(item)} />
+                                                </TableCell>
                                                 <TableCell>
                                                     <div className="flex items-center space-x-2">
                                                         <Button
@@ -736,17 +741,17 @@ const SaleForm: React.FC<SaleFormProps> = ({ sale, onCancel, onSaved, onDirtyCha
                     <div className="shrink-0 space-y-0.5 rounded-lg bg-gray-50 p-2.5 dark:bg-white/[0.03]">
                         <div className="flex justify-between text-sm">
                             <span className="font-medium">Subtotal:</span>
-                            <span>{formatCurrency(totalWithoutTax)}</span>
+                            <CurrencyCell value={totalWithoutTax} className="w-28" />
                         </div>
                         <div className="flex justify-between text-sm">
                             <span className="font-medium">
                                 Descuento ({isPercentage ? `${formData.discount}%` : formatCurrency(formData.discount)}):
                             </span>
-                            <span className="text-red-600">-{formatCurrency(discountAmount)}</span>
+                            <CurrencyCell value={-discountAmount} className="w-28 text-red-600" />
                         </div>
                         <div className="flex justify-between border-t border-gray-200 pt-1.5 text-lg font-bold dark:border-gray-800">
                             <span>Total a Pagar:</span>
-                            <span className="text-green-600 dark:text-green-500">{formatCurrency(totalPaid)}</span>
+                            <CurrencyCell value={totalPaid} className="w-28 text-green-600 dark:text-green-500" />
                         </div>
                     </div>
                 </div>

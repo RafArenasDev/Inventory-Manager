@@ -1,3 +1,4 @@
+import { CurrencyCell } from '@/components/ui/currency-cell';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { formatDateTime } from '@/lib/format-datetime';
@@ -183,12 +184,10 @@ export function PurchaseOrderDetailModal({ order, onOpenChange }: PurchaseOrderD
                                     </TableCell>
                                     <TableCell className="text-right">{item.quantity_requested} und</TableCell>
                                     {order.status !== 'Solicitado' && <TableCell className="text-right">{item.quantity_received} und</TableCell>}
+                                    {hasAnyPrice && <TableCell>{item.unit_cost !== null ? <CurrencyCell value={item.unit_cost} /> : '-'}</TableCell>}
                                     {hasAnyPrice && (
-                                        <TableCell className="text-right">{item.unit_cost !== null ? formatCOP(item.unit_cost) : '-'}</TableCell>
-                                    )}
-                                    {hasAnyPrice && (
-                                        <TableCell className="text-right">
-                                            {item.unit_cost !== null ? formatCOP(item.unit_cost * item.quantity_requested) : '-'}
+                                        <TableCell>
+                                            {item.unit_cost !== null ? <CurrencyCell value={item.unit_cost * item.quantity_requested} /> : '-'}
                                         </TableCell>
                                     )}
                                 </TableRow>

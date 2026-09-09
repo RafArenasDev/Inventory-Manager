@@ -240,10 +240,10 @@ class TransactionController extends Controller
 
         // Aplicar formato de moneda a las celdas de montos (después de escribir los datos)
         if ($ingresosRow > 2) {
-            $ingresosSheet->getStyle('D2:D'.($ingresosRow - 1))->getNumberFormat()->setFormatCode('"$" #,##0');
+            $ingresosSheet->getStyle('D2:D'.($ingresosRow - 1))->getNumberFormat()->setFormatCode('_-"$"* #,##0_-;-"$"* #,##0_-;_-"$"* "-"_-;_-@_-');
         }
         if ($egresosRow > 2) {
-            $egresosSheet->getStyle('D2:D'.($egresosRow - 1))->getNumberFormat()->setFormatCode('"$" #,##0');
+            $egresosSheet->getStyle('D2:D'.($egresosRow - 1))->getNumberFormat()->setFormatCode('_-"$"* #,##0_-;-"$"* #,##0_-;_-"$"* "-"_-;_-@_-');
         }
 
         // Agregar fila de totales para Ingresos
@@ -253,7 +253,7 @@ class TransactionController extends Controller
             $ingresosSheet->getStyle('C'.$ingresosRow.':D'.$ingresosRow)->applyFromArray($totalStyle);
 
             // Formatear la celda del total como moneda
-            $ingresosSheet->getStyle('D'.$ingresosRow)->getNumberFormat()->setFormatCode('"$" #,##0');
+            $ingresosSheet->getStyle('D'.$ingresosRow)->getNumberFormat()->setFormatCode('_-"$"* #,##0_-;-"$"* #,##0_-;_-"$"* "-"_-;_-@_-');
         }
 
         // Agregar fila de totales para Egresos
@@ -263,7 +263,7 @@ class TransactionController extends Controller
             $egresosSheet->getStyle('C'.$egresosRow.':D'.$egresosRow)->applyFromArray($totalStyle);
 
             // Formatear la celda del total como moneda
-            $egresosSheet->getStyle('D'.$egresosRow)->getNumberFormat()->setFormatCode('"$" #,##0');
+            $egresosSheet->getStyle('D'.$egresosRow)->getNumberFormat()->setFormatCode('_-"$"* #,##0_-;-"$"* #,##0_-;_-"$"* "-"_-;_-@_-');
         }
 
         // Apply data styles

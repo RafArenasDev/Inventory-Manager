@@ -1,5 +1,6 @@
 import { IconActionButton } from '@/components/icon-action-button';
 import { Button } from '@/components/ui/button';
+import { CurrencyCell } from '@/components/ui/currency-cell';
 import { Pagination } from '@/components/ui/pagination';
 import SearchInput from '@/components/ui/search-input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -114,18 +115,6 @@ export default function ProductsTable({
         }
     };
 
-    const formatPrice = (price: number | null | undefined) => {
-        if (price === null || price === undefined || isNaN(price)) {
-            return '-';
-        }
-        return new Intl.NumberFormat('es-CO', {
-            style: 'currency',
-            currency: 'COP',
-            minimumFractionDigits: 0,
-            maximumFractionDigits: 0,
-        }).format(price);
-    };
-
     const handleViewProduct = (product: Product) => {
         setSelectedProduct(product);
         setIsModalOpen(true);
@@ -221,7 +210,13 @@ export default function ProductsTable({
                                             <span>{stockStatus.label}</span>
                                         </span>
                                     </TableCell>
-                                    <TableCell className="text-left font-medium">{formatPrice(product.sale_price)}</TableCell>
+                                    <TableCell className="text-left font-medium">
+                                        {product.sale_price === null || product.sale_price === undefined || isNaN(product.sale_price) ? (
+                                            '-'
+                                        ) : (
+                                            <CurrencyCell value={product.sale_price} />
+                                        )}
+                                    </TableCell>
                                     <TableCell className="text-left text-xs">
                                         <span className="w-fit rounded-full bg-zinc-600 px-3 py-0.5 text-xs font-bold text-white shadow-sm dark:bg-zinc-700">
                                             {product.supplier || '-'}
