@@ -13,6 +13,13 @@ actualiza junto con cada tag nuevo. El modal de "Novedades" del sidebar y el
 badge de versión se generan de este archivo en build time — ver
 `scripts/generate-changelog.mjs`.
 
+## v1.12.8 - 2026-09-09
+
+La tarjeta de Auditoría en el Dashboard ya muestra su contador, y ningún contador se desborda cuando el número es muy grande.
+
+- **Diseño:** La tarjeta de "Auditoría" en el Dashboard ahora muestra cuántos registros tiene, igual que el resto de las tarjetas.
+- **Diseño:** Cuando el contador de una tarjeta supera 999, se muestra "999+" en vez del número exacto, para que nunca se encime con el ícono o el nombre.
+
 ## v1.12.7 - 2026-09-09
 
 Se corrigió que la factura en PDF de una venta se viera mal alineada: el precio de cada producto y los totales quedaban separados por un espacio en blanco enorme del símbolo "$".

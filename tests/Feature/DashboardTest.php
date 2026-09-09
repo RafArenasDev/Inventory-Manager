@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\AuditLog;
 use App\Models\Sale;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -54,5 +55,22 @@ class DashboardTest extends TestCase
                 ->where('annualInvoicingAlert.year_to_date', 150_000_000)
                 ->where('annualInvoicingAlert.exceeded', false)
             );
+    }
+
+    /**
+     * Regresión: la tarjeta de "Auditoría" no tenía número, porque
+     * 'audit-logs' faltaba en MODULE_STATS_KEY del frontend y 'auditoria'
+     * nunca se mandaba en 'stats' — a diferencia de todas las demás
+     * tarjetas, que sí muestran su conteo.
+     */
+    public function test_stats_include_the_audit_log_count()
+    {
+        $user = User::factory()->create();
+        AuditLog::create(['user_id' => $user->id, 'user_name' => $user->name, 'action' => 'test.action']);
+        AuditLog::create(['user_id' => $user->id, 'user_name' => $user->name, 'action' => 'test.action']);
+
+        $this->actingAs($user)
+            ->get('/dashboard')
+            ->assertInertia(fn (Assert $page) => $page->where('stats.auditoria', 2));
     }
 }
