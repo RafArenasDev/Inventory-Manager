@@ -136,7 +136,7 @@ export default function SupplierIndex({ suppliers, filters, totalCount, filtered
         router.post(route('suppliers.search'), { ...filters, search, page: 1 }, { preserveState: true, preserveScroll: true });
     };
 
-    const hasMultiplePages = totalCount > Number(filters.per_page || 10);
+    const hasMultiplePages = filteredCount > Number(filters.per_page || 10);
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>

@@ -240,7 +240,7 @@ export default function SaleIndex({ sales, products, clients, departments, citie
         }
     };
 
-    const hasMultiplePages = totalCount > Number(filters.per_page || 10);
+    const hasMultiplePages = filteredCount > Number(filters.per_page || 10);
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>

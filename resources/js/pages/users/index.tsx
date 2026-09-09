@@ -111,7 +111,7 @@ export default function UserIndex({ users, roles, filters, totalCount, filteredC
         router.post(route('users.search'), { ...filters, search, page: 1 }, { preserveState: true, preserveScroll: true });
     };
 
-    const hasMultiplePages = totalCount > Number(filters.per_page || 10);
+    const hasMultiplePages = filteredCount > Number(filters.per_page || 10);
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>

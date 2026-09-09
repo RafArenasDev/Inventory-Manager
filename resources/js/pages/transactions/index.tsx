@@ -184,7 +184,7 @@ export default function TransactionsPage({ transactions, categories, filters, to
         );
     };
 
-    const hasMultiplePages = totalCount > Number(filters.per_page || 10);
+    const hasMultiplePages = filteredCount > Number(filters.per_page || 10);
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>

@@ -56,12 +56,6 @@ interface SaleDetailModalProps {
     businessName: string;
 }
 
-const formatCurrency = (value: number): string => {
-    return `$ ${Math.round(value)
-        .toString()
-        .replace(/\B(?=(\d{3})+(?!\d))/g, '.')}`;
-};
-
 const formatDate = (dateString: string): string => {
     const date = new Date(dateString);
     const day = String(date.getDate()).padStart(2, '0');
@@ -238,14 +232,9 @@ export default function SaleDetailModal({ isOpen, onClose, sale, businessName }:
                         {sale.discount > 0 && (
                             <div className="flex justify-between text-sm">
                                 <span className="font-medium">
-                                    Descuento (
-                                    {sale.discount_type === 'percentage'
-                                        ? // El servidor solo guarda el monto ya calculado del
-                                          // descuento (no el % que se tecleó), así que el % se
-                                          // reconstruye desde la proporción sobre el subtotal.
-                                          `${sale.total_without_tax > 0 ? Math.round((sale.discount / sale.total_without_tax) * 100) : 0}%`
-                                        : formatCurrency(sale.discount)}
-                                    ):
+                                    {/* Entre paréntesis va el símbolo del tipo de descuento tal como se ingresó
+                                        en el formulario ($ o %), no el monto — ese ya se muestra a la derecha. */}
+                                    Descuento ({sale.discount_type === 'percentage' ? '%' : '$'}):
                                 </span>
                                 <CurrencyCell
                                     value={-(sale.total_without_tax - sale.total_with_discount)}
