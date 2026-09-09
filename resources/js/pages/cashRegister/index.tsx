@@ -151,7 +151,7 @@ export default function CashRegisterIndex({ cashRegisters, filters, totalCount, 
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Caja" />
             <div className="flex h-full flex-1 flex-col gap-4 rounded-xl p-4">
-                <PageHeader icon={Wallet} title="Cajas" description="Controla la apertura y cierre de caja de cada jornada.">
+                <PageHeader icon={Wallet} title="Caja" description="Controla la apertura y cierre de caja de cada jornada.">
                     {userPermissions.includes('Crear Caja') && !todayRegister && (
                         <Button onClick={handleCreateCashRegister} className="gap-1 bg-emerald-600 text-white hover:bg-emerald-700">
                             <Clock className="h-4 w-4" /> Abrir Caja

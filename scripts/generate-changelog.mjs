@@ -33,10 +33,15 @@ matches.forEach((match, index) => {
     const bulletsRaw = bulletStart === -1 ? '' : body.slice(bulletStart);
 
     const notes = summaryRaw.trim().replace(/\s+/g, ' ');
+    const CATEGORY_RE = /^\*\*(.+?):\*\*\s*/;
     const highlights = bulletsRaw
         .split(/\n(?=- )/)
         .map((line) => line.replace(/^- /, '').trim().replace(/\s+/g, ' '))
-        .filter(Boolean);
+        .filter(Boolean)
+        .map((text) => {
+            const match = text.match(CATEGORY_RE);
+            return match ? { category: match[1], text: text.slice(match[0].length) } : { category: null, text };
+        });
 
     entries.push({ version, date, notes, highlights });
 });
@@ -52,11 +57,16 @@ const fileContent = `// GENERADO AUTOMÁTICAMENTE por scripts/generate-changelog
 // \`npm run build\`/\`npm run dev\`. Para agregar una versión, agregar una
 // sección nueva arriba del todo en CHANGELOG.md.
 
+export interface ChangelogHighlight {
+    category: string | null;
+    text: string;
+}
+
 export interface ChangelogEntry {
     version: string;
     date: string;
     notes: string;
-    highlights: string[];
+    highlights: ChangelogHighlight[];
 }
 
 export const CURRENT_VERSION: string = ${JSON.stringify(current.version)};
