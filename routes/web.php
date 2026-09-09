@@ -21,7 +21,7 @@ Route::get('/', function () {
     return redirect()->route('login');
 })->name('home');
 
-Route::middleware(['auth', 'verified', 'active'])->group(function () {
+Route::middleware(['auth', 'verified', 'active', 'terms.accepted'])->group(function () {
 
     Route::get('/dashboard', [DashboardController::class, 'index'])
         ->middleware(['auth', 'verified'])

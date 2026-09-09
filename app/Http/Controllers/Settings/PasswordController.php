@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Settings;
 
 use App\Http\Controllers\Controller;
+use App\Services\AuditLogger;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -31,10 +32,20 @@ class PasswordController extends Controller
             'password' => ['required', Password::defaults(), 'confirmed'],
         ]);
 
-        $request->user()->update([
+        $user = $request->user();
+
+        // Se suprime el log genérico del trait Auditable (que vería el save
+        // de más abajo y solo mostraría "must_change_password" cambiado, un
+        // detalle interno sin sentido para quien lea la auditoría) a favor
+        // de esta entrada explícita y legible.
+        AuditLogger::suppress($user);
+
+        $user->update([
             'password' => Hash::make($validated['password']),
             'must_change_password' => false,
         ]);
+
+        AuditLogger::log('user.password_self_changed', $user);
 
         // Cambiar la propia contraseña invalida la sesión actual a propósito
         // — es la práctica correcta (no dejar sesiones viejas con la clave

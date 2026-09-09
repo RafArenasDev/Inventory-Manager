@@ -2,8 +2,10 @@
     "private": true,
     "type": "module",
     "scripts": {
+        "prebuild": "node scripts/generate-changelog.mjs",
         "build": "vite build",
         "build:ssr": "vite build && vite build --ssr",
+        "predev": "node scripts/generate-changelog.mjs",
         "dev": "vite",
         "format": "prettier --write resources/",
         "format:check": "prettier --check resources/",

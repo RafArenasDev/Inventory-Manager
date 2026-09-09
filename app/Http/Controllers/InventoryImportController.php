@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\AuditLogger;
 use App\Services\InventoryImportService;
 use Illuminate\Http\Request;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
@@ -57,6 +58,21 @@ class InventoryImportController extends Controller
             $result = $this->importer->commit($validated['token'], $validated['purchase_order_id'] ?? null, $validated['mode'] ?? 'movements');
         } catch (\RuntimeException $e) {
             return redirect()->back()->with('error', $e->getMessage());
+        }
+
+        // La carga masiva crea sus movimientos vía InventoryMovement::create()
+        // fila por fila, pero ese modelo tiene shouldAudit() apagado para
+        // 'created' (los ajustes manuales normales ya se loguean aparte) —
+        // sin esta entrada agregada, una carga masiva completa quedaría sin
+        // ningún rastro en auditoría más allá de los productos nuevos.
+        if ($result['created'] > 0 || $result['updated'] > 0) {
+            AuditLogger::log(
+                'inventory_import.committed',
+                null,
+                null,
+                ['productos_creados' => $result['created'], 'movimientos_registrados' => $result['updated'], 'filas_omitidas' => $result['skipped']],
+                'Carga masiva de '.($validated['mode'] ?? 'movements'),
+            );
         }
 
         return redirect()->back()->with('success',

@@ -1,8 +1,11 @@
 import { NavMain } from '@/components/nav-main';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
+import WhatsNewModal from '@/components/whats-new-modal';
 import { resolveIcon } from '@/lib/icon-map';
 import { type NavItem, type SharedData, type SidebarModule } from '@/types';
+import { CURRENT_VERSION } from '@/version';
 import { Link, usePage } from '@inertiajs/react';
+import { useState } from 'react';
 import AppLogo from './app-logo';
 
 export function AppSidebar() {
@@ -10,8 +13,9 @@ export function AppSidebar() {
         permissions: string[];
     };
 
-    const { auth, modules, appVersion } = usePage().props as unknown as SharedData & { auth: Auth; modules: SidebarModule[] };
+    const { auth, modules } = usePage().props as unknown as SharedData & { auth: Auth; modules: SidebarModule[] };
     const userPermissions = auth.permissions;
+    const [showWhatsNew, setShowWhatsNew] = useState(false);
 
     const mainNavItems: NavItem[] = (modules ?? []).map((module) => ({
         title: module.label,
@@ -72,10 +76,18 @@ export function AppSidebar() {
 
             <SidebarFooter>
                 <div className="border-sidebar-border space-y-0.5 border-t px-2 pt-3 pb-1 text-center group-data-[collapsible=icon]:hidden">
-                    <p className="text-sidebar-foreground/60 text-[11px] font-medium tracking-wide">Versión {appVersion}</p>
+                    <button
+                        type="button"
+                        onClick={() => setShowWhatsNew(true)}
+                        className="text-sidebar-foreground/60 hover:text-sidebar-foreground text-[11px] font-medium tracking-wide underline-offset-2 hover:underline"
+                    >
+                        Versión {CURRENT_VERSION} · Novedades
+                    </button>
                     <p className="text-sidebar-foreground/35 text-[10px]">© 2025–2026 RafArenasDev</p>
                 </div>
             </SidebarFooter>
+
+            <WhatsNewModal open={showWhatsNew} onOpenChange={setShowWhatsNew} />
         </Sidebar>
     );
 }

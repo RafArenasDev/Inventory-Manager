@@ -131,7 +131,37 @@ class DashboardController extends Controller
             'salesClients' => $salesClients,
             'salesDepartments' => $salesDepartments,
             'salesCities' => $salesCities,
+            'annualInvoicingAlert' => $this->annualInvoicingAlert(),
         ]);
+    }
+
+    /**
+     * Aviso informativo (nunca bloquea nada) de cuándo el negocio se acerca
+     * al tope de ingresos brutos anuales que obliga a facturación
+     * electrónica ante la DIAN: 3.500 UVT — ver config/business.php para la
+     * fuente y el valor de UVT vigente. Solo se muestra a partir del 70% del
+     * tope para no generar ruido el resto del año.
+     */
+    private function annualInvoicingAlert(): ?array
+    {
+        $threshold = (int) round(config('business.uvt_value') * config('business.annual_invoicing_threshold_uvt'));
+
+        $yearToDate = (int) Sale::where('is_cancelled', false)
+            ->whereYear('sale_date', now()->year)
+            ->sum('total_paid');
+
+        $percentage = $threshold > 0 ? round(($yearToDate / $threshold) * 100, 1) : 0;
+
+        if ($percentage < 70) {
+            return null;
+        }
+
+        return [
+            'year_to_date' => $yearToDate,
+            'threshold' => $threshold,
+            'percentage' => min($percentage, 999),
+            'exceeded' => $yearToDate >= $threshold,
+        ];
     }
 
     /**

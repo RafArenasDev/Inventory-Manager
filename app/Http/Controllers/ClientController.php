@@ -34,6 +34,31 @@ class ClientController extends Controller
 
         $clients = $clientsQuery->paginate($perPage)->withQueryString();
         $clients->getCollection()->transform(function ($client) {
+            // Un cliente anonimizado no debe mostrar NINGÚN dato en pantalla,
+            // ni siquiera el documento (aunque siga en la BD como referencia
+            // contable de sus ventas históricas) — se enmascara acá, antes de
+            // que la fila salga hacia el navegador.
+            if ($client->isAnonymized()) {
+                return [
+                    'id' => $client->id,
+                    'document_type' => null,
+                    'document_number' => null,
+                    'verification_digit' => null,
+                    'name' => 'Cliente Anonimizado',
+                    'department_id' => null,
+                    'department' => null,
+                    'city_id' => null,
+                    'city' => null,
+                    'phone' => null,
+                    'cellphone' => null,
+                    'address' => null,
+                    'email' => null,
+                    'is_active' => false,
+                    'created_at' => $client->created_at->format('Y-m-d H:i:s'),
+                    'anonymized_at' => $client->anonymized_at->format('Y-m-d H:i:s'),
+                ];
+            }
+
             return [
                 'id' => $client->id,
                 'document_type' => $client->document_type,
@@ -50,6 +75,7 @@ class ClientController extends Controller
                 'email' => $client->email,
                 'is_active' => $client->is_active,
                 'created_at' => $client->created_at->format('Y-m-d H:i:s'),
+                'anonymized_at' => null,
             ];
         });
         $clients = $clients->toArray();
@@ -150,6 +176,10 @@ class ClientController extends Controller
 
     public function update(ClientRequest $request, Client $client): RedirectResponse
     {
+        if ($client->isAnonymized()) {
+            return redirect()->back()->with('error', 'Este cliente fue anonimizado y ya no puede editarse.');
+        }
+
         $data = $request->validated();
         $data['document_number'] = in_array($data['document_type'], ['CC', 'TI', 'NIT']) ? (int) $data['document_number'] : $data['document_number'];
         $client->update($data);
@@ -159,6 +189,10 @@ class ClientController extends Controller
 
     public function destroy(Request $request, Client $client): RedirectResponse
     {
+        if ($client->isAnonymized()) {
+            return redirect()->back()->with('error', 'Este cliente ya fue anonimizado: no puede eliminarse (crea uno nuevo si hace falta).');
+        }
+
         $validated = $request->validate([
             'reason' => ['required', 'string', 'max:500'],
         ], [
@@ -184,6 +218,10 @@ class ClientController extends Controller
      */
     public function toggleActive(Client $client): RedirectResponse
     {
+        if ($client->isAnonymized()) {
+            return redirect()->back()->with('error', 'Este cliente fue anonimizado y no puede reactivarse.');
+        }
+
         $client->update(['is_active' => ! $client->is_active]);
 
         return redirect()->back()->with(
@@ -206,14 +244,23 @@ class ClientController extends Controller
             return redirect()->back()->with('error', 'El cliente "Consumidor Final" no puede anonimizarse.');
         }
 
+        if ($client->isAnonymized()) {
+            return redirect()->back()->with('error', 'Este cliente ya fue anonimizado.');
+        }
+
         $validated = $request->validate([
             'reason' => ['required', 'string', 'max:500'],
         ], [
             'reason.required' => 'Debes indicar el motivo de la anonimización.',
         ]);
 
-        $newName = 'Cliente Anonimizado #'.$client->id;
+        $newName = 'Cliente Anonimizado';
 
+        // El número de documento se conserva en la fila (referencia contable
+        // de las ventas históricas, y evita reabrir el mismo documento con un
+        // cliente "nuevo"), pero deja de mostrarse en cualquier pantalla — ver
+        // el enmascarado en index(). A partir de acá la acción es irreversible
+        // y el registro queda bloqueado (sin editar/eliminar/reactivar/ver).
         AuditLogger::log('client.anonymized', $client, $validated['reason'], [
             'name' => [$client->name, $newName],
             'email' => [$client->email, null],
@@ -229,6 +276,7 @@ class ClientController extends Controller
             'cellphone' => null,
             'address' => null,
             'is_active' => false,
+            'anonymized_at' => now(),
         ]);
 
         return redirect()->back()->with('success', 'Los datos del cliente fueron anonimizados correctamente.');

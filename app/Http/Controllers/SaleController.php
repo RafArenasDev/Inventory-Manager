@@ -203,18 +203,20 @@ class SaleController extends Controller
                 $totalWithDiscount = $totalWithoutTax - $discountAmount;
                 $totalPaid = $totalWithDiscount;
 
-                // Tope DIAN al cliente "Consumidor Final": desactivado por
-                // defecto (config('business.consumidor_final_limit') en
-                // null) hasta confirmar la cifra vigente con el contador —
-                // ver comentario en config/business.php.
-                $limit = config('business.consumidor_final_limit');
-                if ($limit !== null) {
+                // Tope DIAN al cliente "Consumidor Final": 5 UVT (mismo
+                // límite del tiquete P.O.S. tradicional) — ver
+                // config/business.php para la fuente y el valor de UVT
+                // vigente. Se recalcula en pesos cada vez que cambie la UVT
+                // en config, sin tocar este código.
+                $limit = (int) round(config('business.uvt_value') * config('business.consumidor_final_limit_uvt'));
+                if ($limit > 0) {
                     $client = Client::find($validated['client_id']);
-                    if ($client && $client->document_number === 222222222222 && $totalPaid > (int) $limit) {
+                    if ($client && $client->document_number === 222222222222 && $totalPaid > $limit) {
+                        $limitFormatted = '$'.number_format($limit, 0, ',', '.');
                         throw new \RuntimeException(
-                            'Por normativa de la DIAN, las ventas que superen el tope legal establecido no pueden '.
-                            'registrarse bajo "Consumidor Final". Registra los datos reales del cliente (nombre, '.
-                            'documento y celular) para continuar.'
+                            'Por normativa de la DIAN, las ventas que superen '.$limitFormatted.' no pueden registrarse '.
+                            'bajo "Consumidor Final". Registra los datos reales del cliente (nombre, documento y '.
+                            'celular) para continuar.'
                         );
                     }
                 }

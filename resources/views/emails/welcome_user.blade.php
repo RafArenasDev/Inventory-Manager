@@ -196,7 +196,7 @@
 
                                 <div class="footer">
                                     <p class="footer-text">
-                                        © {{ date('Y') }} {{ config('app.name') }}. Todos los derechos reservados.
+                                        © 2025-2026 {{ config('app.name') }}. Todos los derechos reservados.
                                     </p>
                                 </div>
                             </div>

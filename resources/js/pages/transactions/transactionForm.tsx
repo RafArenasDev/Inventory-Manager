@@ -6,7 +6,37 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import Swal from '@/lib/swal';
 import { useForm } from '@inertiajs/react';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
+
+/**
+ * Función pura de módulo (no cierra sobre nada del componente) — recibe el
+ * valor de respaldo por parámetro en vez de leer `currentTime` del closure,
+ * así su referencia es estable entre renders y puede listarse sin problema
+ * en un array de dependencias de useEffect.
+ */
+function formatTimeForColombia(timeString: string | undefined, dateString: string | undefined, fallback: string): string {
+    if (!timeString || !dateString) return fallback;
+
+    try {
+        // Si ya está en formato HH:MM, devolverlo directamente
+        if (/^\d{2}:\d{2}$/.test(timeString)) {
+            return timeString;
+        }
+
+        // Si viene de la base de datos en formato UTC, convertirlo a hora local de Colombia
+        const utcDate = new Date(`${dateString}T${timeString}Z`);
+        if (!isNaN(utcDate.getTime())) {
+            // Convertir a hora local de Colombia
+            const colombiaDate = new Date(utcDate.toLocaleString('en-US', { timeZone: 'America/Bogota' }));
+            return colombiaDate.toTimeString().slice(0, 5);
+        }
+
+        return fallback;
+    } catch (e) {
+        console.error('Error formatting time for Colombia:', e);
+        return fallback;
+    }
+}
 
 const TRANSACTION_TYPES = [
     { value: 'Ingreso', label: 'Ingreso' },
@@ -65,31 +95,6 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ transaction, categori
 
     const { date: currentDate, time: currentTime } = getColombiaDateTime();
 
-    // Función para formatear la hora correctamente para Colombia
-    const formatTimeForColombia = (timeString: string | undefined, dateString: string | undefined): string => {
-        if (!timeString || !dateString) return currentTime;
-
-        try {
-            // Si ya está en formato HH:MM, devolverlo directamente
-            if (/^\d{2}:\d{2}$/.test(timeString)) {
-                return timeString;
-            }
-
-            // Si viene de la base de datos en formato UTC, convertirlo a hora local de Colombia
-            const utcDate = new Date(`${dateString}T${timeString}Z`);
-            if (!isNaN(utcDate.getTime())) {
-                // Convertir a hora local de Colombia
-                const colombiaDate = new Date(utcDate.toLocaleString('en-US', { timeZone: 'America/Bogota' }));
-                return colombiaDate.toTimeString().slice(0, 5);
-            }
-
-            return currentTime;
-        } catch (e) {
-            console.error('Error formatting time for Colombia:', e);
-            return currentTime;
-        }
-    };
-
     let initialDate = currentDate;
     let initialTime = currentTime;
 
@@ -106,7 +111,7 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ transaction, categori
 
     // Usar la función de formateo para la hora de Colombia
     if (transaction?.transaction_time && transaction?.transaction_date) {
-        initialTime = formatTimeForColombia(transaction.transaction_time, transaction.transaction_date);
+        initialTime = formatTimeForColombia(transaction.transaction_time, transaction.transaction_date, currentTime);
     }
 
     const { data, setData, post, put, processing, errors, reset, isDirty, transform } = useForm({
@@ -125,13 +130,22 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ transaction, categori
         onDirtyChange?.(isDirty);
     }, [isDirty, onDirtyChange]);
 
+    // setData de useForm no es una referencia estable entre renders — un ref
+    // evita tener que listarla en las deps de abajo (que dispararía este
+    // effect en cada cambio de CUALQUIER campo del formulario, no solo de
+    // transaction_time/transaction_date).
+    const applyFormattedTimeRef = useRef<(formattedTime: string, current: string) => void>(() => {});
+    applyFormattedTimeRef.current = (formattedTime, current) => {
+        if (formattedTime !== current) {
+            setData('transaction_time', formattedTime);
+        }
+    };
+
     // Asegurarse de que la hora se establezca correctamente después de la inicialización
     useEffect(() => {
         if (transaction?.transaction_time && transaction?.transaction_date && data.transaction_time === currentTime) {
-            const formattedTime = formatTimeForColombia(transaction.transaction_time, transaction.transaction_date);
-            if (formattedTime !== data.transaction_time) {
-                setData('transaction_time', formattedTime);
-            }
+            const formattedTime = formatTimeForColombia(transaction.transaction_time, transaction.transaction_date, currentTime);
+            applyFormattedTimeRef.current(formattedTime, data.transaction_time);
         }
     }, [transaction?.transaction_time, transaction?.transaction_date, data.transaction_time, currentTime]);
 

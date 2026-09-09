@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import Swal from '@/lib/swal';
 import { useForm } from '@inertiajs/react';
 import axios from 'axios';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 
 // Interface unificada - id es requerido para Client
 interface Client {
@@ -72,19 +72,27 @@ const ClientForm: React.FC<ClientFormProps> = ({ client, onCancel, onSaved, onDi
         onDirtyChange?.(isDirty);
     }, [isDirty, onDirtyChange]);
 
-    useEffect(() => {
-        if (client?.department_id) {
-            fetchCities(client.department_id.toString());
-        }
-    }, []);
-
-    useEffect(() => {
-        if (data.department_id) {
-            fetchCities(data.department_id.toString());
+    // Ref en vez de listar fetchCities/setData en las deps del effect de
+    // abajo: fetchCities se redefine en cada render (cierra sobre
+    // data.city_id) y setData de useForm no es estable entre renders — meter
+    // cualquiera de los dos en el array de deps dispararía el effect en cada
+    // cambio de CUALQUIER campo del formulario, no solo de department_id. El
+    // ref siempre apunta a la versión más reciente sin ser parte de las deps.
+    const handleDepartmentChangeRef = useRef<(departmentId: number | string | undefined) => void>(() => {});
+    handleDepartmentChangeRef.current = (departmentId) => {
+        if (departmentId) {
+            fetchCities(departmentId.toString());
         } else {
             setAvailableCities([]);
             setData('city_id', '');
         }
+    };
+
+    // Cubre tanto la carga inicial al editar un cliente (data.department_id
+    // ya viene seteado en el estado inicial de useForm) como cualquier
+    // cambio posterior del combobox de departamento.
+    useEffect(() => {
+        handleDepartmentChangeRef.current(data.department_id);
     }, [data.department_id]);
 
     const fetchCities = async (departmentId: string) => {

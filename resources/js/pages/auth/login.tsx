@@ -89,6 +89,16 @@ export default function Login({ status, canResetPassword = true }: LoginProps) {
                     draggable: true,
                     confirmButtonText: 'Entendido',
                 });
+            } else if (status.includes('aceptar los Términos y Condiciones')) {
+                // MENSAJE AL RECHAZAR EL PASO OBLIGATORIO DE TÉRMINOS —
+                // se cierra la sesión y vuelve acá; tono neutro, no de sanción.
+                Swal.fire({
+                    title: 'Sesión cerrada',
+                    icon: 'info',
+                    text: status,
+                    draggable: true,
+                    confirmButtonText: 'Entendido',
+                });
             } else if (status.includes('contraseña fue actualizada')) {
                 // MENSAJE DE CAMBIO DE CONTRASEÑA DESDE EL PERFIL — distinto
                 // del reset por correo (abajo): acá el usuario SÍ sabía su

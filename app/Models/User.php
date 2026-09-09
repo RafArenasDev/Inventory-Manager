@@ -55,6 +55,8 @@ class User extends Authenticatable
         'is_active',
         'failed_login_attempts',
         'security_locked_at',
+        'terms_accepted_at',
+        'terms_version',
     ];
 
     /**
@@ -81,6 +83,7 @@ class User extends Authenticatable
             'is_active' => 'boolean',
             'failed_login_attempts' => 'integer',
             'security_locked_at' => 'datetime',
+            'terms_accepted_at' => 'datetime',
         ];
     }
 

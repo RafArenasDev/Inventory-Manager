@@ -9,7 +9,7 @@ import { resolveIcon } from '@/lib/icon-map';
 import { type BreadcrumbItem, type SidebarModule } from '@/types';
 import { Head, router, usePage } from '@inertiajs/react';
 import * as Chart from 'chart.js';
-import { ArrowDownRight, ArrowUpRight, Download, LayoutGrid, ShoppingCart, TrendingUp } from 'lucide-react';
+import { AlertTriangle, ArrowDownRight, ArrowUpRight, Download, LayoutGrid, ShoppingCart, TrendingUp } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { SaleModal } from './saleModal';
 import SaleForm from './sales/saleForm';
@@ -183,9 +183,24 @@ interface DashboardProps {
     salesClients: Client[];
     salesDepartments: Department[];
     salesCities: City[];
+    annualInvoicingAlert: {
+        year_to_date: number;
+        threshold: number;
+        percentage: number;
+        exceeded: boolean;
+    } | null;
 }
 
-export default function Dashboard({ stats, financials, charts, salesProducts, salesClients, salesDepartments, salesCities }: DashboardProps) {
+export default function Dashboard({
+    stats,
+    financials,
+    charts,
+    salesProducts,
+    salesClients,
+    salesDepartments,
+    salesCities,
+    annualInvoicingAlert,
+}: DashboardProps) {
     type Auth = {
         permissions: string[];
     };
@@ -465,6 +480,32 @@ export default function Dashboard({ stats, financials, charts, salesProducts, sa
                         </DropdownMenu>
                     )}
                 </PageHeader>
+
+                {annualInvoicingAlert && (
+                    <div
+                        className={`flex items-start gap-3 rounded-lg border p-4 text-sm ${
+                            annualInvoicingAlert.exceeded
+                                ? 'border-red-300 bg-red-50 text-red-900 dark:border-red-900 dark:bg-red-950/30 dark:text-red-200'
+                                : 'border-amber-300 bg-amber-50 text-amber-900 dark:border-amber-900 dark:bg-amber-950/30 dark:text-amber-200'
+                        }`}
+                    >
+                        <AlertTriangle className="mt-0.5 size-5 shrink-0" />
+                        <div>
+                            <p className="font-semibold">
+                                {annualInvoicingAlert.exceeded
+                                    ? 'Superaste el tope de facturación electrónica obligatoria de la DIAN'
+                                    : 'Te estás acercando al tope de facturación electrónica obligatoria de la DIAN'}
+                            </p>
+                            <p className="mt-0.5">
+                                Ingresos del año: <strong>${annualInvoicingAlert.year_to_date.toLocaleString('es-CO')}</strong> de un tope de{' '}
+                                <strong>${annualInvoicingAlert.threshold.toLocaleString('es-CO')}</strong> ({annualInvoicingAlert.percentage}%).
+                                {annualInvoicingAlert.exceeded
+                                    ? ' Consulta con tu contador si ya debes registrarte como facturador electrónico ante la DIAN.'
+                                    : ' Este software no genera facturas electrónicas certificadas — si sigues creciendo, consulta con tu contador cuándo debes habilitarte.'}
+                            </p>
+                        </div>
+                    </div>
+                )}
 
                 {/* Stats Cards — una por módulo accesible para este usuario.
                     Ancho de columna dinámico según cuántos módulos vea este

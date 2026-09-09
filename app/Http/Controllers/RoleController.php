@@ -6,6 +6,7 @@ use App\Http\Requests\RoleRequest;
 use App\Models\Module;
 use App\Models\Permission;
 use App\Models\Role;
+use App\Services\AuditLogger;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -79,7 +80,30 @@ class RoleController extends Controller
 
         $role->syncPermissions($request->input('permissions', []));
 
+        // syncPermissions() escribe en la tabla pivote role_has_permissions,
+        // no en la fila de Role — el trait Auditable no ve ningún cambio de
+        // atributo ahí, así que sin esto la asignación de permisos de un rol
+        // nuevo quedaría sin rastro.
+        $this->logPermissionDiff($role, []);
+
         return redirect()->route('roles.index')->with('success', 'Rol creado correctamente.');
+    }
+
+    /**
+     * syncPermissions() es un cambio de pivote, no de atributos de Role, así
+     * que el trait Auditable genérico no lo detecta — se deja constancia a
+     * mano solo cuando la lista realmente cambió.
+     */
+    private function logPermissionDiff(Role $role, array $beforePermissionIds): void
+    {
+        $before = Permission::whereIn('id', $beforePermissionIds)->pluck('name')->sort()->values()->all();
+        $after = $role->fresh()->permissions->pluck('name')->sort()->values()->all();
+
+        if ($before === $after) {
+            return;
+        }
+
+        AuditLogger::log('role.permissions_synced', $role, null, ['permisos' => [$before, $after]]);
     }
 
     /**
@@ -110,6 +134,8 @@ class RoleController extends Controller
             }
         }
 
+        $beforePermissionIds = $role->permissions->pluck('id')->all();
+
         DB::transaction(function () use ($role, $request, $isAdminRole, $permissionIds) {
             $role->update([
                 'name' => $isAdminRole ? 'admin' : $request->name,
@@ -121,6 +147,8 @@ class RoleController extends Controller
 
             $role->syncPermissions($permissionIds);
         });
+
+        $this->logPermissionDiff($role, $beforePermissionIds);
 
         return redirect()->route('roles.index')->with('success', 'Rol actualizado correctamente.');
     }
