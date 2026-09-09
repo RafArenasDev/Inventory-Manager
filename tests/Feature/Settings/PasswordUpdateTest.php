@@ -15,20 +15,27 @@ class PasswordUpdateTest extends TestCase
     {
         $user = User::factory()->create();
 
+        // La app exige contraseñas fuertes (min 12, mayúscula+minúscula,
+        // número y símbolo — ver AppServiceProvider::boot()).
         $response = $this
             ->actingAs($user)
             ->from('/settings/password')
             ->put('/settings/password', [
                 'current_password' => 'password',
-                'password' => 'new-password',
-                'password_confirmation' => 'new-password',
+                'password' => 'New!Str0ngPassw0rd',
+                'password_confirmation' => 'New!Str0ngPassw0rd',
             ]);
 
+        // PasswordController::update() cierra la sesión a propósito tras un
+        // cambio de contraseña exitoso (evita dejar sesiones viejas con la
+        // clave anterior aún "confiadas") y manda a /login, no de vuelta a
+        // /settings/password.
         $response
             ->assertSessionHasNoErrors()
-            ->assertRedirect('/settings/password');
+            ->assertRedirect('/login');
 
-        $this->assertTrue(Hash::check('new-password', $user->refresh()->password));
+        $this->assertGuest();
+        $this->assertTrue(Hash::check('New!Str0ngPassw0rd', $user->refresh()->password));
     }
 
     public function test_correct_password_must_be_provided_to_update_password()

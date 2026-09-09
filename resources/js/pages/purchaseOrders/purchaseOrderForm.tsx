@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { csrfHeader } from '@/lib/csrf';
 import Swal from '@/lib/swal';
+import { escapeHtml } from '@/lib/utils';
 import SupplierForm from '@/pages/suppliers/supplierForm';
 import { router, usePage } from '@inertiajs/react';
 import { Info, Minus, Pencil, Plus, Trash2 } from 'lucide-react';
@@ -439,7 +440,7 @@ export default function PurchaseOrderForm({
                     // vea (o cierre) este Swal antes de dejarlo pasar.
                     Swal.fire({
                         icon: 'success',
-                        html: `Pedido creado exitosamente a <b>${selectedSupplier?.name}</b>`,
+                        html: `Pedido creado exitosamente a <b>${escapeHtml(selectedSupplier?.name ?? '')}</b>`,
                         timer: 2500,
                         showConfirmButton: false,
                     }).then(() => onSaved({ supplier: selectedSupplier, items }));
@@ -464,7 +465,7 @@ export default function PurchaseOrderForm({
                 onDirtyChange(false);
                 Swal.fire({
                     icon: 'success',
-                    html: `Pedido creado exitosamente a <b>${selectedSupplier?.name}</b>`,
+                    html: `Pedido creado exitosamente a <b>${escapeHtml(selectedSupplier?.name ?? '')}</b>`,
                     timer: 2500,
                     showConfirmButton: false,
                 }).then(() => onSaved({ supplier: selectedSupplier, items }));

@@ -18,11 +18,14 @@ class RegistrationTest extends TestCase
 
     public function test_new_users_can_register()
     {
+        // La app exige contraseñas fuertes (min 12, mayúscula+minúscula,
+        // número y símbolo — ver AppServiceProvider::boot()); 'password'
+        // (el default del scaffold de Breeze) ya no pasa esa validación.
         $response = $this->post('/register', [
             'name' => 'Test User',
             'email' => 'test@example.com',
-            'password' => 'password',
-            'password_confirmation' => 'password',
+            'password' => 'Str0ng!Passw0rd#26',
+            'password_confirmation' => 'Str0ng!Passw0rd#26',
         ]);
 
         $this->assertAuthenticated();

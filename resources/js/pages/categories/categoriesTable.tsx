@@ -4,6 +4,7 @@ import { Pagination } from '@/components/ui/pagination';
 import SearchInput from '@/components/ui/search-input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import Swal from '@/lib/swal';
+import { escapeHtml } from '@/lib/utils';
 import { router } from '@inertiajs/react';
 import { Pencil, Tags, Trash2 } from 'lucide-react';
 
@@ -55,7 +56,7 @@ export default function CategoriesTable({
     const handleDelete = (categoryId: number, categoryName: string) => {
         Swal.fire({
             title: '¿Estás seguro?',
-            html: `Esta acción eliminará la categoría <b>${categoryName}</b> permanentemente`,
+            html: `Esta acción eliminará la categoría <b>${escapeHtml(categoryName)}</b> permanentemente`,
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#3085d6',

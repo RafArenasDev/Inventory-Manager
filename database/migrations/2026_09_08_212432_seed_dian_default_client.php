@@ -19,9 +19,13 @@ return new class extends Migration
             return;
         }
 
-        $department = DB::table('departments')->where('name', 'ilike', '%bogot%')->first();
+        // LOWER(...) LIKE en vez de ILIKE: ILIKE es exclusivo de PostgreSQL y
+        // rompe esta migración en el SQLite en memoria que usan las pruebas
+        // automatizadas (ver phpunit.xml). LOWER+LIKE hace lo mismo y es
+        // portable entre MySQL/Postgres/SQLite.
+        $department = DB::table('departments')->whereRaw('LOWER(name) LIKE ?', ['%bogot%'])->first();
         $city = $department
-            ? DB::table('cities')->where('department_id', $department->id)->where('name', 'ilike', '%bogot%')->first()
+            ? DB::table('cities')->where('department_id', $department->id)->whereRaw('LOWER(name) LIKE ?', ['%bogot%'])->first()
             : null;
 
         DB::table('clients')->insert([

@@ -4,6 +4,7 @@ import { Pagination } from '@/components/ui/pagination';
 import SearchInput from '@/components/ui/search-input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import Swal from '@/lib/swal';
+import { escapeHtml } from '@/lib/utils';
 import { router } from '@inertiajs/react';
 import { Eye, Lock, Pencil, Phone, ShieldOff, Smartphone, Trash2, Users } from 'lucide-react';
 
@@ -66,7 +67,7 @@ export default function ClientsTable({
     const handleDelete = (clientId: number, clientName: string) => {
         Swal.fire({
             title: '¿Estás seguro?',
-            html: `Esta acción eliminará al cliente <b>${clientName}</b> permanentemente. Queda registrada en el historial de auditoría con tu usuario, fecha y hora.`,
+            html: `Esta acción eliminará al cliente <b>${escapeHtml(clientName)}</b> permanentemente. Queda registrada en el historial de auditoría con tu usuario, fecha y hora.`,
             icon: 'warning',
             input: 'textarea',
             inputLabel: 'Motivo de la eliminación',
@@ -105,7 +106,7 @@ export default function ClientsTable({
     const handleAnonymize = (clientId: number, clientName: string) => {
         Swal.fire({
             title: '¿Anonimizar cliente?',
-            html: `Se eliminarán el nombre, teléfono, celular, correo y dirección de <b>${clientName}</b>. Las ventas ya registradas no se modifican. Esta acción no se puede deshacer y queda registrada en el historial de auditoría.`,
+            html: `Se eliminarán el nombre, teléfono, celular, correo y dirección de <b>${escapeHtml(clientName)}</b>. Las ventas ya registradas no se modifican. Esta acción no se puede deshacer y queda registrada en el historial de auditoría.`,
             icon: 'warning',
             input: 'textarea',
             inputLabel: 'Motivo de la anonimización',

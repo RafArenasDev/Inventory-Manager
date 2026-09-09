@@ -6,6 +6,7 @@ import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import Swal from '@/lib/swal';
+import { escapeHtml } from '@/lib/utils';
 import { router, useForm } from '@inertiajs/react';
 import { Image as ImageIcon, Info, Loader2, RefreshCw, Trash2 } from 'lucide-react';
 import React, { useEffect, useRef, useState } from 'react';
@@ -275,13 +276,13 @@ const ProductForm: React.FC<ProductFormProps> = ({
         if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
             const reason = 'no es una imagen válida. Solo se permiten archivos JPEG, PNG o GIF.';
             setImageError({ name: file.name, reason });
-            Swal.fire({ title: 'Archivo no permitido', html: `<b>${file.name}</b> ${reason}`, icon: 'error' });
+            Swal.fire({ title: 'Archivo no permitido', html: `<b>${escapeHtml(file.name)}</b> ${reason}`, icon: 'error' });
             return;
         }
         if (file.size > MAX_IMAGE_SIZE) {
             const reason = `pesa ${(file.size / 1024 / 1024).toFixed(1)}MB. El máximo permitido es 2MB.`;
             setImageError({ name: file.name, reason });
-            Swal.fire({ title: 'Imagen demasiado pesada', html: `<b>${file.name}</b> ${reason}`, icon: 'error' });
+            Swal.fire({ title: 'Imagen demasiado pesada', html: `<b>${escapeHtml(file.name)}</b> ${reason}`, icon: 'error' });
             return;
         }
 

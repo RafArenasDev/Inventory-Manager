@@ -531,12 +531,12 @@ class ProductController extends Controller
         // borrar hacía imposible eliminar cualquier producto ya creado.
         if ($product->saleItems()->exists()) {
             return redirect()->back()
-                ->with('error', 'No se puede eliminar "'.$product->name.'": tiene ventas registradas. Puedes marcarlo como agotado en su lugar.');
+                ->with('error', 'No se puede eliminar "'.e($product->name).'": tiene ventas registradas. Puedes marcarlo como agotado en su lugar.');
         }
 
         if ($product->purchaseOrderItems()->exists()) {
             return redirect()->back()
-                ->with('error', 'No se puede eliminar "'.$product->name.'": está incluido en uno o más pedidos de compra.');
+                ->with('error', 'No se puede eliminar "'.e($product->name).'": está incluido en uno o más pedidos de compra.');
         }
 
         DB::transaction(function () use ($product) {

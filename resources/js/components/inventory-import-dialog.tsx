@@ -2,6 +2,7 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { csrfHeader } from '@/lib/csrf';
 import Swal from '@/lib/swal';
+import { escapeHtml } from '@/lib/utils';
 import { router } from '@inertiajs/react';
 import { AlertTriangle, Download, FileSpreadsheet, Upload, X } from 'lucide-react';
 import { useState } from 'react';
@@ -114,13 +115,13 @@ export function InventoryImportDialog({ open, onOpenChange, purchaseOrderId, mod
         if (!hasValidExtension) {
             const reason = 'no es un archivo válido. Solo se permiten .xlsx, .xls o .csv.';
             setFileError({ name: candidate.name, reason });
-            Swal.fire({ title: 'Archivo no permitido', html: `<b>${candidate.name}</b> ${reason}`, icon: 'error' });
+            Swal.fire({ title: 'Archivo no permitido', html: `<b>${escapeHtml(candidate.name)}</b> ${reason}`, icon: 'error' });
             return;
         }
         if (candidate.size > 5 * 1024 * 1024) {
             const reason = `pesa ${(candidate.size / 1024 / 1024).toFixed(1)}MB. El máximo permitido es 5MB.`;
             setFileError({ name: candidate.name, reason });
-            Swal.fire({ title: 'Archivo demasiado pesado', html: `<b>${candidate.name}</b> ${reason}`, icon: 'error' });
+            Swal.fire({ title: 'Archivo demasiado pesado', html: `<b>${escapeHtml(candidate.name)}</b> ${reason}`, icon: 'error' });
             return;
         }
 

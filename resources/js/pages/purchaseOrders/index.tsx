@@ -5,6 +5,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { useLiveRefresh } from '@/hooks/use-live-refresh';
 import AppLayout from '@/layouts/app-layout';
 import Swal from '@/lib/swal';
+import { escapeHtml } from '@/lib/utils';
 import { LinkProps, type BreadcrumbItem } from '@/types';
 import { Head, router, usePage } from '@inertiajs/react';
 import { PackageSearch, Plus } from 'lucide-react';
@@ -143,11 +144,13 @@ export default function PurchaseOrdersIndex({ purchaseOrders, suppliers, product
         // a editarlo (nada de un botón "seguir con este" que invite a crear
         // un duplicado).
         const [firstItem, ...rest] = existing.items;
-        const itemsPreview = firstItem ? `${firstItem.product_name}${rest.length > 0 ? ` y ${rest.length} más` : ''}` : 'otros productos';
+        const itemsPreview = firstItem
+            ? `${escapeHtml(firstItem.product_name)}${rest.length > 0 ? ` y ${rest.length} más` : ''}`
+            : 'otros productos';
         Swal.fire({
             icon: 'info',
             title: 'Ya hay un pedido activo por stock bajo',
-            html: `<b>${createSupplier.name}</b> tiene un pedido "Solicitado" con ${itemsPreview}. Se abre ese pedido para agregar este producto ahí.`,
+            html: `<b>${escapeHtml(createSupplier.name)}</b> tiene un pedido "Solicitado" con ${itemsPreview}. Se abre ese pedido para agregar este producto ahí.`,
             timer: 3200,
             showConfirmButton: false,
         }).then(() => {

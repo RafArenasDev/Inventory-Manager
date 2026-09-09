@@ -265,6 +265,17 @@ Route::middleware(['auth', 'verified', 'active', 'terms.accepted'])->group(funct
 
     // Sales
     Route::prefix('sales')->group(function () {
+        // Rutas literales primero: registradas ANTES de '/{sale}' para que
+        // Laravel no las trate como si "client-by-document"/"product-by-code"
+        // fueran un id de venta (Laravel resuelve rutas en orden de
+        // registro — un comodín registrado antes tapa a una ruta literal
+        // registrada después, aunque ambas tengan nombres distintos).
+        Route::get('/client-by-document', [SaleController::class, 'getClientByDocument'])
+            ->name('sales.client-by-document')
+            ->middleware('permission:Crear Ventas');
+        Route::get('/product-by-code', [SaleController::class, 'getProductByCode'])
+            ->name('sales.product-by-code')
+            ->middleware('permission:Crear Ventas');
         Route::get('/export', [SaleController::class, 'export'])
             ->name('sales.export')
             ->middleware('permission:Exportar Ventas');
@@ -287,9 +298,6 @@ Route::middleware(['auth', 'verified', 'active', 'terms.accepted'])->group(funct
             ->name('sales.cancel')
             ->middleware('permission:Eliminar Ventas');
     });
-
-    Route::get('/sales/client-by-document', [SaleController::class, 'getClientByDocument'])->name('sales.client-by-document');
-    Route::get('/sales/product-by-code', [SaleController::class, 'getProductByCode'])->name('sales.product-by-code');
 
     // ==================== FINANZAS ====================
 
