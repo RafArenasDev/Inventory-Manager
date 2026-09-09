@@ -10,6 +10,20 @@ se muestra igual, sin agrupar. Generado a mano hasta `v1.10.1`; desde
 sidebar y el badge de versión se generan de este archivo en build time —
 ver `scripts/generate-changelog.mjs`.
 
+## v1.11.1 - 2026-09-08
+
+La app quedó instalable como PWA, con licencia explícita, documentación real, y un modal de "Novedades" rediseñado para mostrar el nivel real de detalle de cada versión.
+
+- **Funcionalidad:** La app quedó instalable como PWA en Android, escritorio e iOS: manifest completo (nombre, ícono, `start_url`, modo standalone) y un service worker propio que mantiene la interfaz utilizable un instante sin conexión — reutilizando el set de íconos ya existente, sin generar ninguno nuevo.
+- **Legal:** El software quedó clasificado explícitamente como licencia Freeware (uso gratuito autorizado por el desarrollador) bajo un EULA propietario — requisito legal para software gratuito en Colombia. Se agregó la cláusula de qué pasaría si en el futuro se cobra por su uso, y se subió `terms_version` para que todos los usuarios vuelvan a aceptar el texto actualizado.
+- **UI/UX:** El README del repositorio se reescribió por completo — antes era el README genérico del starter kit de Laravel/React y todavía decía licencia MIT. Ahora documenta el stack real, los módulos, cómo configurar un host local en Windows y Linux, las opciones de base de datos (MySQL/PostgreSQL), y la licencia correcta.
+- **UI/UX:** El modal de "Novedades" se rediseñó para mostrar el detalle real de trabajo de cada versión: una sola versión a la vez (la más reciente por defecto, elegible desde un combobox propio de la app en vez de un `<select>` nativo), tarjetas con ícono en insignia circular de color por categoría, esquinas redondeadas y sombra, y scroll interno que no compite con el título ni queda pegado a las tarjetas.
+- **Funcionalidad:** El historial de versiones se completó retroactivamente: los tags más antiguos (`v1.0.0` a `v1.5.0`) tenían solo un resumen de una línea pese a representar más de un año de desarrollo real — ahora documentan, con la misma categorización y detalle que las versiones nuevas, el trabajo real extraído del historial de commits.
+- **Corrección:** La tarjeta "Ventas" del resumen financiero del Dashboard mostraba un contador de ventas en vez de la etiqueta del período (Diario/Semanal/etc.) que sí muestran las demás tarjetas de esa fila.
+- **Corrección:** El título de la página de Caja decía "Cajas" (plural) siendo un módulo singular.
+- **Corrección:** Una venta anulada seguía mostrando los botones de "Ver detalles" e "Imprimir factura" funcionando — ahora, igual que un cliente anonimizado, muestra un candado con "Sin acciones".
+- **Corrección:** El modal de detalle de un producto mostraba "Saludable" para stock óptimo, en vez de "Óptimo" como en el resto de la app.
+
 ## v1.11.0 - 2026-09-08
 
 Auditoría total, bloqueo de clientes anonimizados, aceptación obligatoria de Términos y Condiciones, y los dos topes DIAN activados con cifras reales de 2026.
