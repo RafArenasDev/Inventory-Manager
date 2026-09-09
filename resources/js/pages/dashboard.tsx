@@ -1,7 +1,6 @@
 import { ConfirmDialog } from '@/components/confirm-dialog';
 import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { useLiveRefresh } from '@/hooks/use-live-refresh';
 import AppLayout from '@/layouts/app-layout';
@@ -405,7 +404,7 @@ export default function Dashboard({
         setShowSaleDiscardConfirm(true);
     };
 
-    const handleExport = (format: 'excel' | 'pdf') => {
+    const handleExport = (format: 'excel') => {
         const exportUrl = `/dashboard/export/${period}/${format}`;
         window.open(exportUrl, '_blank');
     };
@@ -456,28 +455,17 @@ export default function Dashboard({
                     )}
 
                     {userPermissions.includes('Exportar Dashboard') && (
-                        <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                                <Button size="sm" className="gap-2 bg-gray-500 text-white hover:bg-gray-600">
-                                    <Download className="h-4 w-4" />
-                                    Exportar
-                                </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent>
-                                <DropdownMenuItem
-                                    onClick={() => handleExport('excel')}
-                                    className="focus:bg-green-100 focus:text-green-900 dark:focus:bg-green-900/30 dark:focus:text-green-200"
-                                >
-                                    Exportar a Excel
-                                </DropdownMenuItem>
-                                <DropdownMenuItem
-                                    onClick={() => handleExport('pdf')}
-                                    className="focus:bg-red-100 focus:text-red-900 dark:focus:bg-red-900/30 dark:focus:text-red-200"
-                                >
-                                    Exportar a PDF
-                                </DropdownMenuItem>
-                            </DropdownMenuContent>
-                        </DropdownMenu>
+                        // La exportación a PDF quedó desactivada a propósito: las gráficas (barras/torta) no se
+                        // dibujan bien en el PDF generado (ver App\Support\ChartSvg) — se retoma más adelante.
+                        // Mientras tanto, un solo botón directo a Excel en vez del menú desplegable.
+                        <Button
+                            size="sm"
+                            className="gap-2 bg-gray-500 text-white hover:bg-gray-600"
+                            onClick={() => handleExport('excel')}
+                        >
+                            <Download className="h-4 w-4" />
+                            Exportar a Excel
+                        </Button>
                     )}
                 </PageHeader>
 

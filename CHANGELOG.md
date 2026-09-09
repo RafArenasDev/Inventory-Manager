@@ -13,6 +13,20 @@ actualiza junto con cada tag nuevo. El modal de "Novedades" del sidebar y el
 badge de versión se generan de este archivo en build time — ver
 `scripts/generate-changelog.mjs`.
 
+## v1.12.5 - 2026-09-09
+
+Se quitó por ahora la opción de exportar el Dashboard a PDF, porque las gráficas no se veían bien; el botón de Excel sigue funcionando igual.
+
+- **Corrección:** El botón "Exportar" del Dashboard ahora exporta directo a Excel — la opción de PDF se retiró temporalmente porque las gráficas de barras y de torta no se dibujaban bien en ese formato. Se va a restablecer más adelante ya corregida.
+
+## v1.12.4 - 2026-09-09
+
+Se corrigió que se pudiera guardar un correo sin dominio completo, y que las ventas se quedaran sin factura para reimprimir más adelante.
+
+- **Validación:** Al crear o editar un cliente, proveedor o usuario, ahora el correo debe tener un dominio completo (por ejemplo `correo@dominio.com`) — antes se aceptaba un correo incompleto que nunca iba a recibir nada.
+- **Corrección:** Cualquier venta que por algún motivo se quedó sin su factura en PDF ahora la genera automáticamente.
+- **Diseño:** En varios listados (Ventas, Clientes, Productos, Usuarios, Roles, Proveedores, Categorías, Pedidos, Finanzas), la tarjeta de paginación ya no se queda pegada al fondo de la pantalla cuando un filtro deja pocos resultados.
+
 ## v1.12.3 - 2026-09-09
 
 Se corrigió que el aviso del tope de facturación electrónica mostrara un monto mucho mayor al real, y se mejoró el detalle de un cliente para que sea más cómodo de revisar.

@@ -64,6 +64,8 @@ class ChartSvg
             $bars
         );
 
+        $img = self::svgToImg($svg, $width, $height);
+
         $legend = '<table style="width:100%;border:none;margin-top:2px;"><tr>';
         foreach ($items as $item) {
             $legend .= sprintf(
@@ -73,7 +75,7 @@ class ChartSvg
         }
         $legend .= '</tr></table>';
 
-        return $svg.$legend;
+        return $img.$legend;
     }
 
     /**
@@ -131,20 +133,42 @@ class ChartSvg
             $paths
         );
 
-        $legend = '<table style="width:100%;border:none;margin-top:4px;">';
+        $img = self::svgToImg($svg, $size, $size);
+
+        // Un <div> por categoría, no una fila de <table>: más robusto que
+        // depender del layout de tablas de dompdf para el salto de línea.
+        $legend = '<div style="margin-top:4px;">';
         foreach ($items as $item) {
             if ($item['value'] <= 0) {
                 continue;
             }
             $legend .= sprintf(
-                '<tr><td style="border:none;padding:1px 4px;width:10px;"><div style="width:8px;height:8px;background-color:%s;"></div></td><td style="border:none;padding:1px 4px;text-align:left;font-size:8px;color:#374151;">%s (%s%%)</td></tr>',
+                '<div style="display:block;clear:both;padding:1px 0;font-size:8px;color:#374151;">'
+                .'<span style="display:inline-block;width:8px;height:8px;background-color:%s;margin-right:4px;"></span>'
+                .'%s (%s%%)'
+                .'</div>',
                 $item['color'],
                 htmlspecialchars($item['label'], ENT_QUOTES, 'UTF-8'),
                 $item['value']
             );
         }
-        $legend .= '</table>';
+        $legend .= '</div>';
 
-        return $svg.$legend;
+        return $img.$legend;
+    }
+
+    /**
+     * dompdf (esta instalación, dompdf/dompdf ^3.1) no dibuja <svg> inline
+     * puesto directo en el HTML — se probó con formas simples (rect,
+     * circle, path) y ninguna aparece en el PDF, solo el resto del HTML
+     * alrededor; visto en vivo como gráficas de barras/torta ausentes en el
+     * informe, con solo la leyenda flotando sin el dibujo. Envolver el SVG
+     * como <img> con un data URI sí lo dibuja correctamente.
+     */
+    private static function svgToImg(string $svg, int $width, int $height): string
+    {
+        $dataUri = 'data:image/svg+xml;base64,'.base64_encode($svg);
+
+        return sprintf('<img src="%s" width="%d" height="%d" alt="" />', $dataUri, $width, $height);
     }
 }
