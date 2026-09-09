@@ -20,6 +20,7 @@ class ModuleSeeder extends Seeder
 
             ['key' => 'users', 'label' => 'Usuarios', 'icon' => 'Users', 'route' => '/users', 'group' => 'Administración'],
             ['key' => 'roles', 'label' => 'Roles y Permisos', 'icon' => 'Shield', 'route' => '/roles', 'group' => 'Administración'],
+            ['key' => 'audit-logs', 'label' => 'Auditoría', 'icon' => 'History', 'route' => '/audit-logs', 'group' => 'Administración'],
 
             ['key' => 'categories', 'label' => 'Categorías', 'icon' => 'Tags', 'route' => '/categories', 'group' => 'Inventario'],
             ['key' => 'products', 'label' => 'Productos', 'icon' => 'Package', 'route' => '/products', 'group' => 'Inventario'],

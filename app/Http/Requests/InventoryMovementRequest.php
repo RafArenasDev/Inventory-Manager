@@ -38,7 +38,15 @@ class InventoryMovementRequest extends FormRequest
             // no reflejan un hecho real todavía, sin depender del `max` del
             // input (que un POST manipulado a mano puede ignorar).
             'date' => ['required', 'date', 'before_or_equal:today'],
-            'notes' => ['nullable', 'string', 'max:1000'],
+            // Obligatorio solo para un ajuste manual real (sin pedido de por
+            // medio) — ahí es donde importa dejar constancia del motivo para
+            // auditoría; si viene de "Recibir Pedido" ya está justificado por
+            // el pedido mismo.
+            'notes' => ['nullable', 'string', 'max:1000', function ($attribute, $value, $fail) {
+                if ($this->type === 'Ajuste Inventario' && ! $this->purchase_order_id && ! $value) {
+                    $fail('Debes indicar el motivo del ajuste manual de inventario.');
+                }
+            }],
         ];
     }
 

@@ -5,7 +5,7 @@ import SearchInput from '@/components/ui/search-input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import Swal from '@/lib/swal';
 import { router } from '@inertiajs/react';
-import { Eye, Pencil, Phone, Smartphone, Trash2, Users } from 'lucide-react';
+import { Eye, Pencil, Phone, ShieldOff, Smartphone, Trash2, Users } from 'lucide-react';
 
 interface Client {
     id: number;
@@ -92,6 +92,44 @@ export default function ClientsTable({
                         });
                     },
                 });
+            }
+        });
+    };
+
+    const handleAnonymize = (clientId: number, clientName: string) => {
+        Swal.fire({
+            title: '¿Anonimizar cliente?',
+            html: `Se eliminarán el nombre, teléfono, celular, correo y dirección de <b>${clientName}</b>. Las ventas ya registradas no se modifican. Esta acción no se puede deshacer.`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Sí, anonimizar',
+            cancelButtonText: 'Cancelar',
+        }).then((result) => {
+            if (result.isConfirmed) {
+                router.patch(
+                    route('clients.anonymize', clientId),
+                    {},
+                    {
+                        onSuccess: () => {
+                            Swal.fire({
+                                title: 'Anonimizado',
+                                text: 'Los datos del cliente fueron anonimizados.',
+                                icon: 'success',
+                                timer: 2200,
+                                showConfirmButton: false,
+                            });
+                        },
+                        onError: () => {
+                            Swal.fire({
+                                title: 'Error!',
+                                text: 'No se pudo anonimizar el cliente.',
+                                icon: 'error',
+                            });
+                        },
+                    },
+                );
             }
         });
     };
@@ -187,6 +225,16 @@ export default function ClientsTable({
                                                     label="Editar cliente"
                                                 >
                                                     <Pencil className="size-3.5" />
+                                                </IconActionButton>
+                                            )}
+                                            {userPermissions.includes('Eliminar Clientes') && String(client.document_number) !== '222222222222' && (
+                                                <IconActionButton
+                                                    variant="ghost"
+                                                    onClick={() => handleAnonymize(client.id, client.name)}
+                                                    className="text-indigo-600 hover:bg-indigo-100 hover:text-indigo-700 dark:text-indigo-500 dark:hover:bg-indigo-950/40 dark:hover:text-indigo-400"
+                                                    label="Anonimizar datos del cliente"
+                                                >
+                                                    <ShieldOff className="size-3.5" />
                                                 </IconActionButton>
                                             )}
                                             {userPermissions.includes('Eliminar Clientes') && (

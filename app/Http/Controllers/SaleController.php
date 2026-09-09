@@ -13,6 +13,7 @@ use App\Models\Sale;
 use App\Models\SaleItem;
 use App\Models\Transaction;
 use App\Models\TransactionCategory;
+use App\Services\AuditLogger;
 use App\Services\InvoicePdfService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
@@ -275,11 +276,19 @@ class SaleController extends Controller
         }
     }
 
-    public function cancel(Sale $sale): RedirectResponse
+    public function cancel(Request $request, Sale $sale): RedirectResponse
     {
         if ($sale->is_cancelled) {
             return redirect()->route('sales.index')->with('error', 'La venta ya está anulada.');
         }
+
+        $validated = $request->validate([
+            'reason' => ['required', 'string', 'max:500'],
+        ], [
+            'reason.required' => 'Debes indicar el motivo de la anulación.',
+        ]);
+
+        AuditLogger::log('sale.cancelled', $sale, $validated['reason']);
 
         DB::transaction(function () use ($sale) {
             foreach ($sale->items as $item) {

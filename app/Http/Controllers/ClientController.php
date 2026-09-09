@@ -6,6 +6,7 @@ use App\Http\Requests\ClientRequest;
 use App\Models\City;
 use App\Models\Client;
 use App\Models\Department;
+use App\Services\AuditLogger;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -123,6 +124,8 @@ class ClientController extends Controller
 
     public function destroy(Client $client): RedirectResponse
     {
+        AuditLogger::log('client.deleted', $client);
+
         $client->delete();
 
         return redirect()->route('clients.index')->with('success', 'Cliente eliminado correctamente.');
@@ -139,6 +142,34 @@ class ClientController extends Controller
             'success',
             $client->is_active ? 'Cliente activado correctamente.' : 'Cliente desactivado correctamente.'
         );
+    }
+
+    /**
+     * Anonimiza los datos personales de un cliente a solicitud suya (Ley
+     * 1581 de 2012 / derecho de supresión), sin borrar la fila: las ventas
+     * históricas ya facturadas deben conservar su referencia. Documento y
+     * ciudad/departamento se conservan (no son personalmente identificables
+     * por sí solos y quedan como referencia contable); nombre y contacto se
+     * eliminan.
+     */
+    public function anonymize(Client $client): RedirectResponse
+    {
+        if ($client->document_number === 222222222222) {
+            return redirect()->back()->with('error', 'El cliente "Consumidor Final" no puede anonimizarse.');
+        }
+
+        AuditLogger::log('client.anonymized', $client);
+
+        $client->update([
+            'name' => 'Cliente Anonimizado #'.$client->id,
+            'email' => null,
+            'phone' => null,
+            'cellphone' => null,
+            'address' => null,
+            'is_active' => false,
+        ]);
+
+        return redirect()->back()->with('success', 'Los datos del cliente fueron anonimizados correctamente.');
     }
 
     public function history(Client $client, Request $request)
