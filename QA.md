@@ -11,8 +11,9 @@ El plan completo de QA (seguridad → funcional → carga → manuales → contr
 - [ ] **Pruebas y QA** — en curso
   - [x] Seguridad — Ronda 1 (2026-09-09): XSS, control de acceso, SQL crudo
   - [x] Seguridad — Ronda 2 (2026-09-09): CSRF, fuerza bruta, sesión, carga de archivos, exposición de info, DoS
-  - [x] Funcional — Ronda 3 (2026-09-09): caja blanca completa; caja negra dejada como checklist (necesita uso real)
+  - [x] Funcional — Ronda 3 (2026-09-09): caja blanca completa
   - [x] Carga y estrés — Ronda 3 (2026-09-09): revisado a fondo el código; concurrencia real queda pendiente de un motor con locking de verdad (MySQL/Postgres, no SQLite) — ver abajo
+  - [x] Caja negra — Ronda 4 (2026-09-09): 4 roles recorridos en el navegador real, 1 bug de integridad de datos encontrado y corregido
 - [ ] **Manuales** (usuario + técnico)
 - [ ] **Contrato**
 
@@ -300,14 +301,72 @@ negocio"). Checklist por rol, para marcar mientras se recorre el sistema de verd
       claros (no técnicos).
 
 **Cajero**
-- [ ] Abrir caja, registrar un ingreso/gasto manual en Finanzas, cerrar caja al final del turno.
+- [x] ~~Abrir caja, registrar un ingreso/gasto manual en Finanzas, cerrar caja al final del turno.~~ Corregido
+      en Ronda 4: abrir/cerrar caja es solo del Administrador por diseño (ver `RoleSeeder`) — el Cajero solo
+      consulta. Confirmado en el navegador: no hay botón de abrir/cerrar caja visible con este rol.
 - [ ] Intentar registrar una venta sin la caja abierta y confirmar el mensaje.
 
 **Bodega**
-- [ ] Registrar una entrada de mercancía y un ajuste de inventario (conteo físico) por diferencia.
+- [x] Registrar una entrada de mercancía — confirmado en el navegador (Ronda 4): proveedor autocompletado
+      del producto, stock actualizado.
+- [ ] Registrar un ajuste de inventario (conteo físico) por diferencia.
 - [ ] Recibir un pedido a un proveedor y confirmar que el stock sube y el pedido se marca como recibido.
 - [ ] Cargar un Excel de productos/movimientos en bloque y revisar el preview antes de confirmar.
 
 **Todos los roles**
-- [ ] Intentar llegar a una pantalla de un módulo sin permiso escribiendo la URL directo — debe bloquear, no
-      solo esconder el botón del menú.
+- [x] Intentar llegar a una pantalla de un módulo sin permiso escribiendo la URL directo — confirmado en el
+      navegador (Ronda 4): Vendedor → `/roles` da 403 real, no solo esconde el botón.
+
+---
+
+## Ronda 4 — Caja negra real en el navegador (2026-09-09)
+
+Con Claude in Chrome (sin instalar nada) sobre el entorno local ya corriendo, usando las cuentas de prueba ya
+sembradas por `UserSeeder` (admin, vendedor, cajero, bodega). Esto es lo que caja blanca no puede atrapar: no
+prueba lógica interna, prueba lo que de verdad se renderiza y lo que un humano haría sin pensarlo dos veces.
+
+| Métrica | Resultado |
+|---|---|
+| Roles recorridos con una cuenta real | **4** (Administrador, Vendedor, Cajero, Bodega) |
+| Flujos completos verificados de punta a punta en el navegador | **4** (venta, movimiento de inventario, rol duplicado, control de acceso) |
+| Vulnerabilidad de integridad de datos encontrada y corregida | **1** (label de Rol duplicado) |
+| Hallazgo menor de UX documentado (no corregido aún) | **1** (página 403 sin estilo) |
+
+### Hallazgo real: dos roles podían tener el mismo nombre visible
+
+Probando el formulario de "Nuevo Rol" a mano — exactamente lo que haría un administrador real — crear un rol
+escribiendo "Bodega" (ya existente) se aceptó sin ningún aviso. Quedaron dos filas idénticas en la tabla de
+Roles y Permisos, indistinguibles para un humano.
+
+**Causa real:** `roleForm.tsx` genera el campo técnico `name` (el único que sí validaba unicidad) a partir del
+`label` que el usuario escribe, en minúsculas y con guiones — pero el usuario nunca ve ni edita `name`
+directamente. Escribir el mismo `label` dos veces genera casi siempre un `name` distinto si el label ya
+existía con otro `name` técnico (ej. el rol sembrado "Bodega" tiene `name` interno `warehouse`, no `bodega`),
+así que la regla de unicidad sobre `name` nunca se activaba. Ni caja blanca lo había atrapado: el test de
+"rol duplicado" de la Ronda 3 probaba con el mismo `name` técnico, no con el mismo `label` visible — el
+escenario exacto que un humano reproduce sin pensarlo.
+
+- **Fix:** `RoleRequest` ahora valida también `label` como único (`app/Http/Requests/RoleRequest.php`).
+  Verificado dos veces en el navegador: falló antes del fix (creó el duplicado), no dejó crear después.
+- Prueba de regresión agregada: `tests/Feature/Business/RoleLabelUniquenessTest.php`.
+
+### Confirmado en el navegador, sin cambios de código
+
+- **Venta completa como Vendedor:** cliente "Consumidor Final" por documento, producto por código, venta
+  creada (factura A-000004), Dashboard/reportes actualizados al instante con el monto real.
+- **Auditoría como Administrador:** las acciones que acabo de hacer (crear/eliminar el rol de prueba)
+  aparecen en el log con usuario, fecha/hora y registro afectado correctos.
+- **Menú por rol:** Vendedor, Cajero y Bodega ven solo los módulos que su rol permite — nada de items
+  ocultos-pero-accesibles.
+- **Movimiento de inventario como Bodega:** entrada registrada, proveedor autocompletado del producto (no
+  editable a mano), stock actualizado.
+- **Control de acceso:** Vendedor navegando directo a `/roles` (URL escrita a mano, sin pasar por el menú)
+  recibe un 403 real del servidor.
+
+### Hallazgo menor, sin corregir: página de error 403 sin estilo
+
+El 403 de arriba se ve como texto plano en inglés ("403 | USER DOES NOT HAVE THE RIGHT PERMISSIONS.") sin
+nada del diseño de la app — no hay `resources/views/errors/` en el proyecto, así que cae al render por
+defecto de Laravel. No es un problema de seguridad (el bloqueo sí funciona), es una mala primera impresión si
+un empleado real llega ahí por accidente. Queda para una ronda futura — es trabajo de diseño de una página,
+no una corrección de una línea.
