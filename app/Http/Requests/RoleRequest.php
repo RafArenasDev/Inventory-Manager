@@ -25,7 +25,12 @@ class RoleRequest extends FormRequest
     {
         return [
             'name' => ['required', 'string', 'max:255', Rule::unique('roles', 'name')->ignore($this->route('role'))],
-            'label' => 'required|string|max:255',
+            // `label` es lo único que el usuario ve y escribe (el
+            // formulario genera `name` solo, en minúsculas, a partir de
+            // este campo) — sin esta regla, dos roles podían terminar con
+            // el mismo label visible ("Bodega") y un `name` técnico
+            // distinto, indistinguibles en la tabla de Roles y Permisos.
+            'label' => ['required', 'string', 'max:255', Rule::unique('roles', 'label')->ignore($this->route('role'))],
             'description' => 'nullable|string',
             'permissions' => 'required|array|min:1',
             'permissions.*' => 'exists:permissions,id',
