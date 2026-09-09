@@ -22,12 +22,23 @@ matches.forEach((match, index) => {
     const [, version, date] = match;
     const start = match.index + match[0].length;
     const end = index + 1 < matches.length ? matches[index + 1].index : raw.length;
-    const notes = raw
-        .slice(start, end)
-        .trim()
-        .replace(/\s+/g, ' ');
+    const body = raw.slice(start, end).trim();
 
-    entries.push({ version, date, notes });
+    // El resumen es todo lo que va ANTES de la primera línea "- " (viñeta);
+    // el resto son los puntos de detalle de esa versión. Una versión sin
+    // viñetas (las más viejas del historial) simplemente queda con
+    // highlights: [].
+    const bulletStart = body.search(/^- /m);
+    const summaryRaw = bulletStart === -1 ? body : body.slice(0, bulletStart);
+    const bulletsRaw = bulletStart === -1 ? '' : body.slice(bulletStart);
+
+    const notes = summaryRaw.trim().replace(/\s+/g, ' ');
+    const highlights = bulletsRaw
+        .split(/\n(?=- )/)
+        .map((line) => line.replace(/^- /, '').trim().replace(/\s+/g, ' '))
+        .filter(Boolean);
+
+    entries.push({ version, date, notes, highlights });
 });
 
 if (entries.length === 0) {
@@ -45,6 +56,7 @@ export interface ChangelogEntry {
     version: string;
     date: string;
     notes: string;
+    highlights: string[];
 }
 
 export const CURRENT_VERSION: string = ${JSON.stringify(current.version)};

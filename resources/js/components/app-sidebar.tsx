@@ -81,7 +81,7 @@ export function AppSidebar() {
                         onClick={() => setShowWhatsNew(true)}
                         className="text-sidebar-foreground/60 hover:text-sidebar-foreground text-[11px] font-medium tracking-wide underline-offset-2 hover:underline"
                     >
-                        Versión {CURRENT_VERSION} · Novedades
+                        {CURRENT_VERSION} · Novedades
                     </button>
                     <p className="text-sidebar-foreground/35 text-[10px]">© 2025–2026 RafArenasDev</p>
                 </div>
