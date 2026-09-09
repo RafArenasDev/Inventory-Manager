@@ -156,18 +156,46 @@ directamente desde su carpeta — **pero solo lee el build ya compilado** (`publ
 Vite en caliente. Con Herd, corré `npm run build` cada vez que cambies algo del frontend antes de probarlo en el
 navegador; para desarrollo activo del frontend usá `npm run dev` en su lugar.
 
-Para el tiempo real (ver "Novedades" reflejadas en otras sesiones sin recargar, notificaciones de stock bajo,
-etc.) hace falta correr el servidor de Reverb aparte:
+### 8. Activar el tiempo real (Reverb)
 
-```bash
-php artisan reverb:start
-```
+Sin esto la app funciona igual, pero sin las notificaciones instantáneas (avisos de caja, alertas de stock, el
+modal de "Novedades" reflejándose solo en otras sesiones abiertas) — se necesitan quedar refrescando la página a
+mano. Para activarlo:
 
-Genera tus propias credenciales de Reverb (`REVERB_APP_ID`, `REVERB_APP_KEY`, `REVERB_APP_SECRET`) con:
+1. **Generar credenciales propias** (una sola vez, ya quedan guardadas en `.env`):
+   ```bash
+   php artisan reverb:install
+   ```
+2. **Levantar el servidor de Reverb** — tiene que quedar corriendo todo el tiempo que la app esté en uso, en su
+   propia ventana/proceso aparte del sitio en sí:
+   ```bash
+   php artisan reverb:start
+   ```
+   Cerrar esa ventana apaga el tiempo real (el resto de la app sigue funcionando normal).
+3. **Para que no haya que abrir esa ventana a mano cada vez**: en Windows, `scripts/reverb-watchdog.ps1`
+   mantiene el servidor de Reverb corriendo en segundo plano y lo reinicia solo si se cae;
+   `scripts/reverb-watchdog-hidden.vbs` lo lanza sin mostrar ninguna ventana. Un acceso directo a ese `.vbs` en
+   la carpeta de inicio de Windows (`shell:startup`, desde Ejecutar) deja el tiempo real activo automáticamente
+   cada vez que se prende el PC.
 
-```bash
-php artisan reverb:install
-```
+### 9. Generación de facturas en PDF
+
+Cada venta nueva genera su factura en PDF automáticamente al crearse. `sales:backfill-invoices` cubre dos casos
+adicionales:
+
+- **Ventas antiguas sin factura**: el sistema mismo revisa esto una vez al día, en el primer login del día, y
+  genera lo que falte — sin pasos manuales.
+- **Backlog grande** (cientos de ventas sin factura de golpe) puede no alcanzar a terminar en un solo login (el
+  servidor web tiene un límite de tiempo por petición) — retoma solo al día siguiente donde quedó, pero para no
+  esperar corré el comando a mano desde la terminal (sin ese límite de tiempo):
+  ```bash
+  php artisan sales:backfill-invoices
+  ```
+- Para **regenerar TODAS** las facturas ya existentes (por ejemplo, tras corregir un detalle visual del diseño
+  de la factura), agregar `--force`:
+  ```bash
+  php artisan sales:backfill-invoices --force
+  ```
 
 ## Configurar un host local (dominio propio en vez de `localhost:8000`)
 
@@ -227,6 +255,7 @@ Además de las estándar de Laravel (`APP_*`, `DB_*`, `MAIL_*`), este proyecto u
 ```bash
 php artisan config:clear      # Limpiar cache de configuración tras editar .env o config/*.php
 php artisan migrate:status    # Ver qué migraciones han corrido
+php artisan sales:backfill-invoices   # Genera facturas faltantes — ver "Generación de facturas en PDF" arriba
 composer run pint             # Formatear PHP según el estándar del proyecto (Laravel Pint)
 npm run lint                  # ESLint (con --fix) sobre resources/
 npm run format                # Prettier sobre resources/
@@ -236,7 +265,7 @@ npm run types                 # Chequeo de tipos de TypeScript sin emitir archiv
 ## Calidad y pruebas
 
 ```bash
-php artisan test    # 64/64 — corre contra SQLite en memoria, ver phpunit.xml
+php artisan test    # corre contra SQLite en memoria, ver phpunit.xml
 ```
 
 El progreso de QA (seguridad, funcional, carga) queda documentado en [`QA.md`](./QA.md), una sección por ronda
@@ -273,5 +302,9 @@ Freeware y pasaría a una licencia comercial propietaria, bajo los mismos térmi
   ```
 - **La app no refleja cambios del frontend en Herd**: correr `npm run build` — Herd sirve el build estático, no
   un servidor de Vite en caliente (ver sección de instalación).
-- **El tiempo real no funciona**: confirma que `php artisan reverb:start` esté corriendo aparte y que
-  `REVERB_*`/`VITE_REVERB_*` en `.env` tengan credenciales válidas (`php artisan reverb:install` las genera).
+- **El tiempo real no funciona**: confirma que `php artisan reverb:start` esté corriendo aparte (o el watchdog
+  de `scripts/`) y que `REVERB_*`/`VITE_REVERB_*` en `.env` tengan credenciales válidas (`php artisan
+  reverb:install` las genera).
+- **Faltan facturas por generar y son muchas (backlog grande)**: la generación automática del primer login del
+  día puede no alcanzar a terminarlas todas si son cientos — no se pierde el progreso, retoma al día siguiente
+  donde quedó, pero para no esperar corré `php artisan sales:backfill-invoices` a mano desde la terminal.
