@@ -136,7 +136,7 @@ class CategoryController extends Controller
             // resto el cuerpo — ver FlashErrorWatcher.
             return redirect()->back()->with(
                 'error',
-                "No se puede eliminar la categoría <b>{$category->name}</b>\n".
+                'No se puede eliminar la categoría <b>'.e($category->name)."</b>\n".
                 "Tiene {$productsCount} {$noun}."
             );
         }

@@ -236,7 +236,7 @@ npm run types                 # Chequeo de tipos de TypeScript sin emitir archiv
 ## Calidad y pruebas
 
 ```bash
-php artisan test    # 47/47 — corre contra SQLite en memoria, ver phpunit.xml
+php artisan test    # 63/63 — corre contra SQLite en memoria, ver phpunit.xml
 ```
 
 El progreso de QA (seguridad, funcional, carga) queda documentado en [`QA.md`](./QA.md), una sección por ronda

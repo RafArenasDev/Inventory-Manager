@@ -11,8 +11,8 @@ El plan completo de QA (seguridad → funcional → carga → manuales → contr
 - [ ] **Pruebas y QA** — en curso
   - [x] Seguridad — Ronda 1 (2026-09-09): XSS, control de acceso, SQL crudo
   - [x] Seguridad — Ronda 2 (2026-09-09): CSRF, fuerza bruta, sesión, carga de archivos, exposición de info, DoS
-  - [ ] Funcional (caja negra / caja blanca)
-  - [ ] Carga y estrés
+  - [x] Funcional — Ronda 3 (2026-09-09): caja blanca completa; caja negra dejada como checklist (necesita uso real)
+  - [x] Carga y estrés — Ronda 3 (2026-09-09): revisado a fondo el código; concurrencia real queda pendiente de un motor con locking de verdad (MySQL/Postgres, no SQLite) — ver abajo
 - [ ] **Manuales** (usuario + técnico)
 - [ ] **Contrato**
 
@@ -186,3 +186,128 @@ consistente con lo que ya decía el roadmap original.
 
 Las 10 categorías del plan de seguridad quedaron revisadas entre la Ronda 1 y la Ronda 2. Quedan en el
 roadmap como referencia, no como pendiente.
+
+---
+
+## Ronda 3 — Funcional (caja blanca) y carga (2026-09-09)
+
+Secciones B y C del roadmap. Caja blanca completa con pruebas reales; caja negra queda documentada como
+checklist (necesita uso real del sistema, no algo que se automatice solo); carga/estrés se revisó a fondo por
+código, con la concurrencia real de verdad pendiente de un motor con locking real (MySQL o Postgres — la
+siguiente fase, contra el backup del negocio de tu tío, es exactamente donde eso se termina de confirmar).
+
+| Métrica | Resultado |
+|---|---|
+| Pruebas nuevas (caja blanca: ventas + movimientos de inventario) | **16** |
+| Pruebas totales del proyecto | 47 → **63**, todas en verde |
+| Vulnerabilidades XSS nuevas encontradas y corregidas (mismo patrón de la Ronda 1, en sitios que no se habían revisado) | **2** |
+| Hueco de manejo de carrera encontrado y corregido | **1** (Roles) |
+
+### Barrido adicional de XSS — 2 sitios más
+
+Al tocar `RoleController` para otra cosa, apareció el mismo patrón de la Ronda 1 (nombre de un registro
+interpolado sin escapar en un mensaje `<b>...</b>` que se renderiza como HTML real vía
+`flash-error-watcher.tsx`) en dos sitios que el grep de la Ronda 1 no cubrió, porque buscaba variables
+`->name` específicamente y estos usan otro atributo o quedaron fuera del patrón exacto:
+
+- `CategoryController::destroy()` — `$category->name` sin escapar.
+- `RoleController::destroy()` — `$role->label` sin escapar.
+
+→ Corregidos con `e()`, mismo tratamiento que en la Ronda 1. Con esto, un grep de `<b>` en todo
+`app/Http/Controllers` ya no encuentra ningún caso sin `e()`.
+
+### Hueco de manejo de carrera en Roles — corregido
+
+Usuarios, Clientes, Productos y Proveedores ya atrapan el `QueryException` de "nombre duplicado" que puede
+pasar cuando dos altas casi simultáneas superan la validación antes de que cualquiera exista todavía, y
+muestran un mensaje claro en vez de un error 500. `RoleController::store()`/`update()` no lo tenía, a pesar de
+que `RoleRequest` sí valida `name` como único. Corregido con el mismo patrón (`isUniqueViolation()`, que ya
+distingue Postgres `23505` de MySQL `1062` — la misma lógica multi-motor que ya usan los otros cuatro
+controladores).
+
+No se pudo escribir una prueba automatizada que reproduzca la carrera en sí (necesita dos conexiones de verdad
+compitiendo por la misma fila, algo que un test de PHPUnit de un solo proceso no puede simular de forma
+honesta) — el fix se aplicó por consistencia con el patrón ya probado en los otros cuatro controladores, no
+por un test que lo demuestre.
+
+### Caja blanca — 16 pruebas nuevas sobre dinero, inventario y auditoría
+
+**Ventas** (`tests/Feature/Business/SaleBusinessLogicTest.php`, 8 pruebas):
+- El total se calcula siempre server-side desde `Product::sale_price` real (nunca del precio que mande el
+  cliente).
+- El descuento porcentual se aplica correctamente.
+- El stock se descuenta y queda un movimiento de tipo "Salida".
+- No se puede vender más de lo que hay en stock.
+- El límite DIAN de "Consumidor Final" (5 UVT = $261.870 con la UVT vigente de 2026) se respeta — rechaza por
+  encima, permite por debajo.
+- Anular una venta restaura el stock exacto y elimina la transacción de Finanzas asociada.
+- No se puede registrar una venta sin la caja del día abierta.
+
+**Movimientos de Inventario** (`tests/Feature/Business/InventoryMovementBusinessLogicTest.php`, 8 pruebas):
+- Entrada suma, Salida resta, y Salida nunca deja el stock en negativo.
+- "Ajuste Inventario" fija el stock al conteo físico real (no es un delta con signo) — probado subiendo,
+  probado con conteo en 0.
+- Un ajuste manual queda auditado con el stock antes/después.
+- Un movimiento con fecha futura se rechaza.
+- El proveedor del movimiento siempre sale del producto, nunca de lo que mande el request (aunque se intente
+  mandar uno distinto a mano).
+
+### Carga y estrés — revisado por código, concurrencia real pendiente del motor correcto
+
+Los 4 escenarios del roadmap, uno por uno:
+
+1. **Ventas simultáneas** — revisado el código (`Sale::generateInvoiceNumber()` y el `lockForUpdate()` sobre
+   cada producto en `SaleController::store()`), **no confirmado con concurrencia real**. Hipótesis concreta a
+   verificar en la fase de MySQL: `generateInvoiceNumber()` hace
+   `Sale::orderBy('id','desc')->lockForUpdate()->first()` para calcular el siguiente número — bloquea la
+   fila de la ÚLTIMA venta existente, pero esa fila nunca cambia (la venta nueva es un INSERT, no un UPDATE
+   sobre ella). Si dos transacciones concurrentes bloquean la misma fila "última" ANTES de que cualquiera
+   inserte, la segunda —al desbloquearse— podría seguir leyendo el mismo número de factura que ya usó la
+   primera. La tabla sí tiene `invoice_number` con índice único (así que un duplicado real terminaría en un
+   error de la base de datos, no en dos facturas con el mismo número silenciosamente), pero conviene
+   confirmar con tráfico concurrente real si ese error se maneja con un mensaje claro o revienta feo. El
+   stock sí queda protegido con `lockForUpdate()` fila por fila — ese mecanismo es más robusto porque el lock
+   cae sobre la fila que sí se actualiza (`Product`), no sobre una fila ajena.
+2. **Registros duplicados** — mecanismo de protección revisado y confirmado en Ronda 3 arriba
+   (`isUniqueViolation()` en los 5 controladores con campos únicos). Falta el mismo tráfico concurrente real
+   para confirmarlo en vivo.
+3. **Carga sostenida sobre reportes** — no probado. Necesita un volumen de datos real (el backup del negocio
+   de tu tío es una oportunidad natural para esto: es data real, no sintética).
+4. **Conexiones de tiempo real (Reverb) simultáneas** — no probado, necesita un servidor Reverb corriendo y
+   varios clientes WebSocket reales; fuera del alcance de una prueba automatizada de PHPUnit.
+
+**Por qué no se probó con concurrencia real acá:** SQLite (el motor de las pruebas automatizadas de este
+proyecto) no tiene locking a nivel de fila de verdad — bloquea la base de datos completa al escribir, lo que
+en la práctica "esconde" cualquier condición de carrera en vez de reproducirla fielmente. Probar esto de
+verdad necesita el motor real (MySQL o Postgres) con conexiones concurrentes genuinas — exactamente lo que va
+a estar disponible en la siguiente fase, con el backup del negocio de tu tío corriendo en MySQL.
+
+### Caja negra — checklist para uso real
+
+Esto no se puede automatizar por definición (el roadmap mismo lo dice: "aceptación con el dueño real del
+negocio"). Checklist por rol, para marcar mientras se recorre el sistema de verdad:
+
+**Administrador**
+- [ ] Crear/editar/eliminar un rol y ver que los permisos se apliquen de inmediato a un usuario con ese rol.
+- [ ] Abrir la caja del día, cerrarla, ver que el resumen cuadre con las ventas reales del día.
+- [ ] Ver el historial de auditoría y confirmar que una acción recién hecha aparece con el detalle correcto.
+
+**Vendedor**
+- [ ] Crear una venta completa: cliente nuevo (quick-create), varios productos, descuento, forma de pago.
+- [ ] Vender el último producto en stock y confirmar que no se puede vender uno más.
+- [ ] Anular una venta ya facturada y confirmar que el stock vuelve y la factura deja de estar disponible.
+- [ ] Crear un cliente con datos incompletos y confirmar que el formulario pide lo que falta con mensajes
+      claros (no técnicos).
+
+**Cajero**
+- [ ] Abrir caja, registrar un ingreso/gasto manual en Finanzas, cerrar caja al final del turno.
+- [ ] Intentar registrar una venta sin la caja abierta y confirmar el mensaje.
+
+**Bodega**
+- [ ] Registrar una entrada de mercancía y un ajuste de inventario (conteo físico) por diferencia.
+- [ ] Recibir un pedido a un proveedor y confirmar que el stock sube y el pedido se marca como recibido.
+- [ ] Cargar un Excel de productos/movimientos en bloque y revisar el preview antes de confirmar.
+
+**Todos los roles**
+- [ ] Intentar llegar a una pantalla de un módulo sin permiso escribiendo la URL directo — debe bloquear, no
+      solo esconder el botón del menú.

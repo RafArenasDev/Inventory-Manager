@@ -7,6 +7,7 @@ use App\Models\Module;
 use App\Models\Permission;
 use App\Models\Role;
 use App\Services\AuditLogger;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -70,13 +71,24 @@ class RoleController extends Controller
      */
     public function store(RoleRequest $request): RedirectResponse
     {
-        $role = Role::create([
-            'name' => $request->name,
-            'label' => $request->label,
-            'description' => $request->description,
-            'is_active' => true,  // Siempre activo
-            'guard_name' => 'web', // Siempre web
-        ]);
+        // RoleRequest ya valida el nombre único, pero deja la misma ventana
+        // de carrera que Usuarios/Clientes/Productos/Proveedores: dos altas
+        // casi simultáneas con el mismo nombre pueden pasar la validación
+        // antes de que cualquiera exista todavía.
+        try {
+            $role = Role::create([
+                'name' => $request->name,
+                'label' => $request->label,
+                'description' => $request->description,
+                'is_active' => true,  // Siempre activo
+                'guard_name' => 'web', // Siempre web
+            ]);
+        } catch (QueryException $e) {
+            if ($this->isUniqueViolation($e)) {
+                return redirect()->back()->with('error', 'Ya existe un rol con ese nombre.')->withInput();
+            }
+            throw $e;
+        }
 
         $role->syncPermissions($request->input('permissions', []));
 
@@ -136,17 +148,24 @@ class RoleController extends Controller
 
         $beforePermissionIds = $role->permissions->pluck('id')->all();
 
-        DB::transaction(function () use ($role, $request, $isAdminRole, $permissionIds) {
-            $role->update([
-                'name' => $isAdminRole ? 'admin' : $request->name,
-                'label' => $request->label,
-                'description' => $request->description,
-                'is_active' => true,  // Siempre activo
-                'guard_name' => 'web', // Siempre web
-            ]);
+        try {
+            DB::transaction(function () use ($role, $request, $isAdminRole, $permissionIds) {
+                $role->update([
+                    'name' => $isAdminRole ? 'admin' : $request->name,
+                    'label' => $request->label,
+                    'description' => $request->description,
+                    'is_active' => true,  // Siempre activo
+                    'guard_name' => 'web', // Siempre web
+                ]);
 
-            $role->syncPermissions($permissionIds);
-        });
+                $role->syncPermissions($permissionIds);
+            });
+        } catch (QueryException $e) {
+            if ($this->isUniqueViolation($e)) {
+                return redirect()->back()->with('error', 'Ya existe otro rol con ese nombre.')->withInput();
+            }
+            throw $e;
+        }
 
         $this->logPermissionDiff($role, $beforePermissionIds);
 
@@ -176,7 +195,7 @@ class RoleController extends Controller
             // resto el cuerpo — ver FlashErrorWatcher.
             return redirect()->back()->with(
                 'error',
-                "No se puede eliminar el rol <b>{$role->label}</b>\n".
+                'No se puede eliminar el rol <b>'.e($role->label)."</b>\n".
                 "Tiene {$usersCount} {$noun}. {$verb} a otro rol primero."
             );
         }
