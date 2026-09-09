@@ -2,13 +2,14 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\Auditable;
 use App\Models\Concerns\BroadcastsModelChanges;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Client extends Model
 {
-    use BroadcastsModelChanges, HasFactory;
+    use Auditable, BroadcastsModelChanges, HasFactory;
 
     protected $broadcastChannelName = 'clients';
 
@@ -25,6 +26,11 @@ class Client extends Model
         'email',
         'is_active',
     ];
+
+    public function auditLabel(): string
+    {
+        return 'Cliente '.$this->name.' — '.$this->document_type.' '.$this->document_number;
+    }
 
     public function department()
     {

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\Auditable;
 use App\Models\Concerns\BroadcastsModelChanges;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -9,7 +10,7 @@ use Illuminate\Support\Str;
 
 class Product extends Model
 {
-    use BroadcastsModelChanges, HasFactory;
+    use Auditable, BroadcastsModelChanges, HasFactory;
 
     protected $broadcastChannelName = 'inventory';
 
@@ -33,6 +34,27 @@ class Product extends Model
         'sale_price' => 'integer',
         'stock' => 'integer',
     ];
+
+    public function auditLabel(): string
+    {
+        return 'Producto '.$this->code.' — '.$this->name;
+    }
+
+    /**
+     * Un cambio de stock por sí solo ya queda registrado con contexto real
+     * (quién vendió qué, o el motivo del ajuste manual) en la Venta o el
+     * Movimiento que lo causó — auditarlo de nuevo acá sería un duplicado
+     * sin información nueva. Cualquier otro cambio (precio, nombre,
+     * categoría) sí se audita.
+     */
+    public function shouldAudit(string $event): bool
+    {
+        if ($event !== 'updated') {
+            return true;
+        }
+
+        return array_diff(array_keys($this->getChanges()), ['updated_at']) !== ['stock'];
+    }
 
     public function category()
     {

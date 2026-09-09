@@ -364,6 +364,9 @@ Route::middleware(['auth', 'verified', 'active'])->group(function () {
         Route::match(['get', 'post'], '/search', [AuditLogController::class, 'index'])
             ->name('audit-logs.search')
             ->middleware('permission:Ver Auditoría');
+        Route::get('/export', [AuditLogController::class, 'export'])
+            ->name('audit-logs.export')
+            ->middleware('permission:Exportar Auditoría');
     });
 
 });

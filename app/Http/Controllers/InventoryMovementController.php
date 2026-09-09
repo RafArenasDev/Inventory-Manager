@@ -148,6 +148,7 @@ class InventoryMovementController extends Controller
             // delta con signo) — ej. había 3 en sistema, el conteo real dio
             // 4 o 2. La cantidad guardada es ese conteo, siempre positiva; el
             // sistema calcula la diferencia y la aplica al stock.
+            $stockBeforeAdjustment = $product->stock;
             $delta = $validated['quantity'] - $product->stock;
             if ($delta > 0) {
                 $product->increment('stock', $delta);
@@ -159,7 +160,10 @@ class InventoryMovementController extends Controller
         $movement = InventoryMovement::create($validated);
 
         if ($validated['type'] === 'Ajuste Inventario' && ! $movement->purchase_order_id) {
-            AuditLogger::log('inventory.manual_adjustment', $movement, $movement->notes);
+            AuditLogger::log('inventory.manual_adjustment', $movement, $movement->notes, [
+                'stock' => [$stockBeforeAdjustment, $product->stock],
+                'conteo_fisico' => [null, $validated['quantity']],
+            ]);
         }
 
         $this->syncPurchaseOrder($movement, $movement->quantity);

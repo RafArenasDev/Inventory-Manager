@@ -6,6 +6,7 @@ use App\Models\Category;
 use App\Models\InventoryMovement;
 use App\Models\Product;
 use App\Models\Supplier;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -297,21 +298,36 @@ class ProductController extends Controller
             ? $request->file('image')->store('products', 'public')
             : null;
 
-        $product = Product::create([
-            'code' => $validated['code'],
-            'category_id' => $validated['category_id'],
-            'name' => $validated['name'],
-            'description' => $validated['description'],
-            'image_path' => $imagePath,
-            'price_without_tax' => $validated['price_without_tax'],
-            'price_with_tax' => $validated['price_with_tax'],
-            'iva_value' => $validated['iva_value'],
-            'sale_price' => $validated['sale_price'],
-            'supplier_id' => $validated['supplier_id'] ?: null,
-            'stock' => $validated['stock'],
-            'low_stock_threshold' => $validated['low_stock_threshold'] ?: null,
-            'initial_movement_id' => null,
-        ]);
+        try {
+            $product = Product::create([
+                'code' => $validated['code'],
+                'category_id' => $validated['category_id'],
+                'name' => $validated['name'],
+                'description' => $validated['description'],
+                'image_path' => $imagePath,
+                'price_without_tax' => $validated['price_without_tax'],
+                'price_with_tax' => $validated['price_with_tax'],
+                'iva_value' => $validated['iva_value'],
+                'sale_price' => $validated['sale_price'],
+                'supplier_id' => $validated['supplier_id'] ?: null,
+                'stock' => $validated['stock'],
+                'low_stock_threshold' => $validated['low_stock_threshold'] ?: null,
+                'initial_movement_id' => null,
+            ]);
+        } catch (QueryException $e) {
+            // La regla `unique:products,code` ya valida esto, pero deja una
+            // ventana real: dos usuarios pueden pasar la validación casi al
+            // mismo tiempo y el segundo INSERT choca contra el `unique` de
+            // la base de datos — sin este catch, eso se veía como un error
+            // 500 crudo en vez de un aviso claro.
+            if ($imagePath) {
+                Storage::disk('public')->delete($imagePath);
+            }
+            if ($this->isUniqueViolation($e)) {
+                return back()->with('error', 'Ya existe un producto registrado con ese código.')->withInput();
+            }
+            throw $e;
+        }
 
         $this->reactivateCategoryIfNeeded($validated['category_id']);
 
@@ -441,20 +457,27 @@ class ProductController extends Controller
         $originalStock = $product->stock;
         $stockChanged = $stock !== $originalStock;
 
-        $product->update([
-            'code' => $validated['code'],
-            'category_id' => $validated['category_id'],
-            'name' => $validated['name'],
-            'description' => $validated['description'],
-            'image_path' => $imagePath,
-            'price_without_tax' => $priceWithoutTax,
-            'price_with_tax' => $priceWithTax,
-            'iva_value' => $ivaValue,
-            'sale_price' => $salePrice,
-            'supplier_id' => $validated['supplier_id'] ?: null,
-            'stock' => $stock,
-            'low_stock_threshold' => $validated['low_stock_threshold'] ?: null,
-        ]);
+        try {
+            $product->update([
+                'code' => $validated['code'],
+                'category_id' => $validated['category_id'],
+                'name' => $validated['name'],
+                'description' => $validated['description'],
+                'image_path' => $imagePath,
+                'price_without_tax' => $priceWithoutTax,
+                'price_with_tax' => $priceWithTax,
+                'iva_value' => $ivaValue,
+                'sale_price' => $salePrice,
+                'supplier_id' => $validated['supplier_id'] ?: null,
+                'stock' => $stock,
+                'low_stock_threshold' => $validated['low_stock_threshold'] ?: null,
+            ]);
+        } catch (QueryException $e) {
+            if ($this->isUniqueViolation($e)) {
+                return back()->with('error', 'Ya existe otro producto registrado con ese código.')->withInput();
+            }
+            throw $e;
+        }
 
         $this->reactivateCategoryIfNeeded($validated['category_id']);
 
@@ -604,5 +627,12 @@ class ProductController extends Controller
         }
 
         Category::where('id', $categoryId)->where('is_active', false)->update(['is_active' => true]);
+    }
+
+    private function isUniqueViolation(QueryException $e): bool
+    {
+        // 23505 = Postgres, 1062 = MySQL/MariaDB — cubre ambos motores que
+        // usa este proyecto entre local y producción.
+        return $e->getCode() === '23505' || (int) $e->getCode() === 1062;
     }
 }

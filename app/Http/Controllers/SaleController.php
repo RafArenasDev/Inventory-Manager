@@ -160,9 +160,13 @@ class SaleController extends Controller
 
         try {
             $validated = $request->validated();
-            $invoiceNumber = Sale::generateInvoiceNumber();
 
-            $sale = DB::transaction(function () use ($validated, $invoiceNumber) {
+            $sale = DB::transaction(function () use ($validated) {
+                // Debe generarse DENTRO de la transacción (ver docblock del
+                // método): así el lockForUpdate serializa contra cualquier
+                // otra venta que se esté creando al mismo tiempo.
+                $invoiceNumber = Sale::generateInvoiceNumber();
+
                 // El precio, el stock y los totales NUNCA se toman del payload:
                 // el cliente solo dice "qué producto y cuánta cantidad", el
                 // servidor recalcula todo desde Product::sale_price (con
@@ -198,6 +202,22 @@ class SaleController extends Controller
                     : (int) round(min($discountInput, $totalWithoutTax));
                 $totalWithDiscount = $totalWithoutTax - $discountAmount;
                 $totalPaid = $totalWithDiscount;
+
+                // Tope DIAN al cliente "Consumidor Final": desactivado por
+                // defecto (config('business.consumidor_final_limit') en
+                // null) hasta confirmar la cifra vigente con el contador —
+                // ver comentario en config/business.php.
+                $limit = config('business.consumidor_final_limit');
+                if ($limit !== null) {
+                    $client = Client::find($validated['client_id']);
+                    if ($client && $client->document_number === 222222222222 && $totalPaid > (int) $limit) {
+                        throw new \RuntimeException(
+                            'Por normativa de la DIAN, las ventas que superen el tope legal establecido no pueden '.
+                            'registrarse bajo "Consumidor Final". Registra los datos reales del cliente (nombre, '.
+                            'documento y celular) para continuar.'
+                        );
+                    }
+                }
 
                 $sale = Sale::create([
                     'invoice_number' => $invoiceNumber,
@@ -288,7 +308,10 @@ class SaleController extends Controller
             'reason.required' => 'Debes indicar el motivo de la anulación.',
         ]);
 
-        AuditLogger::log('sale.cancelled', $sale, $validated['reason']);
+        AuditLogger::log('sale.cancelled', $sale, $validated['reason'], [
+            'is_cancelled' => [false, true],
+            'total_paid' => [$sale->total_paid / 100, $sale->total_paid / 100],
+        ]);
 
         DB::transaction(function () use ($sale) {
             foreach ($sale->items as $item) {

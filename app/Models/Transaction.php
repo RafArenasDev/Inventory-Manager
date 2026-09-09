@@ -2,13 +2,14 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\Auditable;
 use App\Models\Concerns\BroadcastsModelChanges;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Transaction extends Model
 {
-    use BroadcastsModelChanges, HasFactory;
+    use Auditable, BroadcastsModelChanges, HasFactory;
 
     protected $broadcastChannelName = 'finance';
 
@@ -31,6 +32,21 @@ class Transaction extends Model
         'transaction_time' => 'datetime:H:i:s',
         'amount' => 'integer',
     ];
+
+    public function auditLabel(): string
+    {
+        return 'Transacción '.$this->type.' — '.($this->category?->name ?? 'sin categoría');
+    }
+
+    /**
+     * Una transacción generada automáticamente por una venta no necesita su
+     * propio log de creación — la Venta ya deja su propia entrada. Editarla
+     * o eliminarla después sí es una acción manual y se audita.
+     */
+    public function shouldAudit(string $event): bool
+    {
+        return ! ($event === 'created' && $this->sale_id !== null);
+    }
 
     public function category()
     {

@@ -72,12 +72,23 @@ class UserController extends Controller
      */
     public function store(UserRequest $request)
     {
-        $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
-            'must_change_password' => true,
-        ]);
+        // UserRequest ya valida el email único, pero deja una ventana real
+        // bajo concurrencia — dos altas casi simultáneas con el mismo
+        // correo pueden pasar la validación antes de que cualquiera exista
+        // todavía, y el segundo INSERT choca contra el `unique` de la BD.
+        try {
+            $user = User::create([
+                'name' => $request->name,
+                'email' => $request->email,
+                'password' => Hash::make($request->password),
+                'must_change_password' => true,
+            ]);
+        } catch (QueryException $e) {
+            if ($e->getCode() === '23505' || (int) $e->getCode() === 1062) {
+                return redirect()->back()->with('error', 'Ya existe un usuario registrado con ese correo.')->withInput();
+            }
+            throw $e;
+        }
 
         if ($user && $request->has('roles')) {
             $user->syncRoles($request->roles);
@@ -101,7 +112,14 @@ class UserController extends Controller
             $user->password = Hash::make($request->password);
         }
 
-        $user->save();
+        try {
+            $user->save();
+        } catch (QueryException $e) {
+            if ($e->getCode() === '23505' || (int) $e->getCode() === 1062) {
+                return redirect()->back()->with('error', 'Ya existe otro usuario registrado con ese correo.')->withInput();
+            }
+            throw $e;
+        }
 
         if ($request->has('roles')) {
             $user->syncRoles($request->roles);

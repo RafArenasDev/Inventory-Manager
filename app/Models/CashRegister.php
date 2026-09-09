@@ -2,13 +2,14 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\Auditable;
 use App\Models\Concerns\BroadcastsModelChanges;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class CashRegister extends Model
 {
-    use BroadcastsModelChanges, HasFactory;
+    use Auditable, BroadcastsModelChanges, HasFactory;
 
     protected $broadcastChannelName = 'finance';
 
@@ -42,6 +43,11 @@ class CashRegister extends Model
         'closed_at' => 'datetime',
         'is_closed' => 'boolean',
     ];
+
+    public function auditLabel(): string
+    {
+        return 'Caja '.$this->register_date->format('d/m/Y');
+    }
 
     public function openedBy()
     {
