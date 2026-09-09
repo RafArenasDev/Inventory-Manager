@@ -1,5 +1,6 @@
 import { PeriodFilter } from '@/components/period-filter';
 import { Button } from '@/components/ui/button';
+import { CurrencyCell } from '@/components/ui/currency-cell';
 import { Pagination } from '@/components/ui/pagination';
 import SearchInput from '@/components/ui/search-input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -65,22 +66,6 @@ export default function CashRegisterTable({
     userPermissions,
     extraFilters,
 }: CashRegisterTableProps) {
-    const formatCurrency = (value: number) => {
-        return value ? '$' + value.toLocaleString('es-CO', { minimumFractionDigits: 0, maximumFractionDigits: 0 }) : '$0';
-    };
-
-    const formatDifference = (value: number) => {
-        const amount = Math.abs(value).toLocaleString('es-CO', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
-
-        if (value > 0) {
-            return '+$' + amount;
-        }
-        if (value < 0) {
-            return '-$' + amount;
-        }
-        return '$' + amount;
-    };
-
     const handleExport = () => {
         const exportUrl = route('cash-register.export');
         window.open(exportUrl, '_blank');
@@ -131,11 +116,19 @@ export default function CashRegisterTable({
                         {cashRegisters.data.map((cashRegister) => (
                             <TableRow key={cashRegister.id}>
                                 <TableCell>{formatDateTime(cashRegister.opened_at)}</TableCell>
-                                <TableCell>{formatCurrency(cashRegister.opening_amount)}</TableCell>
-                                <TableCell>{formatCurrency(cashRegister.total_sales)}</TableCell>
-                                <TableCell>{formatCurrency(cashRegister.other_income)}</TableCell>
-                                <TableCell>{formatCurrency(cashRegister.total_expenses)}</TableCell>
-                                <TableCell>{cashRegister.is_closed ? formatCurrency(cashRegister.closing_amount) : '-'}</TableCell>
+                                <TableCell>
+                                    <CurrencyCell value={cashRegister.opening_amount} />
+                                </TableCell>
+                                <TableCell>
+                                    <CurrencyCell value={cashRegister.total_sales} />
+                                </TableCell>
+                                <TableCell>
+                                    <CurrencyCell value={cashRegister.other_income} />
+                                </TableCell>
+                                <TableCell>
+                                    <CurrencyCell value={cashRegister.total_expenses} />
+                                </TableCell>
+                                <TableCell>{cashRegister.is_closed ? <CurrencyCell value={cashRegister.closing_amount} /> : '-'}</TableCell>
                                 <TableCell
                                     className={
                                         !cashRegister.is_closed
@@ -147,7 +140,7 @@ export default function CashRegisterTable({
                                                 : ''
                                     }
                                 >
-                                    {cashRegister.is_closed ? formatDifference(cashRegister.difference) : '-'}
+                                    {cashRegister.is_closed ? <CurrencyCell value={cashRegister.difference} showSign /> : '-'}
                                 </TableCell>
                                 <TableCell>{cashRegister.notes || '-'}</TableCell>
                                 <TableCell>

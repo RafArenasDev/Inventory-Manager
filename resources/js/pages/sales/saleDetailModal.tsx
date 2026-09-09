@@ -1,5 +1,6 @@
 import { WhatsAppIcon } from '@/components/icons/whatsapp-icon';
 import { Button } from '@/components/ui/button';
+import { CurrencyCell } from '@/components/ui/currency-cell';
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import Swal from '@/lib/swal';
@@ -216,8 +217,12 @@ export default function SaleDetailModal({ isOpen, onClose, sale, businessName }:
                                             <TableCell className="font-mono text-sm">{item.product_code}</TableCell>
                                             <TableCell>{item.product_name}</TableCell>
                                             <TableCell className="text-right">{item.quantity}</TableCell>
-                                            <TableCell className="text-right">{formatCurrency(item.price_at_sale)}</TableCell>
-                                            <TableCell className="text-right font-semibold">{formatCurrency(item.subtotal)}</TableCell>
+                                            <TableCell>
+                                                <CurrencyCell value={item.price_at_sale} />
+                                            </TableCell>
+                                            <TableCell className="font-semibold">
+                                                <CurrencyCell value={item.subtotal} />
+                                            </TableCell>
                                         </TableRow>
                                     ))}
                                 </TableBody>
@@ -228,7 +233,7 @@ export default function SaleDetailModal({ isOpen, onClose, sale, businessName }:
                     <div className="space-y-2 rounded-lg bg-gray-50 p-4 dark:bg-white/[0.03]">
                         <div className="flex justify-between text-sm">
                             <span className="font-medium">Subtotal:</span>
-                            <span>{formatCurrency(sale.total_without_tax)}</span>
+                            <CurrencyCell value={sale.total_without_tax} className="w-28" />
                         </div>
                         {sale.discount > 0 && (
                             <div className="flex justify-between text-sm">
@@ -242,14 +247,15 @@ export default function SaleDetailModal({ isOpen, onClose, sale, businessName }:
                                         : formatCurrency(sale.discount)}
                                     ):
                                 </span>
-                                <span className="text-red-600 dark:text-red-400">
-                                    -{formatCurrency(sale.total_without_tax - sale.total_with_discount)}
-                                </span>
+                                <CurrencyCell
+                                    value={-(sale.total_without_tax - sale.total_with_discount)}
+                                    className="w-28 text-red-600 dark:text-red-400"
+                                />
                             </div>
                         )}
                         <div className="flex justify-between border-t border-gray-200 pt-2 text-lg font-bold dark:border-gray-700">
                             <span>TOTAL:</span>
-                            <span className="text-green-600 dark:text-green-400">{formatCurrency(sale.total_paid)}</span>
+                            <CurrencyCell value={sale.total_paid} className="w-28 text-green-600 dark:text-green-400" />
                         </div>
                     </div>
 

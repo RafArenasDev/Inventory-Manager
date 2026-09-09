@@ -215,7 +215,7 @@ class ProductController extends Controller
 
         if ($row > 2) {
             $sheet->getStyle('A1:L'.($row - 1))->applyFromArray($dataStyle);
-            $sheet->getStyle('G2:J'.($row - 1))->getNumberFormat()->setFormatCode('"$" #,##0');
+            $sheet->getStyle('G2:J'.($row - 1))->getNumberFormat()->setFormatCode('_-"$"* #,##0_-;-"$"* #,##0_-;_-"$"* "-"_-;_-@_-');
         }
 
         $sheet->getStyle('A2:A'.($row - 1))->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);

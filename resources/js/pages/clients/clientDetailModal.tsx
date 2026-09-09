@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from 'react';
 
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Combobox, ComboboxContent, ComboboxEmpty, ComboboxInput, ComboboxItem, ComboboxList } from '@/components/ui/combobox';
+import { CurrencyCell } from '@/components/ui/currency-cell';
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -263,10 +264,12 @@ export default function ClientDetailModal({ isOpen, onClose, client }: ClientDet
                                                         <TableCell className="font-mono text-xs">{item.product_code || '-'}</TableCell>
                                                         <TableCell>{item.product_name || 'Producto no especificado'}</TableCell>
                                                         <TableCell>{item.quantity}</TableCell>
-                                                        <TableCell>{formatCOP(item.unit_price)}</TableCell>
+                                                        <TableCell>
+                                                            <CurrencyCell value={item.unit_price ?? 0} />
+                                                        </TableCell>
                                                         {index === 0 && (
                                                             <TableCell rowSpan={sale.items.length} className="font-semibold">
-                                                                {formatCOP(sale.items.reduce((s, i) => s + i.total_price, 0))}
+                                                                <CurrencyCell value={sale.items.reduce((s, i) => s + i.total_price, 0)} />
                                                             </TableCell>
                                                         )}
                                                     </TableRow>

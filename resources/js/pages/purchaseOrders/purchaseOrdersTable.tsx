@@ -1,6 +1,7 @@
 import { IconActionButton } from '@/components/icon-action-button';
 import { PeriodFilter } from '@/components/period-filter';
 import { Button } from '@/components/ui/button';
+import { CurrencyCell } from '@/components/ui/currency-cell';
 import { Pagination } from '@/components/ui/pagination';
 import SearchInput from '@/components/ui/search-input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -69,11 +70,6 @@ const STATUS_BADGE: Record<PurchaseOrder['status'], string> = {
     Recibido: 'bg-emerald-600 dark:bg-emerald-700',
     Cancelado: 'bg-rose-600 dark:bg-rose-700',
 };
-
-const formatCOP = (value: number): string =>
-    `$ ${Math.round(value)
-        .toString()
-        .replace(/\B(?=(\d{3})+(?!\d))/g, '.')}`;
 
 // Referencia interna, no una cotización — se calcula con el precio ya
 // registrado en cada producto al momento de armar el pedido.
@@ -211,7 +207,7 @@ export default function PurchaseOrdersTable({
                                     <TableCell className="text-muted-foreground">
                                         {(() => {
                                             const total = approxTotal(order);
-                                            return total !== null ? formatCOP(total) : '-';
+                                            return total !== null ? <CurrencyCell value={total} /> : '-';
                                         })()}
                                     </TableCell>
                                     <TableCell>
