@@ -83,7 +83,7 @@ export function AppSidebar() {
                     >
                         {CURRENT_VERSION} · Novedades
                     </button>
-                    <p className="text-sidebar-foreground/35 text-[10px]">© 2025–2026 RafArenasDev</p>
+                    <p className="text-sidebar-foreground/35 text-[10px]">© 2025–{new Date().getFullYear()} RafArenasDev</p>
                 </div>
             </SidebarFooter>
 

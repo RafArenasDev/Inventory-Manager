@@ -215,7 +215,7 @@ export default function Login({ status, canResetPassword = true }: LoginProps) {
             </form>
 
             <p className="text-muted-foreground mt-8 text-center text-xs">
-                © 2025–2026 RafArenasDev ·{' '}
+                © 2025–{new Date().getFullYear()} RafArenasDev ·{' '}
                 <button type="button" onClick={() => setShowTerms(true)} className="hover:text-foreground underline underline-offset-2">
                     Términos y Condiciones
                 </button>
