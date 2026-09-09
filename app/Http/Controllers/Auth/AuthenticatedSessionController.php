@@ -59,6 +59,15 @@ class AuthenticatedSessionController extends Controller
      * día — la fecha del último run queda en la tabla `cache`
      * (CACHE_STORE=database), así que sobrevive a reinicios del PC sin
      * necesitar una tabla nueva.
+     *
+     * La marca de "ya corrió hoy" se guarda DESPUÉS de que ambos comandos
+     * terminan, no antes: un backlog grande de facturas por generar puede
+     * agotar el límite de tiempo de ejecución de PHP a mitad del comando
+     * (visto real: se cortó justo en la venta #22 de 182 pendientes) — si
+     * la marca ya quedó guardada, el resto se queda sin generar hasta el
+     * día siguiente. Guardándola al final, un corte a mitad de camino hace
+     * que el próximo login reintente desde donde quedó (los ya generados
+     * se saltan solos, ver sales:backfill-invoices).
      */
     private function runDailyMaintenanceOnce(): void
     {
@@ -68,9 +77,9 @@ class AuthenticatedSessionController extends Controller
             return;
         }
 
-        Cache::forever('daily_maintenance_last_run', $today);
         Artisan::call('app:deactivate-inactive-entities');
         Artisan::call('sales:backfill-invoices');
+        Cache::forever('daily_maintenance_last_run', $today);
     }
 
     /**
