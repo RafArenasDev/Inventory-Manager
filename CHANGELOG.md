@@ -13,6 +13,13 @@ actualiza junto con cada tag nuevo. El modal de "Novedades" del sidebar y el
 badge de versión se generan de este archivo en build time — ver
 `scripts/generate-changelog.mjs`.
 
+## v1.12.1 - 2026-09-09
+
+Se terminó de revisar todo el sistema y se corrigieron dos detalles más de seguridad del mismo tipo que los de la actualización anterior.
+
+- **Seguridad:** Se corrigió el mismo tipo de falla de la actualización anterior en dos mensajes más que no se habían revisado (al eliminar una categoría o un rol).
+- **Corrección:** Crear un rol con un nombre que ya existe, en el caso raro de que dos personas lo intenten al mismo tiempo, ahora muestra un aviso claro en vez de un error.
+
 ## v1.12.0 - 2026-09-09
 
 Arranca la fase de pruebas del proyecto: se revisó a fondo la seguridad del sistema y se corrigieron dos fallas reales antes de que llegaran a afectar a nadie.
