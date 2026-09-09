@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AuditLogController;
 use App\Http\Controllers\CashRegisterController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\ClientController;
@@ -251,6 +252,9 @@ Route::middleware(['auth', 'verified', 'active'])->group(function () {
         Route::delete('/{client}', [ClientController::class, 'destroy'])
             ->name('clients.destroy')
             ->middleware('permission:Eliminar Clientes');
+        Route::patch('/{client}/anonymize', [ClientController::class, 'anonymize'])
+            ->name('clients.anonymize')
+            ->middleware('permission:Eliminar Clientes');
         Route::get('/{client}/history', [ClientController::class, 'history'])
             ->name('clients.history')
             ->middleware('permission:Ver Clientes');
@@ -350,6 +354,16 @@ Route::middleware(['auth', 'verified', 'active'])->group(function () {
         Route::get('/status', [CashRegisterController::class, 'status'])
             ->name('cash-register.status')
             ->middleware('permission:Ver Caja');
+    });
+
+    // Audit Logs (Auditoría) — solo lectura
+    Route::prefix('audit-logs')->middleware(['auth', 'verified'])->group(function () {
+        Route::get('/', [AuditLogController::class, 'index'])
+            ->name('audit-logs.index')
+            ->middleware('permission:Ver Auditoría');
+        Route::match(['get', 'post'], '/search', [AuditLogController::class, 'index'])
+            ->name('audit-logs.search')
+            ->middleware('permission:Ver Auditoría');
     });
 
 });

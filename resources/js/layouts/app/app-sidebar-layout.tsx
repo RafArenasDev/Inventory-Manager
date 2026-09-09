@@ -3,6 +3,7 @@ import { AppShell } from '@/components/app-shell';
 import { AppSidebar } from '@/components/app-sidebar';
 import { AppSidebarHeader } from '@/components/app-sidebar-header';
 import CashRegisterNoticeWatcher from '@/components/cash-register-notice-watcher';
+import CookieConsentBanner from '@/components/cookie-consent-banner';
 import FlashErrorWatcher from '@/components/flash-error-watcher';
 import ForcePasswordChangeModal from '@/components/force-password-change-modal';
 import UserDeactivationWatcher from '@/components/user-deactivation-watcher';
@@ -21,6 +22,7 @@ export default function AppSidebarLayout({ children, breadcrumbs = [] }: PropsWi
             <FlashErrorWatcher />
             <CashRegisterNoticeWatcher />
             <UserDeactivationWatcher />
+            <CookieConsentBanner />
         </AppShell>
     );
 }

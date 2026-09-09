@@ -224,6 +224,10 @@ const ClientForm: React.FC<ClientFormProps> = ({ client, onCancel, onSaved, onDi
     return (
         <form onSubmit={handleSubmit} noValidate className="flex min-h-0 flex-1 flex-col gap-4">
             <div className="min-h-0 flex-1 space-y-6 overflow-x-hidden overflow-y-auto p-1">
+                <div className="rounded-lg border border-sky-200 bg-sky-50 px-3 py-2 text-xs text-sky-800 dark:border-sky-900/40 dark:bg-sky-950/20 dark:text-sky-300">
+                    Los datos de este cliente se usarán únicamente para la gestión de ventas, garantías y facturación de este establecimiento,
+                    conforme a la Ley 1581 de 2012.
+                </div>
                 <div className="space-y-4">
                     {/* Fila 1: Tipo de Documento · Número de Documento */}
                     <div className="grid grid-cols-2 gap-3">

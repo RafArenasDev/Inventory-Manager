@@ -104,8 +104,12 @@ export default function SalesTable({
     const handleCancel = (sale: Sale) => {
         Swal.fire({
             title: '¿Estás seguro?',
-            text: `Esta acción anulará la venta ${sale.invoice_number}`,
+            html: `Esta acción anulará la venta <b>${sale.invoice_number}</b>. Queda registrada en el historial de auditoría con tu usuario, fecha y hora.`,
             icon: 'warning',
+            input: 'textarea',
+            inputLabel: 'Motivo de la anulación',
+            inputPlaceholder: 'Ej. Error en la venta, producto devuelto, duplicado...',
+            inputValidator: (value) => (!value ? 'Debes indicar un motivo.' : undefined),
             showCancelButton: true,
             confirmButtonColor: '#3085d6',
             cancelButtonColor: '#d33',
@@ -115,7 +119,7 @@ export default function SalesTable({
             if (result.isConfirmed) {
                 router.post(
                     route('sales.cancel', sale.id),
-                    {},
+                    { reason: result.value },
                     {
                         onSuccess: () => {
                             Swal.fire({

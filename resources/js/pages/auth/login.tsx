@@ -1,9 +1,10 @@
 import Swal from '@/lib/swal';
 import { Head, useForm } from '@inertiajs/react';
 import { LoaderCircle } from 'lucide-react';
-import { FormEventHandler, useEffect } from 'react';
+import { FormEventHandler, useEffect, useState } from 'react';
 
 import InputError from '@/components/input-error';
+import TermsAndConditionsModal from '@/components/terms-and-conditions-modal';
 import TextLink from '@/components/text-link';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -29,6 +30,7 @@ export default function Login({ status, canResetPassword = true }: LoginProps) {
         password: '',
         remember: false,
     });
+    const [showTerms, setShowTerms] = useState(false);
 
     const submit: FormEventHandler = (e) => {
         e.preventDefault();
@@ -194,10 +196,22 @@ export default function Login({ status, canResetPassword = true }: LoginProps) {
                         {processing && <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />}
                         Iniciar sesión
                     </Button>
+
+                    <p className="text-muted-foreground text-center text-xs leading-relaxed">
+                        Al ingresar, el usuario acepta que todas las transacciones, modificaciones de inventario y registros de caja son monitoreados
+                        y auditados por la administración del establecimiento.
+                    </p>
                 </div>
             </form>
 
-            <p className="text-muted-foreground mt-8 text-center text-xs">© 2025–2026 RafArenasDev</p>
+            <p className="text-muted-foreground mt-8 text-center text-xs">
+                © 2025–2026 RafArenasDev ·{' '}
+                <button type="button" onClick={() => setShowTerms(true)} className="hover:text-foreground underline underline-offset-2">
+                    Términos y Condiciones
+                </button>
+            </p>
+
+            <TermsAndConditionsModal open={showTerms} onOpenChange={setShowTerms} />
         </AuthSplitLayout>
     );
 }

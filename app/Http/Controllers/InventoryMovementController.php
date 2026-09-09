@@ -8,6 +8,7 @@ use App\Models\InventoryMovement;
 use App\Models\Product;
 use App\Models\PurchaseOrderItem;
 use App\Models\Supplier;
+use App\Services\AuditLogger;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
@@ -156,6 +157,10 @@ class InventoryMovementController extends Controller
         }
 
         $movement = InventoryMovement::create($validated);
+
+        if ($validated['type'] === 'Ajuste Inventario' && ! $movement->purchase_order_id) {
+            AuditLogger::log('inventory.manual_adjustment', $movement, $movement->notes);
+        }
 
         $this->syncPurchaseOrder($movement, $movement->quantity);
 

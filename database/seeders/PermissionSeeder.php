@@ -101,6 +101,9 @@ class PermissionSeeder extends Seeder
                 'Actualizar Caja' => 'Permite cerrar la caja diaria',
                 'Exportar Caja' => 'Permite exportar los registros de caja a Excel',
             ],
+            'Auditoría' => [
+                'Ver Auditoría' => 'Permite ver el historial de auditoría de acciones críticas',
+            ],
         ];
 
         // El `name` es el identificador técnico que valida el middleware de

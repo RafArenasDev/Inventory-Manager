@@ -1,6 +1,7 @@
 import {
     ClipboardList,
     DollarSign,
+    History,
     Key,
     LayoutGrid,
     Package,
@@ -30,6 +31,7 @@ export const ICONS: Record<string, LucideIcon> = {
     ShoppingCart,
     Wallet,
     DollarSign,
+    History,
 };
 
 export const ICON_KEYS = Object.keys(ICONS);
