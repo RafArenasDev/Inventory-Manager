@@ -63,7 +63,7 @@ const getStockStatus = (stock: number, threshold: number) => {
     } else if (stock <= threshold) {
         return { label: 'Bajo', color: 'bg-amber-600 text-white dark:bg-amber-700' };
     }
-    return { label: 'Saludable', color: 'bg-emerald-600 text-white dark:bg-emerald-700' };
+    return { label: 'Óptimo', color: 'bg-emerald-600 text-white dark:bg-emerald-700' };
 };
 
 export default function ProductModal({ isOpen, onClose, product }: ProductModalProps) {

@@ -22,12 +22,28 @@ matches.forEach((match, index) => {
     const [, version, date] = match;
     const start = match.index + match[0].length;
     const end = index + 1 < matches.length ? matches[index + 1].index : raw.length;
-    const notes = raw
-        .slice(start, end)
-        .trim()
-        .replace(/\s+/g, ' ');
+    const body = raw.slice(start, end).trim();
 
-    entries.push({ version, date, notes });
+    // El resumen es todo lo que va ANTES de la primera línea "- " (viñeta);
+    // el resto son los puntos de detalle de esa versión. Una versión sin
+    // viñetas (las más viejas del historial) simplemente queda con
+    // highlights: [].
+    const bulletStart = body.search(/^- /m);
+    const summaryRaw = bulletStart === -1 ? body : body.slice(0, bulletStart);
+    const bulletsRaw = bulletStart === -1 ? '' : body.slice(bulletStart);
+
+    const notes = summaryRaw.trim().replace(/\s+/g, ' ');
+    const CATEGORY_RE = /^\*\*(.+?):\*\*\s*/;
+    const highlights = bulletsRaw
+        .split(/\n(?=- )/)
+        .map((line) => line.replace(/^- /, '').trim().replace(/\s+/g, ' '))
+        .filter(Boolean)
+        .map((text) => {
+            const match = text.match(CATEGORY_RE);
+            return match ? { category: match[1], text: text.slice(match[0].length) } : { category: null, text };
+        });
+
+    entries.push({ version, date, notes, highlights });
 });
 
 if (entries.length === 0) {
@@ -41,10 +57,16 @@ const fileContent = `// GENERADO AUTOMÁTICAMENTE por scripts/generate-changelog
 // \`npm run build\`/\`npm run dev\`. Para agregar una versión, agregar una
 // sección nueva arriba del todo en CHANGELOG.md.
 
+export interface ChangelogHighlight {
+    category: string | null;
+    text: string;
+}
+
 export interface ChangelogEntry {
     version: string;
     date: string;
     notes: string;
+    highlights: ChangelogHighlight[];
 }
 
 export const CURRENT_VERSION: string = ${JSON.stringify(current.version)};

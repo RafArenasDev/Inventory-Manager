@@ -37,6 +37,14 @@
         <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
         <link rel="icon" href="/favicon.ico" sizes="any">
         <link rel="manifest" href="/site.webmanifest">
+        <meta name="theme-color" content="#0a1128">
+
+        {{-- iOS no lee bien el manifest.json para "Agregar a inicio" — necesita
+             sus propias meta tags para abrir en modo standalone (sin barra de
+             Safari) y usar el ícono/nombre correctos. --}}
+        <meta name="apple-mobile-web-app-capable" content="yes">
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+        <meta name="apple-mobile-web-app-title" content="Inventory Manager">
 
         <link rel="preconnect" href="https://fonts.bunny.net">
         <link href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600" rel="stylesheet" />

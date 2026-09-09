@@ -66,10 +66,17 @@ export default function TermsContent() {
             <section>
                 <h3 className="mb-1 font-semibold text-gray-900 dark:text-gray-100">6. Tipo de licencia</h3>
                 <p>
-                    El software se distribuye bajo una <strong>licencia propietaria de uso limitado, no exclusiva e intransferible, tipo EULA</strong>
-                    . El desarrollador conserva la propiedad exclusiva del código fuente; el negocio licenciatario recibe únicamente el derecho de
-                    operarlo para su propia actividad comercial interna, sin poder revenderlo, sublicenciarlo, redistribuirlo ni modificar el código
-                    fuente. No es software libre/open source ni un modelo SaaS multiusuario — es una instancia única para un solo negocio.
+                    El software se distribuye bajo una <strong>licencia Freeware</strong> (uso gratuito autorizado explícitamente por el
+                    desarrollador) de tipo <strong>propietaria, de uso limitado, no exclusiva e intransferible (EULA)</strong>. No es software
+                    libre/open source (no se entrega ni se autoriza el código fuente) ni un modelo SaaS multiusuario — es una instancia única para un
+                    solo negocio. El desarrollador conserva la propiedad exclusiva del código fuente; el negocio licenciatario recibe únicamente el
+                    derecho de operarlo, sin costo, para su propia actividad comercial interna, sin poder revenderlo, sublicenciarlo, redistribuirlo
+                    ni modificar el código fuente.
+                </p>
+                <p className="mt-2">
+                    Si en el futuro el desarrollador decide cobrar por el uso del software, ese cambio se notificará expresamente al negocio
+                    licenciatario antes de aplicarse: el software dejaría de clasificarse como Freeware y pasaría a una{' '}
+                    <strong>licencia comercial propietaria</strong>, bajo los mismos términos de propiedad intelectual aquí descritos.
                 </p>
             </section>
 

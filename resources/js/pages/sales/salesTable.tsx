@@ -8,7 +8,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { formatDate } from '@/lib/format-datetime';
 import Swal from '@/lib/swal';
 import { router } from '@inertiajs/react';
-import { Ban, Download, Eye, Printer, Receipt } from 'lucide-react';
+import { Ban, Download, Eye, Lock, Printer, Receipt } from 'lucide-react';
 
 interface SaleItem {
     id: number;
@@ -215,36 +215,46 @@ export default function SalesTable({
                                 </TableCell>
                                 {showActionsColumn && (
                                     <TableCell className="text-right">
-                                        <div className="flex justify-end gap-2">
-                                            <IconActionButton
-                                                variant="ghost"
-                                                onClick={() => onViewDetails(sale.id)}
-                                                className="text-blue-600 hover:bg-blue-100 hover:text-blue-700 dark:text-blue-500 dark:hover:bg-blue-950/40 dark:hover:text-blue-400"
-                                                label="Ver detalles"
+                                        {sale.is_cancelled ? (
+                                            <span
+                                                className="inline-flex items-center justify-end gap-1 text-xs text-gray-500 dark:text-gray-400"
+                                                title="Venta anulada: sin acciones disponibles"
                                             >
-                                                <Eye className="size-3.5" />
-                                            </IconActionButton>
-                                            {sale.public_invoice_url && (
+                                                <Lock className="size-3.5" />
+                                                Sin acciones
+                                            </span>
+                                        ) : (
+                                            <div className="flex justify-end gap-2">
                                                 <IconActionButton
                                                     variant="ghost"
-                                                    onClick={() => onViewInvoice(sale.public_invoice_url!)}
+                                                    onClick={() => onViewDetails(sale.id)}
                                                     className="text-blue-600 hover:bg-blue-100 hover:text-blue-700 dark:text-blue-500 dark:hover:bg-blue-950/40 dark:hover:text-blue-400"
-                                                    label="Imprimir factura"
+                                                    label="Ver detalles"
                                                 >
-                                                    <Printer className="size-3.5" />
+                                                    <Eye className="size-3.5" />
                                                 </IconActionButton>
-                                            )}
-                                            {userPermissions.includes('Eliminar Ventas') && !sale.is_cancelled && (
-                                                <IconActionButton
-                                                    variant="ghost"
-                                                    onClick={() => handleCancel(sale)}
-                                                    className="text-red-600 hover:bg-red-100 hover:text-red-700 dark:text-red-500 dark:hover:bg-red-950/40 dark:hover:text-red-400"
-                                                    label="Anular venta"
-                                                >
-                                                    <Ban className="size-3.5" />
-                                                </IconActionButton>
-                                            )}
-                                        </div>
+                                                {sale.public_invoice_url && (
+                                                    <IconActionButton
+                                                        variant="ghost"
+                                                        onClick={() => onViewInvoice(sale.public_invoice_url!)}
+                                                        className="text-blue-600 hover:bg-blue-100 hover:text-blue-700 dark:text-blue-500 dark:hover:bg-blue-950/40 dark:hover:text-blue-400"
+                                                        label="Imprimir factura"
+                                                    >
+                                                        <Printer className="size-3.5" />
+                                                    </IconActionButton>
+                                                )}
+                                                {userPermissions.includes('Eliminar Ventas') && (
+                                                    <IconActionButton
+                                                        variant="ghost"
+                                                        onClick={() => handleCancel(sale)}
+                                                        className="text-red-600 hover:bg-red-100 hover:text-red-700 dark:text-red-500 dark:hover:bg-red-950/40 dark:hover:text-red-400"
+                                                        label="Anular venta"
+                                                    >
+                                                        <Ban className="size-3.5" />
+                                                    </IconActionButton>
+                                                )}
+                                            </div>
+                                        )}
                                     </TableCell>
                                 )}
                             </TableRow>

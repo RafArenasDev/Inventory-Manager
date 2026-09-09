@@ -425,7 +425,7 @@ export default function Dashboard({
             data: financials[period].sales,
             icon: ShoppingCart,
             color: 'from-blue-500 to-blue-600',
-            subtext: `${financials[period].sales.count} ventas`,
+            subtext: periodLabels[period],
         },
         {
             title: 'Ingresos',

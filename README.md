@@ -1,176 +1,268 @@
-# Laravel React Starter Kit
+# Inventory Manager
 
-A modern web application starter kit built with Laravel 12, React 19, and Inertia.js, designed for developers to quickly bootstrap projects with robust backend and frontend capabilities, including role-based permissions, PDF generation, and spreadsheet handling.
+Sistema de gestión de inventario, ventas y caja para un negocio de venta de repuestos — catálogo de productos,
+ventas en mostrador, clientes, proveedores, pedidos de reabastecimiento, caja diaria, finanzas, roles y permisos
+por empleado, y un historial de auditoría interno que registra quién hizo qué y cuándo.
 
-## Prerequisites
+No es un sistema de facturación electrónica certificado ante la DIAN: el documento que genera es un comprobante
+interno de venta, pensado para el control interno del negocio, no para validación tributaria previa.
 
-Ensure you have the following installed on your system:
+**Versión actual:** consultar el badge de versión en el pie de la barra lateral una vez dentro de la app (enlaza al
+historial completo de cambios), o [`CHANGELOG.md`](./CHANGELOG.md) en este repositorio.
 
-- **PHP**: ^8.2
-- **Composer**: Latest version
-- **Node.js**: ^18.x or higher
-- **NPM**: Latest version
-- **MySQL/SQLite/PostgreSQL**: Database of your choice
-- **Git**: For cloning the repository
+## Stack técnico
 
-## Installation
+| Capa | Tecnología | Versión |
+|---|---|---|
+| Backend | [Laravel](https://laravel.com) | 12.x (PHP ^8.2) |
+| Frontend | [React](https://react.dev) + [TypeScript](https://www.typescriptlang.org) | React 19 |
+| Puente backend/frontend | [Inertia.js](https://inertiajs.com) | 2.x |
+| Estilos | [Tailwind CSS](https://tailwindcss.com) | 4.x |
+| Build | [Vite](https://vitejs.dev) | 6.x |
+| Tiempo real | [Laravel Reverb](https://reverb.laravel.com) (WebSockets) | — |
+| Roles y permisos | [spatie/laravel-permission](https://spatie.be/docs/laravel-permission) | — |
+| PDF (facturas) | [barryvdh/laravel-dompdf](https://github.com/barryvdh/laravel-dompdf) | — |
+| Excel (exportaciones/carga masiva) | [PhpSpreadsheet](https://phpspreadsheet.readthedocs.io) | — |
+| Base de datos | MySQL (desarrollo local) / PostgreSQL (producción) | — |
 
-Follow these steps to set up the project after cloning or starting from scratch.
+La app es una **PWA instalable**: se puede agregar a pantalla de inicio en Android, iOS, Windows y macOS, con
+service worker propio (`public/sw.js`) para que la interfaz siga cargando aunque se pierda la conexión un
+instante (los datos en sí, obviamente, necesitan red).
 
-### 1. Clone the Repository
+## Módulos
 
-Clone the repository to your local machine:
+- **Administración** — Usuarios, Roles y Permisos, Auditoría.
+- **Inventario** — Categorías, Productos, Proveedores, Movimientos de Inventario, Pedidos (órdenes de compra).
+- **Ventas** — Ventas, Clientes, Caja, Finanzas.
+- **Dashboard** — resumen financiero, gráficas de ventas por período/categoría, alertas de stock bajo y de tope
+  de facturación electrónica obligatoria (DIAN), exportación a Excel/PDF.
+
+Todas las acciones críticas (crear/editar/eliminar en cualquier módulo, login, cambios de contraseña/perfil,
+cambios de roles/permisos, anular una venta, anonimizar un cliente, ajustar inventario manualmente) quedan
+registradas en el módulo de **Auditoría**, con filtro de año/mes, exportación a Excel, y vista de detalle
+antes/después de cada cambio.
+
+## Requisitos previos
+
+- **PHP** ^8.2 con las extensiones habituales de Laravel (`pdo`, `mbstring`, `openssl`, `tokenizer`, `xml`, `ctype`, `json`, `bcmath`, `fileinfo`, `gd`)
+- **Composer** (última versión)
+- **Node.js** ^20.x y **npm**
+- **MySQL** 8+ o **PostgreSQL** 14+ (a elección — ver [Base de datos](#base-de-datos))
+- **Git**
+
+## Instalación
+
+### 1. Clonar el repositorio
 
 ```bash
-git clone <repository-url>
-cd laravel-react-starter-kit
+git clone https://github.com/FlakoArenas26/Inventory-Manager.git
+cd Inventory-Manager
 ```
 
-### 2. Install PHP Dependencies
-
-Install the required PHP dependencies using Composer:
+### 2. Dependencias
 
 ```bash
 composer install
-```
-
-### 3. Install JavaScript Dependencies
-
-Install the required Node.js dependencies for the React frontend:
-
-```bash
 npm install
 ```
 
-### 4. Set Up Environment File
-
-Copy the `.env.example` file to create a `.env` file:
+### 3. Archivo de entorno
 
 ```bash
 cp .env.example .env
-```
-
-Update the `.env` file with your database credentials and other configurations (e.g., `DB_CONNECTION`, `DB_HOST`, `DB_PORT`, `DB_DATABASE`, `DB_USERNAME`, `DB_PASSWORD`).
-
-### 5. Generate Application Key
-
-Generate a new application key for Laravel:
-
-```bash
 php artisan key:generate
 ```
 
-### 6. Link Storage
+Edita `.env` con los datos de tu base de datos y del negocio (ver secciones siguientes). Las variables
+`BUSINESS_*` alimentan la factura PDF y el mensaje de WhatsApp; no son datos reales, son de ejemplo por defecto.
 
-Create a symbolic link from `public/storage` to `storage/app/public` for file storage:
+### 4. Base de datos
+
+Elige un motor y ajusta `.env` en consecuencia:
+
+**MySQL (recomendado para desarrollo local):**
+
+```env
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=inventory_manager
+DB_USERNAME=root
+DB_PASSWORD=
+```
+
+**PostgreSQL (usado en producción — ej. Render):**
+
+```env
+DB_CONNECTION=pgsql
+DB_HOST=127.0.0.1
+DB_PORT=5432
+DB_DATABASE=inventory_manager
+DB_USERNAME=postgres
+DB_PASSWORD=
+```
+
+El código es compatible con ambos motores (las consultas que lo requieren ya manejan la sintaxis específica de
+cada uno — fechas, búsqueda sin tildes, etc.). Con la base de datos creada y las credenciales en `.env`, corre las
+migraciones:
+
+```bash
+php artisan migrate --seed
+```
+
+Esto crea el esquema completo y siembra roles, permisos, módulos del menú, y usuarios de ejemplo para probar la
+app localmente:
+
+| Correo | Contraseña | Rol |
+|---|---|---|
+| `admin@admin.com` | `Admin-12345*` | Administrador |
+| `seller@seller.com` | `Seller-1234*` | Vendedor |
+| `cajero@demo.com` | `Cajero-1234*` | Cajero |
+| `bodega@demo.com` | `Bodega-1234*` | Bodega |
+| `auditor@demo.com` | `Auditor-123*` | Auditor |
+
+> Estas credenciales son **solo para desarrollo local**. En un despliegue real, cambia las contraseñas o elimina
+> estos usuarios de ejemplo antes de dar acceso a alguien.
+
+### 5. Enlace de almacenamiento
 
 ```bash
 php artisan storage:link
 ```
 
-### 7. Run Migrations and Seeders
-
-Run the database migrations with seeders to set up the database schema and populate it with initial data:
-
-```bash
-php artisan migrate:fresh --seed
-```
-
-> **Note**: The `--fresh` flag drops all existing tables before running migrations. Remove it if you want to preserve existing data.
-
-### 8. Build Frontend Assets
-
-Compile the React frontend assets using Vite:
+### 6. Compilar el frontend
 
 ```bash
 npm run build
 ```
 
-For development with hot-reloading, use:
+Para desarrollo con recarga en caliente:
 
 ```bash
 npm run dev
 ```
 
-### 9. Run the Application
+> `npm run build`/`npm run dev` regeneran automáticamente `resources/js/version.ts` a partir de
+> [`CHANGELOG.md`](./CHANGELOG.md) — no lo edites a mano.
 
-Start the Laravel development server, queue listener, and Vite dev server concurrently:
-
-```bash
-composer run dev
-```
-
-This command runs:
-
-- `php artisan serve` (Laravel server)
-- `php artisan queue:listen --tries=1` (Queue listener)
-- `npm run dev` (Vite for React frontend)
-
-Alternatively, if you want to enable Server-Side Rendering (SSR) for Inertia.js, run:
+### 7. Levantar la app
 
 ```bash
-composer run dev:ssr
+php artisan serve
 ```
 
-This command includes an additional `php artisan inertia:start-ssr` process for SSR.
+Si usás [Laravel Herd](https://herd.laravel.com) (Windows/macOS) en vez de `artisan serve`, Herd sirve el proyecto
+directamente desde su carpeta — **pero solo lee el build ya compilado** (`public/build/`), no corre un servidor de
+Vite en caliente. Con Herd, corré `npm run build` cada vez que cambies algo del frontend antes de probarlo en el
+navegador; para desarrollo activo del frontend usá `npm run dev` en su lugar.
 
-### 10. Run Tests (Optional)
-
-To run the test suite, use:
+Para el tiempo real (ver "Novedades" reflejadas en otras sesiones sin recargar, notificaciones de stock bajo,
+etc.) hace falta correr el servidor de Reverb aparte:
 
 ```bash
-composer run test
+php artisan reverb:start
 ```
 
-This clears the configuration cache and runs PHPUnit tests.
+Genera tus propias credenciales de Reverb (`REVERB_APP_ID`, `REVERB_APP_KEY`, `REVERB_APP_SECRET`) con:
 
-## Additional Commands
+```bash
+php artisan reverb:install
+```
 
-- **Clear Configuration Cache**:
+## Configurar un host local (dominio propio en vez de `localhost:8000`)
 
-  ```bash
-  php artisan config:clear
-  ```
-- **Run Laravel Tinker**:
+### Windows
 
-  ```bash
-  php artisan tinker
-  ```
-- **Generate PDF with DomPDF**:
-  Ensure `barryvdh/laravel-dompdf` is configured in your `.env` file if you need specific settings.
-- **Manage Permissions with Spatie**:
-  Use Spatie's Laravel Permission package for role and permission management. Refer to [Spatie Laravel Permission documentation](https://spatie.be/docs/laravel-permission) for details.
-- **Ziggy for Routes**:
-  Access Laravel routes in JavaScript using Ziggy. Run `php artisan ziggy:generate` to generate the route file if needed.
+**Opción A — Laravel Herd (recomendado):** Herd detecta automáticamente cualquier carpeta de proyecto Laravel
+dentro de su directorio de sitios (por defecto `~/Herd`) y la sirve en `http://<nombre-de-la-carpeta>.test` sin
+configuración adicional — así corre este proyecto en `http://inventory-manager.test`.
 
-## Project Structure
+**Opción B — manual:** edita `C:\Windows\System32\drivers\etc\hosts` (como Administrador) y agrega:
 
-- **Backend**: Laravel 12 (`app/`, `routes/`, `database/`)
-- **Frontend**: React 19 with Inertia.js (`resources/js/`)
-- **Assets**: Managed by Vite (`vite.config.js`)
-- **Storage**: Public files stored in `storage/app/public`, accessible via `public/storage`
+```
+127.0.0.1   inventory-manager.test
+```
 
-## Available Scripts
+Después corre `php artisan serve --host=inventory-manager.test` o configura un servidor web (nginx/Apache) con
+ese `server_name` apuntando a `public/`.
 
-The following Composer scripts are available:
+### Linux
 
-- `composer run dev`: Runs the development server, queue listener, and Vite.
-- `composer run dev:ssr`: Runs the development server, queue listener, logs, and SSR.
-- `composer run test`: Runs the test suite.
+**Opción A — [Laravel Valet Linux](https://github.com/cpriego/valet-linux):**
 
-## Troubleshooting
+```bash
+cd Inventory-Manager
+valet link inventory-manager
+```
 
-- **Database Connection Issues**: Ensure your `.env` file has the correct database credentials and the database server is running.
-- **Node Modules Errors**: Delete `node_modules` and `package-lock.json`, then run `npm install` again.
-- **Permission Issues**: Ensure the `storage/` and `bootstrap/cache/` directories are writable:
+Queda disponible en `http://inventory-manager.test`.
+
+**Opción B — manual:** agrega la misma línea al `/etc/hosts`:
+
+```
+127.0.0.1   inventory-manager.test
+```
+
+y configura un vhost de nginx/Apache apuntando su `root` a la carpeta `public/` del proyecto, con `server_name
+inventory-manager.test`.
+
+> Cualquiera sea el dominio que uses, actualizá `APP_URL` en `.env` para que coincida — algunos enlaces
+> generados por Laravel (correos, links firmados) lo usan como base.
+
+## Variables de entorno relevantes
+
+Además de las estándar de Laravel (`APP_*`, `DB_*`, `MAIL_*`), este proyecto usa:
+
+| Variable | Para qué sirve |
+|---|---|
+| `BUSINESS_NAME`, `BUSINESS_NIT`, `BUSINESS_PHONE`, `BUSINESS_EMAIL`, `BUSINESS_ADDRESS` | Identidad del negocio en la factura PDF y el mensaje de WhatsApp |
+| `BUSINESS_UVT_VALUE` | Valor de la UVT (DIAN) del año gravable vigente — de acá se derivan los dos topes siguientes |
+| `BUSINESS_CONSUMIDOR_FINAL_LIMIT_UVT` | Tope de venta al cliente "Consumidor Final" en UVT (5 por defecto) |
+| `BUSINESS_ANNUAL_INVOICING_THRESHOLD_UVT` | Tope de ingresos anuales (UVT) para el aviso de facturación electrónica obligatoria (3.500 por defecto) |
+| `WHATSAPP_SERVICE_URL`, `WHATSAPP_INTERNAL_TOKEN`, `LARAVEL_INTERNAL_URL` | Integración con el microservicio de Node aparte que envía las facturas por WhatsApp |
+| `REVERB_*`, `VITE_REVERB_*` | Credenciales y host del servidor de WebSockets para tiempo real |
+
+## Comandos útiles
+
+```bash
+php artisan config:clear      # Limpiar cache de configuración tras editar .env o config/*.php
+php artisan migrate:status    # Ver qué migraciones han corrido
+composer run pint             # Formatear PHP según el estándar del proyecto (Laravel Pint)
+npm run lint                  # ESLint (con --fix) sobre resources/
+npm run format                # Prettier sobre resources/
+npm run types                 # Chequeo de tipos de TypeScript sin emitir archivos
+```
+
+## Versionado
+
+El historial de cambios vive en [`CHANGELOG.md`](./CHANGELOG.md) — una sección por versión con un resumen y el
+detalle en viñetas. Un script (`scripts/generate-changelog.mjs`) lo parsea en cada build y genera
+`resources/js/version.ts`, que alimenta tanto el badge de versión del pie de la barra lateral como el modal de
+"Novedades" (última versión destacada, historial anterior colapsado por versión). No hay llamadas a la API de
+GitHub en producción — todo queda embebido en el bundle en build time.
+
+## Licencia
+
+Este software se distribuye bajo una **licencia Freeware** (uso gratuito autorizado explícitamente por el
+desarrollador) de tipo **propietaria, de uso limitado, no exclusiva e intransferible (EULA)**. No es software
+libre/de código abierto — el código fuente no se entrega ni se autoriza su modificación, redistribución o
+reventa. El texto legal completo (Términos y Condiciones, tratamiento de datos personales conforme a la Ley 1581
+de 2012 de Colombia, límite de responsabilidad) se muestra dentro de la propia app y su aceptación es obligatoria
+al iniciar sesión — ver `resources/js/components/terms-content.tsx`.
+
+Si en el futuro el desarrollador decide cobrar por el uso del software, el software dejaría de clasificarse como
+Freeware y pasaría a una licencia comercial propietaria, bajo los mismos términos de propiedad intelectual.
+
+## Solución de problemas
+
+- **Errores de conexión a la base de datos**: confirma que `.env` tenga las credenciales correctas y que el
+  servidor de base de datos esté corriendo.
+- **Errores de `node_modules`**: borra `node_modules` y `package-lock.json`, y corre `npm install` de nuevo.
+- **Permisos de escritura**: asegúrate de que `storage/` y `bootstrap/cache/` sean escribibles:
   ```bash
   chmod -R 775 storage bootstrap/cache
   ```
-
-## Contributing
-
-Feel free to submit issues or pull requests to improve the project. Ensure you follow the coding standards enforced by Laravel Pint (`composer run pint`).
-
-## License
-
-This project is licensed under the MIT License.
+- **La app no refleja cambios del frontend en Herd**: correr `npm run build` — Herd sirve el build estático, no
+  un servidor de Vite en caliente (ver sección de instalación).
+- **El tiempo real no funciona**: confirma que `php artisan reverb:start` esté corriendo aparte y que
+  `REVERB_*`/`VITE_REVERB_*` en `.env` tengan credenciales válidas (`php artisan reverb:install` las genera).
