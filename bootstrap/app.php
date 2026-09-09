@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\EnsureTermsAccepted;
 use App\Http\Middleware\EnsureUserIsActive;
 use App\Http\Middleware\HandleAppearance;
 use App\Http\Middleware\HandleInertiaRequests;
@@ -39,6 +40,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'permission' => PermissionMiddleware::class,
             'role_or_permission' => RoleOrPermissionMiddleware::class,
             'active' => EnsureUserIsActive::class,
+            'terms.accepted' => EnsureTermsAccepted::class,
         ]);
 
     })

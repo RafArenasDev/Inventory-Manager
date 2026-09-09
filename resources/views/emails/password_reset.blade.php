@@ -293,7 +293,7 @@
                                         <a href="{{ $url }}" class="footer-link">{{ $url }}</a>
                                     </p>
                                     <p class="footer-text" style="margin-top: 20px;">
-                                        © {{ date('Y') }} {{ config('app.name') }}. Todos los derechos reservados.
+                                        © 2025-2026 {{ config('app.name') }}. Todos los derechos reservados.
                                     </p>
                                 </div>
                             </div>

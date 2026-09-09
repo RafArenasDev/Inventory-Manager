@@ -14,20 +14,21 @@ import ClientsTable from './clientsTable';
 
 interface Client {
     id: number;
-    document_type: string;
-    document_number: number | string;
-    verification_digit?: number;
+    document_type: string | null;
+    document_number: number | string | null;
+    verification_digit?: number | null;
     name: string;
-    department_id?: number;
+    department_id?: number | null;
     department?: string | null;
-    city_id?: number;
+    city_id?: number | null;
     city?: string | null;
-    phone?: string;
-    cellphone?: string;
-    address?: string;
-    email?: string;
+    phone?: string | null;
+    cellphone?: string | null;
+    address?: string | null;
+    email?: string | null;
     is_active: boolean;
     created_at?: string;
+    anonymized_at?: string | null;
 }
 
 interface ClientForForm {
@@ -112,18 +113,21 @@ export default function ClientIndex({ clients, filters, totalCount, filteredCoun
     };
 
     const handleEditClient = (client: Client) => {
+        // document_type/document_number solo son null para un cliente
+        // anonimizado, cuyo botón de editar ni siquiera se muestra en la
+        // tabla — el fallback es solo para que el tipo cierre.
         setEditingClient({
             id: client.id,
-            document_type: client.document_type,
-            document_number: client.document_number,
-            verification_digit: client.verification_digit,
+            document_type: client.document_type ?? '',
+            document_number: client.document_number ?? '',
+            verification_digit: client.verification_digit ?? undefined,
             name: client.name,
-            department_id: client.department_id,
-            city_id: client.city_id,
-            phone: client.phone,
-            cellphone: client.cellphone,
-            address: client.address,
-            email: client.email,
+            department_id: client.department_id ?? undefined,
+            city_id: client.city_id ?? undefined,
+            phone: client.phone ?? undefined,
+            cellphone: client.cellphone ?? undefined,
+            address: client.address ?? undefined,
+            email: client.email ?? undefined,
             is_active: client.is_active,
         });
         setIsCreating(false);

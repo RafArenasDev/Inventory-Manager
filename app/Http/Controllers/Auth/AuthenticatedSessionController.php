@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\CashRegisterController;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
+use App\Services\AuditLogger;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Artisan;
@@ -78,6 +79,8 @@ class AuthenticatedSessionController extends Controller
         // Se calcula ANTES de cerrar sesión — auth()->id() ya no existe
         // después del logout.
         $closedRegister = app(CashRegisterController::class)->autoCloseIfNeeded(auth()->id());
+
+        AuditLogger::log('auth.logout', auth()->user());
 
         Auth::guard('web')->logout();
 

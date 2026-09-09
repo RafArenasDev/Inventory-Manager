@@ -7,6 +7,7 @@ use App\Http\Controllers\Auth\EmailVerificationPromptController;
 use App\Http\Controllers\Auth\NewPasswordController;
 use App\Http\Controllers\Auth\PasswordResetLinkController;
 use App\Http\Controllers\Auth\RegisteredUserController;
+use App\Http\Controllers\Auth\TermsController;
 use App\Http\Controllers\Auth\VerifyEmailController;
 use Illuminate\Support\Facades\Route;
 
@@ -58,4 +59,11 @@ Route::middleware('auth')->group(function () {
 
     Route::post('logout', [AuthenticatedSessionController::class, 'destroy'])
         ->name('logout');
+
+    // Sin middleware 'terms.accepted' a propósito: es el propio paso que
+    // ese middleware exige, y necesitan quedar accesibles aun con
+    // terms_accepted_at en null para no generar un loop de redirect.
+    Route::get('terms', [TermsController::class, 'show'])->name('terms.show');
+    Route::post('terms/accept', [TermsController::class, 'accept'])->name('terms.accept');
+    Route::post('terms/decline', [TermsController::class, 'decline'])->name('terms.decline');
 });

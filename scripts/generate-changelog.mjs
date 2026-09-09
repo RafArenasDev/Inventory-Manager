@@ -1,0 +1,59 @@
+// Parsea CHANGELOG.md y genera resources/js/version.ts — corre antes de
+// `npm run build`/`npm run dev` (ver "prebuild"/"predev" en package.json).
+// Cero llamadas de red en runtime: el historial de versiones queda embebido
+// en el bundle igual que cualquier otro dato estático, sin depender de la
+// API de GitHub (rate limits, latencia, token en producción).
+import { readFileSync, writeFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
+import path from 'node:path';
+
+const rootDir = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
+const changelogPath = path.join(rootDir, 'CHANGELOG.md');
+const outPath = path.join(rootDir, 'resources/js/version.ts');
+
+const raw = readFileSync(changelogPath, 'utf-8');
+
+const HEADER_RE = /^## (v\d+\.\d+\.\d+) - (\d{4}-\d{2}-\d{2})\s*$/gm;
+
+const entries = [];
+const matches = [...raw.matchAll(HEADER_RE)];
+
+matches.forEach((match, index) => {
+    const [, version, date] = match;
+    const start = match.index + match[0].length;
+    const end = index + 1 < matches.length ? matches[index + 1].index : raw.length;
+    const notes = raw
+        .slice(start, end)
+        .trim()
+        .replace(/\s+/g, ' ');
+
+    entries.push({ version, date, notes });
+});
+
+if (entries.length === 0) {
+    throw new Error('generate-changelog: no se encontró ninguna entrada "## vX.Y.Z - YYYY-MM-DD" en CHANGELOG.md');
+}
+
+const [current, ...previous] = entries;
+
+const fileContent = `// GENERADO AUTOMÁTICAMENTE por scripts/generate-changelog.mjs a partir de
+// CHANGELOG.md — no editar a mano, los cambios se pierden en el próximo
+// \`npm run build\`/\`npm run dev\`. Para agregar una versión, agregar una
+// sección nueva arriba del todo en CHANGELOG.md.
+
+export interface ChangelogEntry {
+    version: string;
+    date: string;
+    notes: string;
+}
+
+export const CURRENT_VERSION: string = ${JSON.stringify(current.version)};
+
+export const CURRENT_VERSION_ENTRY: ChangelogEntry = ${JSON.stringify(current, null, 4)};
+
+export const VERSION_HISTORY: ChangelogEntry[] = ${JSON.stringify(previous, null, 4)};
+`;
+
+writeFileSync(outPath, fileContent);
+
+console.log(`generate-changelog: ${entries.length} versiones -> resources/js/version.ts (actual: ${current.version})`);

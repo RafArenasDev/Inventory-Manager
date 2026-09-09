@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Auth;
 
 use App\Models\User;
+use App\Services\AuditLogger;
 use Illuminate\Auth\Events\Lockout;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
@@ -59,12 +60,22 @@ class LoginRequest extends FormRequest
         $user = User::where('email', $this->string('email'))->first();
 
         if (! $user) {
+            AuditLogger::log(
+                'auth.login_failed',
+                null,
+                null,
+                null,
+                'Correo no registrado: '.$this->string('email'),
+            );
+
             throw ValidationException::withMessages([
                 'email' => 'No encontramos una cuenta con este correo electrónico.',
             ]);
         }
 
         if (! $user->is_active) {
+            AuditLogger::log('auth.login_blocked_inactive', $user, null, null, null, $user->id, $user->name);
+
             throw ValidationException::withMessages([
                 'email' => 'Tu cuenta está inactiva. Comunícate con el administrador del sistema.',
             ]);
@@ -75,6 +86,8 @@ class LoginRequest extends FormRequest
         // entrar mientras esté activo — es la única forma de frenar un
         // ataque sostenido que simplemente espera a que pase cada cooldown.
         if ($user->security_locked_at !== null) {
+            AuditLogger::log('auth.login_blocked_locked', $user, null, null, null, $user->id, $user->name);
+
             throw ValidationException::withMessages([
                 'email' => 'Tu cuenta fue bloqueada por seguridad tras demasiados intentos fallidos. Restablece tu contraseña con "¿Olvidaste tu contraseña?" para volver a ingresar.',
             ]);
@@ -84,10 +97,14 @@ class LoginRequest extends FormRequest
             $this->registerFailedAttempt($user);
 
             if ($user->security_locked_at !== null) {
+                AuditLogger::log('auth.login_blocked_locked', $user, null, null, null, $user->id, $user->name);
+
                 throw ValidationException::withMessages([
                     'email' => 'Por seguridad, bloqueamos tu cuenta tras demasiados intentos fallidos. Restablece tu contraseña con "¿Olvidaste tu contraseña?" para volver a ingresar.',
                 ]);
             }
+
+            AuditLogger::log('auth.login_failed', $user, null, null, null, $user->id, $user->name);
 
             throw ValidationException::withMessages([
                 'password' => 'La contraseña ingresada es incorrecta.',
@@ -100,6 +117,8 @@ class LoginRequest extends FormRequest
         ])->save();
 
         RateLimiter::clear($this->throttleKey());
+
+        AuditLogger::log('auth.login_success', $user);
     }
 
     /**

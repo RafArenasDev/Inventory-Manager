@@ -37,15 +37,29 @@ class AuditLogger
     /** @var array<string, true> */
     protected static array $suppressed = [];
 
-    public static function log(string $action, ?Model $subject = null, ?string $reason = null, ?array $changes = null, ?string $label = null): void
-    {
+    /**
+     * @param  int|null  $actorId  Solo necesario para acciones sin sesión
+     *                             autenticada donde igual se conoce quién
+     *                             actuó (login fallido, reseteo de
+     *                             contraseña por correo) — de lo contrario
+     *                             se toma de auth() como siempre.
+     */
+    public static function log(
+        string $action,
+        ?Model $subject = null,
+        ?string $reason = null,
+        ?array $changes = null,
+        ?string $label = null,
+        ?int $actorId = null,
+        ?string $actorName = null,
+    ): void {
         if ($subject) {
             static::suppress($subject);
         }
 
         AuditLog::create([
-            'user_id' => auth()->id(),
-            'user_name' => auth()->user()?->name ?? 'Sistema',
+            'user_id' => $actorId ?? auth()->id(),
+            'user_name' => $actorName ?? (auth()->user()?->name ?? 'Sistema'),
             'action' => $action,
             'subject_type' => $subject ? $subject::class : null,
             'subject_id' => $subject?->getKey(),

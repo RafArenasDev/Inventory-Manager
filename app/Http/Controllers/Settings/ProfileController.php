@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Settings;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Settings\ProfileUpdateRequest;
+use App\Services\AuditLogger;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -29,13 +30,27 @@ class ProfileController extends Controller
      */
     public function update(ProfileUpdateRequest $request): RedirectResponse
     {
-        $request->user()->fill($request->validated());
+        $user = $request->user();
+        $before = $user->only(['name', 'email']);
 
-        if ($request->user()->isDirty('email')) {
-            $request->user()->email_verified_at = null;
+        $user->fill($request->validated());
+
+        if ($user->isDirty('email')) {
+            $user->email_verified_at = null;
         }
 
-        $request->user()->save();
+        AuditLogger::suppress($user);
+        $user->save();
+
+        $after = $user->only(['name', 'email']);
+        $changes = collect($after)
+            ->filter(fn ($value, $field) => $value !== $before[$field])
+            ->mapWithKeys(fn ($value, $field) => [$field => [$before[$field], $value]])
+            ->toArray();
+
+        if ($changes !== []) {
+            AuditLogger::log('user.profile_self_updated', $user, null, $changes);
+        }
 
         return to_route('dashboard');
     }
@@ -50,6 +65,11 @@ class ProfileController extends Controller
         ]);
 
         $user = $request->user();
+
+        // Se registra ANTES de cerrar sesión — el trait Auditable exige un
+        // usuario autenticado (auth()->check()), y ya no lo habría después
+        // del logout de la línea siguiente.
+        AuditLogger::log('user.self_deleted', $user);
 
         Auth::logout();
 

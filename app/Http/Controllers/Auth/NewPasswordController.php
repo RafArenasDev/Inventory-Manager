@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Services\AuditLogger;
 use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -57,6 +58,12 @@ class NewPasswordController extends Controller
                 ])->save();
 
                 event(new PasswordReset($user));
+
+                // Nadie está autenticado durante este flujo (llega por el
+                // enlace del correo), así que el guard `auth()->check()` del
+                // trait Auditable no capturaría este save — se deja constancia
+                // a mano, con el propio usuario restablecido como actor.
+                AuditLogger::log('user.password_reset_via_email', $user, null, null, null, $user->id, $user->name);
             }
         );
 

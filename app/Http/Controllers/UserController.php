@@ -6,6 +6,7 @@ use App\Http\Requests\UserRequest;
 use App\Models\Role;
 use App\Models\User;
 use App\Notifications\WelcomeUserNotification;
+use App\Services\AuditLogger;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -92,6 +93,7 @@ class UserController extends Controller
 
         if ($user && $request->has('roles')) {
             $user->syncRoles($request->roles);
+            $this->logRoleDiff($user, []);
         }
 
         $user->notify(new WelcomeUserNotification($request->password));
@@ -122,10 +124,29 @@ class UserController extends Controller
         }
 
         if ($request->has('roles')) {
+            $beforeRoleIds = $user->roles->pluck('id')->all();
             $user->syncRoles($request->roles);
+            $this->logRoleDiff($user, $beforeRoleIds);
         }
 
         return redirect()->route('users.index')->with('success', 'Usuario actualizado correctamente.');
+    }
+
+    /**
+     * syncRoles() cambia la tabla pivote model_has_roles, no atributos de
+     * User — el trait Auditable genérico no lo detecta, así que se deja
+     * constancia a mano solo cuando la lista de roles realmente cambió.
+     */
+    private function logRoleDiff(User $user, array $beforeRoleIds): void
+    {
+        $before = Role::whereIn('id', $beforeRoleIds)->pluck('label')->sort()->values()->all();
+        $after = $user->fresh()->roles->pluck('label')->sort()->values()->all();
+
+        if ($before === $after) {
+            return;
+        }
+
+        AuditLogger::log('user.roles_synced', $user, null, ['roles' => [$before, $after]]);
     }
 
     /**

@@ -4,6 +4,9 @@
 /public/build
 /public/hot
 /public/storage
+# Generado por scripts/generate-changelog.mjs a partir de CHANGELOG.md en
+# cada "npm run build"/"npm run dev" — no se versiona, se regenera solo.
+/resources/js/version.ts
 /storage/*.key
 /storage/pail
 /vendor

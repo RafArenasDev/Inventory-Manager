@@ -16,7 +16,7 @@
                     @endif
                     <p
                         style="color: #9BA2AB; font-size: 12px; line-height: 18px; margin-top: 20px; text-align: center;">
-                        © {{ date('Y') }} POS Inventory System. Todos los derechos reservados.
+                        © 2025-2026 {{ config('app.name') }}. Todos los derechos reservados.
                     </p>
                 </td>
             </tr>

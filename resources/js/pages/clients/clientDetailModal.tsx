@@ -12,9 +12,9 @@ import { Loader2, ShoppingBag } from 'lucide-react';
 
 interface Client {
     id: number;
-    document_type: string;
-    document_number: number | string;
-    verification_digit?: number;
+    document_type: string | null;
+    document_number: number | string | null;
+    verification_digit?: number | null;
     name: string;
     department?: string | null;
     city?: string | null;

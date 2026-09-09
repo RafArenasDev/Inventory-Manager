@@ -5,24 +5,25 @@ import SearchInput from '@/components/ui/search-input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import Swal from '@/lib/swal';
 import { router } from '@inertiajs/react';
-import { Eye, Pencil, Phone, ShieldOff, Smartphone, Trash2, Users } from 'lucide-react';
+import { Eye, Lock, Pencil, Phone, ShieldOff, Smartphone, Trash2, Users } from 'lucide-react';
 
 interface Client {
     id: number;
-    document_type: string;
-    document_number: number | string;
-    verification_digit?: number;
+    document_type: string | null;
+    document_number: number | string | null;
+    verification_digit?: number | null;
     name: string;
-    department_id?: number;
+    department_id?: number | null;
     department?: string | null;
-    city_id?: number;
+    city_id?: number | null;
     city?: string | null;
-    phone?: string;
-    cellphone?: string;
-    address?: string;
-    email?: string;
+    phone?: string | null;
+    cellphone?: string | null;
+    address?: string | null;
+    email?: string | null;
     is_active: boolean;
     created_at?: string;
+    anonymized_at?: string | null;
 }
 
 interface LinkProps {
@@ -196,71 +197,90 @@ export default function ClientsTable({
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        {clients.data.map((client) => (
-                            <TableRow key={client.id}>
-                                <TableCell>{client.name}</TableCell>
-                                <TableCell>
-                                    {client.document_type} {client.document_number} {client.verification_digit ? `-${client.verification_digit}` : ''}
-                                </TableCell>
-                                <TableCell>{client.email || '-'}</TableCell>
-                                <TableCell>{renderPhones(client)}</TableCell>
-                                <TableCell>
-                                    <StatusToggle
-                                        id={client.id}
-                                        isActive={client.is_active}
-                                        toggleRouteName="clients.toggle-active"
-                                        entityLabel="cliente"
-                                        entityName={client.name}
-                                    />
-                                </TableCell>
-                                {showActionsColumn && (
-                                    <TableCell className="text-right">
-                                        <div className="flex justify-end gap-2">
-                                            {userPermissions.includes('Ver Clientes') && (
-                                                <IconActionButton
-                                                    variant="ghost"
-                                                    onClick={() => onViewClient(client)}
-                                                    className="text-blue-600 hover:bg-blue-100 hover:text-blue-700 dark:text-blue-500 dark:hover:bg-blue-950/40 dark:hover:text-blue-400"
-                                                    label="Ver cliente"
-                                                >
-                                                    <Eye className="size-3.5" />
-                                                </IconActionButton>
-                                            )}
-                                            {userPermissions.includes('Editar Clientes') && (
-                                                <IconActionButton
-                                                    variant="ghost"
-                                                    onClick={() => onEditClient(client)}
-                                                    className="text-amber-600 hover:bg-amber-100 hover:text-amber-700 dark:text-amber-500 dark:hover:bg-amber-950/40 dark:hover:text-amber-400"
-                                                    label="Editar cliente"
-                                                >
-                                                    <Pencil className="size-3.5" />
-                                                </IconActionButton>
-                                            )}
-                                            {userPermissions.includes('Eliminar Clientes') && String(client.document_number) !== '222222222222' && (
-                                                <IconActionButton
-                                                    variant="ghost"
-                                                    onClick={() => handleAnonymize(client.id, client.name)}
-                                                    className="text-indigo-600 hover:bg-indigo-100 hover:text-indigo-700 dark:text-indigo-500 dark:hover:bg-indigo-950/40 dark:hover:text-indigo-400"
-                                                    label="Anonimizar datos del cliente"
-                                                >
-                                                    <ShieldOff className="size-3.5" />
-                                                </IconActionButton>
-                                            )}
-                                            {userPermissions.includes('Eliminar Clientes') && (
-                                                <IconActionButton
-                                                    variant="ghost"
-                                                    onClick={() => handleDelete(client.id, client.name)}
-                                                    className="text-red-600 hover:bg-red-100 hover:text-red-700 dark:text-red-500 dark:hover:bg-red-950/40 dark:hover:text-red-400"
-                                                    label="Eliminar cliente"
-                                                >
-                                                    <Trash2 className="size-3.5" />
-                                                </IconActionButton>
-                                            )}
-                                        </div>
+                        {clients.data.map((client) => {
+                            const isAnonymized = !!client.anonymized_at;
+
+                            return (
+                                <TableRow key={client.id}>
+                                    <TableCell>{client.name}</TableCell>
+                                    <TableCell>
+                                        {isAnonymized || !client.document_type
+                                            ? '-'
+                                            : `${client.document_type} ${client.document_number}${client.verification_digit ? `-${client.verification_digit}` : ''}`}
                                     </TableCell>
-                                )}
-                            </TableRow>
-                        ))}
+                                    <TableCell>{isAnonymized ? '-' : client.email || '-'}</TableCell>
+                                    <TableCell>{isAnonymized ? '-' : renderPhones(client)}</TableCell>
+                                    <TableCell>
+                                        <StatusToggle
+                                            id={client.id}
+                                            isActive={client.is_active}
+                                            toggleRouteName="clients.toggle-active"
+                                            entityLabel="cliente"
+                                            entityName={client.name}
+                                            disabled={isAnonymized}
+                                            disabledReason="Cliente anonimizado: no puede reactivarse."
+                                        />
+                                    </TableCell>
+                                    {showActionsColumn && (
+                                        <TableCell className="text-right">
+                                            {isAnonymized ? (
+                                                <span
+                                                    className="inline-flex items-center justify-end gap-1 text-xs text-gray-500 dark:text-gray-400"
+                                                    title="Anonimizado: sin acciones disponibles"
+                                                >
+                                                    <Lock className="size-3.5" />
+                                                    Sin acciones
+                                                </span>
+                                            ) : (
+                                                <div className="flex justify-end gap-2">
+                                                    {userPermissions.includes('Ver Clientes') && (
+                                                        <IconActionButton
+                                                            variant="ghost"
+                                                            onClick={() => onViewClient(client)}
+                                                            className="text-blue-600 hover:bg-blue-100 hover:text-blue-700 dark:text-blue-500 dark:hover:bg-blue-950/40 dark:hover:text-blue-400"
+                                                            label="Ver cliente"
+                                                        >
+                                                            <Eye className="size-3.5" />
+                                                        </IconActionButton>
+                                                    )}
+                                                    {userPermissions.includes('Editar Clientes') && (
+                                                        <IconActionButton
+                                                            variant="ghost"
+                                                            onClick={() => onEditClient(client)}
+                                                            className="text-amber-600 hover:bg-amber-100 hover:text-amber-700 dark:text-amber-500 dark:hover:bg-amber-950/40 dark:hover:text-amber-400"
+                                                            label="Editar cliente"
+                                                        >
+                                                            <Pencil className="size-3.5" />
+                                                        </IconActionButton>
+                                                    )}
+                                                    {userPermissions.includes('Eliminar Clientes') &&
+                                                        String(client.document_number) !== '222222222222' && (
+                                                            <IconActionButton
+                                                                variant="ghost"
+                                                                onClick={() => handleAnonymize(client.id, client.name)}
+                                                                className="text-indigo-600 hover:bg-indigo-100 hover:text-indigo-700 dark:text-indigo-500 dark:hover:bg-indigo-950/40 dark:hover:text-indigo-400"
+                                                                label="Anonimizar datos del cliente"
+                                                            >
+                                                                <ShieldOff className="size-3.5" />
+                                                            </IconActionButton>
+                                                        )}
+                                                    {userPermissions.includes('Eliminar Clientes') && (
+                                                        <IconActionButton
+                                                            variant="ghost"
+                                                            onClick={() => handleDelete(client.id, client.name)}
+                                                            className="text-red-600 hover:bg-red-100 hover:text-red-700 dark:text-red-500 dark:hover:bg-red-950/40 dark:hover:text-red-400"
+                                                            label="Eliminar cliente"
+                                                        >
+                                                            <Trash2 className="size-3.5" />
+                                                        </IconActionButton>
+                                                    )}
+                                                </div>
+                                            )}
+                                        </TableCell>
+                                    )}
+                                </TableRow>
+                            );
+                        })}
                         {clients.data.length === 0 && (
                             <TableRow>
                                 <TableCell colSpan={showActionsColumn ? 6 : 5} className="h-24 text-center text-gray-500 dark:text-gray-400">
