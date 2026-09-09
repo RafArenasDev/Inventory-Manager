@@ -303,15 +303,15 @@ class ProductController extends Controller
                 'code' => $validated['code'],
                 'category_id' => $validated['category_id'],
                 'name' => $validated['name'],
-                'description' => $validated['description'],
+                'description' => $validated['description'] ?? null,
                 'image_path' => $imagePath,
                 'price_without_tax' => $validated['price_without_tax'],
                 'price_with_tax' => $validated['price_with_tax'],
-                'iva_value' => $validated['iva_value'],
+                'iva_value' => $validated['iva_value'] ?? 0,
                 'sale_price' => $validated['sale_price'],
                 'supplier_id' => $validated['supplier_id'] ?: null,
                 'stock' => $validated['stock'],
-                'low_stock_threshold' => $validated['low_stock_threshold'] ?: null,
+                'low_stock_threshold' => $validated['low_stock_threshold'] ?? null,
                 'initial_movement_id' => null,
             ]);
         } catch (QueryException $e) {
@@ -451,9 +451,9 @@ class ProductController extends Controller
         // Convertir strings a integers
         $priceWithoutTax = (int) $validated['price_without_tax'];
         $priceWithTax = (int) $validated['price_with_tax'];
-        $ivaValue = $validated['iva_value'] ? (int) $validated['iva_value'] : 0;
+        $ivaValue = (int) ($validated['iva_value'] ?? 0);
         $salePrice = (int) $validated['sale_price'];
-        $stock = $validated['stock'] !== null ? (int) $validated['stock'] : $product->stock;
+        $stock = isset($validated['stock']) ? (int) $validated['stock'] : $product->stock;
         $originalStock = $product->stock;
         $stockChanged = $stock !== $originalStock;
 
@@ -462,7 +462,7 @@ class ProductController extends Controller
                 'code' => $validated['code'],
                 'category_id' => $validated['category_id'],
                 'name' => $validated['name'],
-                'description' => $validated['description'],
+                'description' => $validated['description'] ?? null,
                 'image_path' => $imagePath,
                 'price_without_tax' => $priceWithoutTax,
                 'price_with_tax' => $priceWithTax,
@@ -470,7 +470,7 @@ class ProductController extends Controller
                 'sale_price' => $salePrice,
                 'supplier_id' => $validated['supplier_id'] ?: null,
                 'stock' => $stock,
-                'low_stock_threshold' => $validated['low_stock_threshold'] ?: null,
+                'low_stock_threshold' => $validated['low_stock_threshold'] ?? null,
             ]);
         } catch (QueryException $e) {
             if ($this->isUniqueViolation($e)) {

@@ -9,8 +9,8 @@ El plan completo de QA (seguridad → funcional → carga → manuales → contr
 
 - [x] **Desarrollo** — 13 módulos, auditoría, PWA, cumplimiento legal (cerrado en `v1.11.1`, ver `CHANGELOG.md`)
 - [ ] **Pruebas y QA** — en curso
-  - [x] Seguridad — Ronda 1, ver abajo (2026-09-09)
-  - [ ] Seguridad — Ronda 2 (CSRF, fuerza bruta, sesión, carga de archivos, exposición de info, DoS)
+  - [x] Seguridad — Ronda 1 (2026-09-09): XSS, control de acceso, SQL crudo
+  - [x] Seguridad — Ronda 2 (2026-09-09): CSRF, fuerza bruta, sesión, carga de archivos, exposición de info, DoS
   - [ ] Funcional (caja negra / caja blanca)
   - [ ] Carga y estrés
 - [ ] **Manuales** (usuario + técnico)
@@ -110,16 +110,79 @@ ronda, y quedan disponibles para las siguientes fases del roadmap:
 | `tests/Feature/Security/AccessControlTest.php` | 9 pruebas: invitados, permisos faltantes/correctos, los dos endpoints corregidos, el caso especial del Dashboard |
 | `database/factories/UserFactory.php` (ajustada) | Usuarios de prueba activos y con Términos aceptados por default |
 
-### Pendiente de la sección Seguridad
+---
 
-Ninguna de estas se ha probado todavía — no se listan como "seguras", solo como pendientes para la próxima
-ronda.
+## Ronda 2 — Seguridad, cierre de la sección A (2026-09-09)
 
-| Categoría | Prioridad | Nota |
-|---|---|---|
-| CSRF | Media | Protección por defecto de Laravel, sin confirmar con test |
-| Fuerza bruta / login | Media | Throttle existe (`throttle:20,1` por IP + bloqueo por cuenta), sin test |
-| Sesión | Media | Regeneración en login/logout, banderas de cookies seguras |
-| Carga de archivos | Alta | Imagen de producto y carga masiva Excel/CSV — validar por contenido real |
-| Exposición de información | Media | `APP_DEBUG` en producción, trazas de error, archivos de config |
-| Denegación de servicio | Baja | Límites de carga masiva/exportaciones — responsabilidad compartida con el hosting |
+Las 6 categorías que quedaban pendientes de "Plan de pruebas de seguridad". Cierra la sección A completa del
+roadmap: 10/10 categorías revisadas.
+
+| Métrica | Resultado |
+|---|---|
+| Pruebas nuevas | **16** (CSRF, fuerza bruta, sesión, carga de archivos, exposición de info) |
+| Pruebas totales del proyecto | 31 → **47**, todas en verde |
+| Bugs reales encontrados y corregidos | **2** (uno de ellos solo alcanzable saltándose el frontend, nunca disparado en uso real) |
+| Categorías confirmadas ya seguras, sin cambios de código | **4** (CSRF, fuerza bruta, sesión, carga de archivos) |
+
+### CSRF — confirmado, con una salvedad de método
+
+`bootstrap/app.php` nunca registra excepciones (`validateCsrfTokens(except: [...])` no se llama en ningún
+lado) — cero rutas exentas. Lo que **no** se pudo probar con un test normal: "una petición sin token se
+rechaza" — el propio middleware de Laravel (`VerifyCsrfToken::runningUnitTests()`) se autodesactiva bajo
+PHPUnit a propósito, así que cualquier intento de simular esa petición pasa igual, sin importar qué app sea —
+es comportamiento del framework, no un hueco de este proyecto. Se confirmó en cambio que una petición con el
+token real de sesión funciona normal.
+
+### Fuerza bruta / login — confirmado, funciona como está diseñado
+
+`LoginRequest::registerFailedAttempt()` aplica cooldown creciente (1er/2do intento sin espera, 3er intento
+60s, luego 5min, luego 15min) y bloqueo duro a los 10 intentos — que sobrevive el reinicio del cooldown y solo
+se levanta restableciendo la contraseña. Las 4 pruebas nuevas ejecutaron intentos reales de principio a fin, sin
+mockear nada, y confirman las tres etapas. (Nota aparte, ya documentada en el propio código: el sistema sí dice
+explícitamente si un correo no existe o si la contraseña es incorrecta — decisión consciente para esta app
+interna de usuarios conocidos, no un descuido.)
+
+### Sesión — confirmado
+
+El ID de sesión se regenera tanto al iniciar como al cerrar sesión (previene fijación de sesión), y cambiar la
+contraseña propia cierra la sesión activa a propósito.
+
+### Carga de archivos — confirmado, con 2 bugs reales encontrados y corregidos
+
+La imagen de producto se valida por contenido real (`mimes:jpeg,png,jpg,gif`, que revisa el tipo detectado del
+archivo, no la extensión que manda el cliente) y la carga masiva usa nombres server-generados (UUID) guardados
+fuera del disco público — un archivo cargado nunca queda en una ruta ejecutable ni adivinable. La carga de CSV
+no puede validarse por "firma" de contenido (a diferencia de una imagen, un CSV es texto plano sin cabecera
+propia) pero se confirmó que un binario disfrazado de `.csv` nunca se cuela como fila válida.
+
+Al escribir las pruebas de "crear producto sin imagen dañada" aparecieron dos bugs reales en
+`ProductController::store()`/`update()`:
+
+- **`Undefined array key`** al crear/editar un producto sin `description`, `iva_value` o
+  `low_stock_threshold` en la petición — Laravel omite del array validado cualquier campo `nullable` que el
+  cliente no mande, y el controlador los leía directo (`$validated['description']`) en vez de con `??`.
+  → Corregido con acceso seguro (`?? null` / `?? 0` según lo que la columna real acepta).
+- Confirmado que el formulario del frontend (`productForm.tsx`) siempre manda estos tres campos (aunque sea
+  vacíos), así que este bug **nunca se disparó con el uso normal de la app** — solo era alcanzable llamando el
+  endpoint directo, como hace un test. No hay nada que un usuario real haya visto romperse.
+
+### Exposición de información — 1 hallazgo real, corregido
+
+- Con `APP_DEBUG` apagado (el estado real de producción), un error nunca muestra ruta de archivos ni traza
+  técnica — confirmado con una petición real.
+- **Hallazgo:** `.env.example` (la plantilla para un despliegue nuevo) traía `APP_DEBUG=true` junto con
+  `APP_ENV=production` — si alguien copia esa plantilla sin cambiarlo a mano, cada error de producción
+  mostraría la traza completa (rutas del servidor, variables de entorno) a cualquier visitante.
+  → Corregido: `APP_DEBUG=false` en la plantilla.
+
+### Denegación de servicio — revisado, sin pruebas automatizadas (prioridad baja del roadmap)
+
+Los límites ya existen a nivel de aplicación: 50 filas máximo por carga masiva
+(`InventoryImportService::MAX_ROWS`), 5MB máximo por archivo de importación, 2MB máximo por imagen. Un ataque
+de denegación de servicio distribuido real es responsabilidad del proveedor de hosting, no de la aplicación —
+consistente con lo que ya decía el roadmap original.
+
+### Sección A del roadmap — cerrada
+
+Las 10 categorías del plan de seguridad quedaron revisadas entre la Ronda 1 y la Ronda 2. Quedan en el
+roadmap como referencia, no como pendiente.
