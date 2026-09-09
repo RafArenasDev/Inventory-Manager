@@ -2,13 +2,14 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\Auditable;
 use App\Models\Concerns\BroadcastsModelChanges;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Sale extends Model
 {
-    use BroadcastsModelChanges, HasFactory;
+    use Auditable, BroadcastsModelChanges, HasFactory;
 
     protected $broadcastChannelName = 'sales';
 
@@ -36,6 +37,11 @@ class Sale extends Model
         'sale_time' => 'datetime:H:i:s',
     ];
 
+    public function auditLabel(): string
+    {
+        return 'Venta '.($this->invoice_number ?? '#'.$this->id);
+    }
+
     public function client()
     {
         return $this->belongsTo(Client::class);
@@ -56,9 +62,19 @@ class Sale extends Model
         return $this->hasMany(SaleItem::class);
     }
 
+    /**
+     * `lockForUpdate` es obligatorio y debe llamarse DENTRO de la misma
+     * DB::transaction() que crea la venta — sin esto, dos ventas
+     * registradas casi al mismo tiempo pueden leer la misma "última venta"
+     * y calcular el mismo siguiente número, chocando contra el `unique` de
+     * `invoice_number` (o peor, si no lo hubiera, generando dos facturas
+     * con el mismo número). El lock serializa: la segunda transacción
+     * espera a que la primera confirme antes de leer, así siempre ve el
+     * número ya actualizado.
+     */
     public static function generateInvoiceNumber()
     {
-        $lastSale = static::orderBy('id', 'desc')->first();
+        $lastSale = static::orderBy('id', 'desc')->lockForUpdate()->first();
 
         if (! $lastSale || ! $lastSale->invoice_number) {
             return 'A-000001';

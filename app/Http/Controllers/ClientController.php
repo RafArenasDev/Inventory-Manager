@@ -71,9 +71,30 @@ class ClientController extends Controller
     {
         $data = $request->validated();
         $data['document_number'] = in_array($data['document_type'], ['CC', 'TI', 'NIT']) ? (int) $data['document_number'] : $data['document_number'];
-        Client::create($data);
+
+        try {
+            Client::create($data);
+        } catch (QueryException $e) {
+            // La regla `unique` de ClientRequest ya valida esto, pero deja
+            // una ventana real: dos usuarios pueden pasar la validación
+            // casi al mismo tiempo (ninguna fila existe todavía para
+            // ninguno de los dos) y el segundo INSERT choca contra el
+            // `unique` de la base de datos — sin este catch, eso se veía
+            // como un error 500 crudo en vez de un aviso claro.
+            if ($this->isUniqueViolation($e)) {
+                return back()->with('error', 'Ya existe un cliente registrado con ese tipo y número de documento.')->withInput();
+            }
+            throw $e;
+        }
 
         return redirect()->route('clients.index')->with('success', 'Cliente creado correctamente.');
+    }
+
+    private function isUniqueViolation(QueryException $e): bool
+    {
+        // 23505 = Postgres, 1062 = MySQL/MariaDB — cubre ambos motores que
+        // usa este proyecto entre local y producción.
+        return $e->getCode() === '23505' || (int) $e->getCode() === 1062;
     }
 
     public function quickStore(ClientRequest $request)
@@ -85,7 +106,21 @@ class ClientController extends Controller
         $validated = $request->validated();
 
         $validated['document_number'] = in_array($validated['document_type'], ['CC', 'TI', 'NIT']) ? (int) $validated['document_number'] : $validated['document_number'];
-        $client = Client::create($validated);
+
+        try {
+            $client = Client::create($validated);
+        } catch (QueryException $e) {
+            if ($this->isUniqueViolation($e)) {
+                // Mismo formato que una respuesta 422 de validación normal
+                // — el .catch() de clientForm.tsx ya sabe leer `errors.*` y
+                // mostrarlo bajo el campo correspondiente sin cambios en el
+                // frontend.
+                return response()->json([
+                    'errors' => ['document_number' => ['Ya existe un cliente registrado con ese tipo y número de documento.']],
+                ], 422);
+            }
+            throw $e;
+        }
 
         // Cargar las relaciones para obtener los nombres
         $client->load(['department', 'city']);
@@ -122,9 +157,22 @@ class ClientController extends Controller
         return redirect()->route('clients.index')->with('success', 'Cliente actualizado correctamente.');
     }
 
-    public function destroy(Client $client): RedirectResponse
+    public function destroy(Request $request, Client $client): RedirectResponse
     {
-        AuditLogger::log('client.deleted', $client);
+        $validated = $request->validate([
+            'reason' => ['required', 'string', 'max:500'],
+        ], [
+            'reason.required' => 'Debes indicar el motivo de la eliminación.',
+        ]);
+
+        AuditLogger::log('client.deleted', $client, $validated['reason'], [
+            'name' => [$client->name, null],
+            'document' => [$client->document_type.' '.$client->document_number, null],
+            'email' => [$client->email, null],
+            'phone' => [$client->phone, null],
+            'cellphone' => [$client->cellphone, null],
+            'address' => [$client->address, null],
+        ]);
 
         $client->delete();
 
@@ -152,16 +200,30 @@ class ClientController extends Controller
      * por sí solos y quedan como referencia contable); nombre y contacto se
      * eliminan.
      */
-    public function anonymize(Client $client): RedirectResponse
+    public function anonymize(Request $request, Client $client): RedirectResponse
     {
         if ($client->document_number === 222222222222) {
             return redirect()->back()->with('error', 'El cliente "Consumidor Final" no puede anonimizarse.');
         }
 
-        AuditLogger::log('client.anonymized', $client);
+        $validated = $request->validate([
+            'reason' => ['required', 'string', 'max:500'],
+        ], [
+            'reason.required' => 'Debes indicar el motivo de la anonimización.',
+        ]);
+
+        $newName = 'Cliente Anonimizado #'.$client->id;
+
+        AuditLogger::log('client.anonymized', $client, $validated['reason'], [
+            'name' => [$client->name, $newName],
+            'email' => [$client->email, null],
+            'phone' => [$client->phone, null],
+            'cellphone' => [$client->cellphone, null],
+            'address' => [$client->address, null],
+        ]);
 
         $client->update([
-            'name' => 'Cliente Anonimizado #'.$client->id,
+            'name' => $newName,
             'email' => null,
             'phone' => null,
             'cellphone' => null,

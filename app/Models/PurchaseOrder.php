@@ -2,13 +2,14 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\Auditable;
 use App\Models\Concerns\BroadcastsModelChanges;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class PurchaseOrder extends Model
 {
-    use BroadcastsModelChanges, HasFactory;
+    use Auditable, BroadcastsModelChanges, HasFactory;
 
     protected $broadcastChannelName = 'purchase-orders';
 
@@ -29,6 +30,11 @@ class PurchaseOrder extends Model
         'received_at' => 'datetime',
         'is_low_stock_order' => 'boolean',
     ];
+
+    public function auditLabel(): string
+    {
+        return 'Pedido #'.$this->id.' — '.($this->supplier?->name ?? 'proveedor #'.$this->supplier_id);
+    }
 
     public function supplier()
     {

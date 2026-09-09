@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\SupplierRequest;
 use App\Models\Supplier;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -75,18 +76,34 @@ class SupplierController extends Controller
      */
     public function store(SupplierRequest $request): RedirectResponse|JsonResponse
     {
-        $supplier = Supplier::create([
-            'name' => $request->name,
-            'representative' => $request->representative,
-            'nit_number' => $request->nit_number,
-            'nit_digit' => $request->nit_digit,
-            'phone' => $request->phone,
-            'cellphone' => $request->cellphone,
-            'address' => $request->address,
-            'email' => $request->email,
-            'description' => $request->description,
-            'is_active' => true,
-        ]);
+        try {
+            $supplier = Supplier::create([
+                'name' => $request->name,
+                'representative' => $request->representative,
+                'nit_number' => $request->nit_number,
+                'nit_digit' => $request->nit_digit,
+                'phone' => $request->phone,
+                'cellphone' => $request->cellphone,
+                'address' => $request->address,
+                'email' => $request->email,
+                'description' => $request->description,
+                'is_active' => true,
+            ]);
+        } catch (QueryException $e) {
+            // Las reglas `unique` de SupplierRequest ya validan nombre y
+            // NIT, pero dejan una ventana real: dos usuarios pueden pasar
+            // la validación casi al mismo tiempo y el segundo INSERT choca
+            // contra el `unique` de NIT+DV en la base de datos.
+            if ($this->isUniqueViolation($e)) {
+                $message = 'Ya existe un proveedor registrado con ese NIT.';
+                if (! $request->header('X-Inertia')) {
+                    return response()->json(['errors' => ['nit_number' => [$message]]], 422);
+                }
+
+                return back()->with('error', $message)->withInput();
+            }
+            throw $e;
+        }
 
         // Creación rápida desde fuera del módulo de Proveedores (p.ej. el
         // combobox "crear proveedor" del modal de alertas de stock): sin
@@ -107,19 +124,34 @@ class SupplierController extends Controller
     public function update(SupplierRequest $request, $id): RedirectResponse
     {
         $supplier = Supplier::findOrFail($id);
-        $supplier->update([
-            'name' => $request->name,
-            'representative' => $request->representative,
-            'nit_number' => $request->nit_number,
-            'nit_digit' => $request->nit_digit,
-            'phone' => $request->phone,
-            'cellphone' => $request->cellphone,
-            'address' => $request->address,
-            'email' => $request->email,
-            'description' => $request->description,
-        ]);
+
+        try {
+            $supplier->update([
+                'name' => $request->name,
+                'representative' => $request->representative,
+                'nit_number' => $request->nit_number,
+                'nit_digit' => $request->nit_digit,
+                'phone' => $request->phone,
+                'cellphone' => $request->cellphone,
+                'address' => $request->address,
+                'email' => $request->email,
+                'description' => $request->description,
+            ]);
+        } catch (QueryException $e) {
+            if ($this->isUniqueViolation($e)) {
+                return back()->with('error', 'Ya existe otro proveedor registrado con ese NIT.')->withInput();
+            }
+            throw $e;
+        }
 
         return redirect()->route('suppliers.index')->with('success', 'Proveedor actualizado correctamente.');
+    }
+
+    private function isUniqueViolation(QueryException $e): bool
+    {
+        // 23505 = Postgres, 1062 = MySQL/MariaDB — cubre ambos motores que
+        // usa este proyecto entre local y producción.
+        return $e->getCode() === '23505' || (int) $e->getCode() === 1062;
     }
 
     /**

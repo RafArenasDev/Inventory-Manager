@@ -2,13 +2,14 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\Auditable;
 use App\Models\Concerns\BroadcastsModelChanges;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class InventoryMovement extends Model
 {
-    use BroadcastsModelChanges, HasFactory;
+    use Auditable, BroadcastsModelChanges, HasFactory;
 
     protected $broadcastChannelName = 'inventory';
 
@@ -39,6 +40,22 @@ class InventoryMovement extends Model
                 }
             }
         });
+    }
+
+    public function auditLabel(): string
+    {
+        return 'Movimiento '.$this->type.' — '.($this->product_name ?? $this->product?->name ?? 'producto #'.$this->product_id);
+    }
+
+    /**
+     * Las creaciones de ajuste manual ya se loguean a mano (con motivo
+     * obligatorio) desde el controlador; el resto de tipos son operación
+     * rutinaria ya visible completa en su propio módulo. Editar o borrar un
+     * movimiento histórico sí es inusual y se audita siempre.
+     */
+    public function shouldAudit(string $event): bool
+    {
+        return $event !== 'created';
     }
 
     public function product()

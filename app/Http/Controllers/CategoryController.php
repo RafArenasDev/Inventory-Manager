@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\CategoryRequest;
 use App\Models\Category;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -77,13 +78,19 @@ class CategoryController extends Controller
      */
     public function store(CategoryRequest $request)
     {
-        // La unicidad del nombre ya la valida CategoryRequest (Rule::unique) —
-        // un chequeo manual acá solo duplicaba la regla con un mensaje genérico
-        // en vez del error asociado al campo.
-        Category::create([
-            'name' => $request->name,
-            'description' => $request->description,
-        ]);
+        // La unicidad del nombre ya la valida CategoryRequest (Rule::unique),
+        // pero deja una ventana real bajo concurrencia — ver catch abajo.
+        try {
+            Category::create([
+                'name' => $request->name,
+                'description' => $request->description,
+            ]);
+        } catch (QueryException $e) {
+            if ($this->isUniqueViolation($e)) {
+                return back()->with('error', 'Ya existe una categoría con ese nombre.')->withInput();
+            }
+            throw $e;
+        }
 
         return redirect()->route('categories.index')->with('success', 'Categoría creada correctamente.');
     }
@@ -96,9 +103,23 @@ class CategoryController extends Controller
         $category->name = $request->name;
         $category->description = $request->description;
 
-        $category->save();
+        try {
+            $category->save();
+        } catch (QueryException $e) {
+            if ($this->isUniqueViolation($e)) {
+                return back()->with('error', 'Ya existe otra categoría con ese nombre.')->withInput();
+            }
+            throw $e;
+        }
 
         return redirect()->route('categories.index')->with('success', 'Categoría actualizada correctamente.');
+    }
+
+    private function isUniqueViolation(QueryException $e): bool
+    {
+        // 23505 = Postgres, 1062 = MySQL/MariaDB — cubre ambos motores que
+        // usa este proyecto entre local y producción.
+        return $e->getCode() === '23505' || (int) $e->getCode() === 1062;
     }
 
     /**

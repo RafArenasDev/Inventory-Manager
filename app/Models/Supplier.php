@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\Auditable;
 use App\Models\Concerns\BroadcastsModelChanges;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -9,7 +10,7 @@ use Illuminate\Support\Str;
 
 class Supplier extends Model
 {
-    use BroadcastsModelChanges, HasFactory;
+    use Auditable, BroadcastsModelChanges, HasFactory;
 
     protected $broadcastChannelName = 'inventory';
 
@@ -31,6 +32,11 @@ class Supplier extends Model
         'nit_number' => 'integer',
         'nit_digit' => 'string',
     ];
+
+    public function auditLabel(): string
+    {
+        return 'Proveedor '.$this->name;
+    }
 
     public function getNitAttribute()
     {

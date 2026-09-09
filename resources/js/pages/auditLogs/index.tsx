@@ -1,17 +1,22 @@
 import { PageHeader } from '@/components/page-header';
+import { useLiveRefresh } from '@/hooks/use-live-refresh';
 import AppLayout from '@/layouts/app-layout';
 import { BreadcrumbItem } from '@/types';
-import { Head, router } from '@inertiajs/react';
+import { Head, router, usePage } from '@inertiajs/react';
 import { History } from 'lucide-react';
 import AuditLogsTable from './auditLogsTable';
 
 interface AuditLog {
     id: number;
     user_name: string;
+    module: string | null;
     action: string;
+    action_label: string;
     subject_type: string | null;
     subject_id: number | null;
+    subject_label: string | null;
     reason: string | null;
+    changes: Record<string, [unknown, unknown]> | null;
     created_at: string;
 }
 
@@ -42,6 +47,13 @@ interface AuditLogsIndexProps {
 const breadcrumbs: BreadcrumbItem[] = [{ title: 'Auditoría', href: '/audit-logs' }];
 
 export default function AuditLogsIndex({ auditLogs, filters, totalCount, filteredCount }: AuditLogsIndexProps) {
+    // Igual que el resto de módulos: si otra sesión genera una acción
+    // auditable mientras esta pantalla está abierta, se refresca sola.
+    useLiveRefresh(['admin'], () => router.reload());
+
+    const { auth } = usePage().props as unknown as { auth: { permissions: string[] } };
+    const userPermissions = auth.permissions || [];
+
     const handleSearch = (search: string) => {
         router.post(route('audit-logs.search'), { ...filters, search, page: 1 }, { preserveState: true, preserveScroll: true });
     };
@@ -78,6 +90,7 @@ export default function AuditLogsIndex({ auditLogs, filters, totalCount, filtere
                             search={filters.search || ''}
                             onSearch={handleSearch}
                             onPeriodChange={handlePeriodChange}
+                            userPermissions={userPermissions}
                             extraFilters={{ date_from: filters.date_from, date_to: filters.date_to }}
                         />
                     </div>

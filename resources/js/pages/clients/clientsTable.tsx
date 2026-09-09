@@ -65,8 +65,12 @@ export default function ClientsTable({
     const handleDelete = (clientId: number, clientName: string) => {
         Swal.fire({
             title: '¿Estás seguro?',
-            html: `Esta acción eliminará al cliente <b>${clientName}</b> permanentemente`,
+            html: `Esta acción eliminará al cliente <b>${clientName}</b> permanentemente. Queda registrada en el historial de auditoría con tu usuario, fecha y hora.`,
             icon: 'warning',
+            input: 'textarea',
+            inputLabel: 'Motivo de la eliminación',
+            inputPlaceholder: 'Ej. Cliente duplicado, registro erróneo...',
+            inputValidator: (value) => (!value ? 'Debes indicar un motivo.' : undefined),
             showCancelButton: true,
             confirmButtonColor: '#3085d6',
             cancelButtonColor: '#d33',
@@ -75,6 +79,7 @@ export default function ClientsTable({
         }).then((result) => {
             if (result.isConfirmed) {
                 router.delete(route('clients.destroy', clientId), {
+                    data: { reason: result.value },
                     onSuccess: () => {
                         Swal.fire({
                             title: 'Eliminado!',
@@ -99,8 +104,12 @@ export default function ClientsTable({
     const handleAnonymize = (clientId: number, clientName: string) => {
         Swal.fire({
             title: '¿Anonimizar cliente?',
-            html: `Se eliminarán el nombre, teléfono, celular, correo y dirección de <b>${clientName}</b>. Las ventas ya registradas no se modifican. Esta acción no se puede deshacer.`,
+            html: `Se eliminarán el nombre, teléfono, celular, correo y dirección de <b>${clientName}</b>. Las ventas ya registradas no se modifican. Esta acción no se puede deshacer y queda registrada en el historial de auditoría.`,
             icon: 'warning',
+            input: 'textarea',
+            inputLabel: 'Motivo de la anonimización',
+            inputPlaceholder: 'Ej. Solicitud del cliente (derecho de supresión, Ley 1581 de 2012)...',
+            inputValidator: (value) => (!value ? 'Debes indicar un motivo.' : undefined),
             showCancelButton: true,
             confirmButtonColor: '#3085d6',
             cancelButtonColor: '#d33',
@@ -110,7 +119,7 @@ export default function ClientsTable({
             if (result.isConfirmed) {
                 router.patch(
                     route('clients.anonymize', clientId),
-                    {},
+                    { reason: result.value },
                     {
                         onSuccess: () => {
                             Swal.fire({

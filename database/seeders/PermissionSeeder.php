@@ -103,6 +103,7 @@ class PermissionSeeder extends Seeder
             ],
             'Auditoría' => [
                 'Ver Auditoría' => 'Permite ver el historial de auditoría de acciones críticas',
+                'Exportar Auditoría' => 'Permite exportar el historial de auditoría a Excel',
             ],
         ];
 
