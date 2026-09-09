@@ -32,9 +32,12 @@ class ProfileUpdateTest extends TestCase
                 'email' => 'test@example.com',
             ]);
 
+        // ProfileController::update() manda a /dashboard, no de vuelta a
+        // /settings/profile (decisión deliberada de la app, distinta al
+        // scaffold de Breeze del que viene este test).
         $response
             ->assertSessionHasNoErrors()
-            ->assertRedirect('/settings/profile');
+            ->assertRedirect('/dashboard');
 
         $user->refresh();
 
@@ -56,7 +59,7 @@ class ProfileUpdateTest extends TestCase
 
         $response
             ->assertSessionHasNoErrors()
-            ->assertRedirect('/settings/profile');
+            ->assertRedirect('/dashboard');
 
         $this->assertNotNull($user->refresh()->email_verified_at);
     }

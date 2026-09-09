@@ -233,6 +233,15 @@ npm run format                # Prettier sobre resources/
 npm run types                 # Chequeo de tipos de TypeScript sin emitir archivos
 ```
 
+## Calidad y pruebas
+
+```bash
+php artisan test    # 31/31 — corre contra SQLite en memoria, ver phpunit.xml
+```
+
+El progreso de QA (seguridad, funcional, carga) queda documentado en [`QA.md`](./QA.md), una sección por ronda
+de pruebas — hallazgos, evidencia y qué se corrigió, en el mismo formato que `CHANGELOG.md`.
+
 ## Versionado
 
 El historial de cambios vive en [`CHANGELOG.md`](./CHANGELOG.md) — una sección por versión con un resumen y el

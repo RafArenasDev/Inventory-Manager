@@ -15,12 +15,15 @@ return new class extends Migration
 {
     public function up(): void
     {
+        // CURRENT_TIMESTAMP en vez de NOW(): NOW() no existe en SQLite (usado
+        // por las pruebas automatizadas — ver phpunit.xml), CURRENT_TIMESTAMP
+        // sí es portable entre MySQL/Postgres/SQLite.
         DB::table('clients')
             ->where('name', 'like', 'Cliente Anonimizado #%')
             ->whereNull('anonymized_at')
             ->update([
                 'name' => 'Cliente Anonimizado',
-                'anonymized_at' => DB::raw('COALESCE(updated_at, created_at, NOW())'),
+                'anonymized_at' => DB::raw('COALESCE(updated_at, created_at, CURRENT_TIMESTAMP)'),
             ]);
     }
 

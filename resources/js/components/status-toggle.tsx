@@ -2,7 +2,7 @@ import { router } from '@inertiajs/react';
 import * as SwitchPrimitive from '@radix-ui/react-switch';
 
 import Swal from '@/lib/swal';
-import { cn } from '@/lib/utils';
+import { cn, escapeHtml } from '@/lib/utils';
 
 interface StatusToggleProps {
     id: number;
@@ -51,9 +51,10 @@ export function StatusToggle({
     // (nombre propio) — una sola forma de nombrar la entidad, reusada en los
     // tres mensajes para no repetir esta decisión en cada uno.
     const describe = (capitalize = false): string => {
-        if (!useArticle) return `<b>${entityName}</b>`;
+        const safeName = escapeHtml(entityName);
+        if (!useArticle) return `<b>${safeName}</b>`;
         const article = feminine ? 'la' : 'el';
-        return `${capitalize ? article[0].toUpperCase() + article.slice(1) : article} ${entityLabel} <b>${entityName}</b>`;
+        return `${capitalize ? article[0].toUpperCase() + article.slice(1) : article} ${entityLabel} <b>${safeName}</b>`;
     };
 
     const handleCheckedChange = () => {

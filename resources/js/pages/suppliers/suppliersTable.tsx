@@ -5,6 +5,7 @@ import { Pagination } from '@/components/ui/pagination';
 import SearchInput from '@/components/ui/search-input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import Swal from '@/lib/swal';
+import { escapeHtml } from '@/lib/utils';
 import { router } from '@inertiajs/react';
 import { Download, Pencil, Phone, Smartphone, Trash2, Truck } from 'lucide-react';
 
@@ -77,7 +78,7 @@ export default function SuppliersTable({
     const handleDelete = (supplierId: number, supplierName: string) => {
         Swal.fire({
             title: '¿Estás seguro?',
-            html: `Esta acción eliminará el proveedor <b>${supplierName}</b> permanentemente`,
+            html: `Esta acción eliminará el proveedor <b>${escapeHtml(supplierName)}</b> permanentemente`,
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#3085d6',

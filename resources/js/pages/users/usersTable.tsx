@@ -4,6 +4,7 @@ import { Pagination } from '@/components/ui/pagination';
 import SearchInput from '@/components/ui/search-input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import Swal from '@/lib/swal';
+import { escapeHtml } from '@/lib/utils';
 import { type SharedData } from '@/types';
 import { router, usePage } from '@inertiajs/react';
 import { Pencil, Trash2, Users as UsersIcon } from 'lucide-react';
@@ -64,7 +65,7 @@ export default function UsersTable({
     const handleDelete = (userId: number, userName: string) => {
         Swal.fire({
             title: '¿Estás seguro?',
-            html: `Esta acción eliminará al usuario <b>${userName}</b> permanentemente`,
+            html: `Esta acción eliminará al usuario <b>${escapeHtml(userName)}</b> permanentemente`,
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#3085d6',

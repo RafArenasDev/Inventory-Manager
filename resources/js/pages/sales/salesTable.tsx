@@ -7,6 +7,7 @@ import SearchInput from '@/components/ui/search-input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { formatDate } from '@/lib/format-datetime';
 import Swal from '@/lib/swal';
+import { escapeHtml } from '@/lib/utils';
 import { router } from '@inertiajs/react';
 import { Ban, Download, Eye, Lock, Printer, Receipt } from 'lucide-react';
 
@@ -104,7 +105,7 @@ export default function SalesTable({
     const handleCancel = (sale: Sale) => {
         Swal.fire({
             title: '¿Estás seguro?',
-            html: `Esta acción anulará la venta <b>${sale.invoice_number}</b>. Queda registrada en el historial de auditoría con tu usuario, fecha y hora.`,
+            html: `Esta acción anulará la venta <b>${escapeHtml(sale.invoice_number)}</b>. Queda registrada en el historial de auditoría con tu usuario, fecha y hora.`,
             icon: 'warning',
             input: 'textarea',
             inputLabel: 'Motivo de la anulación',

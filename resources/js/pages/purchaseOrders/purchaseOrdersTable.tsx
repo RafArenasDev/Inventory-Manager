@@ -7,6 +7,7 @@ import SearchInput from '@/components/ui/search-input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { formatDateTime } from '@/lib/format-datetime';
 import Swal from '@/lib/swal';
+import { escapeHtml } from '@/lib/utils';
 import { BUSINESS_NAME, buildPurchaseOrderMessage, openWhatsApp } from '@/lib/whatsapp';
 import { router } from '@inertiajs/react';
 import { Download, Eye, Mail, MessageCircle, PackageCheck, PackageSearch, Pencil } from 'lucide-react';
@@ -103,7 +104,7 @@ export default function PurchaseOrdersTable({
             Swal.fire({
                 icon: 'warning',
                 title: 'Sin número de contacto',
-                html: `<b>${order.supplier?.name ?? 'Este proveedor'}</b> no tiene un teléfono registrado.`,
+                html: `<b>${escapeHtml(order.supplier?.name ?? 'Este proveedor')}</b> no tiene un teléfono registrado.`,
             });
             return;
         }
@@ -116,7 +117,7 @@ export default function PurchaseOrdersTable({
             Swal.fire({
                 icon: 'warning',
                 title: 'Sin correo registrado',
-                html: `<b>${order.supplier?.name ?? 'Este proveedor'}</b> no tiene un correo registrado.`,
+                html: `<b>${escapeHtml(order.supplier?.name ?? 'Este proveedor')}</b> no tiene un correo registrado.`,
             });
             return;
         }
@@ -128,7 +129,7 @@ export default function PurchaseOrdersTable({
     const handleReceive = (order: PurchaseOrder) => {
         Swal.fire({
             title: '¿Ya llegó el pedido?',
-            html: `Se registrará la entrada de stock de todos los productos de <b>${order.supplier?.name ?? 'este pedido'}</b> y se marcará como recibido.`,
+            html: `Se registrará la entrada de stock de todos los productos de <b>${escapeHtml(order.supplier?.name ?? 'este pedido')}</b> y se marcará como recibido.`,
             icon: 'question',
             showCancelButton: true,
             confirmButtonColor: '#059669',

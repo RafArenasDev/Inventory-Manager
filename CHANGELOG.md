@@ -13,6 +13,13 @@ actualiza junto con cada tag nuevo. El modal de "Novedades" del sidebar y el
 badge de versión se generan de este archivo en build time — ver
 `scripts/generate-changelog.mjs`.
 
+## v1.12.0 - 2026-09-09
+
+Arranca la fase de pruebas del proyecto: se revisó a fondo la seguridad del sistema y se corrigieron dos fallas reales antes de que llegaran a afectar a nadie.
+
+- **Seguridad:** Se corrigió una falla que habría permitido que el nombre de un cliente, producto, proveedor, categoría, rol o usuario, si contenía texto malicioso, se ejecutara al ver el mensaje de confirmación al eliminarlo o desactivarlo.
+- **Seguridad:** Se cerró un acceso interno del módulo de Ventas que no tenía el mismo control de permisos que el resto del sistema.
+
 ## v1.11.1 - 2026-09-08
 
 La app ya se puede instalar como una aplicación, quedó con su licencia definida por escrito, la documentación del proyecto se puso al día, y la pantalla de Novedades se ve mucho más clara.
