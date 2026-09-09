@@ -231,8 +231,9 @@ export default function ClientDetailModal({ isOpen, onClose, client }: ClientDet
                         </div>
                     </div>
 
-                    {/* Única zona con overflow-y: el resto del modal (cliente, filtros) queda fuera de este contenedor */}
-                    <div className="min-h-0 flex-1 overflow-y-auto rounded-md">
+                    {/* Única zona con overflow-y: el resto del modal (cliente, filtros) queda fuera de este contenedor.
+                        pt-3/pb-6 para que el contenido no quede pegado al borde superior ni al inferior al hacer scroll. */}
+                    <div className="min-h-0 flex-1 overflow-y-auto rounded-md pt-3 pb-6">
                         {loading ? (
                             <div className="text-muted-foreground flex items-center justify-center gap-2 py-8 text-sm">
                                 <Loader2 className="h-4 w-4 animate-spin" />
