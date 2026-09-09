@@ -144,9 +144,7 @@ export default function PurchaseOrdersIndex({ purchaseOrders, suppliers, product
         // a editarlo (nada de un botón "seguir con este" que invite a crear
         // un duplicado).
         const [firstItem, ...rest] = existing.items;
-        const itemsPreview = firstItem
-            ? `${escapeHtml(firstItem.product_name)}${rest.length > 0 ? ` y ${rest.length} más` : ''}`
-            : 'otros productos';
+        const itemsPreview = firstItem ? `${escapeHtml(firstItem.product_name)}${rest.length > 0 ? ` y ${rest.length} más` : ''}` : 'otros productos';
         Swal.fire({
             icon: 'info',
             title: 'Ya hay un pedido activo por stock bajo',

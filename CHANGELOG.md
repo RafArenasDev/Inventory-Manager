@@ -13,6 +13,13 @@ actualiza junto con cada tag nuevo. El modal de "Novedades" del sidebar y el
 badge de versión se generan de este archivo en build time — ver
 `scripts/generate-changelog.mjs`.
 
+## v1.12.3 - 2026-09-09
+
+Se corrigió que el aviso del tope de facturación electrónica mostrara un monto mucho mayor al real, y se mejoró el detalle de un cliente para que sea más cómodo de revisar.
+
+- **Corrección:** El aviso de "Superaste el tope de facturación electrónica obligatoria de la DIAN" en el Dashboard mostraba un monto de ingresos 100 veces mayor al real (por ejemplo, $282.440.000 en vez de $2.824.400) — ahora el aviso refleja las ventas reales del año.
+- **Diseño:** En el detalle de un cliente, los datos del cliente (nombre, contacto, etc.) ahora quedan siempre visibles mientras se revisa su historial de compras, y la tabla de compras ya no necesita desplazarse hacia los lados para verse completa.
+
 ## v1.12.2 - 2026-09-09
 
 Se corrigió que se pudiera crear un rol con el mismo nombre que otro ya existente.
