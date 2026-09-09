@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\AuditLog;
 use App\Models\CashRegister;
 use App\Models\Category;
 use App\Models\City;
@@ -121,6 +122,7 @@ class DashboardController extends Controller
                 'pedidos' => PurchaseOrder::count(),
                 'caja' => CashRegister::count(),
                 'finanzas' => Transaction::count(),
+                'auditoria' => AuditLog::count(),
             ],
             'financials' => $financials,
             'charts' => [

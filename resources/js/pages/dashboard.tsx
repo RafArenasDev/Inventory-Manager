@@ -45,7 +45,17 @@ const MODULE_STATS_KEY: Partial<Record<string, keyof DashboardProps['stats']>> =
     sales: 'ventas',
     'cash-register': 'caja',
     transactions: 'finanzas',
+    'audit-logs': 'auditoria',
 };
+
+// Tope visual del contador de cada tarjeta — un número real más grande no
+// cabe sin traslaparse con el ícono/nombre en una tarjeta tan angosta, así
+// que a partir de acá se muestra "999+" en vez del número exacto.
+const STAT_COUNT_CAP = 999;
+
+function formatStatCount(value: number): string {
+    return value > STAT_COUNT_CAP ? `${STAT_COUNT_CAP}+` : value.toLocaleString();
+}
 
 // "Roles y Permisos" es el nombre real del permiso/módulo (debe coincidir
 // con `Ver ${module.label}`), pero en la tarjeta angosta del dashboard se
@@ -156,6 +166,7 @@ interface DashboardProps {
         pedidos: number;
         caja: number;
         finanzas: number;
+        auditoria: number;
     };
     financials: Record<
         Period,
@@ -517,7 +528,7 @@ export default function Dashboard({
                                             <p className="truncate text-xs leading-none font-semibold text-white">{stat.title}</p>
                                         </div>
                                         {stat.value !== null && (
-                                            <span className="shrink-0 text-xs font-bold text-white">{stat.value.toLocaleString()}</span>
+                                            <span className="shrink-0 text-xs font-bold text-white">{formatStatCount(stat.value)}</span>
                                         )}
                                     </button>
                                 </TooltipTrigger>
