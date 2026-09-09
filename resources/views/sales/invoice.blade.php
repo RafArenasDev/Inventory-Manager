@@ -387,8 +387,8 @@
                         <td class="product-code">{{ $item->product->code }}</td>
                         <td>{{ $item->product->name ?? 'Producto no especificado' }}</td>
                         <td class="text-right">{{ $item->quantity }}</td>
-                        <td>@include('sales.partials.money-cell', ['amount' => $item->price_at_sale])</td>
-                        <td style="font-weight: 600;">@include('sales.partials.money-cell', ['amount' => $item->subtotal])</td>
+                        <td class="text-right">$ {{ number_format($item->price_at_sale, 0, ',', '.') }}</td>
+                        <td class="text-right" style="font-weight: 600;">$ {{ number_format($item->subtotal, 0, ',', '.') }}</td>
                     </tr>
                 @endforeach
             </tbody>
@@ -398,19 +398,19 @@
         <div class="totals-box">
             <div class="total-row">
                 <span class="total-label">Subtotal:</span>
-                <span class="total-value">@include('sales.partials.money-cell', ['amount' => $sale->total_without_tax / 100])</span>
+                <span class="total-value">$ {{ number_format($sale->total_without_tax / 100, 0, ',', '.') }}</span>
             </div>
             @if($sale->discount > 0)
                 <div class="total-row">
                     {{-- Entre paréntesis va el símbolo del tipo de descuento tal como se ingresó
                          en el formulario ($ o %), no el monto ni el porcentaje calculado. --}}
                     <span class="total-label">Descuento ({{ $sale->discount_type === 'percentage' ? '%' : '$' }}):</span>
-                    <span class="total-value discount-value">@include('sales.partials.money-cell', ['amount' => ($sale->total_without_tax - $sale->total_with_discount) / 100, 'negative' => true])</span>
+                    <span class="total-value discount-value">-$ {{ number_format(($sale->total_without_tax - $sale->total_with_discount) / 100, 0, ',', '.') }}</span>
                 </div>
             @endif
             <div class="total-row grand-total">
                 <span class="total-label">TOTAL:</span>
-                <span class="total-value">@include('sales.partials.money-cell', ['amount' => $sale->total_paid / 100])</span>
+                <span class="total-value">$ {{ number_format($sale->total_paid / 100, 0, ',', '.') }}</span>
             </div>
         </div>
 

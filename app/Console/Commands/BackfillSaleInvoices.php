@@ -13,17 +13,21 @@ use Illuminate\Console\Command;
  * factura al crear cada venta nueva; esto es solo para ponerse al día con
  * lo viejo. No toca ventas anuladas (una venta anulada no debería poder
  * imprimirse como si fuera válida).
+ *
+ * --force regenera TODAS las facturas activas, no solo las que faltan —
+ * para cuando se corrige un bug visual en resources/views/sales/invoice.blade.php
+ * y las ya generadas quedaron con el diseño viejo/roto en el disco.
  */
 class BackfillSaleInvoices extends Command
 {
-    protected $signature = 'sales:backfill-invoices';
+    protected $signature = 'sales:backfill-invoices {--force : Regenerar también las que ya tienen factura}';
 
     protected $description = 'Genera la factura PDF de las ventas activas que aún no la tienen';
 
     public function handle(InvoicePdfService $service): int
     {
-        $sales = Sale::whereNull('public_invoice_url')
-            ->where('is_cancelled', false)
+        $sales = Sale::where('is_cancelled', false)
+            ->when(! $this->option('force'), fn ($query) => $query->whereNull('public_invoice_url'))
             ->get();
 
         if ($sales->isEmpty()) {
