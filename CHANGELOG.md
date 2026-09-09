@@ -13,6 +13,12 @@ actualiza junto con cada tag nuevo. El modal de "Novedades" del sidebar y el
 badge de versión se generan de este archivo en build time — ver
 `scripts/generate-changelog.mjs`.
 
+## v1.12.7 - 2026-09-09
+
+Se corrigió que la factura en PDF de una venta se viera mal alineada: el precio de cada producto y los totales quedaban separados por un espacio en blanco enorme del símbolo "$".
+
+- **Corrección:** En la factura en PDF, la columna de Precio Unitario/Total de cada producto y la caja de Subtotal/Descuento/TOTAL ahora se ven bien alineadas, sin el espacio en blanco que separaba el "$" del valor.
+
 ## v1.12.5 - 2026-09-09
 
 Se quitó por ahora la opción de exportar el Dashboard a PDF, porque las gráficas no se veían bien; el botón de Excel sigue funcionando igual.
