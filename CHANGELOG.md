@@ -15,11 +15,10 @@ badge de versión se generan de este archivo en build time — ver
 
 ## v1.12.0 - 2026-09-09
 
-Arranca la fase de pruebas del proyecto (ver [`QA.md`](./QA.md)): se revisó a fondo la seguridad del sistema y se corrigieron dos fallas reales antes de que llegaran a afectar a nadie.
+Arranca la fase de pruebas del proyecto: se revisó a fondo la seguridad del sistema y se corrigieron dos fallas reales antes de que llegaran a afectar a nadie.
 
-- **Seguridad:** Se corrigió una falla que habría permitido que el nombre de un cliente, producto, proveedor, categoría, rol o usuario, si contenía código malicioso, se ejecutara en el navegador de quien viera el mensaje de confirmación al eliminarlo o desactivarlo.
+- **Seguridad:** Se corrigió una falla que habría permitido que el nombre de un cliente, producto, proveedor, categoría, rol o usuario, si contenía texto malicioso, se ejecutara al ver el mensaje de confirmación al eliminarlo o desactivarlo.
 - **Seguridad:** Se cerró un acceso interno del módulo de Ventas que no tenía el mismo control de permisos que el resto del sistema.
-- **Corrección:** Se solucionó una inconsistencia técnica en dos datos precargados del sistema (cliente genérico DIAN, marcado de clientes eliminados) que solo afectaba al entorno interno de pruebas, sin ningún impacto para el uso real del negocio.
 
 ## v1.11.1 - 2026-09-08
 
