@@ -98,7 +98,11 @@ function formatCOP(value: number | null | undefined): string {
 
 function formatDate(date: string | undefined): string {
     if (!date) return '-';
-    return new Date(date).toLocaleDateString('es-CO', { year: 'numeric', month: 'long', day: 'numeric' });
+    const parsed = new Date(date);
+    if (isNaN(parsed.getTime())) return '-';
+    const day = String(parsed.getDate()).padStart(2, '0');
+    const month = String(parsed.getMonth() + 1).padStart(2, '0');
+    return `${day}-${month}-${parsed.getFullYear()}`;
 }
 
 export default function ClientDetailModal({ isOpen, onClose, client }: ClientDetailModalProps) {
@@ -138,9 +142,9 @@ export default function ClientDetailModal({ isOpen, onClose, client }: ClientDet
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
-            <DialogContent className="max-h-[92vh] max-w-[97vw] overflow-y-auto rounded-2xl p-0 shadow-2xl sm:max-w-[1100px]">
-                <div className="space-y-6 p-6">
-                    {/* Encabezado */}
+            <DialogContent className="flex max-h-[92vh] max-w-[97vw] flex-col overflow-hidden rounded-2xl p-0 shadow-2xl sm:max-w-[1100px]">
+                {/* Encabezado + datos de contacto: fijos, nunca se van con el scroll de las ventas */}
+                <div className="shrink-0 space-y-6 p-6 pb-0">
                     <div className="flex items-start gap-4">
                         <Avatar className="h-14 w-14 shrink-0">
                             <AvatarFallback className="bg-neutral-200 text-lg font-semibold text-black dark:bg-neutral-700 dark:text-white">
@@ -163,7 +167,6 @@ export default function ClientDetailModal({ isOpen, onClose, client }: ClientDet
                         </div>
                     </div>
 
-                    {/* Datos de contacto */}
                     <div className="border-border grid grid-cols-2 gap-x-6 gap-y-4 border-t pt-5 sm:grid-cols-3">
                         <InfoField label="Email" value={client.email} />
                         <InfoField label="Teléfono" value={client.phone} />
@@ -172,9 +175,11 @@ export default function ClientDetailModal({ isOpen, onClose, client }: ClientDet
                         <InfoField label="Departamento" value={client.department} />
                         <InfoField label="Dirección" value={client.address} />
                     </div>
+                </div>
 
-                    {/* Historial de compras */}
-                    <div className="border-border space-y-3 border-t pt-5">
+                {/* Historial de compras: única zona con scroll vertical, para que el cliente siga visible arriba */}
+                <div className="flex min-h-0 flex-1 flex-col gap-3 p-6 pt-5">
+                    <div className="border-border shrink-0 border-t pt-5">
                         <div className="flex flex-wrap items-end justify-between gap-3">
                             <h3 className="text-foreground text-sm font-semibold">Historial de Compras</h3>
                             <div className="flex flex-wrap items-end gap-3">
@@ -224,7 +229,11 @@ export default function ClientDetailModal({ isOpen, onClose, client }: ClientDet
                                 </div>
                             </div>
                         </div>
+                    </div>
 
+                    {/* Única zona con overflow-y: el resto del modal (cliente, filtros) queda fuera de este contenedor.
+                        pt-3/pb-6 para que el contenido no quede pegado al borde superior ni al inferior al hacer scroll. */}
+                    <div className="min-h-0 flex-1 overflow-y-auto rounded-md pt-3 pb-6">
                         {loading ? (
                             <div className="text-muted-foreground flex items-center justify-center gap-2 py-8 text-sm">
                                 <Loader2 className="h-4 w-4 animate-spin" />
@@ -233,7 +242,7 @@ export default function ClientDetailModal({ isOpen, onClose, client }: ClientDet
                         ) : sales.length === 0 ? (
                             <div className="text-muted-foreground py-6 text-center text-sm">No tiene compras registradas en este mes.</div>
                         ) : (
-                            <>
+                            <div className="space-y-3">
                                 <div className="bg-muted/40 border-border flex flex-wrap items-center gap-4 rounded-lg border px-4 py-3">
                                     <div className="text-foreground flex items-center gap-2 text-sm font-semibold">
                                         <ShoppingBag className="text-muted-foreground h-4 w-4" />
@@ -242,43 +251,43 @@ export default function ClientDetailModal({ isOpen, onClose, client }: ClientDet
                                     <div className="text-foreground text-sm font-semibold">Total: {formatCOP(totalMes)}</div>
                                 </div>
 
-                                <div className="overflow-x-auto rounded-md">
-                                    <Table className="min-w-full">
-                                        <TableHeader className="bg-gray-400 dark:bg-gray-700">
-                                            <TableRow>
-                                                <TableHead>Fecha</TableHead>
-                                                <TableHead>Código</TableHead>
-                                                <TableHead>Producto</TableHead>
-                                                <TableHead>Cantidad</TableHead>
-                                                <TableHead>Precio Unitario</TableHead>
-                                                <TableHead>Total Compra</TableHead>
-                                            </TableRow>
-                                        </TableHeader>
-                                        <TableBody>
-                                            {sales.flatMap((sale) =>
-                                                sale.items.map((item, index) => (
-                                                    <TableRow key={`${sale.id}-${item.id}`}>
-                                                        {index === 0 && (
-                                                            <TableCell rowSpan={sale.items.length}>{formatDate(sale.sale_date)}</TableCell>
-                                                        )}
-                                                        <TableCell className="font-mono text-xs">{item.product_code || '-'}</TableCell>
-                                                        <TableCell>{item.product_name || 'Producto no especificado'}</TableCell>
-                                                        <TableCell>{item.quantity}</TableCell>
-                                                        <TableCell>
-                                                            <CurrencyCell value={item.unit_price ?? 0} />
+                                {/* Producto puede tener nombres largos: se deja hacer wrap (en vez del whitespace-nowrap
+                                    por defecto de TableCell) para que la tabla quepa en el modal sin scroll horizontal. */}
+                                <Table>
+                                    <TableHeader className="bg-gray-400 dark:bg-gray-700">
+                                        <TableRow>
+                                            <TableHead>Fecha</TableHead>
+                                            <TableHead>Código</TableHead>
+                                            <TableHead>Producto</TableHead>
+                                            <TableHead>Cantidad</TableHead>
+                                            <TableHead>Precio Unitario</TableHead>
+                                            <TableHead>Total Compra</TableHead>
+                                        </TableRow>
+                                    </TableHeader>
+                                    <TableBody>
+                                        {sales.flatMap((sale) =>
+                                            sale.items.map((item, index) => (
+                                                <TableRow key={`${sale.id}-${item.id}`}>
+                                                    {index === 0 && <TableCell rowSpan={sale.items.length}>{formatDate(sale.sale_date)}</TableCell>}
+                                                    <TableCell className="font-mono text-xs">{item.product_code || '-'}</TableCell>
+                                                    <TableCell className="max-w-[240px] break-words whitespace-normal xl:max-w-none xl:whitespace-nowrap">
+                                                        {item.product_name || 'Producto no especificado'}
+                                                    </TableCell>
+                                                    <TableCell>{item.quantity}</TableCell>
+                                                    <TableCell>
+                                                        <CurrencyCell value={item.unit_price ?? 0} />
+                                                    </TableCell>
+                                                    {index === 0 && (
+                                                        <TableCell rowSpan={sale.items.length} className="font-semibold">
+                                                            <CurrencyCell value={sale.items.reduce((s, i) => s + i.total_price, 0)} />
                                                         </TableCell>
-                                                        {index === 0 && (
-                                                            <TableCell rowSpan={sale.items.length} className="font-semibold">
-                                                                <CurrencyCell value={sale.items.reduce((s, i) => s + i.total_price, 0)} />
-                                                            </TableCell>
-                                                        )}
-                                                    </TableRow>
-                                                )),
-                                            )}
-                                        </TableBody>
-                                    </Table>
-                                </div>
-                            </>
+                                                    )}
+                                                </TableRow>
+                                            )),
+                                        )}
+                                    </TableBody>
+                                </Table>
+                            </div>
                         )}
                     </div>
                 </div>

@@ -146,9 +146,11 @@ class DashboardController extends Controller
     {
         $threshold = (int) round(config('business.uvt_value') * config('business.annual_invoicing_threshold_uvt'));
 
-        $yearToDate = (int) Sale::where('is_cancelled', false)
+        // total_paid se guarda en centavos (ver Sale::$casts / SaleController); se
+        // divide entre 100 para comparar en pesos reales contra el umbral de la DIAN.
+        $yearToDate = (int) round(Sale::where('is_cancelled', false)
             ->whereYear('sale_date', now()->year)
-            ->sum('total_paid');
+            ->sum('total_paid') / 100);
 
         $percentage = $threshold > 0 ? round(($yearToDate / $threshold) * 100, 1) : 0;
 
