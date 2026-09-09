@@ -434,6 +434,17 @@ const ProductForm: React.FC<ProductFormProps> = ({
                     Umbral) usa un sub-grid interno de 2 columnas para que
                     cada uno ocupe exactamente la mitad del ancho de su
                     columna; un campo solo ocupa el ancho completo.
+
+                    IMPORTANTE — el gap-4 de cada columna (abajo) es a propósito
+                    DIFERENTE al gap-2 del resto de los formularios de la app: las
+                    alturas fijas de Descripción (h-[136px]/h-[228px], más abajo)
+                    están calibradas en píxeles para que su borde inferior coincida
+                    con el de "Precio de venta" en la columna 2, y esa calibración
+                    asume este gap exacto entre filas. Si se cambia el gap de
+                    cualquiera de las dos columnas, hay que recalcular esas alturas
+                    (o mejor, rediseñar esto con un grid compartido entre columnas
+                    en vez de alturas fijas a mano) — si no, las columnas dejan de
+                    alinearse. Ya pasó una vez (2026-09-09).
                 */}
                 <div className="grid grid-cols-1 gap-x-6 gap-y-6 sm:grid-cols-2 sm:gap-y-4">
                     {/* Columna 1: identidad del producto */}
@@ -494,23 +505,33 @@ const ProductForm: React.FC<ProductFormProps> = ({
                             <InputError message={errors.name} />
                         </div>
 
-                        {/* Fila 3: Descripción — 2 inputs de alto por defecto.
-                            Solo pasa a 3 inputs cuando "Otro" Y "Por utilidad"
-                            están activos a la vez (el bloque de Precio de
-                            venta gana una fila extra —Precio de venta
-                            calculado— justo cuando ya venía corrido un
-                            renglón por el "Valor del IVA" de Otro). Con
-                            cualquiera de los dos solo, o ninguno, se queda en
-                            2 inputs — solo cambia qué dos filas de la columna
-                            derecha caen dentro de su alto. */}
+                        {/* Fila 3: Descripción — su alto está calibrado en píxeles
+                            para que su borde inferior coincida con el de "Precio
+                            de venta" en la columna 2, que crece distinto según dos
+                            toggles independientes (IVA "Otro" agrega la fila "Valor
+                            del IVA"; "Por utilidad" agrega la fila "Precio de venta
+                            calculado"). Los 4 valores se midieron directamente en el
+                            navegador (DevTools, comparando dónde cae "Imagen del
+                            Producto" vs "Proveedor") con el gap-2 actual entre
+                            filas — si el gap de esta fila vuelve a cambiar, hay que
+                            remedir los 4 casos, no solo ajustar a ojo. */}
                         <div>
                             <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Descripción</label>
                             <Textarea
                                 value={data.description}
                                 onChange={handleInputChange('description')}
                                 aria-invalid={!!errors.description}
-                                className={`w-full resize-none border-gray-300 focus-visible:border-gray-400 focus-visible:ring-gray-400/50 dark:border-gray-600 dark:focus-visible:border-gray-500 dark:focus-visible:ring-gray-300/25 ${
-                                    ivaType === 'custom' && priceMode === 'profit' ? 'h-[228px]' : 'h-[136px]'
+                                className={`w-full min-h-0 resize-none border-gray-300 focus-visible:border-gray-400 focus-visible:ring-gray-400/50 dark:border-gray-600 dark:focus-visible:border-gray-500 dark:focus-visible:ring-gray-300/25 ${
+                                    // min-h-0 arriba anula el min-h-[80px] por defecto del componente Textarea, que
+                                    // si no queda por encima del h-[40px] de abajo (min-height le gana a height
+                                    // cuando min-height es mayor) y deja la caja más alta de lo calibrado.
+                                    ivaType === 'custom'
+                                        ? priceMode === 'profit'
+                                            ? 'h-[220px]'
+                                            : 'h-[128px]'
+                                        : priceMode === 'profit'
+                                          ? 'h-[132px]'
+                                          : 'h-[40px]'
                                 }`}
                             />
                             <InputError message={errors.description} />

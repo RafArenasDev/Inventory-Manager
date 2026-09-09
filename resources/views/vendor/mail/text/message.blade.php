@@ -21,7 +21,7 @@
     {{-- Footer --}}
     <x-slot:footer>
         <x-mail::footer>
-            © 2025-2026 {{ config('app.name') }}. @lang('All rights reserved.')
+            © 2025-{{ now()->year }} {{ config('app.name') }}. @lang('All rights reserved.')
         </x-mail::footer>
     </x-slot:footer>
 </x-mail::layout>
