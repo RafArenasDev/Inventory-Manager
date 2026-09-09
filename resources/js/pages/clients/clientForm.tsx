@@ -236,7 +236,7 @@ const ClientForm: React.FC<ClientFormProps> = ({ client, onCancel, onSaved, onDi
                     Los datos de este cliente se usarán únicamente para la gestión de ventas, garantías y facturación de este establecimiento,
                     conforme a la Ley 1581 de 2012.
                 </div>
-                <div className="space-y-4">
+                <div className="space-y-2">
                     {/* Fila 1: Tipo de Documento · Número de Documento */}
                     <div className="grid grid-cols-2 gap-3">
                         <div>

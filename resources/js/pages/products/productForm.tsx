@@ -437,7 +437,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
                 */}
                 <div className="grid grid-cols-1 gap-x-6 gap-y-6 sm:grid-cols-2 sm:gap-y-4">
                     {/* Columna 1: identidad del producto */}
-                    <div className="flex flex-col gap-4">
+                    <div className="flex flex-col gap-2">
                         {/* Fila 1: Código (angosto) · Categoría (ancha) */}
                         <div className="grid grid-cols-5 gap-3">
                             <div className="col-span-2">
@@ -615,7 +615,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
                     {/* Columna 2: precios, IVA, inventario comercial — fluye
                         normal: cada campo condicional que aparece empuja lo
                         de abajo, y al ocultarse todo vuelve a subir solo. */}
-                    <div className="flex flex-col gap-4">
+                    <div className="flex flex-col gap-2">
                         {/* Fila 1: Porcentaje IVA */}
                         <div>
                             <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Porcentaje IVA</label>
