@@ -226,7 +226,11 @@ class DashboardController extends Controller
             abort(400, 'Invalid period');
         }
 
-        if (! in_array($format, ['excel', 'pdf'])) {
+        // La exportación a PDF queda desactivada a propósito: las gráficas
+        // no se dibujan bien en el PDF generado (ver App\Support\ChartSvg)
+        // — se retoma más adelante. exportToPDF() se deja intacta más
+        // abajo para cuando se repare.
+        if ($format !== 'excel') {
             abort(400, 'Invalid format');
         }
 
@@ -249,11 +253,7 @@ class DashboardController extends Controller
             $allCategoryData[$p] = $this->getCategoryChartData($p);
         }
 
-        if ($format === 'excel') {
-            return $this->exportToExcel($allPeriods, $allFinancials, $allSalesData, $allCategoryData);
-        } else {
-            return $this->exportToPDF($allPeriods, $allFinancials, $allSalesData, $allCategoryData);
-        }
+        return $this->exportToExcel($allPeriods, $allFinancials, $allSalesData, $allCategoryData);
     }
 
     private function exportToExcel($allPeriods, $allFinancials, $allSalesData, $allCategoryData)
