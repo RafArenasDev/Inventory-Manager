@@ -402,8 +402,9 @@
             </div>
             @if($sale->discount > 0)
                 <div class="total-row">
-                    <span class="total-label">Descuento
-                        ({{ $sale->discount_type === 'percentage' ? number_format($sale->total_without_tax > 0 ? round($sale->discount / $sale->total_without_tax * 100) : 0, 0).'%' : 'valor fijo' }}):</span>
+                    {{-- Entre paréntesis va el símbolo del tipo de descuento tal como se ingresó
+                         en el formulario ($ o %), no el monto ni el porcentaje calculado. --}}
+                    <span class="total-label">Descuento ({{ $sale->discount_type === 'percentage' ? '%' : '$' }}):</span>
                     <span class="total-value discount-value">@include('sales.partials.money-cell', ['amount' => ($sale->total_without_tax - $sale->total_with_discount) / 100, 'negative' => true])</span>
                 </div>
             @endif

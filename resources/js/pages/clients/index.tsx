@@ -172,7 +172,7 @@ export default function ClientIndex({ clients, filters, totalCount, filteredCoun
     };
 
     const defaultClients = { data: [], links: [], from: 0, to: 0, total: 0 };
-    const hasMultiplePages = totalCount > Number(filters.per_page || 10);
+    const hasMultiplePages = filteredCount > Number(filters.per_page || 10);
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>

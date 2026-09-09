@@ -126,7 +126,7 @@ export default function RoleIndex({ roles, permissions, catalogModules, filters,
         );
     };
 
-    const hasMultiplePages = totalCount > Number(filters.per_page || 10);
+    const hasMultiplePages = filteredCount > Number(filters.per_page || 10);
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>

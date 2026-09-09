@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Support\ValidationRules;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -42,7 +43,7 @@ class ClientRequest extends FormRequest
             'phone' => 'nullable|string|max:20',
             'cellphone' => 'required|string|max:20',
             'address' => 'required|string',
-            'email' => 'required|email',
+            'email' => ['required', ...ValidationRules::email()],
         ];
     }
 }

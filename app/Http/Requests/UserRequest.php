@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Support\ValidationRules;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -28,7 +29,7 @@ class UserRequest extends FormRequest
             'name' => 'required|string|max:255',
             'email' => [
                 'required',
-                'email',
+                ...ValidationRules::email(),
                 Rule::unique('users', 'email')->ignore($this->user?->id),
             ],
             'password' => [

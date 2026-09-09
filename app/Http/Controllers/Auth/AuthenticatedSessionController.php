@@ -53,11 +53,12 @@ class AuthenticatedSessionController extends Controller
 
     /**
      * Este PC no es un servidor 24/7 (se prende y apaga a diario), así que no
-     * sirve programar `app:deactivate-inactive-entities` con el scheduler de
-     * Laravel/cron de Windows. En su lugar, se ejecuta una vez por día
-     * aprovechando el primer login del día — la fecha del último run queda
-     * en la tabla `cache` (CACHE_STORE=database), así que sobrevive a
-     * reinicios del PC sin necesitar una tabla nueva.
+     * sirve programar tareas de mantenimiento (desactivación por inactividad,
+     * backfill de facturas) con el scheduler de Laravel/cron de Windows. En
+     * su lugar, se ejecutan una vez por día aprovechando el primer login del
+     * día — la fecha del último run queda en la tabla `cache`
+     * (CACHE_STORE=database), así que sobrevive a reinicios del PC sin
+     * necesitar una tabla nueva.
      */
     private function runDailyMaintenanceOnce(): void
     {
@@ -69,6 +70,7 @@ class AuthenticatedSessionController extends Controller
 
         Cache::forever('daily_maintenance_last_run', $today);
         Artisan::call('app:deactivate-inactive-entities');
+        Artisan::call('sales:backfill-invoices');
     }
 
     /**

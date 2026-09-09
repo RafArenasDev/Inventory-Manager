@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use App\Models\Supplier;
+use App\Support\ValidationRules;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -42,7 +43,7 @@ class SupplierRequest extends FormRequest
             'phone' => 'nullable|string|max:20',
             'cellphone' => 'nullable|string|max:20',
             'address' => ['required', 'string'],
-            'email' => ['required', 'email', 'max:255'],
+            'email' => ['required', ...ValidationRules::email(), 'max:255'],
             'description' => 'nullable|string',
         ];
     }

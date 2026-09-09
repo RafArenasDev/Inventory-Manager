@@ -117,7 +117,7 @@ export default function CategoryIndex({ categories, filters, totalCount, filtere
     // margen inferior respecto al módulo quede igual al superior — igual
     // que el panel de Resumen Financiero del Dashboard. Con pocos registros
     // se deja del tamaño natural, sin espacio muerto forzado abajo.
-    const hasMultiplePages = totalCount > Number(filters.per_page || 10);
+    const hasMultiplePages = filteredCount > Number(filters.per_page || 10);
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
